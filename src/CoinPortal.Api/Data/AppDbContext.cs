@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     public DbSet<Coin> Coins => Set<Coin>();
     public DbSet<Country> Countries => Set<Country>();
+    public DbSet<CoinPhoto> CoinPhotos => Set<CoinPhoto>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -73,6 +74,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 t.HasCheckConstraint("CK_Coins_Denomination", $"[Denomination] IN ({denominations})");
                 t.HasCheckConstraint("CK_Coins_Year", $"[Year] >= {Coin.MinYear}");
                 t.HasCheckConstraint("CK_Coins_Quantity", "[Quantity] >= 1");
+            });
+        });
+
+        builder.Entity<CoinPhoto>(b =>
+        {
+            // Generated in code, it is also the storage folder name
+            b.Property(p => p.Id).ValueGeneratedNever();
+
+            // Deleting a coin deletes its photo rows (files are removed by the API)
+            b.HasOne(p => p.Coin)
+             .WithMany(c => c.Photos)
+             .HasForeignKey(p => p.CoinId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(p => new { p.CoinId, p.Side }).IsUnique();
+
+            var sides = string.Join(", ", Enum.GetValues<CoinSide>().Cast<int>());
+            b.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_CoinPhotos_Side", $"[Side] IN ({sides})");
+                t.HasCheckConstraint("CK_CoinPhotos_SizeBytes", "[SizeBytes] > 0");
             });
         });
     }

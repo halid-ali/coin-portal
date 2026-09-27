@@ -1,13 +1,13 @@
 <section class="mx-auto w-full max-w-2xl">
   <div class="mb-6 flex items-center justify-between gap-3">
     <h1 class="text-2xl font-semibold text-slate-900">{{ isEdit() ? 'Coini düzenle' : 'Coin ekle' }}</h1>
-    <a routerLink="/collection" class="link text-sm">‹ Koleksiyona dön</a>
+    <a routerLink="/collection" [queryParams]="returnParams()" class="link text-sm">‹ Koleksiyona dön</a>
   </div>
 
   @if (notFound()) {
     <div class="card text-center">
       <p class="text-slate-600">Coin bulunamadı. Silinmiş ya da sana ait olmayabilir.</p>
-      <a routerLink="/collection" class="btn-secondary mt-4">Koleksiyona dön</a>
+      <a routerLink="/collection" [queryParams]="returnParams()" class="btn-secondary mt-4">Koleksiyona dön</a>
     </div>
   } @else if (loading()) {
     <p class="text-center text-slate-500">Yükleniyor…</p>
@@ -110,6 +110,20 @@
         }
       </div>
 
+      <fieldset>
+        <legend class="form-label">Fotoğraflar</legend>
+        <p class="form-hint mt-0 mb-3">
+          İsteğe bağlı. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.
+        </p>
+        <div class="grid grid-cols-2 gap-4 sm:gap-6">
+          @for (side of sides; track side.value) {
+            <app-photo-slot [label]="side.label" [hint]="side.hint" [coinId]="coin()?.id ?? null"
+                            [stored]="storedPhoto(side.value)" [disabled]="submitting() || deleting()"
+                            [(change)]="photoChanges[side.value]" (view)="viewerSide.set(side.value)" />
+          }
+        </div>
+      </fieldset>
+
       <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         @if (isEdit()) {
           <button type="button" class="btn-secondary text-red-700 hover:bg-red-50"
@@ -120,12 +134,19 @@
           <span></span>
         }
         <div class="flex flex-col-reverse gap-3 sm:flex-row">
-          <a routerLink="/collection" class="btn-secondary">Vazgeç</a>
+          <a routerLink="/collection" [queryParams]="returnParams()" class="btn-secondary">Vazgeç</a>
           <button type="submit" class="btn-primary" [disabled]="submitting() || deleting()">
             {{ submitting() ? 'Kaydediliyor…' : 'Kaydet' }}
           </button>
         </div>
       </div>
     </form>
+
+    @if (viewerSide(); as side) {
+      @if (coin(); as c) {
+        <app-photo-viewer [coinId]="c.id" [photos]="c.photos" [title]="c.title" [initialSide]="side"
+                          (closed)="viewerSide.set(null)" />
+      }
+    }
   }
 </section>

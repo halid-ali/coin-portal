@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Locally stored coin photos (PhotoStorage:RootPath)
+src/CoinPortal.Api/App_Data/

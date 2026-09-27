@@ -1,6 +1,7 @@
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Querying;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +19,8 @@ namespace CoinPortal.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userManager) : ControllerBase
+public class CoinsController(
+    AppDbContext db, UserManager<ApplicationUser> userManager, IPhotoStorage photoStorage) : ControllerBase
 {
     private string CurrentUserId => userManager.GetUserId(User)!;
 
@@ -28,7 +30,7 @@ public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userM
         [FromQuery] CoinListQuery query, CancellationToken ct)
     {
         var userId = CurrentUserId;
-        var coins = db.Coins.AsNoTracking().Where(c => c.OwnerId == userId);
+        var coins = db.Coins.AsNoTracking().Include(c => c.Photos).Where(c => c.OwnerId == userId);
 
         if (query.Denomination is { } denomination)
         {
@@ -134,8 +136,15 @@ public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userM
             return NotFound();
         }
 
+        var photoIds = coin.Photos.Select(p => p.Id).ToList();
         db.Coins.Remove(coin);
         await db.SaveChangesAsync(ct);
+
+        // Photo rows went with the coin (cascade); files only after the delete succeeded
+        foreach (var photoId in photoIds)
+        {
+            await photoStorage.DeleteAsync(coin.OwnerId, photoId);
+        }
 
         return NoContent();
     }
@@ -144,7 +153,8 @@ public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userM
     private Task<Coin?> FindOwnedAsync(int id, CancellationToken ct)
     {
         var userId = CurrentUserId;
-        return db.Coins.FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId, ct);
+        return db.Coins.Include(c => c.Photos)
+            .FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId, ct);
     }
 
     // Returns the normalized code, or null after adding a model error

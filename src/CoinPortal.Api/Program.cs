@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 using CoinPortal.Api.DevData;
+using CoinPortal.Api.Photos;
 
 // Our own switch is removed so the configuration command-line parser never sees it
 var seedDevData = args.Contains(DevDataSeeder.CommandLineSwitch);
@@ -81,6 +82,15 @@ builder.Services.AddControllersWithViews(options =>
     // Enums as names ("Euro2") in both directions; reject raw numbers like 999
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
 });;
+
+// Coin photos: storage folder and limits from the "PhotoStorage" section.
+// The image library is only behind IImageProcessor; swap the implementation here.
+builder.Services.AddOptions<PhotoOptions>()
+    .Bind(builder.Configuration.GetSection(PhotoOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<IPhotoStorage, FileSystemPhotoStorage>();
+builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

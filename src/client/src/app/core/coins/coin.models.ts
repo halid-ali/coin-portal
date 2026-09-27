@@ -83,9 +83,40 @@ export interface Coin {
   mintMark: string | null;
   isCommemorative: boolean;
   quantity: number;
+  /** At most one per side, national side first. */
+  photos: CoinPhoto[];
   createdAtUtc: string;
   updatedAtUtc: string;
 }
+
+/**
+ * Mirrors the API's CoinSide enum, in euro coin terms. "Ön/arka yüz" is avoided on purpose:
+ * people use it for either side. The national side identifies the coin, so it comes first.
+ */
+export type CoinSide = 'National' | 'Common';
+
+export const COIN_SIDES: readonly { value: CoinSide; label: string; hint: string }[] = [
+  { value: 'National', label: 'Ulusal yüz', hint: 'Ülkeye özgü taraf' },
+  { value: 'Common', label: 'Ortak yüz', hint: 'Değerin yazdığı, tüm ülkelerde aynı taraf' },
+];
+
+export interface CoinPhoto {
+  side: CoinSide;
+  /** Changes on every upload; used as the cache version in photo URLs. */
+  id: string;
+}
+
+/** Stored renditions: 150 px, 600 px, up to 1600 px (square WebP). */
+export type PhotoSize = 'thumb' | 'preview' | 'full';
+
+/** Same limits as the API (PhotoStorage options). */
+export const PHOTO_LIMITS = {
+  maxUploadBytes: 10 * 1024 * 1024,
+  minPixels: 150,
+  /** Longest edge sent to the API; the server never stores more. */
+  maxPixels: 1600,
+  acceptedTypes: ['image/jpeg', 'image/png'],
+} as const;
 
 export interface CoinUpsertRequest {
   title: string;
