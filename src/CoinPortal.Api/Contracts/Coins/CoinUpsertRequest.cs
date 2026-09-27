@@ -32,6 +32,10 @@ public class CoinUpsertRequest : IValidatableObject
     [Range(1, 999)]
     public int Quantity { get; set; } = 1;
 
+    // One of the user's collections; a different one on update moves the coin
+    [Required, Range(1, int.MaxValue)]
+    public int? CollectionId { get; set; }
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         // Mints sometimes release next year's coins in December

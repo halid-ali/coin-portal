@@ -25,6 +25,48 @@ public class ImageSharpImageProcessor(IOptions<PhotoOptions> options) : IImagePr
 
     public async Task<IReadOnlyDictionary<PhotoSize, byte[]>> ProcessAsync(Stream source, CancellationToken ct)
     {
+        using var image = await LoadAsync(source, ct);
+
+        var side = Math.Min(image.Width, image.Height);
+        if (side < PhotoSize.Thumb.Pixels())
+        {
+            throw new InvalidImageException(
+                $"The image must be at least {PhotoSize.Thumb.Pixels()} pixels on each side.");
+        }
+        CropCentered(image, side, side);
+
+        var result = new Dictionary<PhotoSize, byte[]>();
+        foreach (var size in PhotoSizes.All)
+        {
+            var pixels = size == PhotoSize.Full ? Math.Min(size.Pixels(), side) : size.Pixels();
+            result[size] = await EncodeAsync(image, pixels, pixels, ct);
+        }
+        return result;
+    }
+
+    public async Task<byte[]> ProcessCoverAsync(Stream source, CancellationToken ct)
+    {
+        using var image = await LoadAsync(source, ct);
+
+        // Largest centered 16:9 rectangle
+        var width = Math.Min(image.Width, image.Height * CoverImage.AspectWidth / CoverImage.AspectHeight);
+        if (width < CoverImage.MinWidth)
+        {
+            throw new InvalidImageException(
+                $"The cover must be at least {CoverImage.MinWidth} pixels wide in 16:9.");
+        }
+        CropCentered(image, width, CoverImage.HeightFor(width));
+
+        var targetWidth = Math.Min(CoverImage.Width, width);
+        return await EncodeAsync(image, targetWidth, CoverImage.HeightFor(targetWidth), ct);
+    }
+
+    /// <summary>
+    /// Validates format and size from the header, decodes, applies the EXIF orientation and
+    /// removes all metadata (EXIF may contain GPS coordinates).
+    /// </summary>
+    private async Task<Image> LoadAsync(Stream source, CancellationToken ct)
+    {
         try
         {
             // Header only: format and dimensions are checked before any pixel is decoded
@@ -41,51 +83,45 @@ public class ImageSharpImageProcessor(IOptions<PhotoOptions> options) : IImagePr
             }
 
             source.Position = 0;
-            using var image = await Image.LoadAsync(Decoder, source, ct);
+            var image = await Image.LoadAsync(Decoder, source, ct);
 
-            // Orientation first, it decides which part a centered square crop keeps
+            // Orientation first, it decides which part a centered crop keeps
             image.Mutate(x => x.AutoOrient());
 
-            var side = Math.Min(image.Width, image.Height);
-            if (side < PhotoSize.Thumb.Pixels())
-            {
-                throw new InvalidImageException(
-                    $"The image must be at least {PhotoSize.Thumb.Pixels()} pixels on each side.");
-            }
-            if (image.Width != image.Height)
-            {
-                image.Mutate(x => x.Crop(new Rectangle(
-                    (image.Width - side) / 2, (image.Height - side) / 2, side, side)));
-            }
-
-            // No metadata in the output (EXIF may contain GPS coordinates)
             image.Metadata.ExifProfile = null;
             image.Metadata.IccProfile = null;
             image.Metadata.XmpProfile = null;
             image.Metadata.IptcProfile = null;
             image.Metadata.CicpProfile = null;
-
-            var encoder = new WebpEncoder
-            {
-                FileFormat = WebpFileFormatType.Lossy,
-                Quality = options.WebpQuality,
-            };
-
-            var result = new Dictionary<PhotoSize, byte[]>();
-            foreach (var size in PhotoSizes.All)
-            {
-                var pixels = size == PhotoSize.Full ? Math.Min(size.Pixels(), side) : size.Pixels();
-                using var resized = image.Clone(x => x.Resize(pixels, pixels));
-                using var output = new MemoryStream();
-                await resized.SaveAsync(output, encoder, ct);
-                result[size] = output.ToArray();
-            }
-            return result;
+            return image;
         }
         catch (Exception e) when (e is UnknownImageFormatException or InvalidImageContentException
                                       or ImageFormatException)
         {
             throw new InvalidImageException("The file is not a valid image.", e);
         }
+    }
+
+    private static void CropCentered(Image image, int width, int height)
+    {
+        if (image.Width != width || image.Height != height)
+        {
+            image.Mutate(x => x.Crop(new Rectangle(
+                (image.Width - width) / 2, (image.Height - height) / 2, width, height)));
+        }
+    }
+
+    private async Task<byte[]> EncodeAsync(Image image, int width, int height, CancellationToken ct)
+    {
+        var encoder = new WebpEncoder
+        {
+            FileFormat = WebpFileFormatType.Lossy,
+            Quality = options.WebpQuality,
+        };
+
+        using var resized = image.Clone(x => x.Resize(width, height));
+        using var output = new MemoryStream();
+        await resized.SaveAsync(output, encoder, ct);
+        return output.ToArray();
     }
 }

@@ -73,14 +73,33 @@ public static class DevDataSeeder
                 }
             }
 
-            // Only the seed users' coins are touched; other accounts stay as they are.
+            // Only the seed users' data is touched; other accounts stay as they are.
             // Photo rows go with the coins (cascade), their files are removed here.
             var removed = await db.Coins.Where(c => c.OwnerId == user.Id).ExecuteDeleteAsync();
+            await db.Collections.Where(c => c.OwnerId == user.Id).ExecuteDeleteAsync();
             await photoStorage.DeleteOwnerAsync(user.Id);
+
+            // Two collections, so several collections can be tried out right away:
+            // the default one and the commemorative coins
+            var now = DateTime.UtcNow;
+            var main = new Collection
+            {
+                OwnerId = user.Id, Name = Collection.DefaultName, CreatedAtUtc = now, UpdatedAtUtc = now
+            };
+            var commemorative = new Collection
+            {
+                OwnerId = user.Id,
+                Name = "Hatıra paraları",
+                Description = "2 € hatıra paraları",
+                CreatedAtUtc = now.AddSeconds(1),
+                UpdatedAtUtc = now.AddSeconds(1)
+            };
+            db.Collections.AddRange(main, commemorative);
 
             db.Coins.AddRange(seedUser.Coins.Select(c => new Coin
             {
                 OwnerId = user.Id,
+                Collection = c.IsCommemorative ? commemorative : main,
                 Title = c.Title,
                 Description = c.Description,
                 Denomination = c.Denomination,

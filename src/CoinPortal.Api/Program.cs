@@ -91,6 +91,7 @@ builder.Services.AddOptions<PhotoOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton<IPhotoStorage, FileSystemPhotoStorage>();
 builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
+builder.Services.AddScoped<PhotoQuota>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

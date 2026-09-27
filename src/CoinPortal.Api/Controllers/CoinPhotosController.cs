@@ -24,18 +24,16 @@ public class CoinPhotosController(
     UserManager<ApplicationUser> userManager,
     IImageProcessor imageProcessor,
     IPhotoStorage photoStorage,
+    PhotoQuota photoQuota,
     IOptions<PhotoOptions> photoOptions,
     ILogger<CoinPhotosController> logger) : ControllerBase
 {
-    // Hard transport limit; the configurable MaxUploadBytes (default 10 MB) is checked below
-    private const long MaxRequestBytes = 50 * 1024 * 1024;
-
     private string CurrentUserId => userManager.GetUserId(User)!;
 
     /// <summary>Uploads or replaces the photo of one side (multipart, field "file").</summary>
     [HttpPut("{side:alpha}")]
-    [RequestSizeLimit(MaxRequestBytes)]
-    [RequestFormLimits(MultipartBodyLengthLimit = MaxRequestBytes)]
+    [RequestSizeLimit(ImageUploadExtensions.MaxRequestBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = ImageUploadExtensions.MaxRequestBytes)]
     [ProducesResponseType<CoinResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -43,50 +41,39 @@ public class CoinPhotosController(
     public async Task<ActionResult<CoinResponse>> Upload(
         int coinId, CoinSide side, IFormFile? file, CancellationToken ct)
     {
-        var options = photoOptions.Value;
         var coin = await FindOwnedCoinAsync(coinId, ct);
         if (coin is null)
         {
             return NotFound();
         }
 
-        if (file is null || file.Length == 0)
+        var (buffer, problem) = await this.BufferUploadAsync(file, photoOptions.Value, ct);
+        if (problem is not null)
         {
-            return PhotoProblem("file_missing", "No file was uploaded.");
-        }
-        if (file.Length > options.MaxUploadBytes)
-        {
-            return PhotoProblem("file_too_large",
-                $"The file must not be larger than {options.MaxUploadBytes / (1024.0 * 1024):0.##} MB.");
+            return problem;
         }
 
-        IReadOnlyDictionary<PhotoSize, byte[]> files;
+        IReadOnlyDictionary<PhotoSize, byte[]> sizes;
         try
         {
-            // Buffered, so the processor can read the header first and then the pixels
-            await using var buffer = new MemoryStream((int)file.Length);
-            await file.CopyToAsync(buffer, ct);
-            buffer.Position = 0;
-            files = await imageProcessor.ProcessAsync(buffer, ct);
+            await using (buffer)
+            {
+                sizes = await imageProcessor.ProcessAsync(buffer!, ct);
+            }
         }
         catch (InvalidImageException e)
         {
-            return PhotoProblem("invalid_image", e.Message);
+            return this.CodedProblem("invalid_image", e.Message);
         }
 
         var existing = coin.Photos.FirstOrDefault(p => p.Side == side);
+        var files = sizes.ToDictionary(s => s.Key.FileName(), s => s.Value);
         var sizeBytes = files.Values.Sum(f => (long)f.Length);
 
         // The photo being replaced does not count against the quota
-        var userId = CurrentUserId;
-        var replacedId = existing?.Id;
-        var used = await db.CoinPhotos
-            .Where(p => p.Coin.OwnerId == userId && p.Id != replacedId)
-            .SumAsync(p => (long?)p.SizeBytes, ct) ?? 0;
-        if (used + sizeBytes > options.UserQuotaBytes)
+        if (!await photoQuota.FitsAsync(coin.OwnerId, sizeBytes, existing?.Id, ct))
         {
-            return PhotoProblem("quota_exceeded",
-                $"Photo storage limit of {options.UserQuotaBytes / (1024.0 * 1024):0.##} MB reached.");
+            return this.QuotaExceeded(photoQuota.LimitBytes);
         }
 
         // Files first, then the row: a failed save removes the new files again
@@ -116,7 +103,7 @@ public class CoinPhotosController(
         {
             await photoStorage.DeleteAsync(coin.OwnerId, photo.Id);
             logger.LogWarning(e, "Saving photo {Side} of coin {CoinId} failed", side, coin.Id);
-            return PhotoProblem("conflict", "The photo was changed at the same time. Try again.",
+            return this.CodedProblem("conflict", "The photo was changed at the same time. Try again.",
                 StatusCodes.Status409Conflict);
         }
 
@@ -169,7 +156,7 @@ public class CoinPhotosController(
             return NotFound();
         }
 
-        var stream = photoStorage.OpenRead(photo.OwnerId, photo.Id, size);
+        var stream = photoStorage.OpenRead(photo.OwnerId, photo.Id, size.FileName());
         if (stream is null)
         {
             logger.LogWarning("Photo file missing: {PhotoId} {Size}", photo.Id, size);
@@ -187,12 +174,5 @@ public class CoinPhotosController(
         var userId = CurrentUserId;
         return db.Coins.Include(c => c.Photos)
             .FirstOrDefaultAsync(c => c.Id == coinId && c.OwnerId == userId, ct);
-    }
-
-    private ObjectResult PhotoProblem(string code, string title, int status = StatusCodes.Status400BadRequest)
-    {
-        var problem = ProblemDetailsFactory.CreateProblemDetails(HttpContext, status, title);
-        problem.Extensions["code"] = code;
-        return new ObjectResult(problem) { StatusCode = status };
     }
 }
