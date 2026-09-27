@@ -1,7 +1,7 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-27 (fotoğraf yükleme tamamlandı ve main'e merge edildi; ImageSharp lisans kararı
-ilk publish'ten önce verilecek)
+Son güncelleme: 2026-09-27 (birden fazla koleksiyon tamamlandı, `feat/collections`; sıradaki adım
+paylaşım. ImageSharp lisans kararı ilk publish'ten önce verilecek)
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -126,17 +126,63 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
    - **Izgara görünümü:** Koleksiyonda liste/ızgara geçişi (iki ikon buton, URL'de `view=grid`). Izgarada
      masaüstünde satır başına 5, tablette 3, telefonda 2 kutu (kullanıcı kararı); kutuda ulusal yüz
      fotoğrafı (600 px), başlık, nominal ve ülke/yıl; kutuya tıklamak tam ekran görüntüleyiciyi
-     (fotoğraf yoksa düzenlemeyi), sağ üstteki kalem butonu düzenlemeyi açar (kullanıcı kararı). Izgarada "Sırala" menüsü masaüstünde de görünür. Sayfalama satırı üç bölmeli: solda
-     görünüm, ortada sayfa butonları, sağda sayfa başına.
-     Coin formundan dönüşler listenin son durumunu (görünüm, filtre, sıralama, sayfa) korur.
-   - Seed kullanıcısı `ayse.yilmaz`'ın coin 122'sinde test fotoğrafları (kırmızı/mavi) duruyor; dev seed
-     tekrar çalıştırılınca temizlenir.
+     (fotoğraf yoksa düzenlemeyi), sağ üstteki kalem butonu düzenlemeyi açar (kullanıcı kararı).
+     Izgarada "Sırala" menüsü masaüstünde de görünür. Sayfalama satırı üç bölmeli: solda görünüm,
+     ortada sayfa butonları, sağda sayfa başına. Coin formundan dönüşler listenin son durumunu
+     (görünüm, filtre, sıralama, sayfa) korur.
+9. **Birden fazla koleksiyon** (`feat/collections`, paylaşımın 1. aşaması):
+   - API: `Collection` entity (sahip, ad ≤100, açıklama ≤1000; sahip başına benzersiz ad, Türkçe
+     büyük/küçük harf duyarsız), coin'de zorunlu `CollectionId` (FK restrict; `OwnerId` korunur).
+     Migration `AddCollections` elle düzenlendi: her kullanıcıya "Koleksiyonum" açıp coin'leri taşır
+     (9 kullanıcı, 570 coin kayıpsız taşındı). `CollectionsController` (`api/collections`: liste
+     [coin sayısı + kapak fotoğrafı], getir, oluştur, güncelle, sil `?moveTo=`; `last_collection`,
+     `invalid_target`, `DuplicateName`). `api/coins?collectionId=`, coin oluşturma/güncellemede zorunlu
+     `collectionId` (taşıma). Kayıtta varsayılan koleksiyon. Ortak `CodedProblem` yardımcısı.
+     Dev seed: her seed kullanıcısında "Koleksiyonum" + "Hatıra paraları" (hatıra coin'leri).
+   - Client: `/collections` (kartlar: kapak, ad, açıklama, coin sayısı; "+ Yeni koleksiyon"),
+     `/collections/:id` (başlık, Düzenle, Sil, "+ Coin ekle"), `/coins/new?collection=`,
+     `/coins/:id/edit` (koleksiyon seçimi, taşıma uyarısı); eski adresler yönlendirilir.
+     `CollectionFormDialog`, `CollectionDeleteDialog` (ad yazarak onay, taşı/sil seçimi, tek koleksiyon
+     uyarısı). Menüde "Koleksiyonlarım". `CollectionReturn` artık tam adresi hatırlıyor.
+   - Doğrulama: API için 27 kontrollük Node testi (başkasının koleksiyonu 404, Türkçe ad çakışması,
+     taşıma/silme, fotoğraf dosyalarının silinmesi, kayıtta varsayılan koleksiyon); arayüz için headless
+     Edge'de 26 kontrollük akış testi.
+   - Not: seed yeniden çalıştırıldığı için seed kullanıcılarındaki fotoğraflar silindi (12 kayıt;
+     kullanıcının bu hesaplarla yaptığı yüklemeler de dahil olabilir).
+   - **Kapak fotoğrafı** (kullanıcı isteği): koleksiyon düzenleme/oluşturma penceresinde 16:9 kırpma
+     (dikdörtgen çerçeve), Kaydet'te yüklenir; yoksa son coin fotoğrafı "Otomatik" olarak kullanılır.
+     API: `Collection.CoverImageId`/`CoverSizeBytes` (migration `AddCollectionCover`),
+     `CollectionCoversController` (`PUT`/`DELETE`/`GET api/collections/{id}/cover?v=`), en fazla 1200×675
+     WebP, büyütme yok, en az 320 px genişlik; kotaya dahil (`PhotoQuota`); koleksiyon silinince dosya
+     da silinir. Koleksiyon sayfası başlığında küçük kapak. 21 kontrollük API testi, arayüz testi.
+   - **Navbar** (kullanıcı isteği): yapışkan, bulanık arka planlı üst çubuk; ikonlu menü öğeleri (aktif
+     sayfa amber hap), sağda baş harf avatarı + kullanıcı menüsü (ad, e-posta, Çıkış; Esc ve dışarı
+     tıklama kapatır), mobilde tam genişlik menü.
+   - Izgaradaki açıklamasız mavi nokta (hatıra göstergesi) fotoğrafın köşesinde "Hatıra" etiketi oldu.
 
-## Sıradaki adım
+## Sıradaki adım: Paylaşım (2. aşama, `feat/sharing`)
 
-1. Adaylar (sıra değişebilir): gelişmiş filtreler, görünürlük ayarı ve paylaşılabilir profil sayfası
-   (diğer kullanıcıların koleksiyonları, kullanıcı adına göre filtre; fotoğraf watermark'ı bununla
-   birlikte, bkz. Açık konular 8).
+Kararlar (2026-09-27, kullanıcıyla):
+
+- **Kullanıcı birden fazla koleksiyon oluşturabilir; görünürlük koleksiyon başına.** Amaç ileride Euro
+  dışı ve antika coin'leri de ayrı koleksiyonlarda tutabilmek (bkz. Açık konular 10).
+- **1. aşama – `feat/collections` (tamamlandı, bkz. Tamamlananlar 9):** `Collections` tablosu (sahip, ad, açıklama), her coin bir koleksiyona
+  bağlı. Migration her kullanıcıya "Koleksiyonum" açıp mevcut coin'leri oraya taşır; yeni kayıtta da
+  otomatik açılır. "Koleksiyonlarım" sayfası (kapak fotoğrafı, coin sayısı), koleksiyon oluşturma /
+  yeniden adlandırma / silme, koleksiyon sayfası (mevcut liste/ızgara), coin formunda koleksiyon seçimi
+  (taşıma). Fotoğraf kotası kullanıcı başına kalır.
+  - **Silme:** Onay penceresinde koleksiyonun adı yazılmadan silinemez (boş olsa da). İçinde coin varsa
+    seçenek: coin'leri başka koleksiyona taşı ya da coin'lerle (ve fotoğraflarıyla) birlikte sil.
+    Kullanıcının tek koleksiyonu silinemez.
+- **2. aşama – `feat/sharing`:** Koleksiyon başına görünürlük: Özel (varsayılan) / Sadece linkle (gizli,
+  tahmin edilemeyen `/s/…` linki, yenilenebilir, Keşfet'te görünmez) / Herkese açık. Profil sayfası
+  `/u/{kullanıcıadı}` (sadece kullanıcı adı görünür; ad, e-posta, doğum tarihi asla). Herkese açık
+  koleksiyonlar giriş yapmadan da görülebilir, salt okunur. Keşfet: herkese açık koleksiyonlardaki tüm
+  coin'ler, kullanıcı filtresiyle (zorunlu gereksinimdeki "kullanıcı filtresi"). Fotoğraf erişimi
+  görünürlüğe göre; aşama sonunda güvenlik gözden geçirmesi. Watermark bu aşamayla konuşulur
+  (Açık konular 8).
+
+Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
 
 ## Fotoğraflar
 
@@ -221,6 +267,12 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    - Karar verilecekler: watermark içeriği (yazı/logo), konum, saydamlık, sadece herkese açıklara mı.
 9. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
    i18n (TR/DE/EN), Register'ın da `applyServerErrors` kullanması, mobilde katlanabilir filtre paneli.
+10. **Euro dışı, tedavülden kalkmış ve antika coin'ler (ileride, 2026-09-27'de kullanıcı istedi):**
+    Birden fazla koleksiyon bunun için temel. Gerekecekler: koleksiyona bir "tür" alanı (Euro / diğer);
+    nominalin genelleşmesi (şu an Euro değerleri enum'u, `CK_Coins_Denomination`), ülkenin genelleşmesi
+    (şu an 25 Euro ihraççısı, `Countries` tablosu; tarihî ülkeler de gerekebilir), yılın genelleşmesi
+    (şu an 1999 ve sonrası, `CK_Coins_Year`; antikalarda tahmini yıl/dönem), para birimi. Euro'ya özgü
+    kurallar (ulusal/ortak yüz, 2 € hatıra) sadece Euro türünde geçerli olmalı.
 
 ## Yayın öncesi yapılacaklar
 

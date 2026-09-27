@@ -1,18 +1,18 @@
 import { Injectable, signal } from '@angular/core';
-import { Params } from '@angular/router';
 
 /**
- * Remembers the collection page's query params (view, filters, sort, page) so the coin form
- * can return to exactly that list. In memory only: after a reload the plain list is used.
+ * Remembers the last collection page URL (collection, view, filters, sort, page) so the coin
+ * form can return to exactly that list. In memory only: after a reload the form falls back to
+ * the coin's collection.
  */
 @Injectable({ providedIn: 'root' })
 export class CollectionReturn {
-  private readonly params = signal<Params>({});
+  private readonly lastUrl = signal<string | null>(null);
 
-  /** Query params for links and navigation back to the collection. */
-  readonly queryParams = this.params.asReadonly();
+  /** e.g. "/collections/5?view=grid&page=2", or null if no collection page was opened yet. */
+  readonly url = this.lastUrl.asReadonly();
 
-  remember(params: Params): void {
-    this.params.set(params);
+  remember(url: string): void {
+    this.lastUrl.set(url);
   }
 }

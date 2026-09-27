@@ -19,6 +19,14 @@ namespace CoinPortal.Api.Photos;
 public interface IImageProcessor
 {
     Task<IReadOnlyDictionary<PhotoSize, byte[]>> ProcessAsync(Stream source, CancellationToken ct);
+
+    /// <summary>
+    /// Collection cover: same input rules as above, but crops to a centered
+    /// <see cref="CoverImage.AspectWidth"/>:<see cref="CoverImage.AspectHeight"/> rectangle and
+    /// returns a single lossy WebP at most <see cref="CoverImage.Width"/> pixels wide (never
+    /// upscaled). Sources narrower than <see cref="CoverImage.MinWidth"/> after cropping are rejected.
+    /// </summary>
+    Task<byte[]> ProcessCoverAsync(Stream source, CancellationToken ct);
 }
 
 /// <summary>The upload is not a supported or valid image. The message is safe to show.</summary>

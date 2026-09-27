@@ -3,7 +3,7 @@ import { Location } from '@angular/common';
 import { Component, OnInit, WritableSignal, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, UrlTree } from '@angular/router';
 import { firstValueFrom, merge } from 'rxjs';
 
 import {
@@ -20,15 +20,18 @@ import {
 import { CoinService } from '../../core/coins/coin.service';
 import { CollectionReturn } from '../../core/coins/collection-return';
 import { CountryService } from '../../core/coins/country.service';
+import { Collection } from '../../core/collections/collection.models';
+import { CollectionService } from '../../core/collections/collection.service';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
 import { suggestTitle } from '../../shared/coin-format';
 import { errorMessage } from '../../shared/form-errors';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
-import { PhotoChange, PhotoSlot } from './photo-slot';
+import { ImageChange } from '../../shared/image-change';
+import { PhotoSlot } from './photo-slot';
 
-/** Create (/collection/new) and edit (/collection/:id/edit) in one component. */
+/** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
 @Component({
   selector: 'app-coin-form',
   imports: [ReactiveFormsModule, RouterLink, PhotoSlot, PhotoViewer],
@@ -41,12 +44,31 @@ export class CoinForm implements OnInit {
   private readonly router = inject(Router);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly location = inject(Location);
-
-  /** Query params of the list the user came from, for every way back to the collection. */
-  protected readonly returnParams = inject(CollectionReturn).queryParams;
+  private readonly collectionService = inject(CollectionService);
+  private readonly collectionReturn = inject(CollectionReturn);
 
   /** Route param, bound by withComponentInputBinding(); undefined in create mode. */
   readonly id = input<string>();
+  /** Query param in create mode: the collection the form was opened from. */
+  readonly collection = input<string>();
+
+  /** The user's collections for the select; null while loading. */
+  protected readonly collections = signal<Collection[] | null>(null);
+
+  /**
+   * Every way back to the list: the exact collection page the user came from, otherwise the
+   * coin's (or the preselected) collection.
+   */
+  protected readonly returnTree = computed<UrlTree>(() => {
+    const url = this.collectionReturn.url();
+    if (url) {
+      return this.router.parseUrl(url);
+    }
+    const collectionId = this.coin()?.collectionId ?? (Number(this.collection()) || null);
+    return this.router.createUrlTree(
+      collectionId ? ['/collections', collectionId] : ['/collections'],
+    );
+  });
 
   /** Id of the saved coin: set on load in edit mode and after the first save in create mode. */
   private readonly coinId = signal<number | null>(null);
@@ -67,13 +89,14 @@ export class CoinForm implements OnInit {
   protected readonly sides = COIN_SIDES;
 
   /** Pending photo changes per side, applied after the coin itself is saved. */
-  protected readonly photoChanges: Record<CoinSide, WritableSignal<PhotoChange | null>> = {
-    National: signal<PhotoChange | null>(null),
-    Common: signal<PhotoChange | null>(null),
+  protected readonly photoChanges: Record<CoinSide, WritableSignal<ImageChange | null>> = {
+    National: signal<ImageChange | null>(null),
+    Common: signal<ImageChange | null>(null),
   };
   protected readonly viewerSide = signal<CoinSide | null>(null);
 
   protected readonly form = this.fb.group({
+    collectionId: this.fb.control<number | null>(null, Validators.required),
     denomination: this.fb.control<Denomination | ''>('', Validators.required),
     countryCode: ['', Validators.required],
     year: this.fb.control<number | null>(null, [
@@ -93,6 +116,19 @@ export class CoinForm implements OnInit {
 
   constructor() {
     this.countryService.load();
+
+    this.collectionService.list().subscribe({
+      next: (list) => {
+        this.collections.set(list);
+        // Create mode: the collection the form was opened from, otherwise the first one
+        const control = this.form.controls.collectionId;
+        if (control.value === null && !this.isEdit()) {
+          const wanted = Number(this.collection());
+          control.setValue(list.find((c) => c.id === wanted)?.id ?? list[0]?.id ?? null);
+        }
+      },
+      error: () => this.collections.set([]),
+    });
 
     // In create mode, fill the title from denomination/country/year until the user edits it
     const { denomination, countryCode, year, title } = this.form.controls;
@@ -210,7 +246,7 @@ export class CoinForm implements OnInit {
   }
 
   private backToCollection(): void {
-    this.router.navigate(['/collection'], { queryParams: this.returnParams() });
+    this.router.navigateByUrl(this.returnTree());
   }
 
   protected storedPhoto(side: CoinSide): CoinPhoto | undefined {
@@ -255,6 +291,7 @@ export class CoinForm implements OnInit {
 
   private patchForm(coin: Coin): void {
     this.form.setValue({
+      collectionId: coin.collectionId,
       denomination: coin.denomination,
       countryCode: coin.countryCode,
       year: coin.year,
@@ -269,6 +306,7 @@ export class CoinForm implements OnInit {
   private toRequest(): CoinUpsertRequest {
     const v = this.form.getRawValue();
     return {
+      collectionId: v.collectionId as number,
       title: v.title.trim(),
       description: v.description.trim() || null,
       denomination: v.denomination as Denomination,

@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<Coin> Coins => Set<Coin>();
+    public DbSet<Collection> Collections => Set<Collection>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<CoinPhoto> CoinPhotos => Set<CoinPhoto>();
 
@@ -64,8 +65,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
              .HasForeignKey(c => c.CountryCode)
              .OnDelete(DeleteBehavior.Restrict);
 
-            // Covers the owner's list filters and the "do I already have it?" lookup
-            b.HasIndex(c => new { c.OwnerId, c.CountryCode, c.Denomination, c.Year });
+            // No cascade: the API moves or deletes the coins (and their photo files) itself.
+            // Deleting a user still removes everything through the OwnerId cascades.
+            b.HasOne(c => c.Collection)
+             .WithMany(col => col.Coins)
+             .HasForeignKey(c => c.CollectionId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            // Covers the collection's list filters and the "do I already have it?" lookup
+            b.HasIndex(c => new { c.CollectionId, c.CountryCode, c.Denomination, c.Year });
+            b.HasIndex(c => c.OwnerId);
 
             // Database-level guards in addition to API validation
             var denominations = string.Join(", ", Enum.GetValues<Denomination>().Cast<int>());
@@ -75,6 +84,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 t.HasCheckConstraint("CK_Coins_Year", $"[Year] >= {Coin.MinYear}");
                 t.HasCheckConstraint("CK_Coins_Quantity", "[Quantity] >= 1");
             });
+        });
+
+        builder.Entity<Collection>(b =>
+        {
+            b.Property(c => c.Name).HasMaxLength(Collection.NameMaxLength).IsRequired();
+            b.Property(c => c.Description).HasMaxLength(Collection.DescriptionMaxLength);
+
+            // Deleting a user deletes their collections
+            b.HasOne(c => c.Owner)
+             .WithMany()
+             .HasForeignKey(c => c.OwnerId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            // Case-insensitive through the default collation
+            b.HasIndex(c => new { c.OwnerId, c.Name }).IsUnique();
         });
 
         builder.Entity<CoinPhoto>(b =>

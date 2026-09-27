@@ -66,16 +66,24 @@ cd src/client && npx prettier --check "src/**/*.{ts,html,css}"
 ```
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
-(e-postalar `@example.com`), parola hepsi için `Coinportal1`.
+(e-postalar `@example.com`), parola hepsi için `Coinportal1`. Her birinde "Koleksiyonum" ve
+"Hatıra paraları" koleksiyonları var. **Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
+sıfırlar**; kullanıcı onlarla deneme yapmış olabilir (fotoğraf yüklemiş vb.), çalıştırmadan önce sor.
+API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-data` kullanılabilir.
 
 ## Mimari
 
 ```
-src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Countries,Common}/, Data/ (entities,
-                        AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage + image
-                        processing), Querying/, Validation/, App_Data/photos (local photos, gitignored)
-src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
+src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Collections,Countries,Common}/, Data/
+                        (entities, AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage +
+                        image processing), Querying/, Validation/, App_Data/photos (gitignored)
+src/client/src/app/     core/{auth,coins,collections,http}/, shared/, layout/header/, pages/
 ```
+
+- Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
+  `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
+- Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
+  `/coins/new?collection=<id>`, `/coins/:id/edit`. Eski `/collection…` adresleri yönlendirilir.
 
 - Auth: ASP.NET Core Identity + HttpOnly cookie `coinportal.auth` (JWT yok, SPA ile API aynı origin).
 - CSRF: antiforgery, header `X-XSRF-TOKEN`; client `GET /api/auth/antiforgery` ile okunabilir
@@ -88,18 +96,26 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   kullanır (`api/coins/{coinId}/photos`). İstek/yanıt tipleri `Contracts/` altında, entity'ler dışarı açılmaz.
 - **Görsel kütüphanesi sadece `IImageProcessor` arkasında** (`Photos/`, sözleşme arayüzün XML
   yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
-  dosya kütüphaneye referans vermez. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır.
+  dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
+  (`ProcessCoverAsync`, 16:9) aynı sözleşmede. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır
+  (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte.
 - Fotoğraflar statik sunulmaz; API sahiplik kontrolüyle ve sürümlü URL (`?v=<photoId>`) +
   `immutable` önbellekle sunar. Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir.
 - İstemcinin Türkçe mesaj göstermesi gereken hatalarda ProblemDetails'e makine kodu eklenir
-  (`extensions.code`, ör. `invalid_image`, `quota_exceeded`).
+  (`this.CodedProblem(code, title)`, ör. `invalid_image`, `last_collection`). Alan hatalarında ise
+  ModelState anahtarı kod olur (ör. `DuplicateName`), client `applyServerErrors`'ın codeMap /
+  messageOverrides parametreleriyle alana eşler ve Türkçeleştirir.
+- Kullanıcının yazdığı adların tekillik kontrolü kodda Türkçe + kültürden bağımsız büyük/küçük harf
+  duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
 - Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
 - `UseHttpsRedirection()` sadece Development dışında.
 - Migration'ı uygulamadan önce oluşan `Up()` gözden geçirilir; Identity tablolarında beklenmeyen
-  `AlterColumn` olmamalı.
+  `AlterColumn` olmamalı. Mevcut veriye zorunlu yabancı anahtar eklenirken EF `defaultValue: 0`
+  üretir ve FK'yı bozar: elle nullable ekle → `Sql()` ile doldur → `AlterColumn` NOT NULL
+  (bkz. `AddCollections`). Migration'larda uygulama sabitleri değil literal değerler kullanılır.
 
 ## Client kuralları
 
@@ -121,8 +137,11 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   600 px preview). Seçim URL'de (`view=grid`, varsayılan liste yazılmaz), sayfa ve filtreleri etkilemez.
   Sayfalama satırı: solda görünüm butonları (`<app-pagination>` içine projeksiyon), ortada sayfa
   butonları, sağda sayfa başına.
-- Detay/form sayfalarından listeye dönüşler (geri linki, Vazgeç, kaydet/sil sonrası) listenin son
-  query param'larıyla yapılır (`CollectionReturn` servisi); düz `/collection` linki durumu kaybettirir.
+- Detay/form sayfalarından listeye dönüşler (geri linki, Vazgeç, kaydet/sil sonrası) koleksiyon
+  sayfasının son adresiyle yapılır (`CollectionReturn` servisi, `returnTree()`); yoksa coin'in
+  koleksiyonuna dönülür. Düz bir link koleksiyonu, görünümü ve filtreleri kaybettirir.
+- Koleksiyon silme: ad birebir yazılmadan silinemez (boş olsa da); dolu koleksiyonda varsayılan seçenek
+  coin'leri taşımak. Tek koleksiyon silinemez (API `last_collection`).
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
   `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu).
@@ -132,6 +151,11 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
 - Coin formunda fotoğraf değişiklikleri (`PhotoSlot`, `PhotoChange`) **Kaydet'te** uygulanır: önce coin,
   sonra yüzler sırayla. Fotoğraf hatasında coin kayıtlı kalır, adres düzenleme adresine çevrilir.
+- Bekleyen görsel değişikliği tipi `ImageChange` (`shared/image-change.ts`); kapak da coin fotoğrafı gibi
+  Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
+  oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
+- Üst menü (navbar) öğeleri `layout/header/header.ts` içindeki `NAV_ITEMS` listesinde; yeni sayfa
+  (ör. Keşfet) oraya eklenir, masaüstü ve mobil menü aynı listeyi kullanır.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer`.
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
@@ -162,5 +186,10 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
 - Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
   Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
 - Seed komutu `src/CoinPortal.Api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
+- Git Bash komut satırı argümanlarındaki Türkçe karakterler Windows ANSI kod sayfasına çevrilir
+  (`curl -d '{"name":"LİSTE"}'` API'ye "LISTE" olarak gider). Türkçe içerikli API testlerini Node
+  betiğiyle (`fetch`) ya da `--data-binary @dosya.json` ile yap.
+- `sqlcmd` ile filtreli index'i olan tablolarda (ör. `AspNetUsers`) DELETE/UPDATE için `-I`
+  (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
 - Satır sonları LF (`.gitattributes`). Şirketin global `.npmrc`'sinde Azure DevOps feed'i var;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.

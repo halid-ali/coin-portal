@@ -9,9 +9,14 @@ public class Coin
 
     public int Id { get; set; }
 
-    // Owner (FK to AspNetUsers)
+    // Owner (FK to AspNetUsers). Kept on the coin although the collection has it too: every
+    // ownership check and the photo storage path use it. Must equal Collection.OwnerId.
     public string OwnerId { get; set; } = string.Empty;
     public ApplicationUser Owner { get; set; } = null!;
+
+    // Always one of the owner's collections; changing it moves the coin
+    public int CollectionId { get; set; }
+    public Collection Collection { get; set; } = null!;
 
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }

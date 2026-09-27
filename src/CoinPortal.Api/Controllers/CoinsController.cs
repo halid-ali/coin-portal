@@ -32,6 +32,16 @@ public class CoinsController(
         var userId = CurrentUserId;
         var coins = db.Coins.AsNoTracking().Include(c => c.Photos).Where(c => c.OwnerId == userId);
 
+        if (query.CollectionId is { } collectionId)
+        {
+            // Someone else's collection looks the same as a missing one
+            if (!await db.Collections.AnyAsync(c => c.Id == collectionId && c.OwnerId == userId, ct))
+            {
+                return NotFound();
+            }
+            coins = coins.Where(c => c.CollectionId == collectionId);
+        }
+
         if (query.Denomination is { } denomination)
         {
             coins = coins.Where(c => c.Denomination == denomination);
@@ -87,7 +97,8 @@ public class CoinsController(
     public async Task<ActionResult<CoinResponse>> Create(CoinUpsertRequest request, CancellationToken ct)
     {
         var countryCode = await ValidateCountryAsync(request.CountryCode, ct);
-        if (countryCode is null)
+        var collectionValid = await ValidateCollectionAsync(request.CollectionId!.Value, ct);
+        if (countryCode is null || !collectionValid)
         {
             return ValidationProblem(ModelState);
         }
@@ -114,7 +125,8 @@ public class CoinsController(
         }
 
         var countryCode = await ValidateCountryAsync(request.CountryCode, ct);
-        if (countryCode is null)
+        var collectionValid = await ValidateCollectionAsync(request.CollectionId!.Value, ct);
+        if (countryCode is null || !collectionValid)
         {
             return ValidationProblem(ModelState);
         }
@@ -204,8 +216,22 @@ public class CoinsController(
         };
     }
 
+    // Must be the current user's: a coin never belongs to someone else's collection
+    private async Task<bool> ValidateCollectionAsync(int collectionId, CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        if (await db.Collections.AnyAsync(c => c.Id == collectionId && c.OwnerId == userId, ct))
+        {
+            return true;
+        }
+
+        ModelState.AddModelError(nameof(CoinUpsertRequest.CollectionId), "Unknown collection.");
+        return false;
+    }
+
     private static void Apply(Coin coin, CoinUpsertRequest request, string countryCode, DateTime now)
     {
+        coin.CollectionId = request.CollectionId!.Value;
         coin.Title = request.Title.Trim();
         coin.Description = NullIfBlank(request.Description);
         coin.Denomination = request.Denomination!.Value;

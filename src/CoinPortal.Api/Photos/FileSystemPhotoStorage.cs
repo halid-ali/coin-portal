@@ -22,17 +22,17 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         this.logger = logger;
     }
 
-    public async Task SaveAsync(string ownerId, Guid photoId, IReadOnlyDictionary<PhotoSize, byte[]> files,
+    public async Task SaveAsync(string ownerId, Guid imageId, IReadOnlyDictionary<string, byte[]> files,
         CancellationToken ct)
     {
-        var target = PhotoFolder(ownerId, photoId);
+        var target = ImageFolder(ownerId, imageId);
         var temp = Path.Combine(root, TempFolderName, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(temp);
         try
         {
-            foreach (var (size, bytes) in files)
+            foreach (var (fileName, bytes) in files)
             {
-                await File.WriteAllBytesAsync(Path.Combine(temp, size.FileName()), bytes, ct);
+                await File.WriteAllBytesAsync(Path.Combine(temp, SafeFileName(fileName)), bytes, ct);
             }
 
             Directory.CreateDirectory(OwnerFolder(ownerId));
@@ -46,9 +46,9 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         }
     }
 
-    public Stream? OpenRead(string ownerId, Guid photoId, PhotoSize size)
+    public Stream? OpenRead(string ownerId, Guid imageId, string fileName)
     {
-        var path = Path.Combine(PhotoFolder(ownerId, photoId), size.FileName());
+        var path = Path.Combine(ImageFolder(ownerId, imageId), SafeFileName(fileName));
         try
         {
             return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
@@ -60,9 +60,9 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         }
     }
 
-    public Task DeleteAsync(string ownerId, Guid photoId)
+    public Task DeleteAsync(string ownerId, Guid imageId)
     {
-        TryDeleteFolder(PhotoFolder(ownerId, photoId));
+        TryDeleteFolder(ImageFolder(ownerId, imageId));
         return Task.CompletedTask;
     }
 
@@ -82,8 +82,8 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         return Path.Combine(root, ownerId);
     }
 
-    private string PhotoFolder(string ownerId, Guid photoId) =>
-        Path.Combine(OwnerFolder(ownerId), photoId.ToString("N"));
+    private string ImageFolder(string ownerId, Guid imageId) =>
+        Path.Combine(OwnerFolder(ownerId), imageId.ToString("N"));
 
     // File deletion is best effort: the database is the source of truth, a leftover folder
     // only costs disk space and is logged
@@ -102,6 +102,13 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         }
     }
 
+    // Only names this code creates (thumb.webp, cover.webp), never a path
+    private static string SafeFileName(string fileName) =>
+        SafeFile().IsMatch(fileName) ? fileName : throw new ArgumentException("Invalid file name.", nameof(fileName));
+
     [GeneratedRegex("^[A-Za-z0-9-]{1,64}$")]
     private static partial Regex SafeSegment();
+
+    [GeneratedRegex(@"^[a-z0-9]{1,32}\.webp$")]
+    private static partial Regex SafeFile();
 }

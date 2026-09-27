@@ -10,6 +10,7 @@ namespace CoinPortal.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(
+    AppDbContext db,
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager) : ControllerBase
 {
@@ -33,6 +34,17 @@ public class AuthController(
                 ModelState.AddModelError(error.Code, error.Description);
             return ValidationProblem(ModelState);
         }
+
+        // Every user starts with one collection, so coins can be added right away
+        var now = DateTime.UtcNow;
+        db.Collections.Add(new Collection
+        {
+            OwnerId = user.Id,
+            Name = Collection.DefaultName,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        });
+        await db.SaveChangesAsync();
 
         // Sign the new user in right away
         await signInManager.SignInAsync(user, isPersistent: false);

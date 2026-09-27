@@ -8,9 +8,7 @@ const MB = 1024 * 1024;
 const MESSAGES: Record<string, string> = {
   file_missing: 'Fotoğraf dosyası gönderilemedi.',
   file_too_large: `Fotoğraf en fazla ${PHOTO_LIMITS.maxUploadBytes / MB} MB olabilir.`,
-  invalid_image:
-    `Fotoğraf işlenemedi. JPG veya PNG olmalı ve kenarları en az ` +
-    `${PHOTO_LIMITS.minPixels} piksel olmalı.`,
+  invalid_image: 'Fotoğraf işlenemedi. JPG veya PNG olmalı ve çok küçük olmamalı.',
   quota_exceeded: 'Fotoğraf saklama alanın doldu. Yer açmak için bazı fotoğrafları silebilirsin.',
   conflict: 'Fotoğraf aynı anda başka bir yerden değiştirildi. Tekrar dene.',
 };

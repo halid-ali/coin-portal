@@ -1,13 +1,13 @@
 <section class="mx-auto w-full max-w-2xl">
   <div class="mb-6 flex items-center justify-between gap-3">
     <h1 class="text-2xl font-semibold text-slate-900">{{ isEdit() ? 'Coini düzenle' : 'Coin ekle' }}</h1>
-    <a routerLink="/collection" [queryParams]="returnParams()" class="link text-sm">‹ Koleksiyona dön</a>
+    <a [routerLink]="returnTree()" class="link text-sm">‹ Koleksiyona dön</a>
   </div>
 
   @if (notFound()) {
     <div class="card text-center">
       <p class="text-slate-600">Coin bulunamadı. Silinmiş ya da sana ait olmayabilir.</p>
-      <a routerLink="/collection" [queryParams]="returnParams()" class="btn-secondary mt-4">Koleksiyona dön</a>
+      <a [routerLink]="returnTree()" class="btn-secondary mt-4">Koleksiyona dön</a>
     </div>
   } @else if (loading()) {
     <p class="text-center text-slate-500">Yükleniyor…</p>
@@ -20,6 +20,33 @@
           }
         </div>
       }
+
+      <div>
+        <label for="collectionId" class="form-label">Koleksiyon</label>
+        @if (collections(); as list) {
+          @if (list.length) {
+            <select id="collectionId" class="form-input sm:max-w-sm" #collectionSelect
+                    (change)="form.controls.collectionId.setValue(+collectionSelect.value)">
+              @for (c of list; track c.id) {
+                <option [value]="c.id" [selected]="c.id === form.controls.collectionId.value">{{ c.name }}</option>
+              }
+            </select>
+            @if (isEdit() && coin() && form.controls.collectionId.value !== coin()!.collectionId) {
+              <p class="form-hint">Kaydedince coin bu koleksiyona taşınır.</p>
+            }
+          } @else {
+            <p class="alert-error">
+              Coin ekleyebilmek için önce bir koleksiyon oluşturmalısın.
+              <a routerLink="/collections" class="link">Koleksiyonlarım</a>
+            </p>
+          }
+        } @else {
+          <p class="form-hint mt-0">Koleksiyonlar yükleniyor…</p>
+        }
+        @if (errorMessage(form.controls.collectionId); as msg) {
+          <p class="form-error">{{ msg }}</p>
+        }
+      </div>
 
       <div class="grid gap-5 sm:grid-cols-3">
         <div>
@@ -134,7 +161,7 @@
           <span></span>
         }
         <div class="flex flex-col-reverse gap-3 sm:flex-row">
-          <a routerLink="/collection" [queryParams]="returnParams()" class="btn-secondary">Vazgeç</a>
+          <a [routerLink]="returnTree()" class="btn-secondary">Vazgeç</a>
           <button type="submit" class="btn-primary" [disabled]="submitting() || deleting()">
             {{ submitting() ? 'Kaydediliyor…' : 'Kaydet' }}
           </button>

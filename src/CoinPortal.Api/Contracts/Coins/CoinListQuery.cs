@@ -30,6 +30,10 @@ public enum SortDirection
 /// </summary>
 public class CoinListQuery
 {
+    /// <summary>One of the user's collections; omitted means all of them.</summary>
+    [Range(1, int.MaxValue)]
+    public int? CollectionId { get; set; }
+
     [EnumDataType(typeof(Denomination))]
     public Denomination? Denomination { get; set; }
 
