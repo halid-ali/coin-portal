@@ -11,6 +11,10 @@ public class CollectionUpsertRequest
 
     [StringLength(Collection.DescriptionMaxLength)]
     public string? Description { get; set; }
+
+    /// <summary>Omitted keeps the current value (Private for a new collection).</summary>
+    [EnumDataType(typeof(CollectionVisibility))]
+    public CollectionVisibility? Visibility { get; set; }
 }
 
 /// <summary>
@@ -21,10 +25,13 @@ public sealed record CollectionCoverResponse(int CoinId, CoinSide Side, Guid Id)
 
 /// <param name="CoverImageId">Uploaded cover (GET /api/collections/{id}/cover?v={CoverImageId}); wins over <paramref name="Cover"/>.</param>
 /// <param name="Cover">Latest coin photo, used when there is no uploaded cover.</param>
+/// <param name="ShareToken">Owner only: the secret of the share link /s/{ShareToken} while Unlisted.</param>
 public sealed record CollectionResponse(
     int Id,
     string Name,
     string? Description,
+    CollectionVisibility Visibility,
+    string? ShareToken,
     int CoinCount,
     Guid? CoverImageId,
     CollectionCoverResponse? Cover,
@@ -32,3 +39,5 @@ public sealed record CollectionResponse(
     DateTime UpdatedAtUtc);
 
 public sealed record CollectionCoverImageResponse(int CollectionId, Guid CoverImageId);
+
+public sealed record ShareTokenResponse(string ShareToken);

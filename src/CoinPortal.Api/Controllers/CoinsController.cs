@@ -3,7 +3,6 @@ using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
 using CoinPortal.Api.Querying;
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -42,45 +41,7 @@ public class CoinsController(
             coins = coins.Where(c => c.CollectionId == collectionId);
         }
 
-        if (query.Denomination is { } denomination)
-        {
-            coins = coins.Where(c => c.Denomination == denomination);
-        }
-        if (!string.IsNullOrWhiteSpace(query.CountryCode))
-        {
-            var countryCode = NormalizeCountryCode(query.CountryCode);
-            coins = coins.Where(c => c.CountryCode == countryCode);
-        }
-        if (query.Year is { } year)
-        {
-            coins = coins.Where(c => c.Year == year);
-        }
-        if (query.IsCommemorative is { } isCommemorative)
-        {
-            coins = coins.Where(c => c.IsCommemorative == isCommemorative);
-        }
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            // SQL Server default collation is case-insensitive
-            var term = query.Search.Trim();
-            coins = coins.Where(c => c.Title.Contains(term)
-                || (c.Description != null && c.Description.Contains(term)));
-        }
-
-        var ordered = ApplySort(coins, query);
-
-        var totalCount = await coins.CountAsync(ct);
-
-        // PageSize 0 returns everything; otherwise a normal page
-        var showAll = query.PageSize == 0;
-        var page = showAll ? 1 : query.Page;
-        var items = await (showAll
-                ? ordered
-                : ordered.Skip((page - 1) * query.PageSize).Take(query.PageSize))
-            .ToListAsync(ct);
-
-        return new PagedResponse<CoinResponse>(
-            items.Select(CoinResponse.From).ToList(), page, query.PageSize, totalCount);
+        return await coins.ToPagedAsync(query, CoinResponse.From, ct);
     }
 
     [HttpGet("{id:int}")]
@@ -172,7 +133,7 @@ public class CoinsController(
     // Returns the normalized code, or null after adding a model error
     private async Task<string?> ValidateCountryAsync(string rawCode, CancellationToken ct)
     {
-        var code = NormalizeCountryCode(rawCode);
+        var code = CoinListing.NormalizeCountryCode(rawCode);
         if (await db.Countries.AnyAsync(c => c.Code == code, ct))
         {
             return code;
@@ -180,40 +141,6 @@ public class CoinsController(
 
         ModelState.AddModelError(nameof(CoinUpsertRequest.CountryCode), "Unknown country code.");
         return null;
-    }
-
-    // The chosen column follows the direction; tie-breakers keep a fixed direction.
-    // Id as last key keeps paging stable when other keys are equal.
-    private static IOrderedQueryable<Coin> ApplySort(IQueryable<Coin> coins, CoinListQuery query)
-    {
-        var desc = query.Dir == SortDirection.Desc;
-
-        // Position in the client's display order (CHARINDEX in SQL). Without CountryOrder
-        // every rank is -1 and the ISO code decides.
-        var countryOrder = "," + (query.CountryOrder?.ToUpperInvariant() ?? string.Empty) + ",";
-        Expression<Func<Coin, int>> countryRank = c => countryOrder.IndexOf(c.CountryCode);
-
-        IOrderedQueryable<Coin> ThenByCountry(IOrderedQueryable<Coin> q, bool descending = false) =>
-            q.ThenBy(countryRank, descending).ThenBy(c => c.CountryCode, descending);
-
-        return query.Sort switch
-        {
-            CoinSort.Title => coins.OrderBy(c => c.Title, desc).ThenBy(c => c.Id, desc),
-            CoinSort.Denomination => ThenByCountry(coins.OrderBy(c => c.Denomination, desc))
-                .ThenBy(c => c.Year).ThenBy(c => c.Id),
-            CoinSort.Country => coins.OrderBy(countryRank, desc).ThenBy(c => c.CountryCode, desc)
-                .ThenByDescending(c => c.Denomination).ThenBy(c => c.Year).ThenBy(c => c.Id),
-            CoinSort.Year => ThenByCountry(coins.OrderBy(c => c.Year, desc))
-                .ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            CoinSort.MintMark => ThenByCountry(coins.OrderBy(c => c.MintMark == null)
-                    .ThenBy(c => c.MintMark, desc))
-                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            CoinSort.Commemorative => ThenByCountry(coins.OrderBy(c => c.IsCommemorative, desc))
-                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            CoinSort.Quantity => ThenByCountry(coins.OrderBy(c => c.Quantity, desc))
-                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            _ => coins.OrderByDescending(c => c.CreatedAtUtc).ThenByDescending(c => c.Id)
-        };
     }
 
     // Must be the current user's: a coin never belongs to someone else's collection
@@ -242,8 +169,6 @@ public class CoinsController(
         coin.Quantity = request.Quantity;
         coin.UpdatedAtUtc = now;
     }
-
-    private static string NormalizeCountryCode(string code) => code.Trim().ToUpperInvariant();
 
     private static string? NullIfBlank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

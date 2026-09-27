@@ -99,6 +99,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
             // Case-insensitive through the default collation
             b.HasIndex(c => new { c.OwnerId, c.Name }).IsUnique();
+
+            b.Property(c => c.ShareToken).HasMaxLength(Collection.ShareTokenLength).IsFixedLength().IsUnicode(false);
+            b.HasIndex(c => c.ShareToken).IsUnique().HasFilter("[ShareToken] IS NOT NULL");
+
+            // Public listings (profile, explore)
+            b.HasIndex(c => new { c.Visibility, c.OwnerId });
+
+            var visibilities = string.Join(", ", Enum.GetValues<CollectionVisibility>().Cast<int>());
+            b.ToTable(t => t.HasCheckConstraint("CK_Collections_Visibility", $"[Visibility] IN ({visibilities})"));
         });
 
         builder.Entity<CoinPhoto>(b =>
