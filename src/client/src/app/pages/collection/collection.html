@@ -58,16 +58,24 @@
       </select>
     </div>
 
-    <div class="flex flex-wrap items-end gap-3 sm:col-span-2 lg:col-span-6">
+    <!-- On desktop the table headers sort, so this row only holds "clear filters" there -->
+    <div class="flex flex-wrap items-end gap-3 sm:col-span-2 lg:col-span-6"
+         [class]="hasFilters() ? '' : 'lg:hidden'">
       @if (hasFilters()) {
         <button type="button" class="btn-secondary py-1.5" (click)="clearFilters()">Filtreleri temizle</button>
       }
-      <div class="ml-auto flex items-center gap-2">
+      <div class="ml-auto flex items-center gap-2 lg:hidden">
         <label for="sort" class="text-sm font-medium text-slate-700">Sırala:</label>
         <select id="sort" #sortSelect class="form-input w-auto py-1.5"
-                (change)="setSort(sortSelect.value)">
-          @for (s of sorts; track s.value) {
-            <option [value]="s.value" [selected]="s.value === query().sort">{{ s.label }}</option>
+                (change)="setSortOption(sortSelect.value)">
+          <option value="Newest" [selected]="sortState().sort === 'Newest'">En yeni eklenen</option>
+          @for (c of sortColumns; track c.value) {
+            <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
+              {{ c.label }} ({{ c.asc }})
+            </option>
+            <option [value]="c.value + ':Desc'" [selected]="sortDirection(c.value) === 'Desc'">
+              {{ c.label }} ({{ c.desc }})
+            </option>
           }
         </select>
       </div>
@@ -95,7 +103,7 @@
 
       <div class="transition-opacity" [class.opacity-60]="loading()">
         <!-- Mobile: stacked list -->
-        <ul class="space-y-3 md:hidden">
+        <ul class="space-y-3 lg:hidden">
           @for (coin of r.items; track coin.id) {
             <li>
               <a [routerLink]="['/collection', coin.id, 'edit']"
@@ -123,31 +131,42 @@
         </ul>
 
         <!-- Desktop: table -->
-        <div class="card hidden overflow-x-auto p-0 md:block">
-          <table class="w-full text-left text-sm">
+        <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
+             so they stay the same on every page. The title column takes the rest. -->
+        <div class="card hidden overflow-x-auto p-0 lg:block">
+          <table class="w-full table-fixed text-left text-sm">
+            <colgroup>
+              <col />
+              <col class="w-26" />
+              <col class="w-34" />
+              <col class="w-20" />
+              <col class="w-28" />
+              <col class="w-24" />
+              <col class="w-22" />
+              <col class="w-22" />
+            </colgroup>
             <thead class="border-b border-slate-200 bg-slate-50 text-slate-600">
               <tr>
-                <th scope="col" class="px-4 py-3 font-medium">Başlık</th>
-                <th scope="col" class="px-4 py-3 font-medium">Nominal</th>
-                <th scope="col" class="px-4 py-3 font-medium">Ülke</th>
-                <th scope="col" class="px-4 py-3 font-medium">Yıl</th>
-                <th scope="col" class="px-4 py-3 font-medium">Darphane</th>
-                <th scope="col" class="px-4 py-3 font-medium">Hatıra</th>
-                <th scope="col" class="px-4 py-3 text-right font-medium">Adet</th>
-                <th scope="col" class="px-4 py-3"><span class="sr-only">İşlemler</span></th>
+                @for (c of sortColumns; track c.value) {
+                  <th appSortHeader class="px-3 py-2" [class.text-right]="c.value === 'Quantity'"
+                      [label]="c.label" [direction]="sortDirection(c.value)" (toggle)="sortBy(c.value)"></th>
+                }
+                <th scope="col" class="px-3 py-2"><span class="sr-only">İşlemler</span></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
               @for (coin of r.items; track coin.id) {
                 <tr class="hover:bg-amber-50/50">
-                  <td class="px-4 py-3 font-medium text-slate-900">{{ coin.title }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap">{{ denominationLabel(coin.denomination) }}</td>
-                  <td class="px-4 py-3">{{ countryName(coin.countryCode) }}</td>
-                  <td class="px-4 py-3">{{ coin.year }}</td>
-                  <td class="px-4 py-3">{{ coin.mintMark ?? '–' }}</td>
-                  <td class="px-4 py-3">{{ coin.isCommemorative ? 'Evet' : '–' }}</td>
-                  <td class="px-4 py-3 text-right">{{ coin.quantity }}</td>
-                  <td class="px-4 py-3 text-right">
+                  <td class="px-3 py-3 font-medium wrap-break-word text-slate-900">{{ coin.title }}</td>
+                  <td class="truncate px-3 py-3">{{ denominationLabel(coin.denomination) }}</td>
+                  <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
+                    {{ countryName(coin.countryCode) }}
+                  </td>
+                  <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
+                  <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">{{ coin.mintMark ?? '–' }}</td>
+                  <td class="truncate px-3 py-3">{{ coin.isCommemorative ? 'Evet' : '–' }}</td>
+                  <td class="truncate px-3 py-3 text-right tabular-nums">{{ coin.quantity }}</td>
+                  <td class="truncate px-3 py-3 text-right">
                     <a [routerLink]="['/collection', coin.id, 'edit']" class="link">Düzenle</a>
                   </td>
                 </tr>

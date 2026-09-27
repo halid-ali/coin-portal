@@ -6,20 +6,24 @@ import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap
 
 import {
   COIN_LIMITS,
-  COIN_SORTS,
+  COIN_SORT_COLUMNS,
   Coin,
   CoinListQuery,
-  CoinSort,
+  CoinSortColumn,
   DEFAULT_PAGE_SIZE,
   DENOMINATIONS,
   PAGE_SIZE_OPTIONS,
   PagedResponse,
+  SortDirection,
+  isSortColumn,
   maxCoinYear,
 } from '../../core/coins/coin.models';
+import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
 import { CoinService } from '../../core/coins/coin.service';
 import { CountryService } from '../../core/coins/country.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { Pagination } from '../../shared/pagination/pagination';
+import { SortHeader } from '../../shared/sort-header/sort-header';
 
 type QueryParamValue = string | number | boolean | null;
 
@@ -39,7 +43,7 @@ function toPageSize(value: string | undefined): number {
 
 @Component({
   selector: 'app-collection',
-  imports: [ReactiveFormsModule, RouterLink, Pagination],
+  imports: [ReactiveFormsModule, RouterLink, Pagination, SortHeader],
   templateUrl: './collection.html',
 })
 export class Collection {
@@ -55,21 +59,31 @@ export class Collection {
   readonly isCommemorative = input<string>();
   readonly search = input<string>();
   readonly sort = input<string>();
+  readonly dir = input<string>();
   readonly page = input<string>();
   readonly pageSize = input<string>();
 
   protected readonly denominations = DENOMINATIONS;
-  protected readonly sorts = COIN_SORTS;
+  protected readonly sortColumns = COIN_SORT_COLUMNS;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
   protected readonly countries = this.countryService.countries;
   protected readonly minYear = COIN_LIMITS.minYear;
   protected readonly maxYear = maxCoinYear();
   protected readonly denominationLabel = denominationLabel;
 
+  /** Sort from the URL; unknown values fall back to the default order. */
+  protected readonly sortState = computed<SortState>(() => {
+    const sort = this.sort();
+    if (!isSortColumn(sort)) {
+      return DEFAULT_SORT;
+    }
+    return { sort, dir: this.dir() === 'Desc' ? 'Desc' : 'Asc' };
+  });
+
   protected readonly query = computed<CoinListQuery>(() => {
     const denomination = this.denomination();
     const commemorative = this.isCommemorative();
-    const sort = this.sort();
+    const { sort, dir } = this.sortState();
     return {
       denomination: isDenomination(denomination) ? denomination : undefined,
       countryCode: this.countryCode() || undefined,
@@ -77,7 +91,16 @@ export class Collection {
       isCommemorative:
         commemorative === 'true' ? true : commemorative === 'false' ? false : undefined,
       search: this.search()?.trim() || undefined,
-      sort: COIN_SORTS.some((s) => s.value === sort) ? (sort as CoinSort) : 'Newest',
+      sort: sort === 'Newest' ? undefined : sort,
+      dir: dir === 'Desc' ? dir : undefined,
+      // Country names are localized on the client, so the API gets the display order
+      // (also the tie-breaker of other columns); stays correct when the language changes
+      countryOrder:
+        sort === 'Newest'
+          ? undefined
+          : this.countries()
+              .map((c) => c.code)
+              .join(',') || undefined,
       page: Math.max(1, toInt(this.page()) ?? 1),
       pageSize: toPageSize(this.pageSize()),
     };
@@ -158,9 +181,30 @@ export class Collection {
     this.setFilters({ year: valid ? year : null });
   }
 
-  protected setSort(sort: string): void {
-    // Default sort stays out of the URL
-    this.setFilters({ sort: sort === 'Newest' ? null : sort });
+  /** Current direction of a column, or null when the list is sorted by another one. */
+  protected sortDirection(column: CoinSortColumn): SortDirection | null {
+    const state = this.sortState();
+    return state.sort === column ? state.dir : null;
+  }
+
+  protected sortBy(column: CoinSortColumn): void {
+    this.applySort(nextSort(this.sortState(), column));
+  }
+
+  /** Mobile select; values look like "Year:Desc", "Newest" for the default order. */
+  protected setSortOption(value: string): void {
+    const [sort, dir] = value.split(':');
+    this.applySort(
+      isSortColumn(sort) ? { sort, dir: dir === 'Desc' ? 'Desc' : 'Asc' } : DEFAULT_SORT,
+    );
+  }
+
+  private applySort({ sort, dir }: SortState): void {
+    // Default sort and ascending direction stay out of the URL
+    this.setFilters({
+      sort: sort === 'Newest' ? null : sort,
+      dir: sort !== 'Newest' && dir === 'Desc' ? dir : null,
+    });
   }
 
   protected goToPage(page: number): void {
@@ -180,7 +224,7 @@ export class Collection {
     // Keep the chosen sort order
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { sort: this.sort() ?? null },
+      queryParams: { sort: this.sort() ?? null, dir: this.dir() ?? null },
     });
   }
 
