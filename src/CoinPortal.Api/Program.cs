@@ -8,6 +8,12 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// HTTPS redirection only outside development; the dev proxy talks plain HTTP
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
