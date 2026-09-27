@@ -19,13 +19,14 @@ import {
   maxCoinYear,
 } from '../../core/coins/coin.models';
 import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
-import { CoinService } from '../../core/coins/coin.service';
+import { CoinService, photoUrl, primaryPhoto } from '../../core/coins/coin.service';
 import { CountryService } from '../../core/coins/country.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { SortHeader } from '../../shared/sort-header/sort-header';
+import { CollectionView, ViewToggle } from './view-toggle';
 
 type QueryParamValue = string | number | boolean | null;
 
@@ -45,7 +46,15 @@ function toPageSize(value: string | undefined): number {
 
 @Component({
   selector: 'app-collection',
-  imports: [ReactiveFormsModule, RouterLink, Pagination, SortHeader, CoinThumb, PhotoViewer],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    Pagination,
+    SortHeader,
+    CoinThumb,
+    PhotoViewer,
+    ViewToggle,
+  ],
   templateUrl: './collection.html',
 })
 export class Collection {
@@ -64,6 +73,12 @@ export class Collection {
   readonly dir = input<string>();
   readonly page = input<string>();
   readonly pageSize = input<string>();
+  readonly view = input<string>();
+
+  /** List (table / cards) is the default and stays out of the URL. */
+  protected readonly viewMode = computed<CollectionView>(() =>
+    this.view() === 'grid' ? 'grid' : 'list',
+  );
 
   protected readonly denominations = DENOMINATIONS;
   protected readonly sortColumns = COIN_SORT_COLUMNS;
@@ -174,6 +189,17 @@ export class Collection {
     return this.countryService.name(code);
   }
 
+  /** Grid tiles are larger than list thumbnails, so they use the 600 px size. */
+  protected previewUrl(coin: Coin): string | null {
+    const photo = primaryPhoto(coin);
+    return photo ? photoUrl(coin.id, photo, 'preview') : null;
+  }
+
+  /** Only the layout changes, so filters, sort and page stay as they are. */
+  protected setView(view: CollectionView): void {
+    this.navigate({ view: view === 'grid' ? view : null });
+  }
+
   /** Changing any filter goes back to page 1. */
   protected setFilters(params: Record<string, QueryParamValue>): void {
     this.navigate({ ...params, page: null });
@@ -225,10 +251,14 @@ export class Collection {
   }
 
   protected clearFilters(): void {
-    // Keep the chosen sort order
+    // Keep the chosen sort order and view
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { sort: this.sort() ?? null, dir: this.dir() ?? null },
+      queryParams: {
+        sort: this.sort() ?? null,
+        dir: this.dir() ?? null,
+        view: this.view() ?? null,
+      },
     });
   }
 

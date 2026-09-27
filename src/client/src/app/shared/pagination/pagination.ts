@@ -7,56 +7,135 @@ export interface PageSizeOption {
 
 let nextId = 0;
 
-/** First / previous / current / next / last buttons plus a page size selector. */
+/**
+ * Pagination bar in three parts: projected content on the left (e.g. view switch), first /
+ * previous / current / next / last buttons in the middle, range and page size on the right.
+ * On narrow screens left and right share a row and the buttons move below, centered.
+ */
 @Component({
   selector: 'app-pagination',
   // Custom elements are inline by default; block lets the parent's spacing apply
   host: { class: 'block' },
   template: `
-    <nav class="flex flex-wrap items-center justify-between gap-3" aria-label="Sayfalama">
-      <div class="flex items-center gap-1">
-        <button type="button" class="btn-icon" [disabled]="disabled() || isFirst()"
-                (click)="pageChange.emit(1)" aria-label="İlk sayfa" title="İlk sayfa">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+    <div class="grid grid-cols-2 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+      <div class="justify-self-start">
+        <ng-content />
+      </div>
+
+      <nav
+        class="order-last col-span-2 flex items-center justify-center gap-1 sm:order-none sm:col-span-1"
+        aria-label="Sayfalama"
+      >
+        <button
+          type="button"
+          class="btn-icon"
+          [disabled]="disabled() || isFirst()"
+          (click)="pageChange.emit(1)"
+          aria-label="İlk sayfa"
+          title="İlk sayfa"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="size-4"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M11 17l-5-5 5-5M18 17l-5-5 5-5"
+            />
           </svg>
         </button>
-        <button type="button" class="btn-icon" [disabled]="disabled() || isFirst()"
-                (click)="pageChange.emit(page() - 1)" aria-label="Önceki sayfa" title="Önceki sayfa">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4" aria-hidden="true">
+        <button
+          type="button"
+          class="btn-icon"
+          [disabled]="disabled() || isFirst()"
+          (click)="pageChange.emit(page() - 1)"
+          aria-label="Önceki sayfa"
+          title="Önceki sayfa"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="size-4"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
           </svg>
         </button>
 
-        <span class="min-w-16 px-2 text-center text-sm font-medium text-slate-700" aria-current="page">
+        <span
+          class="min-w-16 px-2 text-center text-sm font-medium text-slate-700"
+          aria-current="page"
+        >
           {{ page() }} / {{ totalPages() }}
         </span>
 
-        <button type="button" class="btn-icon" [disabled]="disabled() || isLast()"
-                (click)="pageChange.emit(page() + 1)" aria-label="Sonraki sayfa" title="Sonraki sayfa">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4" aria-hidden="true">
+        <button
+          type="button"
+          class="btn-icon"
+          [disabled]="disabled() || isLast()"
+          (click)="pageChange.emit(page() + 1)"
+          aria-label="Sonraki sayfa"
+          title="Sonraki sayfa"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="size-4"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
           </svg>
         </button>
-        <button type="button" class="btn-icon" [disabled]="disabled() || isLast()"
-                (click)="pageChange.emit(totalPages())" aria-label="Son sayfa" title="Son sayfa">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4" aria-hidden="true">
+        <button
+          type="button"
+          class="btn-icon"
+          [disabled]="disabled() || isLast()"
+          (click)="pageChange.emit(totalPages())"
+          aria-label="Son sayfa"
+          title="Son sayfa"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="size-4"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 17l5-5-5-5M6 17l5-5-5-5" />
           </svg>
         </button>
-      </div>
+      </nav>
 
-      <div class="flex items-center gap-3 text-sm text-slate-600">
+      <div class="flex items-center gap-3 justify-self-end text-sm text-slate-600">
         <span>{{ range() }} / {{ totalCount() }}</span>
-        <label [for]="selectId" class="font-medium text-slate-700">Sayfa başına</label>
-        <select [id]="selectId" #sizeSelect class="form-input w-auto py-1.5" [disabled]="disabled()"
-                (change)="pageSizeChange.emit(+sizeSelect.value)">
+        <label [for]="selectId" class="font-medium text-slate-700 max-sm:sr-only"
+          >Sayfa başına</label
+        >
+        <select
+          [id]="selectId"
+          #sizeSelect
+          class="form-input w-auto py-1.5"
+          [disabled]="disabled()"
+          (change)="pageSizeChange.emit(+sizeSelect.value)"
+        >
           @for (option of options(); track option.value) {
-            <option [value]="option.value" [selected]="option.value === pageSize()">{{ option.label }}</option>
+            <option [value]="option.value" [selected]="option.value === pageSize()">
+              {{ option.label }}
+            </option>
           }
         </select>
       </div>
-    </nav>
+    </div>
   `,
 })
 export class Pagination {
