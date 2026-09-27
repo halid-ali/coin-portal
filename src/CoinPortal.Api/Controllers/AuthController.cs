@@ -3,6 +3,7 @@ using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace CoinPortal.Api.Controllers;
 
@@ -76,6 +77,29 @@ public class AuthController(
     {
         var user = await userManager.GetUserAsync(User);
         return user is null ? Unauthorized() : Ok(UserResponse.From(user));
+    }
+
+    /// <summary>
+    /// Issues a readable XSRF-TOKEN cookie. Tokens are bound to the current user,
+    /// so the client calls this at startup and after every login/logout.
+    /// </summary>
+    [HttpGet("antiforgery")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult GetAntiforgeryToken([FromServices] IAntiforgery antiforgery)
+    {
+        var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+
+        Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions
+        {
+            HttpOnly = false, // Angular must be able to read it
+            SameSite = SameSiteMode.Strict,
+            Secure = Request.IsHttps,
+            Path = "/",
+            IsEssential = true
+        });
+
+        return NoContent();
     }
 
     // Same message for unknown user and wrong password (no account enumeration)
