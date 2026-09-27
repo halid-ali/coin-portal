@@ -23,9 +23,24 @@ export const routes: Routes = [
   },
   {
     path: 'collection',
-    title: 'Koleksiyonum · Coin Portal',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
+    children: [
+      {
+        path: '',
+        title: 'Koleksiyonum · Coin Portal',
+        loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
+      },
+      {
+        path: 'new',
+        title: 'Coin ekle · Coin Portal',
+        loadComponent: () => import('./pages/coin-form/coin-form').then((m) => m.CoinForm),
+      },
+      {
+        path: ':id/edit',
+        title: 'Coini düzenle · Coin Portal',
+        loadComponent: () => import('./pages/coin-form/coin-form').then((m) => m.CoinForm),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

@@ -15,6 +15,14 @@
       focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 focus:outline-none;
   }
 
+  /* Native select with our own chevron, so the arrow sits inside the right padding */
+  select.form-input {
+    @apply appearance-none bg-no-repeat pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
+
   .form-input.ng-invalid.ng-touched {
     @apply border-red-400 focus:border-red-500 focus:ring-red-500/30;
   }
@@ -43,11 +51,30 @@
       disabled:cursor-not-allowed disabled:opacity-60;
   }
 
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 font-medium text-white
+      hover:bg-red-500 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:outline-none
+      disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-icon {
+    @apply inline-flex size-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700
+      hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:outline-none
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white;
+  }
+
   .nav-link {
     @apply text-sm font-medium text-slate-700 hover:text-amber-700;
   }
 
   .link {
     @apply font-medium text-amber-700 hover:underline;
+  }
+}
+
+@layer base {
+  /* Freeze page scrolling while a modal <dialog> is open */
+  html:has(dialog:modal) {
+    overflow: hidden;
   }
 }

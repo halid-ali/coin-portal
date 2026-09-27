@@ -1,0 +1,131 @@
+<section class="mx-auto w-full max-w-2xl">
+  <div class="mb-6 flex items-center justify-between gap-3">
+    <h1 class="text-2xl font-semibold text-slate-900">{{ isEdit() ? 'Coini düzenle' : 'Coin ekle' }}</h1>
+    <a routerLink="/collection" class="link text-sm">‹ Koleksiyona dön</a>
+  </div>
+
+  @if (notFound()) {
+    <div class="card text-center">
+      <p class="text-slate-600">Coin bulunamadı. Silinmiş ya da sana ait olmayabilir.</p>
+      <a routerLink="/collection" class="btn-secondary mt-4">Koleksiyona dön</a>
+    </div>
+  } @else if (loading()) {
+    <p class="text-center text-slate-500">Yükleniyor…</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
+      @if (formErrors().length) {
+        <div role="alert" class="alert-error">
+          @for (message of formErrors(); track $index) {
+            <p>{{ message }}</p>
+          }
+        </div>
+      }
+
+      <div class="grid gap-5 sm:grid-cols-3">
+        <div>
+          <label for="denomination" class="form-label">Nominal</label>
+          <select id="denomination" formControlName="denomination" class="form-input">
+            <option value="" disabled>Seç…</option>
+            @for (d of denominations; track d.value) {
+              <option [value]="d.value">{{ d.label }}</option>
+            }
+          </select>
+          @if (errorMessage(form.controls.denomination); as msg) {
+            <p class="form-error">{{ msg }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="countryCode" class="form-label">Ülke</label>
+          <select id="countryCode" formControlName="countryCode" class="form-input">
+            <option value="" disabled>Seç…</option>
+            @for (c of countries(); track c.code) {
+              <option [value]="c.code">{{ c.name }}</option>
+            }
+          </select>
+          @if (errorMessage(form.controls.countryCode); as msg) {
+            <p class="form-error">{{ msg }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="year" class="form-label">Yıl</label>
+          <input id="year" type="number" inputmode="numeric" formControlName="year"
+                 [min]="limits.minYear" [max]="maxYear" class="form-input" />
+          @if (errorMessage(form.controls.year); as msg) {
+            <p class="form-error">{{ msg }}</p>
+          } @else {
+            <p class="form-hint">{{ limits.minYear }}–{{ maxYear }}</p>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label for="title" class="form-label">Başlık</label>
+        <input id="title" type="text" formControlName="title"
+               [maxlength]="limits.titleMaxLength" class="form-input" />
+        @if (errorMessage(form.controls.title); as msg) {
+          <p class="form-error">{{ msg }}</p>
+        } @else if (!isEdit()) {
+          <p class="form-hint">Nominal, ülke ve yıldan otomatik doldurulur; istersen değiştirebilirsin.</p>
+        }
+      </div>
+
+      <div class="grid gap-5 sm:grid-cols-3">
+        <div>
+          <label for="mintMark" class="form-label">Darphane işareti</label>
+          <input id="mintMark" type="text" formControlName="mintMark"
+                 [maxlength]="limits.mintMarkMaxLength" class="form-input" />
+          @if (errorMessage(form.controls.mintMark); as msg) {
+            <p class="form-error">{{ msg }}</p>
+          } @else {
+            <p class="form-hint">İsteğe bağlı, örn. A, D, F, G, J</p>
+          }
+        </div>
+
+        <div>
+          <label for="quantity" class="form-label">Adet</label>
+          <input id="quantity" type="number" inputmode="numeric" formControlName="quantity"
+                 min="1" [max]="limits.maxQuantity" class="form-input" />
+          @if (errorMessage(form.controls.quantity); as msg) {
+            <p class="form-error">{{ msg }}</p>
+          }
+        </div>
+
+        <div class="flex items-center gap-2 sm:pt-7">
+          <input id="isCommemorative" type="checkbox" formControlName="isCommemorative"
+                 class="size-4 rounded border-slate-300 accent-amber-500" />
+          <label for="isCommemorative" class="text-sm font-medium text-slate-700">Hatıra parası</label>
+        </div>
+      </div>
+
+      <div>
+        <label for="description" class="form-label">Açıklama</label>
+        <textarea id="description" rows="4" formControlName="description"
+                  [maxlength]="limits.descriptionMaxLength" class="form-input"></textarea>
+        @if (errorMessage(form.controls.description); as msg) {
+          <p class="form-error">{{ msg }}</p>
+        } @else {
+          <p class="form-hint">İsteğe bağlı. {{ form.controls.description.value.length }}/{{ limits.descriptionMaxLength }}</p>
+        }
+      </div>
+
+      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        @if (isEdit()) {
+          <button type="button" class="btn-secondary text-red-700 hover:bg-red-50"
+                  [disabled]="deleting() || submitting()" (click)="remove()">
+            {{ deleting() ? 'Siliniyor…' : 'Sil' }}
+          </button>
+        } @else {
+          <span></span>
+        }
+        <div class="flex flex-col-reverse gap-3 sm:flex-row">
+          <a routerLink="/collection" class="btn-secondary">Vazgeç</a>
+          <button type="submit" class="btn-primary" [disabled]="submitting() || deleting()">
+            {{ submitting() ? 'Kaydediliyor…' : 'Kaydet' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</section>

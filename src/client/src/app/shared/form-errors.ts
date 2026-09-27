@@ -18,6 +18,8 @@ export function errorMessage(control: AbstractControl | null): string | null {
   if (e['maxAge']) return 'Geçerli bir doğum tarihi girin.';
   if (e['passwordStrength']) return 'Parola en az bir büyük harf, bir küçük harf ve bir rakam içermeli.';
   if (e['passwordMismatch']) return 'Parolalar eşleşmiyor.';
+  if (e['min']) return `En az ${e['min'].min} olmalı.`;
+  if (e['max']) return `En fazla ${e['max'].max} olabilir.`;
 
   return 'Geçersiz değer.';
 }

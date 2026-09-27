@@ -2,8 +2,13 @@ using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
+using CoinPortal.Api.DevData;
 
-var builder = WebApplication.CreateBuilder(args);
+// Our own switch is removed so the configuration command-line parser never sees it
+var seedDevData = args.Contains(DevDataSeeder.CommandLineSwitch);
+var builder = WebApplication.CreateBuilder(
+    args.Where(a => a != DevDataSeeder.CommandLineSwitch).ToArray());
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -54,8 +59,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-// Add services to the container.
-
 builder.Services.AddAntiforgery(options =>
 {
     // Angular sends the token back in this header
@@ -72,12 +75,29 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Validates the antiforgery token on every POST/PUT/PATCH/DELETE
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-});
+})
+.AddJsonOptions(options =>
+{
+    // Enums as names ("Euro2") in both directions; reject raw numbers like 999
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
+});;
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Development-only: load test users and coins, then exit without starting the server
+if (seedDevData)
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException("Dev data can only be seeded in the Development environment.");
+    }
+
+    await DevDataSeeder.RunAsync(app);
+    return;
+}
 
 // HTTPS redirection only outside development; the dev proxy talks plain HTTP
 if (!app.Environment.IsDevelopment())
@@ -86,9 +106,24 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Configure the HTTP request pipeline.
+// API docs and test UI, development only
 if (app.Environment.IsDevelopment())
 {
+    // OpenAPI document at /openapi/v1.json
     app.MapOpenApi();
+
+    // Swagger UI at /swagger
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "CoinPortal API v1");
+        options.DocumentTitle = "CoinPortal API";
+
+        // Copy the readable XSRF-TOKEN cookie into the header the antiforgery filter expects.
+        // Must stay a single line without backslashes or double quotes: Swashbuckle embeds it
+        // in a JS string that is JSON-parsed, so escapes are decoded twice.
+        options.UseRequestInterceptor(
+            "(req) => { const c = document.cookie.split(`; `).find(x => x.startsWith(`XSRF-TOKEN=`)); if (c) { req.headers[`X-XSRF-TOKEN`] = decodeURIComponent(c.substring(11)); } return req; }");
+    });
 }
 
 app.UseAuthentication();
