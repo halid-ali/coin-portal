@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,6 +43,7 @@ public static class DevDataSeeder
         await using var scope = app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var photoStorage = scope.ServiceProvider.GetRequiredService<IPhotoStorage>();
 
         // Make sure the schema is up to date before inserting
         await db.Database.MigrateAsync();
@@ -71,8 +73,10 @@ public static class DevDataSeeder
                 }
             }
 
-            // Only the seed users' coins are touched; other accounts stay as they are
+            // Only the seed users' coins are touched; other accounts stay as they are.
+            // Photo rows go with the coins (cascade), their files are removed here.
             var removed = await db.Coins.Where(c => c.OwnerId == user.Id).ExecuteDeleteAsync();
+            await photoStorage.DeleteOwnerAsync(user.Id);
 
             db.Coins.AddRange(seedUser.Coins.Select(c => new Coin
             {

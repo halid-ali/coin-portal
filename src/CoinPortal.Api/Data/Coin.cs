@@ -35,5 +35,6 @@ public class Coin
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 
-    // Image paths are added in the photo upload step
+    // At most one per side (national, common)
+    public List<CoinPhoto> Photos { get; set; } = [];
 }
