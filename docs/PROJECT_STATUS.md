@@ -134,8 +134,9 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
 ## Sıradaki adım
 
 1. **ImageSharp lisans kararı** (bkz. Açık konular 1). Sonuca göre `feat/coin-photos` main'e merge edilir.
-2. Adaylar (sıra değişebilir): liste/tablo/kart görünüm seçimi ve gelişmiş filtreler, görünürlük ayarı
-   ve paylaşılabilir profil sayfası (diğer kullanıcıların koleksiyonları, kullanıcı adına göre filtre).
+2. Adaylar (sıra değişebilir): gelişmiş filtreler, görünürlük ayarı ve paylaşılabilir profil sayfası
+   (diğer kullanıcıların koleksiyonları, kullanıcı adına göre filtre; fotoğraf watermark'ı bununla
+   birlikte, bkz. Açık konular 8).
 
 ## Fotoğraflar
 
@@ -201,7 +202,23 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    parolalı connection string repoya girmeyecek.
 6. **Yayında SPA fallback:** `MapFallbackToFile("index.html")`.
 7. **Backend testleri yok.** Bir test projesi (xUnit + `WebApplicationFactory`) eklenmesi değerlendirilebilir.
-8. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
+8. **Fotoğraflara watermark (ileride, 2026-09-27'de konuşuldu):** Görünürlük ayarı ve herkese açık profil
+   sayfasıyla birlikte yapılacak; o zamana kadar fotoğrafları sadece sahibi gördüğü için gerek yok.
+   - Önerilen yol: sunucuda, **hazır bir PNG** (yazı veya logo) yarı saydam olarak köşeye basılır. Bunun
+     için ek kütüphane gerekmez (ImageSharp temel paketi ve SkiaSharp ikisi de görsel üst üste bindirir).
+     `IImageProcessor` sözleşmesine eklenir.
+   - Dinamik yazı (ör. "@kullanıcıadı") ImageSharp'ta ek paket ister (`ImageSharp.Drawing` + `Fonts`),
+     SkiaSharp'ta dahili. Kütüphane kararı (Açık konular 1) bu seçeneği etkiler.
+   - Sadece preview ve full boyutlarına basılır; 150 px thumbnail'de okunmaz.
+   - Temiz bir ana kopya sunucuda saklanır, gösterilen boyutlar ondan üretilir. Böylece watermark
+     değişirse fotoğraflar yeniden üretilebilir. Bedeli fotoğraf başına ~%30-50 fazla disk (kotaya yansır).
+     Mevcut fotoğraflar için bir kerelik yeniden üretme işi gerekir (ana kopyası olmayanlar için full
+     boyut ana kopya sayılabilir).
+   - İstenirse sadece herkese açık fotoğraflara uygulanır.
+   - Tarayıcıda (Canvas) eklemek ve sadece CSS ile bindirmek elendi: ilki API'ye doğrudan yüklemeyle
+     atlatılabilir, ikincisi dosyayı korumaz.
+   - Karar verilecekler: watermark içeriği (yazı/logo), konum, saydamlık, sadece herkese açıklara mı.
+9. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
    i18n (TR/DE/EN), Register'ın da `applyServerErrors` kullanması, mobilde katlanabilir filtre paneli.
 
 ## Hosting seçimi kontrol listesi
