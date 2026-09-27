@@ -1,7 +1,7 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-27 (Claude Code'a geçildi; akış testi olarak koleksiyon tablosuna sütun
-sıralaması ve sabit sütun genişlikleri eklendi)
+Son güncelleme: 2026-09-27 (fotoğraf yükleme tamamlandı, `feat/coin-photos` branch'inde; ImageSharp lisans
+kararı bekleniyor, karar sonrası main'e merge edilecek)
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -32,8 +32,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
   CORS gerekmeyecek.
 - **Neden bu yığın:** Kullanıcı Windows hosting düşünüyor (kendi sunucusu yok), .NET geçmişi var. NestJS
   Windows paylaşımlı hostingde sorunlu. Supabase elendi.
-- **Fotoğraf (planlanan):** Kırpma istemcide ngx-image-cropper ile (1:1). Boyutlandırma sunucuda
-  (ImageSharp gibi): thumbnail 150x150, preview 600x600, fullscreen en fazla 1600x1600. EXIF temizlenecek.
+- **Fotoğraf:** Kararlar ve gerekçeleri "Fotoğraflar" bölümünde (2026-09-27'de kararlaştırıldı).
 - **Ülke isimleri:** Veritabanında çok dilli isim yok; client ISO koddan `Intl.DisplayNames` ile üretiyor.
 - **daisyUI:** Tartışıldı, ertelendi. Mevcut `.card`/`.btn-primary` class'larıyla çakışıyor, tüm
   template'lere yayılan refactor ister. Yapılacaksa ayrı `chore/daisyui` branch'inde, önce mevcut
@@ -109,32 +108,129 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
      bağımsız, sabit sütunlar tek satır; tablo artık `lg` (1024px) ve üstünde, altında kart listesi.
    - Doğrulama: API 5090'da seed verisiyle curl, client headless Edge ile (genişlikler 5 farklı
      sayfa/sıralamada aynı, tıklama döngüsü, mobil select).
+8. **Fotoğraf yükleme** (`feat/coin-photos`, **main'e merge edilmedi**, lisans kararı bekliyor). Kararlar
+   ve ayrıntılar aşağıdaki "Fotoğraflar" bölümünde.
+   - API: `CoinPhoto` tablosu (migration `AddCoinPhotos`), `Photos/` (`PhotoOptions`, `IPhotoStorage` +
+     `FileSystemPhotoStorage`, `IImageProcessor` + `ImageSharpImageProcessor`), `CoinPhotosController`
+     (`PUT`/`DELETE api/coins/{id}/photos/{side}`, `GET …/{side}/{size}?v=`), coin yanıtında `photos`,
+     coin silinince ve dev seed sıfırlanınca dosya temizliği, kota kontrolü, hata kodları.
+   - Client: `PhotoSlot` (formda ulusal/ortak yüz, bekleyen değişiklik rozeti, Geri al), `PhotoCropDialog`
+     (ngx-image-cropper 9.1.7, yuvarlak kılavuz, yakınlaştırma, 90° döndürme), `PhotoViewer` (tam ekran,
+     ulusal/ortak yüz geçişi, ok tuşları), `CoinThumb` (tablo ve kartlarda yuvarlak thumbnail), `photo-errors`
+     (Türkçe hata mesajları + ön kontrol). Ortak `dialog-panel` stili (onay penceresi de buna geçti).
+   - Doğrulama: API'ye karşı curl ile üretilen test görselleri (EXIF yönü + GPS'li JPEG, şeffaf PNG,
+     çok küçük, çok geniş, GIF, sahte dosya), değiştirme/silme/coin silme temizliği, kota (5 KB'lık ikinci
+     instance), önbellek (304, eski sürüm 404); arayüz headless Edge ile (seç → kırp → kaydet, yeni coin
+     + fotoğraf, görüntüleyici, mobil).
+   - Seed kullanıcısı `ayse.yilmaz`'ın coin 122'sinde test fotoğrafları (kırmızı/mavi) duruyor; dev seed
+     tekrar çalıştırılınca temizlenir.
 
-## Sıradaki adım: Fotoğraf yükleme (`feat/coin-photos`)
+## Sıradaki adım
 
-1. Backend: `Coin`'e görsel alanları (üç boyutun yolları veya tek görsel anahtarı) + migration. Yükleme
-   endpoint'i (ör. `POST api/coins/{id}/photo`, multipart), sadece JPG/PNG, boyut sınırı, ImageSharp ile
-   150/600/1600 px, EXIF temizleme, dosyalar `wwwroot` dışında saklanıp kontrollü sunulur, coin silinince
-   dosyalar da silinir. Antiforgery multipart isteklerde de geçerli.
-2. Client: ngx-image-cropper ile 1:1 kırpma, formda önizleme, listede thumbnail, tam ekran görüntüleme.
-3. Karar verilecekler: dosya saklama yeri ve adlandırma (GUID), hostingde yazma izni, kota.
+1. **ImageSharp lisans kararı** (bkz. Açık konular 1). Sonuca göre `feat/coin-photos` main'e merge edilir.
+2. Adaylar (sıra değişebilir): liste/tablo/kart görünüm seçimi ve gelişmiş filtreler, görünürlük ayarı
+   ve paylaşılabilir profil sayfası (diğer kullanıcıların koleksiyonları, kullanıcı adına göre filtre).
 
-Sonraki adaylar (sıra değişebilir): liste/tablo/kart görünüm seçimi ve gelişmiş filtreler, görünürlük
-ayarı ve paylaşılabilir profil sayfası (diğer kullanıcıların koleksiyonları, kullanıcı adına göre filtre).
+## Fotoğraflar
+
+### Kararlar (2026-09-27)
+
+Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç dokunmasın; değişen tek şey ayar.
+
+- **Coin başına en fazla 2 fotoğraf: ulusal yüz ve ortak yüz.** Ayrı `CoinPhotos` tablosu (`Side` alanı,
+  coin + yüz başına tek kayıt). Tek fotoğraftan sonradan geçiş yapmak daha pahalı olacağı için baştan böyle.
+  - **Adlar Euro terimleriyle:** `CoinSide.National` ("Ulusal yüz", ülkeye özgü) ve `CoinSide.Common`
+    ("Ortak yüz", değerin yazdığı, tüm ülkelerde aynı). "Ön/arka yüz" (obverse/reverse) bilerek
+    kullanılmıyor: insanlar bu terimleri iki taraf için de kullanıyor (kullanıcıyla netleştirildi).
+  - **Varsayılan gösterilen taraf ulusal yüz** (listelerde thumbnail, tam ekranda ilk açılan, formda
+    solda), çünkü aynı değerdeki coinleri birbirinden ayıran taraf o.
+- **Saklama yeri yapılandırmadan:** `PhotoStorage:RootPath`.
+  - Lokalde `App_Data/photos` (proje klasörüne göre), `.gitignore`'da ve `.csproj` ile publish dışı.
+  - Hostingde mümkünse **site klasörünün dışında** mutlak bir yol (panel ortam değişkeni veya
+    `appsettings.Production.json`). Sebep: Web Deploy'un "hedefteki fazla dosyaları sil" seçeneği veya
+    klasörü temizleyen bir publish, uygulama klasörünün içindeki fotoğrafları siler.
+  - Yedek plan: `App_Data` (IIS dışarıya sunmaz) + publish'te fazla dosyaları silme kapalı.
+  - Kodda `IPhotoStorage` arayüzü + tek dosya sistemi uygulaması (ileride Blob/S3'e geçiş kolay olsun).
+- **Adlandırma:** `photos/{ownerId}/{photoId}/{thumb|preview|full}.webp`, `photoId` GUID. Kullanıcının
+  dosya adı hiçbir yerde kullanılmaz.
+- **Format ve boyutlar:** Giriş JPG/PNG, çıktı **WebP** (kalite ~80). thumb 150x150, preview 600x600,
+  full en fazla 1600x1600.
+- **Sunum API üzerinden:** `GET api/coins/{id}/photos/{side}/{size}`, coin ile aynı erişim kuralı
+  (şimdilik sadece sahibi; görünürlük ayarı gelince burada genişler). URL'de sürüm anahtarı (`?v=`),
+  `Cache-Control: private, max-age=31536000, immutable`. `wwwroot` altından statik sunum yok.
+- **Yükleme akışı:**
+  - Client ngx-image-cropper ile 1:1 kırpar, en fazla 1600x1600'e küçültüp multipart gönderir.
+  - Server client'a güvenmez: görseli ImageSharp ile açarak doğrular (uzantı/content-type'a bakmaz),
+    boyut ve piksel sınırı uygular, kare değilse ortadan kırpar, EXIF yönüne göre döndürüp EXIF/GPS'i
+    temizler, üç boyutu üretir.
+  - Dosyalar önce geçici klasöre yazılır, veritabanı kaydı başarılıysa yerine taşınır. Fotoğraf veya coin
+    silinince dosyalar da silinir. Antiforgery multipart isteklerde de geçerli.
+- **Sınırlar (yapılandırılabilir):** dosya başına 10 MB, piksel sınırı ~6000x6000, **kullanıcı başına
+  300 MB**. Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir.
+  (Üç boyut birlikte ~250-350 KB, yani kota ~1000 fotoğraf.)
+- **Görsel işleme kütüphanesi:** SixLabors ImageSharp 4.1.2 (tamamen managed, native bağımlılığı yok).
+  Lisansı Six Labors Split License: yıllık geliri 1 milyon doların altındaki kullanıcılar için Apache 2.0.
+  **Ancak 4.x derlemede lisans anahtarı arıyor; anahtarsız Release/publish derlemesi başarısız.**
+  Kütüphane sadece `IImageProcessor` arkasında, değiştirmek bir dosya + DI kaydı (bkz. Açık konular 1).
+- **Kaydetme davranışı:** Formda fotoğraf değişiklikleri "Kaydet"e basınca uygulanır, "Vazgeç" hepsini
+  geri alır (kullanıcı kararı).
+- **Hatalar:** API fotoğraf hatalarında `code` döner (`file_missing`, `file_too_large`, `invalid_image`,
+  `quota_exceeded`, `conflict`); client bunları Türkçe mesaja çevirir.
 
 ## Açık konular
 
-1. **Şirket politikası:** Kişisel projeyi şirket bilgisayarında geliştirme, GitHub'a push ve yapay zeka
+1. **ImageSharp lisans anahtarı (2026-09-27):** 4.x anahtarsız Release derlemede hata veriyor, publish
+   yapılamaz. Kullanıcı Six Labors'a ücretsiz anahtar için yazdı, cevap bekleniyor.
+   - Olumlu: anahtar derlemeye `SixLaborsLicenseKey` (ortam değişkeni/MSBuild property) veya
+     `sixlabors.lic` dosyası ile verilir; anahtar repoya girmemeli.
+   - Olumsuz: `SkiaSharpImageProcessor` yazılır (MIT, aktif bakımlı; native `libSkiaSharp.dll` içerir),
+     ImageSharp paketi kaldırılır, hosting kontrol listesine "native DLL çalıştırılabiliyor mu?" eklenir.
+     ImageSharp 3.1.12 (anahtarsız) önerilmiyor: Ekim 2025'ten beri güncelleme almıyor.
+   - Karar verilene kadar `feat/coin-photos` main'e merge edilmez.
+2. **Şirket politikası:** Kişisel projeyi şirket bilgisayarında geliştirme, GitHub'a push ve yapay zeka
    asistanı kullanımı yönetici/IT ile netleştirilecek. Cevaba kadar repo **sadece lokal**, push yok.
-2. **Hosting seçilmedi.** Kriterler: .NET 10, MSSQL (veya MySQL/PostgreSQL), SSL + özel alan adı,
-   FTP/Web Deploy, uygulama klasörüne yazabilme (fotoğraflar), yeterli disk.
-3. GitHub'a yayınlarken: **boş** repo, sonra `git remote add origin <url>` ve `git push -u origin main`.
-4. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
+3. **Hosting seçilmedi.** Seçerken aşağıdaki "Hosting seçimi kontrol listesi" kullanılacak.
+4. GitHub'a yayınlarken: **boş** repo, sonra `git remote add origin <url>` ve `git push -u origin main`.
+5. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
    parolalı connection string repoya girmeyecek.
-5. **Yayında SPA fallback:** `MapFallbackToFile("index.html")`.
-6. **Backend testleri yok.** Bir test projesi (xUnit + `WebApplicationFactory`) eklenmesi değerlendirilebilir.
-7. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
+6. **Yayında SPA fallback:** `MapFallbackToFile("index.html")`.
+7. **Backend testleri yok.** Bir test projesi (xUnit + `WebApplicationFactory`) eklenmesi değerlendirilebilir.
+8. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
    i18n (TR/DE/EN), Register'ın da `applyServerErrors` kullanması, mobilde katlanabilir filtre paneli.
+
+## Hosting seçimi kontrol listesi
+
+Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olmaz.
+
+**Uygulama**
+- **.NET 10 (ASP.NET Core) destekleniyor mu?** ASP.NET Core Hosting Bundle kurulu mu, in-process
+  hosting (ASP.NET Core Module v2) çalışıyor mu?
+- **Ortam değişkenleri panelden tanımlanabiliyor mu?** (`ASPNETCORE_ENVIRONMENT`, connection string,
+  `PhotoStorage__RootPath`)
+- Uygulama havuzu boşta kalınca ne zaman kapanıyor (idle timeout)? "Always on" / önceden yükleme var mı?
+  (İlk istekte soğuk başlama gecikmesi.)
+- Uygulama loglarına (stdout log, olay günlüğü) erişilebiliyor mu?
+- `web.config` ile istek boyutu sınırı (`maxAllowedContentLength`) ayarlanabiliyor mu?
+
+**Fotoğraflar ve disk**
+- **Uygulama havuzu kimliğinin (app pool identity) yazabildiği, site klasörü dışında bir klasör var mı?**
+  (Ör. Plesk'te `httpdocs` yanında `private`.) Yoksa `App_Data`'ya yazma izni verilebiliyor mu?
+- **Disk kotası ne kadar?** Veritabanı ve e-posta da bu kotaya dahil mi?
+- Fotoğraf klasörü otomatik yedeklemeye dahil mi? Yedekten geri dönüş nasıl yapılıyor?
+
+**Veritabanı**
+- **MSSQL var mı, hangi sürüm ve boyut sınırı ne?** (Yoksa MySQL/PostgreSQL; EF Core provider değişir.)
+- Veritabanına dışarıdan (SSMS / `dotnet ef`) bağlanılabiliyor mu, yoksa migration'ları SQL script olarak
+  mı uygulamak gerekiyor?
+- Veritabanı yedekleri otomatik mi, ne sıklıkla, ne kadar saklanıyor?
+
+**Yayın ve alan adı**
+- **SSL sertifikası (ör. Let's Encrypt) ve özel alan adı** destekleniyor mu, sertifika otomatik yenileniyor mu?
+- **Yayın yöntemi:** Web Deploy ve/veya FTP. Web Deploy'da "hedefteki fazla dosyaları sil" seçeneği
+  kapatılabiliyor mu? (FTP zaten silmez.)
+
+**İleride gerekecek**
+- SMTP ile e-posta gönderimi (e-posta doğrulama, şifre sıfırlama) destekleniyor mu, gönderim sınırı ne?
 
 ## Web uygulamasının kapsamı
 

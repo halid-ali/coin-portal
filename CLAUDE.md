@@ -72,7 +72,8 @@ Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi
 
 ```
 src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Countries,Common}/, Data/ (entities,
-                        AppDbContext, Migrations/), DevData/ (dev only), Validation/
+                        AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage + image
+                        processing), Querying/, Validation/, App_Data/photos (local photos, gitignored)
 src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
 ```
 
@@ -83,8 +84,15 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
 
 ## Backend kuralları
 
-- Tüm controller'lar `api/[controller]` altında. İstek/yanıt tipleri `Contracts/` altında, entity'ler
-  dışarı açılmaz.
+- Tüm controller'lar `api/[controller]` altında. İstisna: bir kaynağın alt kaynakları iç içe route
+  kullanır (`api/coins/{coinId}/photos`). İstek/yanıt tipleri `Contracts/` altında, entity'ler dışarı açılmaz.
+- **Görsel kütüphanesi sadece `IImageProcessor` arkasında** (`Photos/`, sözleşme arayüzün XML
+  yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
+  dosya kütüphaneye referans vermez. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır.
+- Fotoğraflar statik sunulmaz; API sahiplik kontrolüyle ve sürümlü URL (`?v=<photoId>`) +
+  `immutable` önbellekle sunar. Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir.
+- İstemcinin Türkçe mesaj göstermesi gereken hatalarda ProblemDetails'e makine kodu eklenir
+  (`extensions.code`, ör. `invalid_image`, `quota_exceeded`).
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
 - Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
@@ -111,9 +119,15 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart listesi.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
-  `btn-icon`, `nav-link`, `link`. Yeni ortak stil gerekirse buraya eklenir.
+  `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu).
+  Yeni ortak stil gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
-  `window.confirm` kullanılmaz.
+  `window.confirm` kullanılmaz. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
+  `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
+- Coin formunda fotoğraf değişiklikleri (`PhotoSlot`, `PhotoChange`) **Kaydet'te** uygulanır: önce coin,
+  sonra yüzler sırayla. Fotoğraf hatasında coin kayıtlı kalır, adres düzenleme adresine çevrilir.
+- Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
+  `PhotoViewer`.
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
 - Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan üretilir (`CountryService`, locale `tr`).
 - Prettier: `printWidth: 100`, `singleQuote`.
@@ -130,7 +144,14 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   durumda ne yapılacağı "Çalışan uygulamalar" bölümünde.
 - Eski dosyaların çoğunda dosya sonu satır sonu yok (kopyala-yapıştır döneminden); Prettier'ı sadece
   değiştirilen dosyalarda çalıştır, ilgisiz dosyaları diff'e katma.
-- Python kurulu değil; betikler için Node veya Bash kullan.
+- Python kurulu değil; betikler için Node veya Bash kullan. Bash `node -e "…"` içinde template literal
+  (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap.
+- **ImageSharp 4.x lisans anahtarı ister:** anahtar yoksa Debug derleme uyarı verir, **Release
+  (publish) derleme hata verir.** Karar bekliyor (PROJECT_STATUS "Açık konular").
+- Scratchpad'deki .NET betikleri (`dotnet run x.cs`, `#:package`) repo'nun `nuget.config`'ini görmez;
+  şirket feed'i 401 verir. Betik klasörüne repo'daki `nuget.config` kopyalanır.
+- Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
+  Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
 - Seed komutu `src/CoinPortal.Api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
 - Satır sonları LF (`.gitattributes`). Şirketin global `.npmrc`'sinde Azure DevOps feed'i var;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.
