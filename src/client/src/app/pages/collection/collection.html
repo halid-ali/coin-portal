@@ -1,0 +1,167 @@
+<section class="mx-auto w-full max-w-6xl space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Koleksiyonum</h1>
+      @if (result(); as r) {
+        <p class="text-sm text-slate-600">
+          {{ r.totalCount }} kayıt{{ hasFilters() ? ' (filtrelenmiş)' : '' }}
+        </p>
+      }
+    </div>
+    <a routerLink="/collection/new" class="btn-primary">+ Coin ekle</a>
+  </div>
+
+  <!-- Filters -->
+  <div class="card grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
+    <div class="sm:col-span-2">
+      <label for="search" class="form-label">Ara</label>
+      <input id="search" type="search" [formControl]="searchControl"
+             placeholder="Başlık veya açıklama" class="form-input" />
+    </div>
+
+    <div>
+      <label for="denomination" class="form-label">Nominal</label>
+      <select id="denomination" #denominationSelect class="form-input"
+              (change)="setFilters({ denomination: denominationSelect.value })">
+        <option value="" [selected]="!query().denomination">Tümü</option>
+        @for (d of denominations; track d.value) {
+          <option [value]="d.value" [selected]="d.value === query().denomination">{{ d.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="country" class="form-label">Ülke</label>
+      <select id="country" #countrySelect class="form-input"
+              (change)="setFilters({ countryCode: countrySelect.value })">
+        <option value="" [selected]="!query().countryCode">Tümü</option>
+        @for (c of countries(); track c.code) {
+          <option [value]="c.code" [selected]="c.code === query().countryCode">{{ c.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="year" class="form-label">Yıl</label>
+      <input id="year" #yearInput type="number" inputmode="numeric" class="form-input"
+             [min]="minYear" [max]="maxYear" [value]="query().year ?? ''"
+             (change)="setYear(yearInput.value)" />
+    </div>
+
+    <div>
+      <label for="commemorative" class="form-label">Hatıra parası</label>
+      <select id="commemorative" #commemorativeSelect class="form-input"
+              (change)="setFilters({ isCommemorative: commemorativeSelect.value })">
+        <option value="" [selected]="query().isCommemorative === undefined">Tümü</option>
+        <option value="true" [selected]="query().isCommemorative === true">Sadece hatıra</option>
+        <option value="false" [selected]="query().isCommemorative === false">Hatıra olmayanlar</option>
+      </select>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-3 sm:col-span-2 lg:col-span-6">
+      @if (hasFilters()) {
+        <button type="button" class="btn-secondary py-1.5" (click)="clearFilters()">Filtreleri temizle</button>
+      }
+      <div class="ml-auto flex items-center gap-2">
+        <label for="sort" class="text-sm font-medium text-slate-700">Sırala:</label>
+        <select id="sort" #sortSelect class="form-input w-auto py-1.5"
+                (change)="setSort(sortSelect.value)">
+          @for (s of sorts; track s.value) {
+            <option [value]="s.value" [selected]="s.value === query().sort">{{ s.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  @if (loadError()) {
+    <div role="alert" class="alert-error">Koleksiyon yüklenemedi. Sayfayı yenileyip tekrar dene.</div>
+  } @else if (result(); as r) {
+    @if (r.items.length === 0) {
+      <div class="card text-center">
+        @if (hasFilters()) {
+          <p class="text-slate-600">Filtrelere uyan coin bulunamadı.</p>
+          <button type="button" class="btn-secondary mt-4" (click)="clearFilters()">Filtreleri temizle</button>
+        } @else {
+          <p class="text-slate-600">Henüz coin eklemedin.</p>
+          <a routerLink="/collection/new" class="btn-primary mt-4">İlk coinini ekle</a>
+        }
+      </div>
+    } @else {
+      <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
+                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions" [disabled]="loading()"
+                      (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
+
+      <div class="transition-opacity" [class.opacity-60]="loading()">
+        <!-- Mobile: stacked list -->
+        <ul class="space-y-3 md:hidden">
+          @for (coin of r.items; track coin.id) {
+            <li>
+              <a [routerLink]="['/collection', coin.id, 'edit']"
+                 class="card block p-4 hover:border-amber-300">
+                <div class="flex items-start justify-between gap-3">
+                  <p class="font-medium text-slate-900">{{ coin.title }}</p>
+                  <span class="shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-sm font-semibold text-amber-900">
+                    {{ denominationLabel(coin.denomination) }}
+                  </span>
+                </div>
+                <p class="mt-1 text-sm text-slate-600">
+                  {{ countryName(coin.countryCode) }} · {{ coin.year }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
+                </p>
+                <div class="mt-2 flex gap-2 text-xs">
+                  @if (coin.isCommemorative) {
+                    <span class="rounded-full bg-sky-100 px-2 py-0.5 text-sky-800">Hatıra</span>
+                  }
+                  @if (coin.quantity > 1) {
+                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">{{ coin.quantity }} adet</span>
+                  }
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+
+        <!-- Desktop: table -->
+        <div class="card hidden overflow-x-auto p-0 md:block">
+          <table class="w-full text-left text-sm">
+            <thead class="border-b border-slate-200 bg-slate-50 text-slate-600">
+              <tr>
+                <th scope="col" class="px-4 py-3 font-medium">Başlık</th>
+                <th scope="col" class="px-4 py-3 font-medium">Nominal</th>
+                <th scope="col" class="px-4 py-3 font-medium">Ülke</th>
+                <th scope="col" class="px-4 py-3 font-medium">Yıl</th>
+                <th scope="col" class="px-4 py-3 font-medium">Darphane</th>
+                <th scope="col" class="px-4 py-3 font-medium">Hatıra</th>
+                <th scope="col" class="px-4 py-3 text-right font-medium">Adet</th>
+                <th scope="col" class="px-4 py-3"><span class="sr-only">İşlemler</span></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (coin of r.items; track coin.id) {
+                <tr class="hover:bg-amber-50/50">
+                  <td class="px-4 py-3 font-medium text-slate-900">{{ coin.title }}</td>
+                  <td class="px-4 py-3 whitespace-nowrap">{{ denominationLabel(coin.denomination) }}</td>
+                  <td class="px-4 py-3">{{ countryName(coin.countryCode) }}</td>
+                  <td class="px-4 py-3">{{ coin.year }}</td>
+                  <td class="px-4 py-3">{{ coin.mintMark ?? '–' }}</td>
+                  <td class="px-4 py-3">{{ coin.isCommemorative ? 'Evet' : '–' }}</td>
+                  <td class="px-4 py-3 text-right">{{ coin.quantity }}</td>
+                  <td class="px-4 py-3 text-right">
+                    <a [routerLink]="['/collection', coin.id, 'edit']" class="link">Düzenle</a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
+                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions" [disabled]="loading()"
+                      (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
+    }
+  } @else if (loading()) {
+    <p class="text-center text-slate-500">Yükleniyor…</p>
+  }
+</section>
