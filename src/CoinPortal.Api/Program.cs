@@ -54,8 +54,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-// Add services to the container.
-
 builder.Services.AddAntiforgery(options =>
 {
     // Angular sends the token back in this header
@@ -86,9 +84,24 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Configure the HTTP request pipeline.
+// API docs and test UI, development only
 if (app.Environment.IsDevelopment())
 {
+    // OpenAPI document at /openapi/v1.json
     app.MapOpenApi();
+
+    // Swagger UI at /swagger
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "CoinPortal API v1");
+        options.DocumentTitle = "CoinPortal API";
+
+        // Copy the readable XSRF-TOKEN cookie into the header the antiforgery filter expects.
+        // Must stay a single line without backslashes or double quotes: Swashbuckle embeds it
+        // in a JS string that is JSON-parsed, so escapes are decoded twice.
+        options.UseRequestInterceptor(
+            "(req) => { const c = document.cookie.split(`; `).find(x => x.startsWith(`XSRF-TOKEN=`)); if (c) { req.headers[`X-XSRF-TOKEN`] = decodeURIComponent(c.substring(11)); } return req; }");
+    });
 }
 
 app.UseAuthentication();
