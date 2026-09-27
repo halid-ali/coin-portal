@@ -1,7 +1,19 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-27 (birden fazla koleksiyon tamamlandı, `feat/collections`; sıradaki adım
-paylaşım. ImageSharp lisans kararı ilk publish'ten önce verilecek)
+Son güncelleme: 2026-09-27 (ilk Claude Code sohbeti kapandı: fotoğraflar, çoklu koleksiyonlar,
+kapaklar, navbar ve paylaşım main'de. Sıradaki adım watermark. ImageSharp lisans kararı ilk publish'ten
+önce verilecek)
+
+## Yeni sohbete başlarken
+
+- Durum: `main` güncel ve temiz; açık feature branch yok. Push yapılmadı (repo sadece lokal).
+- Veritabanı en son migration'da (`AddCollectionVisibility`); dev seed 2026-09-27'de çalıştırıldı
+  (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
+  "Koleksiyonum"u sadece linkle).
+- API'yi Claude bu sohbette kendi arka plan oturumunda çalıştırıyordu; sohbet kapanınca durur. Yeni
+  sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
+- İlk iş: "Sıradaki adım"daki watermark kararları (içerik, konum, saydamlık, kapsam). Bekleyen dış konu:
+  Six Labors'tan ImageSharp lisans cevabı (Açık konular 1).
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -159,8 +171,32 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
      sayfa amber hap), sağda baş harf avatarı + kullanıcı menüsü (ad, e-posta, Çıkış; Esc ve dışarı
      tıklama kapatır), mobilde tam genişlik menü.
    - Izgaradaki açıklamasız mavi nokta (hatıra göstergesi) fotoğrafın köşesinde "Hatıra" etiketi oldu.
+10. **Paylaşım** (`feat/sharing`, 2. aşama):
+    - API: `Collection.Visibility` (Private/Unlisted/Public) ve `ShareToken` (128 bit, sadece Unlisted
+      iken; migration `AddCollectionVisibility`, mevcutlar Private). Sahip: `PUT` ile görünürlük,
+      `POST api/collections/{id}/share-token` ile yeni link. `PublicController` (`api/public`, girişsiz):
+      `collectors`, `users/{userName}` (herkese açık koleksiyonu yoksa 404), `collections/{id}[/coins]`,
+      `shared/{token}[/coins]`, `coins` (Keşfet, `owner` filtresi, `pageSize=0` yasak). Fotoğraf ve kapak
+      GET'leri görünürlüğe göre (`CollectionAccess`, `s=` anahtarı). Coin listeleme `CoinListing`'e taşındı.
+      Dev seed'e örnek paylaşımlar eklendi (ayse/elif herkese açık, jonas linkle); seed kullanıcı onayıyla
+      çalıştırıldı.
+    - Client: koleksiyon penceresinde görünürlük seçimi, "kaydedince…" notları, link kutusu (kopyala,
+      yeni link oluştur + onay); kartlarda ve başlıkta görünürlük rozeti, başlıkta "Linki kopyala".
+      Koleksiyon sayfası dört modlu (sahip/herkese açık/gizli link/Keşfet; sahip dışı salt okunur).
+      Profil sayfası, Keşfet (koleksiyoncu filtresi, "@kullanıcı · koleksiyon" linkleri, Koleksiyoncu
+      sütunu), menüde ve ana sayfada Keşfet (girişsiz de). Ortak `CollectionCard`, `VisibilityBadge`.
+    - Güvenlik gözden geçirmesi: kişisel veri sızıntısı yok (sadece kullanıcı adı), erişim kuralı tek
+      yerde, paylaşılmayan her şey 404, anahtar iptali anında. Bulunup düzeltilen: Keşfet'te girişsiz
+      "tümü" sorgusu (yasaklandı), `owner` uzunluk sınırı. Açık kalan: istek sınırlama (Açık konular 11).
+    - Doğrulama: 46 kontrollük API testi, 26 kontrollük arayüz testi (headless Edge, girişsiz akış dahil).
 
-## Sıradaki adım: Paylaşım (2. aşama, `feat/sharing`)
+## Sıradaki adım
+
+1. **Watermark** (Açık konular 8): paylaşım bittiği için şimdi konuşulacak (içerik, konum, saydamlık,
+   sadece herkese açık fotoğraflara mı).
+2. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
+
+## Koleksiyonlar ve paylaşım: kararlar
 
 Kararlar (2026-09-27, kullanıcıyla):
 
@@ -174,15 +210,16 @@ Kararlar (2026-09-27, kullanıcıyla):
   - **Silme:** Onay penceresinde koleksiyonun adı yazılmadan silinemez (boş olsa da). İçinde coin varsa
     seçenek: coin'leri başka koleksiyona taşı ya da coin'lerle (ve fotoğraflarıyla) birlikte sil.
     Kullanıcının tek koleksiyonu silinemez.
-- **2. aşama – `feat/sharing`:** Koleksiyon başına görünürlük: Özel (varsayılan) / Sadece linkle (gizli,
+- **2. aşama – `feat/sharing` (tamamlandı, bkz. Tamamlananlar 10):** Koleksiyon başına görünürlük: Özel (varsayılan) / Sadece linkle (gizli,
   tahmin edilemeyen `/s/…` linki, yenilenebilir, Keşfet'te görünmez) / Herkese açık. Profil sayfası
   `/u/{kullanıcıadı}` (sadece kullanıcı adı görünür; ad, e-posta, doğum tarihi asla). Herkese açık
   koleksiyonlar giriş yapmadan da görülebilir, salt okunur. Keşfet: herkese açık koleksiyonlardaki tüm
   coin'ler, kullanıcı filtresiyle (zorunlu gereksinimdeki "kullanıcı filtresi"). Fotoğraf erişimi
   görünürlüğe göre; aşama sonunda güvenlik gözden geçirmesi. Watermark bu aşamayla konuşulur
   (Açık konular 8).
-
-Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
+- Varsayılanlar (2026-09-27): profil `/u/{kullanıcı}`, herkese açık koleksiyon `/u/{kullanıcı}/{id}`,
+  gizli link `/s/{anahtar}`, Keşfet `/explore`; "sadece linkle"den çıkınca link iptal, tekrar
+  açılınca yeni link; herkese açık koleksiyonu olmayan profil 404.
 
 ## Fotoğraflar
 
@@ -273,6 +310,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (şu an 25 Euro ihraççısı, `Countries` tablosu; tarihî ülkeler de gerekebilir), yılın genelleşmesi
     (şu an 1999 ve sonrası, `CK_Coins_Year`; antikalarda tahmini yıl/dönem), para birimi. Euro'ya özgü
     kurallar (ulusal/ortak yüz, 2 € hatıra) sadece Euro türünde geçerli olmalı.
+11. **İstek sınırlama (rate limiting) yok:** Girişsiz uçlar (Keşfet, profil, paylaşılan koleksiyon,
+    fotoğraflar) ve giriş denemeleri için hosting öncesi ASP.NET Core rate limiter değerlendirilmeli.
+    Gizli link anahtarı 128 bit olduğu için tahminle bulunamaz; amaç yükü sınırlamak.
 
 ## Yayın öncesi yapılacaklar
 

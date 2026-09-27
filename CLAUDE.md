@@ -67,7 +67,8 @@ cd src/client && npx prettier --check "src/**/*.{ts,html,css}"
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
 (e-postalar `@example.com`), parola hepsi için `Coinportal1`. Her birinde "Koleksiyonum" ve
-"Hatıra paraları" koleksiyonları var. **Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
+"Hatıra paraları" koleksiyonları var; seed ayrıca ayse'nin "Koleksiyonum"unu ve elif'in "Hatıra
+paraları"nı herkese açık, jonas'ın "Koleksiyonum"unu sadece linkle yapar. **Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
 sıfırlar**; kullanıcı onlarla deneme yapmış olabilir (fotoğraf yüklemiş vb.), çalıştırmadan önce sor.
 API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-data` kullanılabilir.
 
@@ -77,13 +78,18 @@ API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-da
 src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Collections,Countries,Common}/, Data/
                         (entities, AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage +
                         image processing), Querying/, Validation/, App_Data/photos (gitignored)
-src/client/src/app/     core/{auth,coins,collections,http}/, shared/, layout/header/, pages/
+src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, layout/header/, pages/
 ```
 
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
 - Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
   `/coins/new?collection=<id>`, `/coins/:id/edit`. Eski `/collection…` adresleri yönlendirilir.
+  Girişsiz: `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
+  koleksiyon), `/s/:token` (sadece linkle). Koleksiyon sayfası tek bileşen, route data `mode`
+  (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
+- Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
+  Unlisted iken var; başka görünürlüğe geçince silinir) / `Public`.
 
 - Auth: ASP.NET Core Identity + HttpOnly cookie `coinportal.auth` (JWT yok, SPA ile API aynı origin).
 - CSRF: antiforgery, header `X-XSRF-TOKEN`; client `GET /api/auth/antiforgery` ile okunabilir
@@ -99,8 +105,13 @@ src/client/src/app/     core/{auth,coins,collections,http}/, shared/, layout/hea
   dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
   (`ProcessCoverAsync`, 16:9) aynı sözleşmede. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır
   (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte.
-- Fotoğraflar statik sunulmaz; API sahiplik kontrolüyle ve sürümlü URL (`?v=<photoId>`) +
-  `immutable` önbellekle sunar. Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir.
+- Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar.
+  Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir.
+- **Kim neyi görebilir tek yerde:** `Querying/CollectionAccess.CanView` (sahip, herkese açık, ya da
+  Unlisted + doğru `s=` anahtarı). Fotoğraf ve kapak GET'leri bunu kullanır (`[AllowAnonymous]`).
+  Girişsiz okuma uçları `PublicController` (`api/public/...`) altında; yanıtlarda kullanıcı adı dışında
+  kişisel veri olmaz, görünmeyen her şey 404. Coin listesi filtre/sıralama/sayfalama `CoinListing`
+  ile paylaşılır. Keşfet'te `pageSize=0` (tümü) yasak (girişsiz, tüm veriyi tarar).
 - İstemcinin Türkçe mesaj göstermesi gereken hatalarda ProblemDetails'e makine kodu eklenir
   (`this.CodedProblem(code, title)`, ör. `invalid_image`, `last_collection`). Alan hatalarında ise
   ModelState anahtarı kod olur (ör. `DuplicateName`), client `applyServerErrors`'ın codeMap /
@@ -154,8 +165,11 @@ src/client/src/app/     core/{auth,coins,collections,http}/, shared/, layout/hea
 - Bekleyen görsel değişikliği tipi `ImageChange` (`shared/image-change.ts`); kapak da coin fotoğrafı gibi
   Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
   oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
-- Üst menü (navbar) öğeleri `layout/header/header.ts` içindeki `NAV_ITEMS` listesinde; yeni sayfa
-  (ör. Keşfet) oraya eklenir, masaüstü ve mobil menü aynı listeyi kullanır.
+- Üst menü (navbar) öğeleri `layout/header/header.ts` içindeki `NAV_ITEMS` listesinde (`public: true`
+  girişsiz de görünür); masaüstü ve mobil menü aynı listeyi kullanır.
+- Paylaşılan (Unlisted) koleksiyonda fotoğraf URL'lerine anahtar eklenir: `photoUrl(…, shareToken)`,
+  `coverUrl(…, shareToken)`, `CoinThumb`/`PhotoViewer` `[shareToken]` input'u.
+- Koleksiyon kartı `shared/collection-card`, görünürlük rozeti `shared/visibility-badge`.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer`.
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
@@ -183,6 +197,9 @@ src/client/src/app/     core/{auth,coins,collections,http}/, shared/, layout/hea
 - ngx-image-cropper `allowMoveImage`: sürükleme farkını piksel olarak ekler, transform'un varsayılan
   birimi ise yüzde; `translateUnit: 'px'` verilmezse fotoğraf fareden kat kat hızlı kayar. Konum
   `(transformChange)` ile saklanmazsa yakınlaştırma değişince geri zıplar.
+- Angular'ın radyo `[value]` bağlaması DOM `value` özelliğine yazılmaz (directive input'u); testte
+  radyoyu etiket metniyle bul. `loading="lazy"` görseller headless'ta ekran dışındaysa hiç yüklenmez,
+  `img.decode()` bekler durur; adresi `fetch` ile kontrol et.
 - Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
   Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
 - Seed komutu `src/CoinPortal.Api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
