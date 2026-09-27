@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
+using CoinPortal.Api.DevData;
 
-var builder = WebApplication.CreateBuilder(args);
+// Our own switch is removed so the configuration command-line parser never sees it
+var seedDevData = args.Contains(DevDataSeeder.CommandLineSwitch);
+var builder = WebApplication.CreateBuilder(
+    args.Where(a => a != DevDataSeeder.CommandLineSwitch).ToArray());
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -82,6 +86,18 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Development-only: load test users and coins, then exit without starting the server
+if (seedDevData)
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException("Dev data can only be seeded in the Development environment.");
+    }
+
+    await DevDataSeeder.RunAsync(app);
+    return;
+}
 
 // HTTPS redirection only outside development; the dev proxy talks plain HTTP
 if (!app.Environment.IsDevelopment())
