@@ -22,22 +22,36 @@ let nextId = 0;
       #dialog
       [attr.aria-labelledby]="titleId"
       [attr.aria-describedby]="messageId"
-      class="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-slate-200 bg-white p-0 shadow-xl
-             backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm"
+      class="dialog-panel max-w-md"
       (click)="onDialogClick($event)"
       (close)="onClose()"
     >
       <div class="p-6">
         <div class="flex items-start gap-4">
           @if (options().danger) {
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+            <div
+              class="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="size-5"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+                />
               </svg>
             </div>
           }
           <div>
-            <h2 [id]="titleId" class="text-lg font-semibold text-slate-900">{{ options().title }}</h2>
+            <h2 [id]="titleId" class="text-lg font-semibold text-slate-900">
+              {{ options().title }}
+            </h2>
             <p [id]="messageId" class="mt-2 text-sm text-slate-600">{{ options().message }}</p>
           </div>
         </div>
@@ -58,27 +72,6 @@ let nextId = 0;
         </div>
       </div>
     </dialog>
-  `,
-  styles: `
-    @media (prefers-reduced-motion: no-preference) {
-      dialog[open] {
-        animation: dialog-in 150ms ease-out;
-      }
-      dialog[open]::backdrop {
-        animation: backdrop-in 150ms ease-out;
-      }
-    }
-    @keyframes dialog-in {
-      from {
-        opacity: 0;
-        transform: translateY(0.5rem) scale(0.97);
-      }
-    }
-    @keyframes backdrop-in {
-      from {
-        opacity: 0;
-      }
-    }
   `,
 })
 export class ConfirmDialog {
