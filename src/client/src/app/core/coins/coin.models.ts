@@ -14,14 +14,40 @@ export const DENOMINATIONS: readonly { value: Denomination; label: string }[] = 
   { value: 'Cent1', label: '1 cent' },
 ];
 
-export type CoinSort = 'Newest' | 'Denomination' | 'Country' | 'Year';
+/** Mirrors the API's CoinSort enum. 'Newest' is the default and has no direction. */
+export type CoinSort =
+  | 'Newest'
+  | 'Title'
+  | 'Denomination'
+  | 'Country'
+  | 'Year'
+  | 'MintMark'
+  | 'Commemorative'
+  | 'Quantity';
 
-export const COIN_SORTS: readonly { value: CoinSort; label: string }[] = [
-  { value: 'Newest', label: 'En yeni eklenen' },
-  { value: 'Denomination', label: 'Nominal' },
-  { value: 'Country', label: 'Ülke kodu' },
-  { value: 'Year', label: 'Yıl' },
+export type SortDirection = 'Asc' | 'Desc';
+
+export type CoinSortColumn = Exclude<CoinSort, 'Newest'>;
+
+/** Sortable table columns with the wording of each direction (used by the mobile select). */
+export const COIN_SORT_COLUMNS: readonly {
+  value: CoinSortColumn;
+  label: string;
+  asc: string;
+  desc: string;
+}[] = [
+  { value: 'Title', label: 'Başlık', asc: 'A → Z', desc: 'Z → A' },
+  { value: 'Denomination', label: 'Nominal', asc: 'küçükten büyüğe', desc: 'büyükten küçüğe' },
+  { value: 'Country', label: 'Ülke', asc: 'A → Z', desc: 'Z → A' },
+  { value: 'Year', label: 'Yıl', asc: 'eskiden yeniye', desc: 'yeniden eskiye' },
+  { value: 'MintMark', label: 'Darphane', asc: 'A → Z', desc: 'Z → A' },
+  { value: 'Commemorative', label: 'Hatıra', asc: 'önce diğerleri', desc: 'önce hatıralar' },
+  { value: 'Quantity', label: 'Adet', asc: 'azdan çoğa', desc: 'çoktan aza' },
 ];
+
+export function isSortColumn(value: string | null | undefined): value is CoinSortColumn {
+  return COIN_SORT_COLUMNS.some((c) => c.value === value);
+}
 
 /** 0 means "all items on one page" (the API accepts pageSize=0). */
 export const PAGE_SIZE_OPTIONS: readonly { value: number; label: string }[] = [
@@ -79,6 +105,9 @@ export interface CoinListQuery {
   isCommemorative?: boolean;
   search?: string;
   sort?: CoinSort;
+  dir?: SortDirection;
+  /** Comma-separated country codes in display order; the API sorts countries by it. */
+  countryOrder?: string;
   page?: number;
   pageSize?: number;
 }
