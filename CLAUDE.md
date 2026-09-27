@@ -20,6 +20,20 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
   (tamamlananlar, yeni kararlar, açık konular, sıradaki adım, "Son güncelleme" satırı).
   Kalıcı bir kural veya tuzak öğrenildiyse bu dosyaya eklenir.
 
+## Çalışan uygulamalar
+
+Kullanıcı API'yi (`dotnet run --launch-profile http`, 5080) ve client'ı (`ng serve`, 4200) kendi
+terminallerinde sürekli çalışır halde tutuyor.
+
+- Bunları durdurmak gerekirse (ör. `bin/` kilidi, migration, API'nin yeni kodla yeniden başlaması)
+  **önce kullanıcıya sor**, sadece onay verirse durdur.
+- Kullanıcı "durdurma" derse işlemlere dokunma; derlemeyi başka klasöre al
+  (`dotnet build src/CoinPortal.Api -o <scratchpad>/apibuild`), gerekirse oradan başka portta çalıştır
+  (`--urls http://localhost:5090`, content root `src/CoinPortal.Api`). İş bitince bu test işlemlerini kapat.
+- **Geliştirme bitince API ve client en güncel kodla çalışır durumda olmalı.** `ng serve` değişiklikleri
+  kendisi alır; API almaz. Backend değiştiyse ve API durdurulduysa yeniden başlat (ya da kullanıcıdan
+  kendi terminalinde başlatmasını iste) ve `GET /api/health` ile doğrula.
+
 ## Git akışı
 
 - **main'e doğrudan commit yok.** Her iş `feat/…`, `fix/…` veya `chore/…` branch'inde yapılır, main'e
@@ -88,6 +102,13 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
 - Liste sayfalarında **URL tek doğruluk kaynağı**: filtre/sıralama/sayfa query param'larda,
   `withComponentInputBinding()` ile input'lara bağlı, varsayılanlar URL'e yazılmaz; yükleme
   `toObservable(query)` + `switchMap`.
+- Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
+  `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan. Mobilde tablo
+  yok, aynı seçenekler "Sırala" select'inde.
+- Ülke sıralaması dile bağlı: client ülkeleri yerel ada göre sıralayıp `countryOrder=DE,AD,AT,…` olarak
+  gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz; i18n'de de bu yol kullanılır.
+- Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
+  metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart listesi.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
   `btn-icon`, `nav-link`, `link`. Yeni ortak stil gerekirse buraya eklenir.
@@ -105,6 +126,11 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   ters eğik çizgisiz, çift tırnaksız** olmalı (backtick kullan), yoksa Swagger sayfası boş kalır.
 - `.csproj` içindeki XML yorumlarında `--` kullanılamaz.
 - `@for` ile oluşan `<option>`'larda seçili değer `[selected]` ile verilir; `<select [value]>` güvenilir değil.
+- Kullanıcının API'si çalışırken `bin/` kilitli olur ve `dotnet build` kopyalamada takılır. Bu
+  durumda ne yapılacağı "Çalışan uygulamalar" bölümünde.
+- Eski dosyaların çoğunda dosya sonu satır sonu yok (kopyala-yapıştır döneminden); Prettier'ı sadece
+  değiştirilen dosyalarda çalıştır, ilgisiz dosyaları diff'e katma.
+- Python kurulu değil; betikler için Node veya Bash kullan.
 - Seed komutu `src/CoinPortal.Api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
 - Satır sonları LF (`.gitattributes`). Şirketin global `.npmrc`'sinde Azure DevOps feed'i var;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.

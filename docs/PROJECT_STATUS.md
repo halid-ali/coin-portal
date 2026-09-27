@@ -1,7 +1,7 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-27 (geliştirme Claude Desktop'tan VS Code içindeki Claude Code'a taşındı;
-`feat/coin-api` tamamlanmış ve main'e merge edilmiş durumda)
+Son güncelleme: 2026-09-27 (Claude Code'a geçildi; akış testi olarak koleksiyon tablosuna sütun
+sıralaması ve sabit sütun genişlikleri eklendi)
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -97,6 +97,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
    - **Dev seed:** `DevData/dev-seed.json`, 5 kullanıcı, 567 sentetik ama gerçekçi coin. Tekrar
      çalıştırmak seed kullanıcılarının coinlerini sıfırlar, diğer hesaplara dokunmaz. Yayına gitmez.
 6. **Claude Code kurulumu** (`chore/claude-code-setup`): `CLAUDE.md`, `README.md`, bu doküman.
+7. **Tablo sütun sıralaması ve sabit sütun genişlikleri** (`feat/collection-column-sort`, akış testi):
+   - API: `CoinSort` = `Newest`, `Title`, `Denomination`, `Country`, `Year`, `MintMark`,
+     `Commemorative`, `Quantity`; yeni `dir` (`Asc`/`Desc`, varsayılan `Asc`, `Newest` yönü yok sayar) ve
+     `countryOrder` (virgüllü ISO kodları; `CHARINDEX` ile sıralama, dil bağımsız). Seçilen sütun yönü
+     izler, eşitlikte sabit yönlü ikincil anahtarlar (ülke, yıl, nominal) + `Id`. Darphane işaretsizler
+     her iki yönde sonda. Eski `sort=Denomination`/`Year` artık varsayılan olarak artan.
+   - Client: `SortHeader` bileşeni (etiket + yanında ikon butonu: ↕ nötr, ↑ artan, ↓ azalan; aktifken
+     amber rozet, `aria-sort`), `nextSort` döngüsü (+ Vitest). "Sırala" select'i sadece mobilde, tüm
+     sütun/yön seçenekleriyle. Tablo `table-fixed` + `<colgroup>`: sabit sütun genişlikleri sayfadan
+     bağımsız, sabit sütunlar tek satır; tablo artık `lg` (1024px) ve üstünde, altında kart listesi.
+   - Doğrulama: API 5090'da seed verisiyle curl, client headless Edge ile (genişlikler 5 farklı
+     sayfa/sıralamada aynı, tıklama döngüsü, mobil select).
 
 ## Sıradaki adım: Fotoğraf yükleme (`feat/coin-photos`)
 
