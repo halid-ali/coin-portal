@@ -29,11 +29,13 @@ import { photoUrl, primaryPhoto } from '../../core/coins/coin.service';
   `,
 })
 export class CoinThumb {
-  readonly coin = input.required<Coin>();
+  readonly coin = input.required<Pick<Coin, 'id' | 'photos'>>();
+  /** Share link secret, for photos of unlisted collections. */
+  readonly shareToken = input<string | null>(null);
 
   protected readonly src = computed(() => {
     const coin = this.coin();
     const photo = primaryPhoto(coin);
-    return photo ? photoUrl(coin.id, photo, 'thumb') : null;
+    return photo ? photoUrl(coin.id, photo, 'thumb', this.shareToken()) : null;
   });
 }

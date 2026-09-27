@@ -1,43 +1,103 @@
 <section class="mx-auto w-full max-w-6xl space-y-6">
  @if (notFound()) {
   <div class="card text-center">
-    <p class="text-slate-600">Koleksiyon bulunamadı. Silinmiş ya da sana ait olmayabilir.</p>
-    <a routerLink="/collections" class="btn-secondary mt-4">Koleksiyonlarıma dön</a>
+    @if (mode() === 'owner') {
+      <p class="text-slate-600">Koleksiyon bulunamadı. Silinmiş ya da sana ait olmayabilir.</p>
+      <a routerLink="/collections" class="btn-secondary mt-4">Koleksiyonlarıma dön</a>
+    } @else {
+      <p class="text-slate-600">Koleksiyon bulunamadı. Link geçersiz olabilir ya da koleksiyon artık paylaşılmıyor.</p>
+      <a routerLink="/explore" class="btn-secondary mt-4">Keşfet'e git</a>
+    }
   </div>
  } @else {
-  <div class="flex flex-wrap items-end justify-between gap-3">
-    <div class="flex min-w-0 items-end gap-4">
-      @if (collectionCover(); as src) {
-        <img [src]="src" alt="" class="hidden aspect-video w-32 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200 sm:block" />
-      }
-    <div class="min-w-0">
-      <a routerLink="/collections" class="link text-sm">‹ Koleksiyonlarım</a>
-      <h1 class="mt-1 truncate text-2xl font-semibold text-slate-900">{{ collection()?.name ?? ' ' }}</h1>
-      @if (collection()?.description; as description) {
-        <p class="mt-1 max-w-prose text-sm text-slate-600">{{ description }}</p>
-      }
-      @if (result(); as r) {
-        <p class="mt-1 text-sm text-slate-500">
-          {{ r.totalCount }} kayıt{{ hasFilters() ? ' (filtrelenmiş)' : '' }}
-        </p>
+  @if (mode() === 'explore') {
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Keşfet</h1>
+      <p class="mt-1 text-sm text-slate-600">
+        Herkese açık koleksiyonlardaki coin'ler{{ result() ? ' · ' + result()!.totalCount + ' kayıt' : '' }}{{ hasFilters() ? ' (filtrelenmiş)' : '' }}
+      </p>
+    </div>
+  } @else {
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="flex min-w-0 items-end gap-4">
+        @if (collectionCover(); as src) {
+          <img [src]="src" alt="" class="hidden aspect-video w-32 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200 sm:block" />
+        }
+        <div class="min-w-0">
+          @switch (mode()) {
+            @case ('owner') {
+              <a routerLink="/collections" class="link text-sm">‹ Koleksiyonlarım</a>
+            }
+            @case ('public') {
+              @if (header(); as h) {
+                <a [routerLink]="['/u', h.ownerUserName]" class="link text-sm">‹ &#64;{{ h.ownerUserName }}</a>
+              }
+            }
+            @case ('shared') {
+              @if (header(); as h) {
+                <p class="text-sm text-slate-500">&#64;{{ h.ownerUserName }} paylaştı</p>
+              }
+            }
+          }
+          <div class="mt-1 flex min-w-0 items-center gap-3">
+            <h1 class="truncate text-2xl font-semibold text-slate-900">{{ header()?.name ?? ' ' }}</h1>
+            @if (header(); as h) {
+              @if (mode() === 'owner') {
+                <app-visibility-badge [visibility]="h.visibility" />
+              }
+            }
+          </div>
+          @if (header()?.description; as description) {
+            <p class="mt-1 max-w-prose text-sm text-slate-600">{{ description }}</p>
+          }
+          @if (result(); as r) {
+            <p class="mt-1 text-sm text-slate-500">
+              {{ r.totalCount }} kayıt{{ hasFilters() ? ' (filtrelenmiş)' : '' }}
+            </p>
+          }
+        </div>
+      </div>
+      @if (mode() === 'owner') {
+        <div class="flex flex-wrap gap-2">
+          @if (ownLink(); as url) {
+            <button type="button" class="btn-secondary" (click)="copyLink(url)">
+              {{ copied() ? 'Kopyalandı' : 'Linki kopyala' }}
+            </button>
+          }
+          <button type="button" class="btn-secondary" [disabled]="!collection()" (click)="editing.set(true)">Düzenle</button>
+          <button type="button" class="btn-secondary text-red-700 hover:bg-red-50" [disabled]="!collection()"
+                  (click)="openDelete()">Sil</button>
+          <a routerLink="/coins/new" [queryParams]="{ collection: collectionId() }" class="btn-primary">+ Coin ekle</a>
+        </div>
       }
     </div>
-    </div>
-    <div class="flex flex-wrap gap-2">
-      <button type="button" class="btn-secondary" [disabled]="!collection()" (click)="editing.set(true)">Düzenle</button>
-      <button type="button" class="btn-secondary text-red-700 hover:bg-red-50" [disabled]="!collection()"
-              (click)="openDelete()">Sil</button>
-      <a routerLink="/coins/new" [queryParams]="{ collection: collectionId() }" class="btn-primary">+ Coin ekle</a>
-    </div>
-  </div>
+
+    @if (mode() === 'shared') {
+      <p class="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+        Bu koleksiyon sana gizli bir linkle paylaşıldı; herkese açık listelerde görünmez.
+      </p>
+    }
+  }
 
   <!-- Filters -->
   <div class="card grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
-    <div class="sm:col-span-2">
+    <div [class]="mode() === 'explore' ? 'sm:col-span-2 lg:col-span-1' : 'sm:col-span-2'">
       <label for="search" class="form-label">Ara</label>
       <input id="search" type="search" [formControl]="searchControl"
              placeholder="Başlık veya açıklama" class="form-input" />
     </div>
+
+    @if (mode() === 'explore') {
+      <div>
+        <label for="owner" class="form-label">Koleksiyoncu</label>
+        <select id="owner" #ownerSelect class="form-input" (change)="setFilters({ owner: ownerSelect.value })">
+          <option value="" [selected]="!query().owner">Tümü</option>
+          @for (c of collectors(); track c.userName) {
+            <option [value]="c.userName" [selected]="c.userName === query().owner">&#64;{{ c.userName }} ({{ c.coinCount }})</option>
+          }
+        </select>
+      </div>
+    }
 
     <div>
       <label for="denomination" class="form-label">Nominal</label>
@@ -105,21 +165,25 @@
 
   <!-- Results -->
   @if (loadError()) {
-    <div role="alert" class="alert-error">Koleksiyon yüklenemedi. Sayfayı yenileyip tekrar dene.</div>
+    <div role="alert" class="alert-error">Coin'ler yüklenemedi. Sayfayı yenileyip tekrar dene.</div>
   } @else if (result(); as r) {
     @if (r.items.length === 0) {
       <div class="card text-center">
         @if (hasFilters()) {
           <p class="text-slate-600">Filtrelere uyan coin bulunamadı.</p>
           <button type="button" class="btn-secondary mt-4" (click)="clearFilters()">Filtreleri temizle</button>
-        } @else {
+        } @else if (mode() === 'owner') {
           <p class="text-slate-600">Bu koleksiyonda henüz coin yok.</p>
           <a routerLink="/coins/new" [queryParams]="{ collection: collectionId() }" class="btn-primary mt-4">İlk coinini ekle</a>
+        } @else if (mode() === 'explore') {
+          <p class="text-slate-600">Henüz herkese açık bir koleksiyon yok.</p>
+        } @else {
+          <p class="text-slate-600">Bu koleksiyonda henüz coin yok.</p>
         }
       </div>
     } @else {
       <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
-                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions" [disabled]="loading()"
+                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions()" [disabled]="loading()"
                       (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)">
         <app-view-toggle [value]="viewMode()" (valueChange)="setView($event)" />
       </app-pagination>
@@ -127,8 +191,8 @@
       <div class="transition-opacity" [class.opacity-60]="loading()">
        @if (viewMode() === 'grid') {
         <!-- Grid: 2 / 3 / 5 per row. An invisible control covers the whole tile: it opens the
-             fullscreen viewer, or the coin form when there is no photo to show. The pencil link
-             sits above it (z-10), so both work without nesting interactive elements -->
+             fullscreen viewer, or (owner) the coin form when there is no photo to show. The pencil
+             and owner links sit above it (z-10), so all work without nesting interactive elements -->
         <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           @for (coin of r.items; track coin.id) {
             <li class="card group relative overflow-hidden p-0 hover:border-amber-300">
@@ -157,6 +221,11 @@
                   </span>
                   <span class="truncate">{{ countryName(coin.countryCode) }} · {{ coin.year }}</span>
                 </div>
+                @if (coin.ownerUserName) {
+                  <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                     class="relative z-10 block truncate text-xs text-slate-500 hover:text-amber-700"
+                     [title]="coin.collectionName">&#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}</a>
+                }
               </div>
 
               @if (coin.photos.length) {
@@ -164,23 +233,25 @@
                         focus-visible:ring-amber-500 focus-visible:outline-none focus-visible:ring-inset"
                         [attr.aria-label]="coin.title + ' fotoğraflarını büyük göster'" (click)="viewerCoin.set(coin)">
                 </button>
-              } @else {
+              } @else if (!readOnly()) {
                 <a [routerLink]="['/coins', coin.id, 'edit']" class="absolute inset-0 rounded-xl
                    focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none focus-visible:ring-inset"
                    [attr.aria-label]="coin.title + ' düzenle'"></a>
               }
 
-              <a [routerLink]="['/coins', coin.id, 'edit']"
-                 class="absolute top-2 right-2 z-10 rounded-full bg-white/90 p-1.5 text-slate-700 shadow-sm
-                        transition-opacity hover:bg-white hover:text-amber-700 focus-visible:opacity-100
-                        focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none
-                        pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
-                 [attr.aria-label]="coin.title + ' düzenle'" title="Düzenle">
-                <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
-                </svg>
-              </a>
+              @if (!readOnly()) {
+                <a [routerLink]="['/coins', coin.id, 'edit']"
+                   class="absolute top-2 right-2 z-10 rounded-full bg-white/90 p-1.5 text-slate-700 shadow-sm
+                          transition-opacity hover:bg-white hover:text-amber-700 focus-visible:opacity-100
+                          focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none
+                          pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
+                   [attr.aria-label]="coin.title + ' düzenle'" title="Düzenle">
+                  <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+                  </svg>
+                </a>
+              }
             </li>
           }
         </ul>
@@ -188,25 +259,29 @@
         <!-- Mobile: stacked list -->
         <ul class="space-y-3 lg:hidden">
           @for (coin of r.items; track coin.id) {
-            <!-- The title link stretches over the whole card (after:inset-0); the thumbnail
+            <!-- Owner: the title link stretches over the whole card (after:inset-0); the thumbnail
                  button sits above it (z-10), so both work without nesting interactive elements -->
-            <li class="card relative flex gap-3 p-4 hover:border-amber-300">
+            <li class="card relative flex gap-3 p-4" [class.hover:border-amber-300]="!readOnly()">
               @if (coin.photos.length) {
                 <button type="button" class="relative z-10 self-start rounded-full focus-visible:ring-2
                         focus-visible:ring-amber-500 focus-visible:outline-none"
                         [attr.aria-label]="coin.title + ' fotoğraflarını büyük göster'" (click)="viewerCoin.set(coin)">
-                  <app-coin-thumb class="size-14" [coin]="coin" />
+                  <app-coin-thumb class="size-14" [coin]="coin" [shareToken]="shareToken()" />
                 </button>
               } @else {
                 <app-coin-thumb class="size-14" [coin]="coin" />
               }
               <div class="min-w-0 flex-1">
                 <div class="flex items-start justify-between gap-3">
-                  <a [routerLink]="['/coins', coin.id, 'edit']"
-                     class="font-medium text-slate-900 after:absolute after:inset-0 after:rounded-xl
-                            focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-amber-500">
-                    {{ coin.title }}
-                  </a>
+                  @if (readOnly()) {
+                    <p class="font-medium text-slate-900">{{ coin.title }}</p>
+                  } @else {
+                    <a [routerLink]="['/coins', coin.id, 'edit']"
+                       class="font-medium text-slate-900 after:absolute after:inset-0 after:rounded-xl
+                              focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-amber-500">
+                      {{ coin.title }}
+                    </a>
+                  }
                   <span class="shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-sm font-semibold text-amber-900">
                     {{ denominationLabel(coin.denomination) }}
                   </span>
@@ -214,6 +289,12 @@
                 <p class="mt-1 text-sm text-slate-600">
                   {{ countryName(coin.countryCode) }} · {{ coin.year }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
                 </p>
+                @if (coin.ownerUserName) {
+                  <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                     class="relative z-10 mt-1 block truncate text-xs text-slate-500 hover:text-amber-700">
+                    &#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}
+                  </a>
+                }
                 <div class="mt-2 flex gap-2 text-xs">
                   @if (coin.isCommemorative) {
                     <span class="rounded-full bg-sky-100 px-2 py-0.5 text-sky-800">Hatıra</span>
@@ -229,7 +310,8 @@
 
         <!-- Desktop: table -->
         <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
-             so they stay the same on every page. The title column takes the rest. -->
+             so they stay the same on every page. The title column takes the rest. The last
+             column is "edit" for the owner, the collector in Explore, and absent otherwise. -->
         <div class="card hidden overflow-x-auto p-0 lg:block">
           <table class="w-full table-fixed text-left text-sm">
             <colgroup>
@@ -241,7 +323,11 @@
               <col class="w-28" />
               <col class="w-24" />
               <col class="w-22" />
-              <col class="w-22" />
+              @if (mode() === 'owner') {
+                <col class="w-22" />
+              } @else if (mode() === 'explore') {
+                <col class="w-40" />
+              }
             </colgroup>
             <thead class="border-b border-slate-200 bg-slate-50 text-slate-600">
               <tr>
@@ -250,7 +336,11 @@
                   <th appSortHeader class="px-3 py-2" [class.text-right]="c.value === 'Quantity'"
                       [label]="c.label" [direction]="sortDirection(c.value)" (toggle)="sortBy(c.value)"></th>
                 }
-                <th scope="col" class="px-3 py-2"><span class="sr-only">İşlemler</span></th>
+                @if (mode() === 'owner') {
+                  <th scope="col" class="px-3 py-2"><span class="sr-only">İşlemler</span></th>
+                } @else if (mode() === 'explore') {
+                  <th scope="col" class="px-3 py-2 font-medium">Koleksiyoncu</th>
+                }
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -261,7 +351,7 @@
                       <button type="button" class="block rounded-full focus-visible:ring-2 focus-visible:ring-amber-500
                               focus-visible:outline-none" [attr.aria-label]="coin.title + ' fotoğraflarını büyük göster'"
                               (click)="viewerCoin.set(coin)">
-                        <app-coin-thumb class="size-10" [coin]="coin" />
+                        <app-coin-thumb class="size-10" [coin]="coin" [shareToken]="shareToken()" />
                       </button>
                     } @else {
                       <app-coin-thumb class="size-10" [coin]="coin" />
@@ -276,9 +366,15 @@
                   <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">{{ coin.mintMark ?? '–' }}</td>
                   <td class="truncate px-3 py-3">{{ coin.isCommemorative ? 'Evet' : '–' }}</td>
                   <td class="truncate px-3 py-3 text-right tabular-nums">{{ coin.quantity }}</td>
-                  <td class="truncate px-3 py-3 text-right">
-                    <a [routerLink]="['/coins', coin.id, 'edit']" class="link">Düzenle</a>
-                  </td>
+                  @if (mode() === 'owner') {
+                    <td class="truncate px-3 py-3 text-right">
+                      <a [routerLink]="['/coins', coin.id, 'edit']" class="link">Düzenle</a>
+                    </td>
+                  } @else if (mode() === 'explore') {
+                    <td class="truncate px-3 py-3" [title]="coin.collectionName">
+                      <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]" class="link">&#64;{{ coin.ownerUserName }}</a>
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
@@ -288,7 +384,7 @@
       </div>
 
       <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
-                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions" [disabled]="loading()"
+                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions()" [disabled]="loading()"
                       (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
     }
   } @else if (loading()) {
@@ -297,7 +393,7 @@
  }
 
   @if (viewerCoin(); as coin) {
-    <app-photo-viewer [coinId]="coin.id" [photos]="coin.photos" [title]="coin.title"
+    <app-photo-viewer [coinId]="coin.id" [photos]="coin.photos" [title]="coin.title" [shareToken]="shareToken()"
                       (closed)="viewerCoin.set(null)" />
   }
 

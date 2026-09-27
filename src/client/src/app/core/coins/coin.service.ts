@@ -61,12 +61,21 @@ export class CoinService {
   }
 }
 
-/** Image URL of a stored photo; the photo id as version keeps browser caching safe. */
-export function photoUrl(coinId: number, photo: CoinPhoto, size: PhotoSize): string {
-  return `${BASE_URL}/${coinId}/photos/${photo.side.toLowerCase()}/${size}?v=${photo.id}`;
+/**
+ * Image URL of a stored photo; the photo id as version keeps browser caching safe. The share
+ * link secret opens photos of unlisted collections for other people.
+ */
+export function photoUrl(
+  coinId: number,
+  photo: CoinPhoto,
+  size: PhotoSize,
+  shareToken?: string | null,
+): string {
+  const url = `${BASE_URL}/${coinId}/photos/${photo.side.toLowerCase()}/${size}?v=${photo.id}`;
+  return shareToken ? `${url}&s=${encodeURIComponent(shareToken)}` : url;
 }
 
 /** The photo shown for a coin in lists: the national side if there is one, otherwise the common side. */
-export function primaryPhoto(coin: Coin): CoinPhoto | undefined {
+export function primaryPhoto(coin: Pick<Coin, 'photos'>): CoinPhoto | undefined {
   return coin.photos.find((p) => p.side === 'National') ?? coin.photos[0];
 }

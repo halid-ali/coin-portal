@@ -1,14 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { Collection } from '../../core/collections/collection.models';
-import { CollectionService, coverUrl } from '../../core/collections/collection.service';
+import { CollectionService } from '../../core/collections/collection.service';
+import { CollectionCard } from '../../shared/collection-card/collection-card';
 import { CollectionFormDialog } from './collection-form-dialog';
 
 /** "Koleksiyonlarım": the user's collections as cards, plus creating a new one. */
 @Component({
   selector: 'app-collections',
-  imports: [RouterLink, CollectionFormDialog],
+  imports: [CollectionCard, CollectionFormDialog],
   template: `
     <section class="space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -41,46 +42,11 @@ import { CollectionFormDialog } from './collection-form-dialog';
           <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @for (collection of list; track collection.id) {
               <li>
-                <a
-                  [routerLink]="['/collections', collection.id]"
-                  class="card group block h-full overflow-hidden p-0 transition-colors hover:border-amber-300
-                          focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
-                >
-                  <div class="aspect-[16/9] overflow-hidden bg-slate-100">
-                    @if (cover(collection); as src) {
-                      <img
-                        [src]="src"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                      />
-                    } @else {
-                      <div class="flex size-full items-center justify-center">
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="size-16 text-slate-300"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.25"
-                          aria-hidden="true"
-                        >
-                          <circle cx="12" cy="12" r="9" />
-                          <circle cx="12" cy="12" r="5.5" />
-                        </svg>
-                      </div>
-                    }
-                  </div>
-                  <div class="space-y-1 p-4">
-                    <h2 class="truncate font-semibold text-slate-900">{{ collection.name }}</h2>
-                    @if (collection.description) {
-                      <p class="line-clamp-2 text-sm text-slate-600">
-                        {{ collection.description }}
-                      </p>
-                    }
-                    <p class="text-sm text-slate-500">{{ collection.coinCount }} coin</p>
-                  </div>
-                </a>
+                <app-collection-card
+                  [collection]="collection"
+                  [link]="['/collections', collection.id]"
+                  [showVisibility]="true"
+                />
               </li>
             }
           </ul>
@@ -112,11 +78,6 @@ export class Collections {
 
   protected totalCoins(): number {
     return (this.collections() ?? []).reduce((sum, c) => sum + c.coinCount, 0);
-  }
-
-  // The card is wide, so the 600 px size
-  protected cover(collection: Collection): string | null {
-    return coverUrl(collection, 'preview');
   }
 
   /** A new collection is empty: go straight to it, so coins can be added. */

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { photoUrl } from '../coins/coin.service';
 import { PhotoSize } from '../coins/coin.models';
-import { Collection, CollectionUpsertRequest } from './collection.models';
+import { Collection, CollectionSummary, CollectionUpsertRequest } from './collection.models';
 
 const BASE_URL = '/api/collections';
 
@@ -29,6 +29,11 @@ export class CollectionService {
     return this.http.put<Collection>(`${BASE_URL}/${id}`, request);
   }
 
+  /** New share link for an Unlisted collection; the old one stops working. */
+  regenerateShareToken(id: number): Observable<{ shareToken: string }> {
+    return this.http.post<{ shareToken: string }>(`${BASE_URL}/${id}/share-token`, null);
+  }
+
   /** Uploads or replaces the cover; the API crops it to 16:9 and re-encodes it. */
   uploadCover(id: number, image: Blob): Observable<{ collectionId: number; coverImageId: string }> {
     const body = new FormData();
@@ -50,18 +55,44 @@ export class CollectionService {
   }
 }
 
-/** URL of the uploaded cover (versioned by its id). */
-export function uploadedCoverUrl(collectionId: number, coverImageId: string): string {
-  return `${BASE_URL}/${collectionId}/cover?v=${coverImageId}`;
+/** URL of the uploaded cover (versioned by its id); the share secret opens unlisted ones. */
+export function uploadedCoverUrl(
+  collectionId: number,
+  coverImageId: string,
+  shareToken?: string | null,
+): string {
+  const url = `${BASE_URL}/${collectionId}/cover?v=${coverImageId}`;
+  return shareToken ? `${url}&s=${encodeURIComponent(shareToken)}` : url;
 }
 
 /** Card image: the uploaded cover, otherwise the latest coin photo in the given size. */
-export function coverUrl(collection: Collection, size: PhotoSize): string | null {
+export function coverUrl(
+  collection: CollectionSummary,
+  size: PhotoSize,
+  shareToken?: string | null,
+): string | null {
   if (collection.coverImageId) {
-    return uploadedCoverUrl(collection.id, collection.coverImageId);
+    return uploadedCoverUrl(collection.id, collection.coverImageId, shareToken);
   }
   const cover = collection.cover;
-  return cover ? photoUrl(cover.coinId, { side: cover.side, id: cover.id }, size) : null;
+  return cover
+    ? photoUrl(cover.coinId, { side: cover.side, id: cover.id }, size, shareToken)
+    : null;
+}
+
+/** Absolute links others can open: the public page or the secret share link. */
+export function shareLink(
+  collection: Pick<Collection, 'id' | 'visibility' | 'shareToken'>,
+  ownerUserName: string,
+): string | null {
+  const origin = window.location.origin;
+  if (collection.visibility === 'Public') {
+    return `${origin}/u/${encodeURIComponent(ownerUserName)}/${collection.id}`;
+  }
+  if (collection.visibility === 'Unlisted' && collection.shareToken) {
+    return `${origin}/s/${collection.shareToken}`;
+  }
+  return null;
 }
 
 /** Turkish messages for the API's collection error codes. */
@@ -72,6 +103,8 @@ export function collectionErrorMessage(err: HttpErrorResponse): string {
       return 'Tek koleksiyonun silinemez. Önce yeni bir koleksiyon oluştur.';
     case 'invalid_target':
       return "Coin'lerin taşınacağı koleksiyon geçerli değil.";
+    case 'not_unlisted':
+      return 'Link sadece "Sadece linkle" paylaşılan koleksiyonlarda yenilenebilir.';
   }
   if (err.status === 404) {
     return 'Koleksiyon bulunamadı. Silinmiş olabilir.';

@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   afterNextRender,
+  computed,
   inject,
   input,
   linkedSignal,
@@ -10,15 +11,26 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
-import { COLLECTION_LIMITS, Collection } from '../../core/collections/collection.models';
+import { AuthService } from '../../core/auth/auth.service';
+import {
+  COLLECTION_LIMITS,
+  Collection,
+  CollectionVisibility,
+  VISIBILITY_OPTIONS,
+} from '../../core/collections/collection.models';
 import {
   COLLECTION_ERROR_CODES,
   COLLECTION_ERROR_MESSAGES,
   CollectionService,
+  collectionErrorMessage,
+  shareLink,
 } from '../../core/collections/collection.service';
+import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
 import { errorMessage } from '../../shared/form-errors';
@@ -34,12 +46,12 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-collection-form-dialog',
-  imports: [ReactiveFormsModule, CoverPicker],
+  imports: [ReactiveFormsModule, CoverPicker, VisibilityBadge],
   template: `
     <dialog
       #dialog
       [attr.aria-labelledby]="titleId"
-      class="dialog-panel max-w-md"
+      class="dialog-panel max-w-lg"
       (close)="onClose()"
     >
       <form [formGroup]="form" (ngSubmit)="save()" novalidate class="space-y-5 p-6">
@@ -92,6 +104,71 @@ let nextId = 0;
           }
         </div>
 
+        <fieldset>
+          <legend class="form-label">Görünürlük</legend>
+          <div class="space-y-2">
+            @for (option of visibilityOptions; track option.value) {
+              <label
+                class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 transition-colors
+                            hover:bg-slate-50 has-checked:border-amber-400 has-checked:bg-amber-50"
+              >
+                <input
+                  type="radio"
+                  formControlName="visibility"
+                  [value]="option.value"
+                  class="mt-1 accent-amber-500"
+                />
+                <span class="text-sm">
+                  <span class="flex items-center gap-2 font-medium text-slate-900">
+                    <app-visibility-badge [visibility]="option.value" />
+                  </span>
+                  <span class="mt-1 block text-slate-600">{{ option.description }}</span>
+                </span>
+              </label>
+            }
+          </div>
+
+          @if (pendingVisibilityNote(); as note) {
+            <p class="form-hint">{{ note }}</p>
+          } @else if (link(); as url) {
+            <div class="mt-3 rounded-lg bg-slate-50 p-3">
+              <p class="text-xs font-medium text-slate-600">
+                {{
+                  saved()?.visibility === 'Unlisted' ? 'Gizli paylaşım linki' : 'Herkese açık link'
+                }}
+              </p>
+              <div class="mt-1.5 flex gap-2">
+                <input
+                  type="text"
+                  readonly
+                  [value]="url"
+                  class="form-input min-w-0 flex-1 py-1.5 text-sm"
+                  [attr.aria-label]="'Paylaşım linki'"
+                  (focus)="$any($event.target).select()"
+                />
+                <button
+                  type="button"
+                  class="btn-secondary shrink-0 px-3 py-1.5 text-sm"
+                  (click)="copy(url)"
+                >
+                  {{ copied() ? 'Kopyalandı' : 'Kopyala' }}
+                </button>
+              </div>
+              @if (saved()?.visibility === 'Unlisted') {
+                <button
+                  type="button"
+                  class="link mt-2 text-sm"
+                  [disabled]="regenerating()"
+                  (click)="regenerate()"
+                >
+                  {{ regenerating() ? 'Yenileniyor…' : 'Yeni link oluştur' }}
+                </button>
+                <span class="text-xs text-slate-500"> — eski link çalışmaz hale gelir.</span>
+              }
+            </div>
+          }
+        </fieldset>
+
         <app-cover-picker [collection]="saved()" [disabled]="saving()" [(change)]="coverChange" />
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -107,6 +184,8 @@ let nextId = 0;
 export class CollectionFormDialog {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly collectionService = inject(CollectionService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly auth = inject(AuthService);
 
   /** The collection to edit; omitted for a new one. */
   readonly collection = input<Collection>();
@@ -127,6 +206,38 @@ export class CollectionFormDialog {
   protected readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(COLLECTION_LIMITS.nameMaxLength)]],
     description: ['', Validators.maxLength(COLLECTION_LIMITS.descriptionMaxLength)],
+    visibility: this.fb.control<CollectionVisibility>('Private'),
+  });
+
+  protected readonly visibilityOptions = VISIBILITY_OPTIONS;
+  protected readonly copied = signal(false);
+  protected readonly regenerating = signal(false);
+  private readonly chosenVisibility = toSignal(this.form.controls.visibility.valueChanges, {
+    initialValue: this.form.controls.visibility.value,
+  });
+
+  /** Link of the saved state; changes only take effect on save. */
+  protected readonly link = computed(() => {
+    const saved = this.saved();
+    const user = this.auth.currentUser();
+    return saved && user ? shareLink(saved, user.userName) : null;
+  });
+
+  /** What saving will do when the chosen visibility differs from the saved one. */
+  protected readonly pendingVisibilityNote = computed(() => {
+    const chosen = this.chosenVisibility();
+    const current = this.saved()?.visibility ?? 'Private';
+    if (chosen === current) {
+      return null;
+    }
+    if (current === 'Unlisted') {
+      return 'Kaydedince mevcut gizli link çalışmaz hale gelir.';
+    }
+    return chosen === 'Unlisted'
+      ? 'Kaydedince gizli bir paylaşım linki oluşturulur.'
+      : chosen === 'Public'
+        ? 'Kaydedince koleksiyon herkese açık olur.'
+        : null;
   });
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
@@ -136,7 +247,11 @@ export class CollectionFormDialog {
     afterNextRender(() => {
       const collection = this.collection();
       if (collection) {
-        this.form.setValue({ name: collection.name, description: collection.description ?? '' });
+        this.form.setValue({
+          name: collection.name,
+          description: collection.description ?? '',
+          visibility: collection.visibility,
+        });
       }
       this.dialog().nativeElement.showModal();
     });
@@ -153,7 +268,11 @@ export class CollectionFormDialog {
     this.saving.set(true);
     this.formErrors.set([]);
     try {
-      const request = { name, description: this.form.controls.description.value.trim() || null };
+      const request = {
+        name,
+        description: this.form.controls.description.value.trim() || null,
+        visibility: this.form.controls.visibility.value,
+      };
       const existing = this.saved();
       let collection: Collection;
       try {
@@ -217,6 +336,48 @@ export class CollectionFormDialog {
         return null;
       }
       return photoErrorMessage(error);
+    }
+  }
+
+  protected async copy(url: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(url);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      // Clipboard not allowed (e.g. insecure context): the field is selectable anyway
+    }
+  }
+
+  /** New secret for the share link; the old link stops working right away. */
+  protected async regenerate(): Promise<void> {
+    const saved = this.saved();
+    if (!saved) {
+      return;
+    }
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Yeni link oluştur',
+      message:
+        'Şu anki link çalışmaz hale gelecek. Linki paylaştığın kişilere yenisini göndermen gerekir.',
+      confirmText: 'Yeni link oluştur',
+      cancelText: 'Vazgeç',
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.regenerating.set(true);
+    this.formErrors.set([]);
+    try {
+      const { shareToken } = await firstValueFrom(
+        this.collectionService.regenerateShareToken(saved.id),
+      );
+      this.saved.set({ ...saved, shareToken });
+      this.savedAny = true;
+    } catch (err) {
+      this.formErrors.set([collectionErrorMessage(err as HttpErrorResponse)]);
+    } finally {
+      this.regenerating.set(false);
     }
   }
 
