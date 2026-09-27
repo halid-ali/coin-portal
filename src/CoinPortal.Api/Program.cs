@@ -19,6 +19,10 @@ builder.Services
 
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+
+        // No '@' in usernames, so login can tell username and email apart
+        options.User.AllowedUserNameCharacters =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-";
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
