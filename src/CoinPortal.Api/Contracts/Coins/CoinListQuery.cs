@@ -37,7 +37,7 @@ public class CoinListQuery
     [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;
 
-    // 24 fits 2, 3, 4 and 6 column grids
-    [Range(1, 100)]
-    public int PageSize { get; set; } = 24;
+    // 0 = all items on one page
+    [Range(0, 100)]
+    public int PageSize { get; set; } = 10;
 }

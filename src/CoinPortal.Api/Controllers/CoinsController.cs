@@ -66,13 +66,17 @@ public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userM
         };
 
         var totalCount = await coins.CountAsync(ct);
-        var items = await ordered
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
+
+        // PageSize 0 returns everything; otherwise a normal page
+        var showAll = query.PageSize == 0;
+        var page = showAll ? 1 : query.Page;
+        var items = await (showAll
+                ? ordered
+                : ordered.Skip((page - 1) * query.PageSize).Take(query.PageSize))
             .ToListAsync(ct);
 
         return new PagedResponse<CoinResponse>(
-            items.Select(CoinResponse.From).ToList(), query.Page, query.PageSize, totalCount);
+            items.Select(CoinResponse.From).ToList(), page, query.PageSize, totalCount);
     }
 
     [HttpGet("{id:int}")]
