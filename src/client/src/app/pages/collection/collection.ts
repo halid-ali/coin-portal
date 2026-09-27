@@ -19,6 +19,7 @@ import {
   maxCoinYear,
 } from '../../core/coins/coin.models';
 import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
+import { CollectionReturn } from '../../core/coins/collection-return';
 import { CoinService, photoUrl, primaryPhoto } from '../../core/coins/coin.service';
 import { CountryService } from '../../core/coins/country.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
@@ -62,6 +63,7 @@ export class Collection {
   private readonly countryService = inject(CountryService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly collectionReturn = inject(CollectionReturn);
 
   // Query params, bound by withComponentInputBinding(); the URL is the single source of truth
   readonly denomination = input<string>();
@@ -144,6 +146,11 @@ export class Collection {
 
   constructor() {
     this.countryService.load();
+
+    // The coin form returns to this exact list (view, filters, sort, page)
+    this.route.queryParams
+      .pipe(takeUntilDestroyed())
+      .subscribe((params) => this.collectionReturn.remember(params));
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
     toObservable(this.query)

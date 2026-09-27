@@ -18,6 +18,7 @@ import {
   maxCoinYear,
 } from '../../core/coins/coin.models';
 import { CoinService } from '../../core/coins/coin.service';
+import { CollectionReturn } from '../../core/coins/collection-return';
 import { CountryService } from '../../core/coins/country.service';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
@@ -40,6 +41,9 @@ export class CoinForm implements OnInit {
   private readonly router = inject(Router);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly location = inject(Location);
+
+  /** Query params of the list the user came from, for every way back to the collection. */
+  protected readonly returnParams = inject(CollectionReturn).queryParams;
 
   /** Route param, bound by withComponentInputBinding(); undefined in create mode. */
   readonly id = input<string>();
@@ -162,7 +166,7 @@ export class CoinForm implements OnInit {
     const failures = await this.savePhotos(coin.id);
     this.submitting.set(false);
     if (failures.length === 0) {
-      this.router.navigateByUrl('/collection');
+      this.backToCollection();
       return;
     }
 
@@ -192,17 +196,21 @@ export class CoinForm implements OnInit {
     this.formErrors.set([]);
 
     this.coinService.delete(id).subscribe({
-      next: () => this.router.navigateByUrl('/collection'),
+      next: () => this.backToCollection(),
       error: (err: HttpErrorResponse) => {
         this.deleting.set(false);
         // Already gone (e.g. deleted in another tab) is fine
         if (err.status === 404) {
-          this.router.navigateByUrl('/collection');
+          this.backToCollection();
           return;
         }
         this.formErrors.set(applyServerErrors(this.form, err));
       },
     });
+  }
+
+  private backToCollection(): void {
+    this.router.navigate(['/collection'], { queryParams: this.returnParams() });
   }
 
   protected storedPhoto(side: CoinSide): CoinPhoto | undefined {

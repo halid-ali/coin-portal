@@ -122,6 +122,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
      çok küçük, çok geniş, GIF, sahte dosya), değiştirme/silme/coin silme temizliği, kota (5 KB'lık ikinci
      instance), önbellek (304, eski sürüm 404); arayüz headless Edge ile (seç → kırp → kaydet, yeni coin
      + fotoğraf, görüntüleyici, mobil).
+   - **Izgara görünümü:** Koleksiyonda liste/ızgara geçişi (iki ikon buton, URL'de `view=grid`). Izgarada
+     masaüstünde satır başına 5, tablette 3, telefonda 2 kutu (kullanıcı kararı); kutuda ulusal yüz
+     fotoğrafı (600 px), başlık, nominal ve ülke/yıl; kutuya tıklamak düzenlemeyi, büyüteç butonu tam
+     ekranı açar. Izgarada "Sırala" menüsü masaüstünde de görünür. Sayfalama satırı üç bölmeli: solda
+     görünüm, ortada sayfa butonları, sağda sayfa başına.
+     Coin formundan dönüşler listenin son durumunu (görünüm, filtre, sıralama, sayfa) korur.
    - Seed kullanıcısı `ayse.yilmaz`'ın coin 122'sinde test fotoğrafları (kırmızı/mavi) duruyor; dev seed
      tekrar çalıştırılınca temizlenir.
 

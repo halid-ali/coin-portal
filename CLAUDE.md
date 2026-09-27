@@ -117,6 +117,12 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz; i18n'de de bu yol kullanılır.
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart listesi.
+- Koleksiyonun iki görünümü var: liste (masaüstünde tablo, altında kart) ve ızgara (2 / 3 / 5 sütun,
+  600 px preview). Seçim URL'de (`view=grid`, varsayılan liste yazılmaz), sayfa ve filtreleri etkilemez.
+  Sayfalama satırı: solda görünüm butonları (`<app-pagination>` içine projeksiyon), ortada sayfa
+  butonları, sağda sayfa başına.
+- Detay/form sayfalarından listeye dönüşler (geri linki, Vazgeç, kaydet/sil sonrası) listenin son
+  query param'larıyla yapılır (`CollectionReturn` servisi); düz `/collection` linki durumu kaybettirir.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
   `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu).
