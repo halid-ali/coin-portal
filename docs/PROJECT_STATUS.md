@@ -115,7 +115,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
      (`PUT`/`DELETE api/coins/{id}/photos/{side}`, `GET …/{side}/{size}?v=`), coin yanıtında `photos`,
      coin silinince ve dev seed sıfırlanınca dosya temizliği, kota kontrolü, hata kodları.
    - Client: `PhotoSlot` (formda ulusal/ortak yüz, bekleyen değişiklik rozeti, Geri al), `PhotoCropDialog`
-     (ngx-image-cropper 9.1.7, yuvarlak kılavuz, yakınlaştırma, 90° döndürme), `PhotoViewer` (tam ekran,
+     (ngx-image-cropper 9.1.7, yuvarlak kılavuz, yakınlaştırma, yakınlaştırınca fotoğrafı dairenin
+     dışından sürükleyerek kaydırma, 90° döndürme, sıfırla), `PhotoViewer` (tam ekran,
      ulusal/ortak yüz geçişi, ok tuşları), `CoinThumb` (tablo ve kartlarda yuvarlak thumbnail), `photo-errors`
      (Türkçe hata mesajları + ön kontrol). Ortak `dialog-panel` stili (onay penceresi de buna geçti).
    - Doğrulama: API'ye karşı curl ile üretilen test görselleri (EXIF yönü + GPS'li JPEG, şeffaf PNG,

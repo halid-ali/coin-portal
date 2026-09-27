@@ -13,6 +13,8 @@ import { PHOTO_LIMITS } from '../../core/coins/coin.models';
 
 let nextId = 0;
 
+const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
+
 /**
  * Square crop of a chosen photo in a modal <dialog>. The round guide helps centering the
  * coin; the result is still square. Emits the cropped image (JPEG, at most 1600 px), or
@@ -33,7 +35,8 @@ let nextId = 0;
         <div>
           <h2 [id]="titleId" class="text-lg font-semibold">{{ title() }}</h2>
           <p class="mt-1 text-sm text-slate-600">
-            Madeni parayı daireye ortala. Çerçeveyi sürükleyip köşelerinden boyutlandırabilirsin.
+            Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin;
+            yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.
           </p>
         </div>
 
@@ -53,6 +56,7 @@ let nextId = 0;
               [aspectRatio]="1"
               [roundCropper]="true"
               [transform]="transform()"
+              [allowMoveImage]="true"
               [canvasRotation]="rotation()"
               [cropperMinWidth]="minPixels"
               format="jpeg"
@@ -60,6 +64,7 @@ let nextId = 0;
               [resizeToWidth]="maxPixels"
               [onlyScaleDown]="true"
               output="blob"
+              (transformChange)="transform.set($event)"
               (cropperReady)="ready.set(true)"
               (loadImageFailed)="failed.set(true)"
             />
@@ -102,6 +107,27 @@ let nextId = 0;
               <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />
             </svg>
           </button>
+          <button
+            type="button"
+            class="btn-icon"
+            title="Sıfırla"
+            aria-label="Yakınlaştırmayı, konumu ve döndürmeyi sıfırla"
+            [disabled]="!ready()"
+            (click)="reset()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="size-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4M12 9v6M9 12h6" />
+            </svg>
+          </button>
         </div>
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -130,7 +156,9 @@ export class PhotoCropDialog {
   protected readonly ready = signal(false);
   protected readonly failed = signal(false);
   protected readonly cropping = signal(false);
-  protected readonly transform = signal<ImageTransform>({ scale: 1 });
+  // Pixels: the cropper adds the mouse movement in px to translateH/V; with the default
+  // percent unit an 80 px drag would move the image by 80 %
+  protected readonly transform = signal<ImageTransform>(INITIAL_TRANSFORM);
   protected readonly rotation = signal(0);
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
@@ -141,12 +169,20 @@ export class PhotoCropDialog {
     afterNextRender(() => this.dialog().nativeElement.showModal());
   }
 
+  // Keeps the position (translateH/V) from dragging, only the scale changes
   protected zoom(scale: number): void {
     this.transform.update((t) => ({ ...t, scale }));
   }
 
   protected rotate(): void {
     this.rotation.update((r) => (r + 1) % 4);
+  }
+
+  /** Back to the starting point after zooming or dragging too far. */
+  protected reset(): void {
+    this.transform.set(INITIAL_TRANSFORM);
+    this.rotation.set(0);
+    this.cropper()?.resetCropperPosition();
   }
 
   protected async use(): Promise<void> {

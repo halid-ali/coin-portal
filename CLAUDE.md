@@ -156,6 +156,9 @@ src/client/src/app/     core/{auth,coins,http}/, shared/, layout/header/, pages/
   (publish) derleme hata verir.** Karar bekliyor (PROJECT_STATUS "Açık konular").
 - Scratchpad'deki .NET betikleri (`dotnet run x.cs`, `#:package`) repo'nun `nuget.config`'ini görmez;
   şirket feed'i 401 verir. Betik klasörüne repo'daki `nuget.config` kopyalanır.
+- ngx-image-cropper `allowMoveImage`: sürükleme farkını piksel olarak ekler, transform'un varsayılan
+  birimi ise yüzde; `translateUnit: 'px'` verilmezse fotoğraf fareden kat kat hızlı kayar. Konum
+  `(transformChange)` ile saklanmazsa yakınlaştırma değişince geri zıplar.
 - Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
   Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
 - Seed komutu `src/CoinPortal.Api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
