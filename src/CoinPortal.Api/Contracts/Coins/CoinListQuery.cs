@@ -3,12 +3,26 @@ using CoinPortal.Api.Data;
 
 namespace CoinPortal.Api.Contracts.Coins;
 
+/// <summary>
+/// Sort column. Newest is the default and ignores the direction; every other column
+/// follows <see cref="SortDirection"/> and uses fixed tie-breakers (country, year, ...).
+/// </summary>
 public enum CoinSort
 {
     Newest,        // CreatedAtUtc desc
-    Denomination,  // 2 euro first, then country, year
-    Country,       // by ISO code, then denomination, year
-    Year           // newest year first, then country, denomination
+    Title,
+    Denomination,  // by face value
+    Country,       // by CountryOrder if given, otherwise by ISO code
+    Year,
+    MintMark,      // coins without a mint mark always last
+    Commemorative,
+    Quantity
+}
+
+public enum SortDirection
+{
+    Asc,
+    Desc
 }
 
 /// <summary>
@@ -33,6 +47,18 @@ public class CoinListQuery
 
     [EnumDataType(typeof(CoinSort))]
     public CoinSort Sort { get; set; } = CoinSort.Newest;
+
+    [EnumDataType(typeof(SortDirection))]
+    public SortDirection Dir { get; set; } = SortDirection.Asc;
+
+    /// <summary>
+    /// Comma-separated country codes in the client's display order (e.g. sorted by the
+    /// localized name). Country names are not stored in the database, so the client decides
+    /// the order and the API stays language independent. Codes missing here sort first.
+    /// </summary>
+    [StringLength(300)]
+    [RegularExpression("^[A-Za-z]{2}(,[A-Za-z]{2})*$")]
+    public string? CountryOrder { get; set; }
 
     [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;

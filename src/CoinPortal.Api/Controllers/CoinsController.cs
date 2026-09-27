@@ -1,6 +1,8 @@
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Querying;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -53,17 +55,7 @@ public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userM
                 || (c.Description != null && c.Description.Contains(term)));
         }
 
-        // Id as last key keeps paging stable when other keys are equal
-        var ordered = query.Sort switch
-        {
-            CoinSort.Denomination => coins.OrderByDescending(c => c.Denomination)
-                .ThenBy(c => c.CountryCode).ThenBy(c => c.Year).ThenBy(c => c.Id),
-            CoinSort.Country => coins.OrderBy(c => c.CountryCode)
-                .ThenByDescending(c => c.Denomination).ThenBy(c => c.Year).ThenBy(c => c.Id),
-            CoinSort.Year => coins.OrderByDescending(c => c.Year)
-                .ThenBy(c => c.CountryCode).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            _ => coins.OrderByDescending(c => c.CreatedAtUtc).ThenByDescending(c => c.Id)
-        };
+        var ordered = ApplySort(coins, query);
 
         var totalCount = await coins.CountAsync(ct);
 
@@ -166,6 +158,40 @@ public class CoinsController(AppDbContext db, UserManager<ApplicationUser> userM
 
         ModelState.AddModelError(nameof(CoinUpsertRequest.CountryCode), "Unknown country code.");
         return null;
+    }
+
+    // The chosen column follows the direction; tie-breakers keep a fixed direction.
+    // Id as last key keeps paging stable when other keys are equal.
+    private static IOrderedQueryable<Coin> ApplySort(IQueryable<Coin> coins, CoinListQuery query)
+    {
+        var desc = query.Dir == SortDirection.Desc;
+
+        // Position in the client's display order (CHARINDEX in SQL). Without CountryOrder
+        // every rank is -1 and the ISO code decides.
+        var countryOrder = "," + (query.CountryOrder?.ToUpperInvariant() ?? string.Empty) + ",";
+        Expression<Func<Coin, int>> countryRank = c => countryOrder.IndexOf(c.CountryCode);
+
+        IOrderedQueryable<Coin> ThenByCountry(IOrderedQueryable<Coin> q, bool descending = false) =>
+            q.ThenBy(countryRank, descending).ThenBy(c => c.CountryCode, descending);
+
+        return query.Sort switch
+        {
+            CoinSort.Title => coins.OrderBy(c => c.Title, desc).ThenBy(c => c.Id, desc),
+            CoinSort.Denomination => ThenByCountry(coins.OrderBy(c => c.Denomination, desc))
+                .ThenBy(c => c.Year).ThenBy(c => c.Id),
+            CoinSort.Country => coins.OrderBy(countryRank, desc).ThenBy(c => c.CountryCode, desc)
+                .ThenByDescending(c => c.Denomination).ThenBy(c => c.Year).ThenBy(c => c.Id),
+            CoinSort.Year => ThenByCountry(coins.OrderBy(c => c.Year, desc))
+                .ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
+            CoinSort.MintMark => ThenByCountry(coins.OrderBy(c => c.MintMark == null)
+                    .ThenBy(c => c.MintMark, desc))
+                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
+            CoinSort.Commemorative => ThenByCountry(coins.OrderBy(c => c.IsCommemorative, desc))
+                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
+            CoinSort.Quantity => ThenByCountry(coins.OrderBy(c => c.Quantity, desc))
+                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
+            _ => coins.OrderByDescending(c => c.CreatedAtUtc).ThenByDescending(c => c.Id)
+        };
     }
 
     private static void Apply(Coin coin, CoinUpsertRequest request, string countryCode, DateTime now)
