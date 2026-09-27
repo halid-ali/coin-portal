@@ -2,6 +2,7 @@ using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,7 +71,12 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Validates the antiforgery token on every POST/PUT/PATCH/DELETE
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-});
+})
+.AddJsonOptions(options =>
+{
+    // Enums as names ("Euro2") in both directions; reject raw numbers like 999
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
+});;
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
