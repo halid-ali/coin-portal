@@ -22,7 +22,9 @@ import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
 import { CoinService } from '../../core/coins/coin.service';
 import { CountryService } from '../../core/coins/country.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
+import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { Pagination } from '../../shared/pagination/pagination';
+import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { SortHeader } from '../../shared/sort-header/sort-header';
 
 type QueryParamValue = string | number | boolean | null;
@@ -43,7 +45,7 @@ function toPageSize(value: string | undefined): number {
 
 @Component({
   selector: 'app-collection',
-  imports: [ReactiveFormsModule, RouterLink, Pagination, SortHeader],
+  imports: [ReactiveFormsModule, RouterLink, Pagination, SortHeader, CoinThumb, PhotoViewer],
   templateUrl: './collection.html',
 })
 export class Collection {
@@ -120,6 +122,8 @@ export class Collection {
   protected readonly result = signal<PagedResponse<Coin> | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
+  /** Coin whose photos are shown fullscreen. */
+  protected readonly viewerCoin = signal<Coin | null>(null);
 
   protected readonly searchControl = new FormControl('', { nonNullable: true });
 

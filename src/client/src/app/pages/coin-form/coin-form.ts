@@ -1,13 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Location } from '@angular/common';
+import { Component, OnInit, WritableSignal, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { merge } from 'rxjs';
+import { firstValueFrom, merge } from 'rxjs';
 
 import {
   COIN_LIMITS,
+  COIN_SIDES,
   Coin,
+  CoinPhoto,
+  CoinSide,
   CoinUpsertRequest,
   DENOMINATIONS,
   Denomination,
@@ -15,15 +19,18 @@ import {
 } from '../../core/coins/coin.models';
 import { CoinService } from '../../core/coins/coin.service';
 import { CountryService } from '../../core/coins/country.service';
+import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
 import { suggestTitle } from '../../shared/coin-format';
 import { errorMessage } from '../../shared/form-errors';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
+import { PhotoChange, PhotoSlot } from './photo-slot';
 
 /** Create (/collection/new) and edit (/collection/:id/edit) in one component. */
 @Component({
   selector: 'app-coin-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PhotoSlot, PhotoViewer],
   templateUrl: './coin-form.html',
 })
 export class CoinForm implements OnInit {
@@ -32,11 +39,16 @@ export class CoinForm implements OnInit {
   private readonly countryService = inject(CountryService);
   private readonly router = inject(Router);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly location = inject(Location);
 
   /** Route param, bound by withComponentInputBinding(); undefined in create mode. */
   readonly id = input<string>();
 
-  protected readonly isEdit = computed(() => this.id() !== undefined);
+  /** Id of the saved coin: set on load in edit mode and after the first save in create mode. */
+  private readonly coinId = signal<number | null>(null);
+  protected readonly isEdit = computed(() => this.id() !== undefined || this.coinId() !== null);
+  /** The saved coin as last returned by the API (photos included). */
+  protected readonly coin = signal<Coin | null>(null);
   protected readonly loading = signal(false);
   protected readonly notFound = signal(false);
   protected readonly submitting = signal(false);
@@ -48,6 +60,14 @@ export class CoinForm implements OnInit {
   protected readonly limits = COIN_LIMITS;
   protected readonly maxYear = maxCoinYear();
   protected readonly errorMessage = errorMessage;
+  protected readonly sides = COIN_SIDES;
+
+  /** Pending photo changes per side, applied after the coin itself is saved. */
+  protected readonly photoChanges: Record<CoinSide, WritableSignal<PhotoChange | null>> = {
+    National: signal<PhotoChange | null>(null),
+    Common: signal<PhotoChange | null>(null),
+  };
+  protected readonly viewerSide = signal<CoinSide | null>(null);
 
   protected readonly form = this.fb.group({
     denomination: this.fb.control<Denomination | ''>('', Validators.required),
@@ -66,8 +86,6 @@ export class CoinForm implements OnInit {
     ],
     description: ['', Validators.maxLength(COIN_LIMITS.descriptionMaxLength)],
   });
-
-  private coinId: number | null = null;
 
   constructor() {
     this.countryService.load();
@@ -97,10 +115,11 @@ export class CoinForm implements OnInit {
       return;
     }
 
-    this.coinId = id;
+    this.coinId.set(id);
     this.loading.set(true);
     this.coinService.get(id).subscribe({
       next: (coin) => {
+        this.coin.set(coin);
         this.patchForm(coin);
         this.loading.set(false);
       },
@@ -115,7 +134,7 @@ export class CoinForm implements OnInit {
     });
   }
 
-  protected submit(): void {
+  protected async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -124,26 +143,37 @@ export class CoinForm implements OnInit {
     this.submitting.set(true);
     this.formErrors.set([]);
 
-    const request = this.toRequest();
-    const save$ =
-      this.coinId === null
-        ? this.coinService.create(request)
-        : this.coinService.update(this.coinId, request);
+    let coin: Coin;
+    try {
+      const request = this.toRequest();
+      const id = this.coinId();
+      coin = await firstValueFrom(
+        id === null ? this.coinService.create(request) : this.coinService.update(id, request),
+      );
+    } catch (err) {
+      this.submitting.set(false);
+      this.formErrors.set(applyServerErrors(this.form, err as HttpErrorResponse));
+      return;
+    }
 
-    save$.subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.router.navigateByUrl('/collection');
-      },
-      error: (err: HttpErrorResponse) => {
-        this.submitting.set(false);
-        this.formErrors.set(applyServerErrors(this.form, err));
-      },
-    });
+    this.coinId.set(coin.id);
+    this.coin.set(coin);
+
+    const failures = await this.savePhotos(coin.id);
+    this.submitting.set(false);
+    if (failures.length === 0) {
+      this.router.navigateByUrl('/collection');
+      return;
+    }
+
+    // The coin exists now: a retry must update it, not create another one
+    this.location.replaceState(`/collection/${coin.id}/edit`);
+    this.formErrors.set(['Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:', ...failures]);
   }
 
   protected async remove(): Promise<void> {
-    if (this.coinId === null) {
+    const id = this.coinId();
+    if (id === null) {
       return;
     }
 
@@ -161,7 +191,7 @@ export class CoinForm implements OnInit {
     this.deleting.set(true);
     this.formErrors.set([]);
 
-    this.coinService.delete(this.coinId).subscribe({
+    this.coinService.delete(id).subscribe({
       next: () => this.router.navigateByUrl('/collection'),
       error: (err: HttpErrorResponse) => {
         this.deleting.set(false);
@@ -173,6 +203,46 @@ export class CoinForm implements OnInit {
         this.formErrors.set(applyServerErrors(this.form, err));
       },
     });
+  }
+
+  protected storedPhoto(side: CoinSide): CoinPhoto | undefined {
+    return this.coin()?.photos.find((p) => p.side === side);
+  }
+
+  /** Applies the pending photo changes one by one; returns messages for the failed ones. */
+  private async savePhotos(coinId: number): Promise<string[]> {
+    const failures: string[] = [];
+    for (const { value: side, label } of COIN_SIDES) {
+      const change = this.photoChanges[side]();
+      if (!change) {
+        continue;
+      }
+      try {
+        if (change.type === 'upload') {
+          this.coin.set(
+            await firstValueFrom(this.coinService.uploadPhoto(coinId, side, change.image)),
+          );
+        } else {
+          await firstValueFrom(this.coinService.deletePhoto(coinId, side));
+          this.dropStoredPhoto(side);
+        }
+        this.photoChanges[side].set(null);
+      } catch (err) {
+        const error = err as HttpErrorResponse;
+        // Already removed (e.g. in another tab) is what we wanted
+        if (change.type === 'remove' && error.status === 404) {
+          this.dropStoredPhoto(side);
+          this.photoChanges[side].set(null);
+          continue;
+        }
+        failures.push(`${label}: ${photoErrorMessage(error)}`);
+      }
+    }
+    return failures;
+  }
+
+  private dropStoredPhoto(side: CoinSide): void {
+    this.coin.update((c) => c && { ...c, photos: c.photos.filter((p) => p.side !== side) });
   }
 
   private patchForm(coin: Coin): void {

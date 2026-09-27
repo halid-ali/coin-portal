@@ -2,7 +2,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Coin, CoinListQuery, CoinUpsertRequest, PagedResponse } from './coin.models';
+import {
+  Coin,
+  CoinListQuery,
+  CoinPhoto,
+  CoinSide,
+  CoinUpsertRequest,
+  PagedResponse,
+  PhotoSize,
+} from './coin.models';
 
 const BASE_URL = '/api/coins';
 
@@ -40,4 +48,25 @@ export class CoinService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${BASE_URL}/${id}`);
   }
+
+  /** Uploads or replaces one side; the API crops, resizes and re-encodes it. */
+  uploadPhoto(coinId: number, side: CoinSide, image: Blob): Observable<Coin> {
+    const body = new FormData();
+    body.append('file', image, 'photo');
+    return this.http.put<Coin>(`${BASE_URL}/${coinId}/photos/${side.toLowerCase()}`, body);
+  }
+
+  deletePhoto(coinId: number, side: CoinSide): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/${coinId}/photos/${side.toLowerCase()}`);
+  }
+}
+
+/** Image URL of a stored photo; the photo id as version keeps browser caching safe. */
+export function photoUrl(coinId: number, photo: CoinPhoto, size: PhotoSize): string {
+  return `${BASE_URL}/${coinId}/photos/${photo.side.toLowerCase()}/${size}?v=${photo.id}`;
+}
+
+/** The photo shown for a coin in lists: the national side if there is one, otherwise the common side. */
+export function primaryPhoto(coin: Coin): CoinPhoto | undefined {
+  return coin.photos.find((p) => p.side === 'National') ?? coin.photos[0];
 }
