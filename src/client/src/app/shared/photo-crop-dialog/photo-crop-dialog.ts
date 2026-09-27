@@ -16,9 +16,10 @@ let nextId = 0;
 const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
 
 /**
- * Square crop of a chosen photo in a modal <dialog>. The round guide helps centering the
- * coin; the result is still square. Emits the cropped image (JPEG, at most 1600 px), or
- * null when cancelled. The API validates and re-encodes it anyway.
+ * Crop of a chosen image in a modal <dialog>. Defaults fit coin photos: square with a round
+ * guide that helps centering the coin (the result is still square). Collection covers use a
+ * 16:9 rectangle. Emits the cropped image (JPEG, at most 1600 px wide), or null when cancelled.
+ * The API validates and re-encodes it anyway.
  * No close on backdrop click: a drag that ends outside the panel would count as one.
  */
 @Component({
@@ -34,10 +35,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
       <div class="space-y-4 p-6">
         <div>
           <h2 [id]="titleId" class="text-lg font-semibold">{{ title() }}</h2>
-          <p class="mt-1 text-sm text-slate-600">
-            Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin;
-            yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.
-          </p>
+          <p class="mt-1 text-sm text-slate-600">{{ hint() }}</p>
         </div>
 
         <div
@@ -53,12 +51,12 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
               [imageFile]="file()"
               [autoCrop]="false"
               [maintainAspectRatio]="true"
-              [aspectRatio]="1"
-              [roundCropper]="true"
+              [aspectRatio]="aspectRatio()"
+              [roundCropper]="round()"
               [transform]="transform()"
               [allowMoveImage]="true"
               [canvasRotation]="rotation()"
-              [cropperMinWidth]="minPixels"
+              [cropperMinWidth]="minWidth()"
               format="jpeg"
               [imageQuality]="92"
               [resizeToWidth]="maxPixels"
@@ -148,10 +146,19 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
 export class PhotoCropDialog {
   readonly file = input.required<File>();
   readonly title = input('Fotoğrafı kırp');
+  /** Width / height of the result. */
+  readonly aspectRatio = input(1);
+  /** Round guide (coins); the result stays rectangular. */
+  readonly round = input(true);
+  /** Smallest crop width in source pixels (the API rejects smaller images). */
+  readonly minWidth = input<number>(PHOTO_LIMITS.minPixels);
+  readonly hint = input(
+    'Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin; ' +
+      'yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.',
+  );
   readonly closed = output<Blob | null>();
 
   protected readonly titleId = `crop-title-${++nextId}`;
-  protected readonly minPixels = PHOTO_LIMITS.minPixels;
   protected readonly maxPixels = PHOTO_LIMITS.maxPixels;
   protected readonly ready = signal(false);
   protected readonly failed = signal(false);

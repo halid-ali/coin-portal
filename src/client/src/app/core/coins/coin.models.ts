@@ -75,6 +75,7 @@ export function maxCoinYear(now = new Date()): number {
 
 export interface Coin {
   id: number;
+  collectionId: number;
   title: string;
   description: string | null;
   denomination: Denomination;
@@ -119,6 +120,8 @@ export const PHOTO_LIMITS = {
 } as const;
 
 export interface CoinUpsertRequest {
+  /** A different collection on update moves the coin. */
+  collectionId: number;
   title: string;
   description: string | null;
   denomination: Denomination;
@@ -130,6 +133,7 @@ export interface CoinUpsertRequest {
 }
 
 export interface CoinListQuery {
+  collectionId?: number;
   denomination?: Denomination;
   countryCode?: string;
   year?: number;

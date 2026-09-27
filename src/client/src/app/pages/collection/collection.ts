@@ -1,8 +1,18 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 import {
   COIN_LIMITS,
@@ -20,6 +30,10 @@ import {
 } from '../../core/coins/coin.models';
 import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
 import { CollectionReturn } from '../../core/coins/collection-return';
+import { Collection as CoinCollection } from '../../core/collections/collection.models';
+import { CollectionService, coverUrl } from '../../core/collections/collection.service';
+import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
+import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { CoinService, photoUrl, primaryPhoto } from '../../core/coins/coin.service';
 import { CountryService } from '../../core/coins/country.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
@@ -55,6 +69,8 @@ function toPageSize(value: string | undefined): number {
     CoinThumb,
     PhotoViewer,
     ViewToggle,
+    CollectionFormDialog,
+    CollectionDeleteDialog,
   ],
   templateUrl: './collection.html',
 })
@@ -64,6 +80,24 @@ export class Collection {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly collectionReturn = inject(CollectionReturn);
+  private readonly collectionService = inject(CollectionService);
+  private readonly title = inject(Title);
+
+  /** Route param, bound by withComponentInputBinding(). */
+  readonly collectionId = input.required<string>();
+  private readonly collectionIdNumber = computed(() => toInt(this.collectionId()) ?? 0);
+
+  /** The collection shown; null while loading. */
+  protected readonly collection = signal<CoinCollection | null>(null);
+  protected readonly notFound = signal(false);
+  /** Uploaded cover or latest coin photo, next to the title. */
+  protected readonly collectionCover = computed(() => {
+    const collection = this.collection();
+    return collection ? coverUrl(collection, 'preview') : null;
+  });
+  protected readonly editing = signal(false);
+  /** All collections while the delete dialog is open (it offers the others as move targets). */
+  protected readonly deleteTargets = signal<CoinCollection[] | null>(null);
 
   // Query params, bound by withComponentInputBinding(); the URL is the single source of truth
   readonly denomination = input<string>();
@@ -104,6 +138,7 @@ export class Collection {
     const commemorative = this.isCommemorative();
     const { sort, dir } = this.sortState();
     return {
+      collectionId: this.collectionIdNumber(),
       denomination: isDenomination(denomination) ? denomination : undefined,
       countryCode: this.countryCode() || undefined,
       year: toInt(this.year()),
@@ -147,10 +182,37 @@ export class Collection {
   constructor() {
     this.countryService.load();
 
-    // The coin form returns to this exact list (view, filters, sort, page)
-    this.route.queryParams
+    // The coin form returns to this exact list (collection, view, filters, sort, page)
+    combineLatest([this.route.paramMap, this.route.queryParams])
       .pipe(takeUntilDestroyed())
-      .subscribe((params) => this.collectionReturn.remember(params));
+      .subscribe(([params, queryParams]) =>
+        this.collectionReturn.remember(
+          this.router.serializeUrl(
+            this.router.createUrlTree(['/collections', params.get('collectionId')], {
+              queryParams,
+            }),
+          ),
+        ),
+      );
+
+    // Name and description for the header; also tells a missing collection apart
+    toObservable(this.collectionIdNumber)
+      .pipe(
+        tap(() => {
+          this.collection.set(null);
+          this.notFound.set(false);
+        }),
+        switchMap((id) =>
+          this.collectionService.get(id).pipe(
+            catchError(() => {
+              this.notFound.set(true);
+              return of(null);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((collection) => this.setCollection(collection));
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
     toObservable(this.query)
@@ -190,6 +252,31 @@ export class Collection {
         takeUntilDestroyed(),
       )
       .subscribe((value) => this.setFilters({ search: value || null }));
+  }
+
+  protected openDelete(): void {
+    this.collectionService.list().subscribe((list) => this.deleteTargets.set(list));
+  }
+
+  protected onEdited(collection: CoinCollection | null): void {
+    this.editing.set(false);
+    if (collection) {
+      this.setCollection(collection);
+    }
+  }
+
+  protected onDeleted(deleted: boolean): void {
+    this.deleteTargets.set(null);
+    if (deleted) {
+      this.router.navigate(['/collections']);
+    }
+  }
+
+  private setCollection(collection: CoinCollection | null): void {
+    this.collection.set(collection);
+    if (collection) {
+      this.title.setTitle(`${collection.name} · Coin Portal`);
+    }
   }
 
   protected countryName(code: string): string {
