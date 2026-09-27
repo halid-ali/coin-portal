@@ -1,0 +1,42 @@
+<header class="border-b border-slate-200 bg-white">
+  <nav class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+    <a routerLink="/" (click)="closeMenu()" class="flex items-center gap-2 text-lg font-bold text-slate-900">
+      <span aria-hidden="true" class="grid size-8 place-items-center rounded-full bg-amber-400 text-sm text-amber-950">€</span>
+      Coin Portal
+    </a>
+
+    <!-- Mobile menu toggle -->
+    <button type="button" (click)="toggleMenu()" class="rounded-md p-2 text-slate-600 hover:bg-slate-100 sm:hidden"
+            [attr.aria-expanded]="menuOpen()" aria-controls="main-menu" aria-label="Menüyü aç/kapat">
+      <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        @if (menuOpen()) {
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        } @else {
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        }
+      </svg>
+    </button>
+
+    <!-- Desktop menu -->
+    <div class="hidden items-center gap-4 sm:flex">
+      <ng-container *ngTemplateOutlet="menuItems" />
+    </div>
+  </nav>
+
+  @if (menuOpen()) {
+    <div id="main-menu" class="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 sm:hidden">
+      <ng-container *ngTemplateOutlet="menuItems" />
+    </div>
+  }
+</header>
+
+<ng-template #menuItems>
+  @if (auth.currentUser(); as user) {
+    <a routerLink="/collection" routerLinkActive="text-amber-700" (click)="closeMenu()" class="nav-link">Koleksiyonum</a>
+    <span class="text-sm text-slate-500">&#64;{{ user.userName }}</span>
+    <button type="button" (click)="logout()" [disabled]="loggingOut()" class="btn-secondary">Çıkış yap</button>
+  } @else {
+    <a routerLink="/login" routerLinkActive="text-amber-700" (click)="closeMenu()" class="nav-link">Giriş yap</a>
+    <a routerLink="/register" (click)="closeMenu()" class="btn-primary">Kayıt ol</a>
+  }
+</ng-template>

@@ -1,0 +1,42 @@
+<section class="mx-auto w-full max-w-md">
+  <h1 class="mb-6 text-2xl font-semibold text-slate-900">Giriş yap</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
+    @if (formError(); as message) {
+      <div role="alert" class="alert-error">{{ message }}</div>
+    }
+
+    <div>
+      <label for="userNameOrEmail" class="form-label">Kullanıcı adı veya e-posta</label>
+      <input id="userNameOrEmail" type="text" formControlName="userNameOrEmail"
+             autocomplete="username" class="form-input" />
+      @if (errorMessage(form.controls.userNameOrEmail); as msg) {
+        <p class="form-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div>
+      <label for="password" class="form-label">Parola</label>
+      <input id="password" type="password" formControlName="password"
+             autocomplete="current-password" class="form-input" />
+      @if (errorMessage(form.controls.password); as msg) {
+        <p class="form-error">{{ msg }}</p>
+      }
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-slate-700">
+      <input type="checkbox" formControlName="rememberMe"
+             class="size-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
+      Beni hatırla
+    </label>
+
+    <button type="submit" class="btn-primary w-full" [disabled]="submitting()">
+      {{ submitting() ? 'Giriş yapılıyor…' : 'Giriş yap' }}
+    </button>
+
+    <p class="text-center text-sm text-slate-600">
+      Hesabın yok mu?
+      <a routerLink="/register" class="link">Kayıt ol</a>
+    </p>
+  </form>
+</section>

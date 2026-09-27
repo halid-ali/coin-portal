@@ -1,6 +1,7 @@
 using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +56,24 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddAntiforgery(options =>
+{
+    // Angular sends the token back in this header
+    options.HeaderName = "X-XSRF-TOKEN";
+    options.Cookie.Name = "coinportal.af";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+});
+
+builder.Services.AddControllersWithViews(options =>
+{
+    // Validates the antiforgery token on every POST/PUT/PATCH/DELETE
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -72,8 +90,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
