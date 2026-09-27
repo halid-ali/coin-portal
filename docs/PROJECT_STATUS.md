@@ -1,7 +1,7 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-27 (fotoğraf yükleme tamamlandı, `feat/coin-photos` branch'inde; ImageSharp lisans
-kararı bekleniyor, karar sonrası main'e merge edilecek)
+Son güncelleme: 2026-09-27 (fotoğraf yükleme tamamlandı ve main'e merge edildi; ImageSharp lisans kararı
+ilk publish'ten önce verilecek)
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -108,8 +108,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
      bağımsız, sabit sütunlar tek satır; tablo artık `lg` (1024px) ve üstünde, altında kart listesi.
    - Doğrulama: API 5090'da seed verisiyle curl, client headless Edge ile (genişlikler 5 farklı
      sayfa/sıralamada aynı, tıklama döngüsü, mobil select).
-8. **Fotoğraf yükleme** (`feat/coin-photos`, **main'e merge edilmedi**, lisans kararı bekliyor). Kararlar
-   ve ayrıntılar aşağıdaki "Fotoğraflar" bölümünde.
+8. **Fotoğraf yükleme** (`feat/coin-photos`). Lisans kararı beklenmeden merge edildi: engel sadece Release
+   (publish) derlemesinde, bkz. "Yayın öncesi yapılacaklar". Kararlar ve ayrıntılar "Fotoğraflar" bölümünde.
    - API: `CoinPhoto` tablosu (migration `AddCoinPhotos`), `Photos/` (`PhotoOptions`, `IPhotoStorage` +
      `FileSystemPhotoStorage`, `IImageProcessor` + `ImageSharpImageProcessor`), `CoinPhotosController`
      (`PUT`/`DELETE api/coins/{id}/photos/{side}`, `GET …/{side}/{size}?v=`), coin yanıtında `photos`,
@@ -134,8 +134,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
 
 ## Sıradaki adım
 
-1. **ImageSharp lisans kararı** (bkz. Açık konular 1). Sonuca göre `feat/coin-photos` main'e merge edilir.
-2. Adaylar (sıra değişebilir): gelişmiş filtreler, görünürlük ayarı ve paylaşılabilir profil sayfası
+1. Adaylar (sıra değişebilir): gelişmiş filtreler, görünürlük ayarı ve paylaşılabilir profil sayfası
    (diğer kullanıcıların koleksiyonları, kullanıcı adına göre filtre; fotoğraf watermark'ı bununla
    birlikte, bkz. Açık konular 8).
 
@@ -194,7 +193,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    - Olumsuz: `SkiaSharpImageProcessor` yazılır (MIT, aktif bakımlı; native `libSkiaSharp.dll` içerir),
      ImageSharp paketi kaldırılır, hosting kontrol listesine "native DLL çalıştırılabiliyor mu?" eklenir.
      ImageSharp 3.1.12 (anahtarsız) önerilmiyor: Ekim 2025'ten beri güncelleme almıyor.
-   - Karar verilene kadar `feat/coin-photos` main'e merge edilmez.
+   - Debug derleme (lokal geliştirme) etkilenmiyor. **İlk publish'ten önce çözülmeli**; kütüphane
+     değişikliği gerekirse main'den ayrı bir branch'te yapılır (ör. `chore/skiasharp`).
 2. **Şirket politikası:** Kişisel projeyi şirket bilgisayarında geliştirme, GitHub'a push ve yapay zeka
    asistanı kullanımı yönetici/IT ile netleştirilecek. Cevaba kadar repo **sadece lokal**, push yok.
 3. **Hosting seçilmedi.** Seçerken aşağıdaki "Hosting seçimi kontrol listesi" kullanılacak.
@@ -221,6 +221,17 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    - Karar verilecekler: watermark içeriği (yazı/logo), konum, saydamlık, sadece herkese açıklara mı.
 9. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
    i18n (TR/DE/EN), Register'ın da `applyServerErrors` kullanması, mobilde katlanabilir filtre paneli.
+
+## Yayın öncesi yapılacaklar
+
+İlk publish'ten önce tamamlanması gerekenler (ayrıntılar Açık konular'da):
+
+- [ ] Hosting seçimi ("Hosting seçimi kontrol listesi").
+- [ ] ImageSharp lisans anahtarı ya da SkiaSharp'a geçiş (Açık konular 1); `dotnet build -c Release`
+      hatasız olmalı.
+- [ ] Production connection string ve `PhotoStorage__RootPath` (site klasörü dışında) hosting panelinde.
+- [ ] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (`MapFallbackToFile("index.html")`).
+- [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
 
 ## Hosting seçimi kontrol listesi
 
