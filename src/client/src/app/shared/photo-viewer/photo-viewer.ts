@@ -91,6 +91,8 @@ export class PhotoViewer {
   readonly photos = input.required<CoinPhoto[]>();
   readonly title = input('');
   readonly initialSide = input<CoinSide>();
+  /** Share link secret, for photos of unlisted collections. */
+  readonly shareToken = input<string | null>(null);
   readonly closed = output<void>();
 
   protected readonly titleId = `viewer-title-${++nextId}`;
@@ -116,7 +118,7 @@ export class PhotoViewer {
   }
 
   protected url(photo: CoinPhoto): string {
-    return photoUrl(this.coinId(), photo, 'full');
+    return photoUrl(this.coinId(), photo, 'full', this.shareToken());
   }
 
   protected sideLabel(side: CoinSide): string {

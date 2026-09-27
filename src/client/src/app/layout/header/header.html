@@ -7,21 +7,21 @@
       Coin Portal
     </a>
 
-    @if (auth.currentUser(); as user) {
-      <!-- Desktop: main navigation -->
-      <ul class="hidden items-center gap-1 sm:flex">
-        @for (item of navItems; track item.path) {
-          <li>
-            <a [routerLink]="item.path" routerLinkActive="!bg-amber-50 !text-amber-800 ring-1 ring-amber-200"
-               class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors
-                      hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
-              <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
-              {{ item.label }}
-            </a>
-          </li>
-        }
-      </ul>
+    <!-- Desktop: main navigation (Keşfet also signed out) -->
+    <ul class="hidden items-center gap-1 sm:flex">
+      @for (item of navItems(); track item.path) {
+        <li>
+          <a [routerLink]="item.path" routerLinkActive="!bg-amber-50 !text-amber-800 ring-1 ring-amber-200"
+             class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors
+                    hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
+            <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
+            {{ item.label }}
+          </a>
+        </li>
+      }
+    </ul>
 
+    @if (auth.currentUser(); as user) {
       <!-- Desktop: account menu -->
       <div class="relative ml-auto hidden sm:block" (click)="$event.stopPropagation()">
         <button type="button" (click)="toggleUserMenu()"
@@ -88,7 +88,7 @@
           </div>
         </div>
         <ul class="mt-2 space-y-1 border-t border-slate-100 pt-2">
-          @for (item of navItems; track item.path) {
+          @for (item of navItems(); track item.path) {
             <li>
               <a [routerLink]="item.path" routerLinkActive="!bg-amber-50 !text-amber-800" (click)="closeMenus()"
                  class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
@@ -106,6 +106,17 @@
           </li>
         </ul>
       } @else {
+        <ul class="mb-3 space-y-1">
+          @for (item of navItems(); track item.path) {
+            <li>
+              <a [routerLink]="item.path" routerLinkActive="!bg-amber-50 !text-amber-800" (click)="closeMenus()"
+                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
+                {{ item.label }}
+              </a>
+            </li>
+          }
+        </ul>
         <div class="flex flex-col gap-2">
           <a routerLink="/login" (click)="closeMenus()" class="btn-secondary">Giriş yap</a>
           <a routerLink="/register" (click)="closeMenus()" class="btn-primary">Kayıt ol</a>
@@ -123,6 +134,11 @@
         <!-- stacked coins -->
         <ellipse cx="12" cy="6" rx="7" ry="3" />
         <path d="M5 6v4c0 1.66 3.13 3 7 3s7-1.34 7-3V6M5 10v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4M5 14v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4" />
+      }
+      @case ('explore') {
+        <!-- compass -->
+        <circle cx="12" cy="12" r="9" />
+        <path d="m15.5 8.5-2 5-5 2 2-5z" />
       }
       @case ('logout') {
         <path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9" />

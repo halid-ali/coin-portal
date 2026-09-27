@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
+  Observable,
   catchError,
   combineLatest,
   debounceTime,
@@ -14,6 +15,7 @@ import {
   tap,
 } from 'rxjs';
 
+import { AuthService } from '../../core/auth/auth.service';
 import {
   COIN_LIMITS,
   COIN_SORT_COLUMNS,
@@ -29,19 +31,41 @@ import {
   maxCoinYear,
 } from '../../core/coins/coin.models';
 import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
-import { CollectionReturn } from '../../core/coins/collection-return';
-import { Collection as CoinCollection } from '../../core/collections/collection.models';
-import { CollectionService, coverUrl } from '../../core/collections/collection.service';
-import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
-import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { CoinService, photoUrl, primaryPhoto } from '../../core/coins/coin.service';
+import { CollectionReturn } from '../../core/coins/collection-return';
 import { CountryService } from '../../core/coins/country.service';
+import {
+  Collection as CoinCollection,
+  CollectionSummary,
+} from '../../core/collections/collection.models';
+import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
+import { Collector, ExploreCoin } from '../../core/public/public.models';
+import { PublicService } from '../../core/public/public.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { SortHeader } from '../../shared/sort-header/sort-header';
+import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
+import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
+import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { CollectionView, ViewToggle } from './view-toggle';
+
+/**
+ * Where the coin list comes from (route data "mode"):
+ * - owner: the signed-in user's collection, editable (/collections/:collectionId)
+ * - public: someone's public collection, read-only (/u/:userName/:collectionId)
+ * - shared: a collection opened with its share link, read-only (/s/:token)
+ * - explore: coins of all public collections, read-only, with owner filter (/explore)
+ */
+export type CoinListMode = 'owner' | 'public' | 'shared' | 'explore';
+
+/** A listed coin: own and shared collections return Coin, Explore adds where it comes from. */
+type ListedCoin = Omit<Coin, 'updatedAtUtc'> &
+  Partial<Pick<ExploreCoin, 'ownerUserName' | 'collectionName'>>;
+
+/** Header of a single collection, own or someone else's. */
+type CollectionHeader = CollectionSummary & { ownerUserName?: string };
 
 type QueryParamValue = string | number | boolean | null;
 
@@ -59,6 +83,7 @@ function toPageSize(value: string | undefined): number {
   return PAGE_SIZE_OPTIONS.some((o) => o.value === n && n !== 0) ? n! : DEFAULT_PAGE_SIZE;
 }
 
+/** Coin list with filters, sort, list/grid view and paging, in one of the modes above. */
 @Component({
   selector: 'app-collection',
   imports: [
@@ -69,6 +94,7 @@ function toPageSize(value: string | undefined): number {
     CoinThumb,
     PhotoViewer,
     ViewToggle,
+    VisibilityBadge,
     CollectionFormDialog,
     CollectionDeleteDialog,
   ],
@@ -77,27 +103,48 @@ function toPageSize(value: string | undefined): number {
 export class Collection {
   private readonly coinService = inject(CoinService);
   private readonly countryService = inject(CountryService);
+  private readonly collectionService = inject(CollectionService);
+  private readonly publicService = inject(PublicService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly collectionReturn = inject(CollectionReturn);
-  private readonly collectionService = inject(CollectionService);
   private readonly title = inject(Title);
 
-  /** Route param, bound by withComponentInputBinding(). */
-  readonly collectionId = input.required<string>();
+  /** Route data and params, bound by withComponentInputBinding(). */
+  readonly mode = input<CoinListMode>('owner');
+  readonly collectionId = input<string>();
+  readonly userName = input<string>();
+  readonly token = input<string>();
+
+  protected readonly readOnly = computed(() => this.mode() !== 'owner');
+  /** Opens photos of an unlisted collection for visitors. */
+  protected readonly shareToken = computed(() =>
+    this.mode() === 'shared' ? (this.token() ?? null) : null,
+  );
   private readonly collectionIdNumber = computed(() => toInt(this.collectionId()) ?? 0);
 
-  /** The collection shown; null while loading. */
+  /** The own collection (owner mode); the edit and delete dialogs need all of it. */
   protected readonly collection = signal<CoinCollection | null>(null);
+  /** Header data of the shown collection in any single-collection mode; null while loading. */
+  protected readonly header = signal<CollectionHeader | null>(null);
   protected readonly notFound = signal(false);
-  /** Uploaded cover or latest coin photo, next to the title. */
   protected readonly collectionCover = computed(() => {
-    const collection = this.collection();
-    return collection ? coverUrl(collection, 'preview') : null;
+    const header = this.header();
+    return header ? coverUrl(header, 'preview', this.shareToken()) : null;
   });
   protected readonly editing = signal(false);
   /** All collections while the delete dialog is open (it offers the others as move targets). */
   protected readonly deleteTargets = signal<CoinCollection[] | null>(null);
+  /** Link others can open, for the owner's "copy link" button. */
+  protected readonly ownLink = computed(() => {
+    const collection = this.collection();
+    const user = this.auth.currentUser();
+    return collection && user ? shareLink(collection, user.userName) : null;
+  });
+  protected readonly copied = signal(false);
+  /** Explore user filter. */
+  protected readonly collectors = signal<Collector[]>([]);
 
   // Query params, bound by withComponentInputBinding(); the URL is the single source of truth
   readonly denomination = input<string>();
@@ -110,6 +157,8 @@ export class Collection {
   readonly page = input<string>();
   readonly pageSize = input<string>();
   readonly view = input<string>();
+  /** Explore: exact user name. */
+  readonly owner = input<string>();
 
   /** List (table / cards) is the default and stays out of the URL. */
   protected readonly viewMode = computed<CollectionView>(() =>
@@ -118,7 +167,10 @@ export class Collection {
 
   protected readonly denominations = DENOMINATIONS;
   protected readonly sortColumns = COIN_SORT_COLUMNS;
-  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
+  /** Explore spans all public collections, so it has no "Tümü" (the API rejects it too). */
+  protected readonly pageSizeOptions = computed(() =>
+    this.mode() === 'explore' ? PAGE_SIZE_OPTIONS.filter((o) => o.value !== 0) : PAGE_SIZE_OPTIONS,
+  );
   protected readonly countries = this.countryService.countries;
   protected readonly minYear = COIN_LIMITS.minYear;
   protected readonly maxYear = maxCoinYear();
@@ -133,12 +185,13 @@ export class Collection {
     return { sort, dir: this.dir() === 'Desc' ? 'Desc' : 'Asc' };
   });
 
-  protected readonly query = computed<CoinListQuery>(() => {
+  protected readonly query = computed<CoinListQuery & { owner?: string }>(() => {
     const denomination = this.denomination();
     const commemorative = this.isCommemorative();
     const { sort, dir } = this.sortState();
     return {
-      collectionId: this.collectionIdNumber(),
+      collectionId: this.mode() === 'owner' ? this.collectionIdNumber() : undefined,
+      owner: this.mode() === 'explore' ? this.owner()?.trim() || undefined : undefined,
       denomination: isDenomination(denomination) ? denomination : undefined,
       countryCode: this.countryCode() || undefined,
       year: toInt(this.year()),
@@ -156,7 +209,10 @@ export class Collection {
               .map((c) => c.code)
               .join(',') || undefined,
       page: Math.max(1, toInt(this.page()) ?? 1),
-      pageSize: toPageSize(this.pageSize()),
+      pageSize:
+        this.mode() === 'explore' && this.pageSize() === 'all'
+          ? DEFAULT_PAGE_SIZE
+          : toPageSize(this.pageSize()),
     };
   });
 
@@ -167,15 +223,16 @@ export class Collection {
       q.countryCode ||
       q.year ||
       q.isCommemorative !== undefined ||
-      q.search
+      q.search ||
+      q.owner
     );
   });
 
-  protected readonly result = signal<PagedResponse<Coin> | null>(null);
+  protected readonly result = signal<PagedResponse<ListedCoin> | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
   /** Coin whose photos are shown fullscreen. */
-  protected readonly viewerCoin = signal<Coin | null>(null);
+  protected readonly viewerCoin = signal<ListedCoin | null>(null);
 
   protected readonly searchControl = new FormControl('', { nonNullable: true });
 
@@ -185,34 +242,31 @@ export class Collection {
     // The coin form returns to this exact list (collection, view, filters, sort, page)
     combineLatest([this.route.paramMap, this.route.queryParams])
       .pipe(takeUntilDestroyed())
-      .subscribe(([params, queryParams]) =>
+      .subscribe(([params, queryParams]) => {
+        if (this.mode() !== 'owner') {
+          return;
+        }
         this.collectionReturn.remember(
           this.router.serializeUrl(
             this.router.createUrlTree(['/collections', params.get('collectionId')], {
               queryParams,
             }),
           ),
-        ),
-      );
+        );
+      });
 
-    // Name and description for the header; also tells a missing collection apart
-    toObservable(this.collectionIdNumber)
+    // Header of the shown collection; also tells a missing (or not shared) one apart
+    toObservable(computed(() => [this.mode(), this.collectionIdNumber(), this.token()] as const))
       .pipe(
         tap(() => {
           this.collection.set(null);
+          this.header.set(null);
           this.notFound.set(false);
         }),
-        switchMap((id) =>
-          this.collectionService.get(id).pipe(
-            catchError(() => {
-              this.notFound.set(true);
-              return of(null);
-            }),
-          ),
-        ),
+        switchMap(() => this.loadHeader()),
         takeUntilDestroyed(),
       )
-      .subscribe((collection) => this.setCollection(collection));
+      .subscribe();
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
     toObservable(this.query)
@@ -222,7 +276,7 @@ export class Collection {
           this.loadError.set(false);
         }),
         switchMap((query) =>
-          this.coinService.list(query).pipe(
+          this.loadCoins(query).pipe(
             catchError(() => {
               this.loadError.set(true);
               return of(null);
@@ -254,6 +308,74 @@ export class Collection {
       .subscribe((value) => this.setFilters({ search: value || null }));
   }
 
+  private loadHeader(): Observable<unknown> {
+    const notFound = () => {
+      this.notFound.set(true);
+      return of(null);
+    };
+    switch (this.mode()) {
+      case 'owner':
+        return this.collectionService.get(this.collectionIdNumber()).pipe(
+          tap((collection) => this.setOwnCollection(collection)),
+          catchError(notFound),
+        );
+      case 'public':
+        return this.publicService.collection(this.collectionIdNumber()).pipe(
+          tap((collection) => {
+            // The user name in the URL must belong to the collection
+            if (
+              collection.ownerUserName.toLocaleLowerCase('tr') !==
+              (this.userName() ?? '').toLocaleLowerCase('tr')
+            ) {
+              this.notFound.set(true);
+              return;
+            }
+            this.setHeader(collection);
+          }),
+          catchError(notFound),
+        );
+      case 'shared':
+        return this.publicService.shared(this.token() ?? '').pipe(
+          tap((collection) => this.setHeader(collection)),
+          catchError(notFound),
+        );
+      case 'explore':
+        return this.publicService.collectors().pipe(
+          tap((collectors) => this.collectors.set(collectors)),
+          catchError(() => of(null)),
+        );
+    }
+  }
+
+  private loadCoins(
+    query: CoinListQuery & { owner?: string },
+  ): Observable<PagedResponse<ListedCoin>> {
+    switch (this.mode()) {
+      case 'owner':
+        return this.coinService.list(query);
+      case 'public':
+        return this.publicService.collectionCoins(this.collectionIdNumber(), query);
+      case 'shared':
+        return this.publicService.sharedCoins(this.token() ?? '', query);
+      case 'explore':
+        return this.publicService.explore(query);
+    }
+  }
+
+  private setOwnCollection(collection: CoinCollection): void {
+    this.collection.set(collection);
+    this.setHeader(collection);
+  }
+
+  private setHeader(header: CollectionHeader): void {
+    this.header.set(header);
+    this.title.setTitle(
+      header.ownerUserName && this.readOnly()
+        ? `${header.name} · @${header.ownerUserName} · Coin Portal`
+        : `${header.name} · Coin Portal`,
+    );
+  }
+
   protected openDelete(): void {
     this.collectionService.list().subscribe((list) => this.deleteTargets.set(list));
   }
@@ -261,7 +383,7 @@ export class Collection {
   protected onEdited(collection: CoinCollection | null): void {
     this.editing.set(false);
     if (collection) {
-      this.setCollection(collection);
+      this.setOwnCollection(collection);
     }
   }
 
@@ -272,10 +394,13 @@ export class Collection {
     }
   }
 
-  private setCollection(collection: CoinCollection | null): void {
-    this.collection.set(collection);
-    if (collection) {
-      this.title.setTitle(`${collection.name} · Coin Portal`);
+  protected async copyLink(url: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(url);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      // Clipboard not allowed; the edit dialog shows the link as selectable text
     }
   }
 
@@ -284,9 +409,9 @@ export class Collection {
   }
 
   /** Grid tiles are larger than list thumbnails, so they use the 600 px size. */
-  protected previewUrl(coin: Coin): string | null {
+  protected previewUrl(coin: ListedCoin): string | null {
     const photo = primaryPhoto(coin);
-    return photo ? photoUrl(coin.id, photo, 'preview') : null;
+    return photo ? photoUrl(coin.id, photo, 'preview', this.shareToken()) : null;
   }
 
   /** Only the layout changes, so filters, sort and page stay as they are. */

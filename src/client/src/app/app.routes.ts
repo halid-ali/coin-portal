@@ -33,9 +33,34 @@ export const routes: Routes = [
       {
         path: ':collectionId',
         title: 'Koleksiyon · Coin Portal',
+        data: { mode: 'owner' },
         loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
       },
     ],
+  },
+  // Shared views: no sign-in needed, read-only (route data "mode" feeds the Collection page)
+  {
+    path: 'explore',
+    title: 'Keşfet · Coin Portal',
+    data: { mode: 'explore' },
+    loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
+  },
+  {
+    path: 'u/:userName',
+    title: 'Profil · Coin Portal',
+    loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
+  },
+  {
+    path: 'u/:userName/:collectionId',
+    title: 'Koleksiyon · Coin Portal',
+    data: { mode: 'public' },
+    loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
+  },
+  {
+    path: 's/:token',
+    title: 'Paylaşılan koleksiyon · Coin Portal',
+    data: { mode: 'shared' },
+    loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
   },
   {
     path: 'coins',

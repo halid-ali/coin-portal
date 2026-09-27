@@ -149,6 +149,45 @@ public class CollectionsController(
         return NoContent();
     }
 
+    /// <summary>
+    /// New secret for the share link of an Unlisted collection; the old link stops working.
+    /// </summary>
+    [HttpPost("{id:int}/share-token")]
+    [ProducesResponseType<ShareTokenResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ShareTokenResponse>> RegenerateShareToken(int id, CancellationToken ct)
+    {
+        var collection = await FindOwnedAsync(id, ct);
+        if (collection is null)
+        {
+            return NotFound();
+        }
+        if (collection.Visibility != CollectionVisibility.Unlisted)
+        {
+            return this.CodedProblem("not_unlisted", "Only collections shared by link have a share link.");
+        }
+
+        collection.ShareToken = Collection.NewShareToken();
+        collection.UpdatedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return new ShareTokenResponse(collection.ShareToken);
+    }
+
+    // The token exists exactly while the collection is Unlisted
+    private static void SetVisibility(Collection collection, CollectionVisibility visibility)
+    {
+        collection.Visibility = visibility;
+        if (visibility != CollectionVisibility.Unlisted)
+        {
+            collection.ShareToken = null;
+        }
+        else
+        {
+            collection.ShareToken ??= Collection.NewShareToken();
+        }
+    }
+
     private Task<Collection?> FindOwnedAsync(int id, CancellationToken ct)
     {
         var userId = CurrentUserId;
@@ -164,6 +203,8 @@ public class CollectionsController(
             c.Id,
             c.Name,
             c.Description,
+            c.Visibility,
+            c.ShareToken,
             c.Coins.Count,
             c.CoverImageId,
             c.Coins.SelectMany(coin => coin.Photos)
@@ -199,6 +240,10 @@ public class CollectionsController(
 
         collection.Name = name;
         collection.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        if (request.Visibility is { } visibility)
+        {
+            SetVisibility(collection, visibility);
+        }
         collection.UpdatedAtUtc = now;
         return true;
     }

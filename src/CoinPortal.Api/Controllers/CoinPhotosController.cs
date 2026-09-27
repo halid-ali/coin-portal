@@ -1,6 +1,7 @@
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
+using CoinPortal.Api.Querying;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -138,17 +139,23 @@ public class CoinPhotosController(
     /// <summary>
     /// Serves one size as WebP. <paramref name="v"/> is the photo id from the coin response;
     /// an outdated one returns 404, so an immutable cache entry never holds another photo.
+    /// Visible to the owner, to everyone for public collections, and with the share link
+    /// secret (<paramref name="s"/>) for unlisted ones; anything else is a 404.
     /// </summary>
     [HttpGet("{side:alpha}/{size:alpha}")]
+    [AllowAnonymous]
     [ProducesResponseType<FileStreamResult>(StatusCodes.Status200OK, "image/webp")]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(
-        int coinId, CoinSide side, PhotoSize size, [FromQuery] Guid? v, CancellationToken ct)
+        int coinId, CoinSide side, PhotoSize size, [FromQuery] Guid? v, [FromQuery] string? s,
+        CancellationToken ct)
     {
-        var userId = CurrentUserId;
+        // Null when signed out
+        var userId = userManager.GetUserId(User);
         var photo = await db.CoinPhotos.AsNoTracking()
-            .Where(p => p.CoinId == coinId && p.Side == side && p.Coin.OwnerId == userId)
+            .Where(p => p.CoinId == coinId && p.Side == side)
+            .Where(CollectionAccess.CanView<CoinPhoto>(p => p.Coin.Collection, userId, s))
             .Select(p => new { p.Id, p.Coin.OwnerId })
             .FirstOrDefaultAsync(ct);
         if (photo is null || (v is not null && v != photo.Id))

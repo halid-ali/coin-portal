@@ -94,6 +94,20 @@ public static class DevDataSeeder
                 CreatedAtUtc = now.AddSeconds(1),
                 UpdatedAtUtc = now.AddSeconds(1)
             };
+            // A few shared collections, so profiles, explore and share links have content
+            switch (seedUser.UserName)
+            {
+                case "ayse.yilmaz":
+                    main.Visibility = CollectionVisibility.Public;
+                    break;
+                case "elif.kaya":
+                    commemorative.Visibility = CollectionVisibility.Public;
+                    break;
+                case "jonas.weber":
+                    main.Visibility = CollectionVisibility.Unlisted;
+                    main.ShareToken = Collection.NewShareToken();
+                    break;
+            }
             db.Collections.AddRange(main, commemorative);
 
             db.Coins.AddRange(seedUser.Coins.Select(c => new Coin

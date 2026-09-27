@@ -1,6 +1,7 @@
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
+using CoinPortal.Api.Querying;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -120,16 +121,21 @@ public class CollectionCoversController(
     /// <summary>
     /// Serves the cover as WebP. <paramref name="v"/> is the cover id from the collection
     /// response; an outdated one returns 404, so an immutable cache entry is never stale.
+    /// Same visibility rules as coin photos (owner, public, or share link secret <paramref name="s"/>).
     /// </summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType<FileStreamResult>(StatusCodes.Status200OK, "image/webp")]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Get(int collectionId, [FromQuery] Guid? v, CancellationToken ct)
+    public async Task<IActionResult> Get(int collectionId, [FromQuery] Guid? v, [FromQuery] string? s,
+        CancellationToken ct)
     {
-        var userId = CurrentUserId;
+        // Null when signed out
+        var userId = userManager.GetUserId(User);
         var cover = await db.Collections.AsNoTracking()
-            .Where(c => c.Id == collectionId && c.OwnerId == userId && c.CoverImageId != null)
+            .Where(c => c.Id == collectionId && c.CoverImageId != null)
+            .Where(CollectionAccess.CanView<Collection>(c => c, userId, s))
             .Select(c => new { c.OwnerId, CoverImageId = c.CoverImageId!.Value })
             .FirstOrDefaultAsync(ct);
         if (cover is null || (v is not null && v != cover.CoverImageId))

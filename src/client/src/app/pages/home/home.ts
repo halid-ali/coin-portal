@@ -14,7 +14,10 @@ import { AuthService } from '../../core/auth/auth.service';
 
       @if (auth.currentUser(); as user) {
         <p class="mt-4 text-lg text-slate-600">Hoş geldin, {{ user.firstName }}!</p>
-        <a routerLink="/collections" class="btn-primary mt-8">Koleksiyonlarıma git</a>
+        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <a routerLink="/collections" class="btn-primary">Koleksiyonlarıma git</a>
+          <a routerLink="/explore" class="btn-secondary">Keşfet</a>
+        </div>
       } @else {
         <p class="mt-4 text-lg text-slate-600">
           Coinlerini fotoğraflarıyla kaydet, elinde olup olmadığını saniyeler içinde kontrol et ve
@@ -24,6 +27,7 @@ import { AuthService } from '../../core/auth/auth.service';
           <a routerLink="/register" class="btn-primary">Ücretsiz kayıt ol</a>
           <a routerLink="/login" class="btn-secondary">Giriş yap</a>
         </div>
+        <a routerLink="/explore" class="link mt-6 inline-block">Diğer koleksiyonculara göz at →</a>
       }
     </section>
   `,
