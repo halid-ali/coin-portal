@@ -2,11 +2,12 @@
 
 Son güncelleme: 2026-09-28 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
 giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
-görseller, son coin fotoğrafı artık kapak değil; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
+görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme;
+hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/collection-placeholder` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/viewer-wheel` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -308,6 +309,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       kopyalar birbirinin maskesini aldı). API: `CollectionResponse` / `PublicCollectionResponse`'tan
       `Cover` ve alt sorgusu kaldırıldı; client `coverUrl(collection, shareToken?)` sadece yüklenen kapak.
       Kapak seçicide "Otomatik" rozeti kalktı, `cover.hint` dört dilde güncellendi (`cover.auto` silindi).
+    - Fotoğraf görüntüleyicide fare tekerleği (`feat/viewer-wheel`, kullanıcı isteği): aşağı kaydırma
+      ulusal → ortak yüz, yukarı tersi, döngü yok (ok tuşları döngülü kalıyor). Bir kaydırma hamlesi tek
+      değişiklik: `WheelGesture` (`shared/photo-viewer/wheel-gesture.ts`, testli) olaylar arasında
+      300 ms boşluk olunca hamleyi bitmiş sayar, yön dönünce hemen yeni hamle. Kullanıcı tarayıcıda denedi.
 
 ## Sıradaki adım
 

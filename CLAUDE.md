@@ -200,7 +200,8 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
 - Bir SVG içinde `id` (mask, clipPath) kullanan bileşenler her kopyaya ayrı id verir (sayaçla, bkz.
   `flag`, `collection-placeholder`): `url(#…)` sayfadaki ilk eşleşen id'yi kullanır.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
-  `PhotoViewer`. Fotoğrafı olmayan coin'in yerine `CoinPlaceholder` (`shared/coin-placeholder`).
+  `PhotoViewer` (yüz değiştirme: butonlar, ok tuşları döngülü, fare tekerleği döngüsüz ve hamle başına
+  bir adım, `WheelGesture`). Fotoğrafı olmayan coin'in yerine `CoinPlaceholder` (`shared/coin-placeholder`).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
 - Sayfa iskeleti `app.html`: header, `main` (`max-w-5xl px-4`), footer. Header ve footer `sm` ve üstünde
   yapışkan (üstte / altta), telefonda değil (ekranı kaplamasın). İçerikleri de `max-w-5xl px-4`, kenarlar
