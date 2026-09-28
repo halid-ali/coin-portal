@@ -24,11 +24,13 @@ public sealed record LoginRequest(
 
 /// <param name="Language">Saved UI language, or null if the user never chose one.</param>
 /// <param name="Theme">Saved color theme, or null if the user never chose one.</param>
+/// <param name="Accent">Saved accent color, or null if the user never chose one.</param>
 public sealed record UserResponse(
     string Id, string UserName, string Email,
-    string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme)
+    string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme,
+    AccentColor? Accent)
 {
     public static UserResponse From(ApplicationUser u) =>
         new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
-            u.PreferredTheme);
+            u.PreferredTheme, u.PreferredAccent);
 }

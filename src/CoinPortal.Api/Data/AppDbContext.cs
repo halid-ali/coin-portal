@@ -32,7 +32,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             b.Property(u => u.PreferredLanguage)
              .HasMaxLength(SupportedLanguages.CodeMaxLength)
              .IsUnicode(false);
-            b.ToTable(t => t.HasCheckConstraint("CK_AspNetUsers_PreferredTheme", "[PreferredTheme] IN (0, 1, 2)"));
+            b.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_AspNetUsers_PreferredTheme", "[PreferredTheme] IN (0, 1, 2)");
+                t.HasCheckConstraint("CK_AspNetUsers_PreferredAccent", "[PreferredAccent] BETWEEN 0 AND 6");
+            });
 
             // Identity only validates unique email in code; enforce it in the database as well
             b.HasIndex(u => u.NormalizedEmail)
