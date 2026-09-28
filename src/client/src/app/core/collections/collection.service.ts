@@ -3,8 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { translate } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 
-import { photoUrl } from '../coins/coin.service';
-import { PhotoSize } from '../coins/coin.models';
 import { httpErrorMessage } from '../http/problem-details';
 import { Collection, CollectionSummary, CollectionUpsertRequest } from './collection.models';
 
@@ -57,29 +55,19 @@ export class CollectionService {
   }
 }
 
-/** URL of the uploaded cover (versioned by its id); the share secret opens unlisted ones. */
-export function uploadedCoverUrl(
-  collectionId: number,
-  coverImageId: string,
-  shareToken?: string | null,
-): string {
-  const url = `${BASE_URL}/${collectionId}/cover?v=${coverImageId}`;
-  return shareToken ? `${url}&s=${encodeURIComponent(shareToken)}` : url;
-}
-
-/** Card image: the uploaded cover, otherwise the latest coin photo in the given size. */
+/**
+ * URL of the uploaded cover (versioned by its id), or null: then the default picture is shown
+ * (CollectionPlaceholder). The share secret opens unlisted ones.
+ */
 export function coverUrl(
-  collection: CollectionSummary,
-  size: PhotoSize,
+  collection: Pick<CollectionSummary, 'id' | 'coverImageId'>,
   shareToken?: string | null,
 ): string | null {
-  if (collection.coverImageId) {
-    return uploadedCoverUrl(collection.id, collection.coverImageId, shareToken);
+  if (!collection.coverImageId) {
+    return null;
   }
-  const cover = collection.cover;
-  return cover
-    ? photoUrl(cover.coinId, { side: cover.side, id: cover.id }, size, shareToken)
-    : null;
+  const url = `${BASE_URL}/${collection.id}/cover?v=${collection.coverImageId}`;
+  return shareToken ? `${url}&s=${encodeURIComponent(shareToken)}` : url;
 }
 
 /** Absolute links others can open: the public page or the secret share link. */

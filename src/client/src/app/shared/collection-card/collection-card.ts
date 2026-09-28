@@ -4,12 +4,13 @@ import { RouterLink } from '@angular/router';
 import { CollectionSummary } from '../../core/collections/collection.models';
 import { coverUrl } from '../../core/collections/collection.service';
 import { PluralPipe } from '../../core/i18n/plural';
+import { CollectionPlaceholder } from '../collection-placeholder/collection-placeholder';
 import { VisibilityBadge } from '../visibility-badge/visibility-badge';
 
 /** Collection card with cover, name, description and coin count (my collections, profiles). */
 @Component({
   selector: 'app-collection-card',
-  imports: [RouterLink, PluralPipe, VisibilityBadge],
+  imports: [RouterLink, PluralPipe, CollectionPlaceholder, VisibilityBadge],
   host: { class: 'block h-full' },
   template: `
     <a
@@ -28,17 +29,7 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
           />
         } @else {
           <div class="flex size-full items-center justify-center">
-            <svg
-              viewBox="0 0 24 24"
-              class="size-16 text-shade-300"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.25"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="5.5" />
-            </svg>
+            <app-collection-placeholder class="aspect-square h-4/5 text-shade-300" />
           </div>
         }
         @if (showVisibility()) {
@@ -66,6 +57,5 @@ export class CollectionCard {
   /** The owner sees the visibility; on a profile everything shown is public anyway. */
   readonly showVisibility = input(false);
 
-  // The card is wide, so the 600 px size
-  protected readonly cover = computed(() => coverUrl(this.collection(), 'preview'));
+  protected readonly cover = computed(() => coverUrl(this.collection()));
 }

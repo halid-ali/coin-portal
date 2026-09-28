@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 
 import { provideTestTransloco, useTestLanguage } from '../i18n/testing';
-import { Collection } from './collection.models';
 import { collectionErrorMessage, coverUrl } from './collection.service';
 
 describe('collection helpers', () => {
@@ -11,19 +10,15 @@ describe('collection helpers', () => {
     await useTestLanguage('tr');
   });
 
-  const collection = (cover: Collection['cover'], coverImageId: string | null = null) =>
-    ({ id: 1, cover, coverImageId }) as Collection;
-
-  it('builds the cover URL from the cover photo', () => {
-    expect(coverUrl(collection({ coinId: 9, side: 'National', id: 'p1' }), 'preview')).toBe(
-      '/api/coins/9/photos/national/preview?v=p1',
+  it('builds the URL of the uploaded cover', () => {
+    expect(coverUrl({ id: 1, coverImageId: 'c7' })).toBe('/api/collections/1/cover?v=c7');
+    expect(coverUrl({ id: 1, coverImageId: 'c7' }, 'a/b')).toBe(
+      '/api/collections/1/cover?v=c7&s=a%2Fb',
     );
-    expect(coverUrl(collection(null), 'preview')).toBeNull();
   });
 
-  it('prefers the uploaded cover', () => {
-    const auto = { coinId: 9, side: 'National' as const, id: 'p1' };
-    expect(coverUrl(collection(auto, 'c7'), 'preview')).toBe('/api/collections/1/cover?v=c7');
+  it('has no cover URL without an uploaded cover (default picture)', () => {
+    expect(coverUrl({ id: 1, coverImageId: null })).toBeNull();
   });
 
   it('maps API error codes to messages', () => {

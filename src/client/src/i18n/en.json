@@ -323,8 +323,7 @@
     "title": "Cover photo",
     "choose": "Choose cover",
     "upload": "Upload cover",
-    "auto": "Automatic",
-    "hint": "Optional, JPG or PNG (up to {{mb}} MB). Without one, the most recently added coin photo is used.",
+    "hint": "Optional, JPG or PNG (up to {{mb}} MB). Without one, the card shows the default collection picture.",
     "cropTitle": "Crop cover photo",
     "cropHint": "Choose the area shown on the cards. Drag the frame and resize it from its corners; after zooming in, drag the photo from outside the frame to move it."
   },
