@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Dark mode follows the .dark class on <html> (ThemeService), not the OS setting directly */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -348,6 +348,15 @@
 }
 
 @layer base {
+  /*
+   * Always reserve the scrollbar's space so centered content does not shift when a page starts
+   * (or stops, e.g. under a modal) scrolling. The reserved strip is painted with html's background.
+   */
+  html {
+    scrollbar-gutter: stable;
+    @apply bg-shade-50;
+  }
+
   /* Freeze page scrolling while a modal <dialog> is open */
   html:has(dialog:modal) {
     overflow: hidden;
