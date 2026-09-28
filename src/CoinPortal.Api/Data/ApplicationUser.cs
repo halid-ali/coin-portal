@@ -12,4 +12,8 @@ public class ApplicationUser : IdentityUser
     public DateOnly BirthDate { get; set; }
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    // UI language chosen by the user (SupportedLanguages); null means no choice was saved and
+    // the client follows the device (its own saved choice or the browser language)
+    public string? PreferredLanguage { get; set; }
 }
