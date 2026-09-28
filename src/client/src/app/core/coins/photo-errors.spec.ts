@@ -1,8 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 
+import { provideTestTransloco, useTestLanguage } from '../i18n/testing';
 import { photoErrorMessage, validatePhotoFile } from './photo-errors';
 
 describe('photo errors', () => {
+  beforeEach(async () => {
+    TestBed.configureTestingModule({ providers: [provideTestTransloco()] });
+    await useTestLanguage('tr');
+  });
+
   it('maps API error codes to messages', () => {
     const err = new HttpErrorResponse({ status: 400, error: { code: 'quota_exceeded' } });
     expect(photoErrorMessage(err)).toContain('saklama alanın doldu');

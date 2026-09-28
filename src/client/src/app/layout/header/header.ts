@@ -2,22 +2,27 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { filter } from 'rxjs';
 
 import { UserResponse } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
 
-/** Main navigation; public items are shown signed out too. */
-const NAV_ITEMS: readonly { path: string; label: string; icon: string; public?: boolean }[] = [
-  { path: '/collections', label: 'Koleksiyonlarım', icon: 'collections' },
-  { path: '/explore', label: 'Keşfet', icon: 'explore', public: true },
+/** Main navigation; public items are shown signed out too. Labels are translation keys. */
+const NAV_ITEMS: readonly { path: string; labelKey: string; icon: string; public?: boolean }[] = [
+  { path: '/collections', labelKey: 'nav.collections', icon: 'collections' },
+  { path: '/explore', labelKey: 'nav.explore', icon: 'explore', public: true },
 ];
 
 @Component({
   selector: 'app-header',
-  imports: [NgTemplateOutlet, RouterLink, RouterLinkActive],
+  imports: [NgTemplateOutlet, RouterLink, RouterLinkActive, TranslocoPipe],
   templateUrl: './header.html',
   host: {
+    // Sticky here, not on <header>: a sticky element cannot leave its parent, and this host is
+    // exactly as tall as the header. Phones: not sticky, so it does not take screen space
+    class: 'z-30 block sm:sticky sm:top-0',
     // Clicks inside the account menu stop propagation, so any document click closes it
     '(document:click)': 'userMenuOpen.set(false)',
     '(document:keydown.escape)': 'closeMenus()',
@@ -25,6 +30,7 @@ const NAV_ITEMS: readonly { path: string; label: string; icon: string; public?: 
 })
 export class Header {
   protected readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
   protected readonly navItems = computed(() =>
@@ -46,7 +52,7 @@ export class Header {
 
   protected initials(user: UserResponse): string {
     const letters = [user.firstName, user.lastName].map((n) => n.trim().charAt(0)).join('');
-    return (letters || user.userName.charAt(0)).toLocaleUpperCase('tr');
+    return (letters || user.userName.charAt(0)).toLocaleUpperCase(this.language.current());
   }
 
   protected toggleMenu(): void {

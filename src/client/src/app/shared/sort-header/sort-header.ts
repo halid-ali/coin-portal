@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SortDirection } from '../../core/coins/coin.models';
 
@@ -9,6 +10,7 @@ import { SortDirection } from '../../core/coins/coin.models';
  */
 @Component({
   selector: 'th[appSortHeader]',
+  imports: [TranslocoPipe],
   host: {
     scope: 'col',
     '[attr.aria-sort]': 'ariaSort()',
@@ -18,7 +20,7 @@ import { SortDirection } from '../../core/coins/coin.models';
       type="button"
       class="group -mx-1.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-1 font-medium transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:outline-none"
       [class.text-slate-900]="direction()"
-      [title]="hint()"
+      [title]="hint() | transloco"
       (click)="toggle.emit()"
     >
       <span>{{ label() }}</span>
@@ -70,9 +72,9 @@ export class SortHeader {
       : 'text-slate-400 group-hover:bg-slate-200/70 group-hover:text-slate-600',
   );
 
-  /** Tooltip describing what the next click does. */
+  /** Tooltip (translation key) describing what the next click does. */
   protected readonly hint = computed(() => {
     const dir = this.direction();
-    return dir === 'Asc' ? 'Azalan sırala' : dir === 'Desc' ? 'Sıralamayı kaldır' : 'Artan sırala';
+    return dir === 'Asc' ? 'sort.descending' : dir === 'Desc' ? 'sort.clear' : 'sort.ascending';
   });
 }

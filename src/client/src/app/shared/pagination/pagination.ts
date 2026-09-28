@@ -1,9 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-
-export interface PageSizeOption {
-  value: number;
-  label: string;
-}
+import { TranslocoPipe } from '@jsverse/transloco';
 
 let nextId = 0;
 
@@ -14,6 +10,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-pagination',
+  imports: [TranslocoPipe],
   // Custom elements are inline by default; block lets the parent's spacing apply
   host: { class: 'block' },
   template: `
@@ -24,15 +21,15 @@ let nextId = 0;
 
       <nav
         class="order-last col-span-2 flex items-center justify-center gap-1 sm:order-none sm:col-span-1"
-        aria-label="Sayfalama"
+        [attr.aria-label]="'pagination.nav' | transloco"
       >
         <button
           type="button"
           class="btn-icon"
           [disabled]="disabled() || isFirst()"
           (click)="pageChange.emit(1)"
-          aria-label="İlk sayfa"
-          title="İlk sayfa"
+          [attr.aria-label]="'pagination.first' | transloco"
+          [title]="'pagination.first' | transloco"
         >
           <svg
             viewBox="0 0 24 24"
@@ -54,8 +51,8 @@ let nextId = 0;
           class="btn-icon"
           [disabled]="disabled() || isFirst()"
           (click)="pageChange.emit(page() - 1)"
-          aria-label="Önceki sayfa"
-          title="Önceki sayfa"
+          [attr.aria-label]="'pagination.previous' | transloco"
+          [title]="'pagination.previous' | transloco"
         >
           <svg
             viewBox="0 0 24 24"
@@ -81,8 +78,8 @@ let nextId = 0;
           class="btn-icon"
           [disabled]="disabled() || isLast()"
           (click)="pageChange.emit(page() + 1)"
-          aria-label="Sonraki sayfa"
-          title="Sonraki sayfa"
+          [attr.aria-label]="'pagination.next' | transloco"
+          [title]="'pagination.next' | transloco"
         >
           <svg
             viewBox="0 0 24 24"
@@ -100,8 +97,8 @@ let nextId = 0;
           class="btn-icon"
           [disabled]="disabled() || isLast()"
           (click)="pageChange.emit(totalPages())"
-          aria-label="Son sayfa"
-          title="Son sayfa"
+          [attr.aria-label]="'pagination.last' | transloco"
+          [title]="'pagination.last' | transloco"
         >
           <svg
             viewBox="0 0 24 24"
@@ -118,9 +115,9 @@ let nextId = 0;
 
       <div class="flex items-center gap-3 justify-self-end text-sm text-slate-600">
         <span>{{ range() }} / {{ totalCount() }}</span>
-        <label [for]="selectId" class="font-medium text-slate-700 max-sm:sr-only"
-          >Sayfa başına</label
-        >
+        <label [for]="selectId" class="font-medium text-slate-700 max-sm:sr-only">{{
+          'pagination.perPage' | transloco
+        }}</label>
         <select
           [id]="selectId"
           #sizeSelect
@@ -128,9 +125,9 @@ let nextId = 0;
           [disabled]="disabled()"
           (change)="pageSizeChange.emit(+sizeSelect.value)"
         >
-          @for (option of options(); track option.value) {
-            <option [value]="option.value" [selected]="option.value === pageSize()">
-              {{ option.label }}
+          @for (option of options(); track option) {
+            <option [value]="option" [selected]="option === pageSize()">
+              {{ option === 0 ? ('common.all' | transloco) : option }}
             </option>
           }
         </select>
@@ -144,7 +141,8 @@ export class Pagination {
   readonly totalCount = input.required<number>();
   /** 0 means all items on one page. */
   readonly pageSize = input.required<number>();
-  readonly options = input.required<readonly PageSizeOption[]>();
+  /** Page sizes; 0 is shown as "all". */
+  readonly options = input.required<readonly number[]>();
   readonly disabled = input(false);
 
   readonly pageChange = output<number>();

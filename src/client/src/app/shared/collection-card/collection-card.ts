@@ -3,12 +3,13 @@ import { RouterLink } from '@angular/router';
 
 import { CollectionSummary } from '../../core/collections/collection.models';
 import { coverUrl } from '../../core/collections/collection.service';
+import { PluralPipe } from '../../core/i18n/plural';
 import { VisibilityBadge } from '../visibility-badge/visibility-badge';
 
-/** Collection card with cover, name, description and coin count ("Koleksiyonlarım", profiles). */
+/** Collection card with cover, name, description and coin count (my collections, profiles). */
 @Component({
   selector: 'app-collection-card',
-  imports: [RouterLink, VisibilityBadge],
+  imports: [RouterLink, PluralPipe, VisibilityBadge],
   host: { class: 'block h-full' },
   template: `
     <a
@@ -52,7 +53,9 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
         @if (collection().description) {
           <p class="line-clamp-2 text-sm text-slate-600">{{ collection().description }}</p>
         }
-        <p class="text-sm text-slate-500">{{ collection().coinCount }} coin</p>
+        <p class="text-sm text-slate-500">
+          {{ 'common.coinCount' | plural: collection().coinCount }}
+        </p>
       </div>
     </a>
   `,

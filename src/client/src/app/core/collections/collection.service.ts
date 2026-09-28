@@ -1,9 +1,11 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { translate } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 
 import { photoUrl } from '../coins/coin.service';
 import { PhotoSize } from '../coins/coin.models';
+import { httpErrorMessage } from '../http/problem-details';
 import { Collection, CollectionSummary, CollectionUpsertRequest } from './collection.models';
 
 const BASE_URL = '/api/collections';
@@ -95,27 +97,23 @@ export function shareLink(
   return null;
 }
 
-/** Turkish messages for the API's collection error codes. */
+/** Messages for the API's collection error codes, in the active language. */
 export function collectionErrorMessage(err: HttpErrorResponse): string {
   const code = (err.error as { code?: string } | null)?.code;
   switch (code) {
     case 'last_collection':
-      return 'Tek koleksiyonun silinemez. Önce yeni bir koleksiyon oluştur.';
     case 'invalid_target':
-      return "Coin'lerin taşınacağı koleksiyon geçerli değil.";
     case 'not_unlisted':
-      return 'Link sadece "Sadece linkle" paylaşılan koleksiyonlarda yenilenebilir.';
+      return translate(`collections.errors.${code}`);
   }
   if (err.status === 404) {
-    return 'Koleksiyon bulunamadı. Silinmiş olabilir.';
+    return translate('collections.errors.notFound');
   }
-  return err.status === 0
-    ? 'Sunucuya ulaşılamıyor. Bağlantını kontrol et.'
-    : 'Beklenmeyen bir hata oluştu. Lütfen tekrar dene.';
+  return httpErrorMessage(err);
 }
 
 /** For applyServerErrors: the duplicate name error belongs to the name field. */
 export const COLLECTION_ERROR_CODES = { DuplicateName: 'name' } as const;
-export const COLLECTION_ERROR_MESSAGES = {
-  DuplicateName: 'Bu adla bir koleksiyonun zaten var.',
+export const COLLECTION_ERROR_MESSAGE_KEYS = {
+  DuplicateName: 'collections.errors.duplicateName',
 } as const;

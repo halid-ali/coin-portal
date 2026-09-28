@@ -10,6 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { Collection } from '../../core/collections/collection.models';
@@ -17,6 +18,7 @@ import {
   CollectionService,
   collectionErrorMessage,
 } from '../../core/collections/collection.service';
+import { PluralPipe } from '../../core/i18n/plural';
 
 let nextId = 0;
 
@@ -27,6 +29,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-collection-delete-dialog',
+  imports: [TranslocoPipe, PluralPipe],
   template: `
     <dialog
       #dialog
@@ -55,25 +58,29 @@ let nextId = 0;
             </svg>
           </div>
           <div>
-            <h2 [id]="titleId" class="text-lg font-semibold">Koleksiyonu sil</h2>
+            <h2 [id]="titleId" class="text-lg font-semibold">
+              {{ 'collectionDelete.title' | transloco }}
+            </h2>
             <p class="mt-1 text-sm text-slate-600">
               <strong class="font-semibold text-slate-900">{{ collection().name }}</strong>
-              kalıcı olarak silinecek.
+              {{ 'collectionDelete.willBeDeleted' | transloco }}
               @if (collection().coinCount) {
-                İçinde {{ collection().coinCount }} coin var.
+                {{ 'collectionDelete.containsCoins' | plural: collection().coinCount }}
               } @else {
-                Koleksiyon boş.
+                {{ 'collectionDelete.isEmpty' | transloco }}
               }
             </p>
           </div>
         </div>
 
         @if (targets().length === 0) {
-          <p class="alert-error">Tek koleksiyonun silinemez. Önce yeni bir koleksiyon oluştur.</p>
+          <p class="alert-error">{{ 'collections.errors.last_collection' | transloco }}</p>
         } @else {
           @if (collection().coinCount) {
             <fieldset class="space-y-3">
-              <legend class="form-label">Coin'ler ne olsun?</legend>
+              <legend class="form-label">
+                {{ 'collectionDelete.whatAboutCoins' | transloco }}
+              </legend>
               <label
                 class="flex items-start gap-3 rounded-lg border border-slate-200 p-3 has-checked:border-amber-400 has-checked:bg-amber-50"
               >
@@ -85,14 +92,14 @@ let nextId = 0;
                   (change)="mode.set('move')"
                 />
                 <span class="flex-1 space-y-2">
-                  <span class="block text-sm font-medium text-slate-900"
-                    >Başka bir koleksiyona taşı</span
-                  >
+                  <span class="block text-sm font-medium text-slate-900">{{
+                    'collectionDelete.moveTo' | transloco
+                  }}</span>
                   <select
                     class="form-input py-1.5"
                     #targetSelect
                     [disabled]="mode() !== 'move'"
-                    [attr.aria-label]="'Taşınacak koleksiyon'"
+                    [attr.aria-label]="'collectionDelete.moveTarget' | transloco"
                     (change)="targetId.set(+targetSelect.value)"
                   >
                     @for (t of targets(); track t.id) {
@@ -112,11 +119,12 @@ let nextId = 0;
                   (change)="mode.set('delete')"
                 />
                 <span class="text-sm">
-                  <span class="block font-medium text-slate-900">Coin'leri de sil</span>
-                  <span class="text-slate-600"
-                    >{{ collection().coinCount }} coin ve fotoğrafları geri alınamaz şekilde
-                    silinir.</span
-                  >
+                  <span class="block font-medium text-slate-900">{{
+                    'collectionDelete.deleteCoins' | transloco
+                  }}</span>
+                  <span class="text-slate-600">{{
+                    'collectionDelete.deleteCoinsNote' | plural: collection().coinCount
+                  }}</span>
                 </span>
               </label>
             </fieldset>
@@ -124,7 +132,7 @@ let nextId = 0;
 
           <div>
             <label [for]="titleId + '-confirm'" class="form-label">
-              Onaylamak için koleksiyonun adını yaz:
+              {{ 'collectionDelete.typeName' | transloco }}
               <span class="font-semibold text-slate-900 select-all">{{ collection().name }}</span>
             </label>
             <input
@@ -145,7 +153,9 @@ let nextId = 0;
         }
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" class="btn-secondary" (click)="close()">Vazgeç</button>
+          <button type="button" class="btn-secondary" (click)="close()">
+            {{ 'common.cancel' | transloco }}
+          </button>
           @if (targets().length) {
             <button
               type="button"
@@ -153,7 +163,7 @@ let nextId = 0;
               [disabled]="!confirmed() || deleting()"
               (click)="remove()"
             >
-              {{ deleting() ? 'Siliniyor…' : 'Koleksiyonu sil' }}
+              {{ (deleting() ? 'common.deleting' : 'collectionDelete.submit') | transloco }}
             </button>
           }
         </div>

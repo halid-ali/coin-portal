@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   inject,
+  isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
@@ -10,23 +11,44 @@ import {
   withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideTransloco } from '@jsverse/transloco';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
+import { LanguageService } from './core/i18n/language.service';
+import { DEFAULT_LANGUAGE, LANGUAGES } from './core/i18n/languages';
+import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
+import { TranslationLoader } from './core/i18n/translation-loader';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
+    { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
+    provideTransloco({
+      config: {
+        availableLangs: LANGUAGES.map((l) => l.code),
+        defaultLang: DEFAULT_LANGUAGE,
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslationLoader,
+    }),
     provideHttpClient(
       withFetch(),
       withInterceptors([authInterceptor]),
       // Angular reads this cookie and sends it back as a header on POST/PUT/DELETE
       withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }),
     ),
-    // Restore the session before the first navigation so guards see the right state
-    provideAppInitializer(() => inject(AuthService).init()),
+    // Before the first navigation: restore the session so guards see the right state, then
+    // load the language (the account's, otherwise this device's) so no page shows raw keys
+    provideAppInitializer(async () => {
+      const auth = inject(AuthService);
+      const language = inject(LanguageService);
+      await auth.init();
+      await language.use(auth.currentUser()?.language ?? language.deviceLanguage());
+    }),
   ],
 };

@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { CoinPhoto, PHOTO_LIMITS } from '../../core/coins/coin.models';
 import { photoUrl } from '../../core/coins/coin.service';
@@ -24,7 +25,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-photo-slot',
-  imports: [PhotoCropDialog],
+  imports: [PhotoCropDialog, TranslocoPipe],
   host: { class: 'block' },
   template: `
     <p class="form-label mb-0">{{ label() }}</p>
@@ -36,7 +37,7 @@ let nextId = 0;
           <button
             type="button"
             class="block size-full cursor-zoom-in"
-            [attr.aria-label]="label() + ' büyük göster'"
+            [attr.aria-label]="'photo.viewLarge' | transloco: { side: label() }"
             (click)="view.emit()"
           >
             <img [src]="src" [alt]="label()" class="size-full object-cover" />
@@ -68,9 +69,9 @@ let nextId = 0;
             />
           </svg>
           <span class="text-sm font-medium">{{
-            change()?.type === 'remove' ? 'Kaydedince silinecek' : 'Fotoğraf seç'
+            (change()?.type === 'remove' ? 'photo.willDelete' : 'photo.choose') | transloco
           }}</span>
-          <span class="text-xs">JPG veya PNG, en fazla {{ maxMb }} MB</span>
+          <span class="text-xs">{{ 'photo.fileHint' | transloco: { mb: maxMb } }}</span>
         </button>
       }
 
@@ -78,7 +79,7 @@ let nextId = 0;
         <span
           class="absolute top-2 left-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 shadow-sm"
         >
-          Kaydedince yüklenecek
+          {{ 'photo.willUpload' | transloco }}
         </span>
       }
     </div>
@@ -99,7 +100,7 @@ let nextId = 0;
           [disabled]="disabled()"
           (click)="choose()"
         >
-          Değiştir
+          {{ 'common.change' | transloco }}
         </button>
         <button
           type="button"
@@ -107,7 +108,7 @@ let nextId = 0;
           [disabled]="disabled()"
           (click)="remove()"
         >
-          Kaldır
+          {{ 'common.remove' | transloco }}
         </button>
       }
       @if (change() && stored()) {
@@ -117,7 +118,7 @@ let nextId = 0;
           [disabled]="disabled()"
           (click)="change.set(null)"
         >
-          Geri al
+          {{ 'common.undo' | transloco }}
         </button>
       }
     </div>
@@ -129,13 +130,14 @@ let nextId = 0;
     @if (chosenFile(); as file) {
       <app-photo-crop-dialog
         [file]="file"
-        [title]="label() + ' fotoğrafını kırp'"
+        [title]="'photo.cropTitle' | transloco: { side: label() }"
         (closed)="onCropped($event)"
       />
     }
   `,
 })
 export class PhotoSlot {
+  /** Translated side name, e.g. "National side". */
   readonly label = input.required<string>();
   readonly hint = input('');
   readonly coinId = input<number | null>(null);

@@ -3,6 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Observable,
   catchError,
@@ -39,6 +40,7 @@ import {
   CollectionSummary,
 } from '../../core/collections/collection.models';
 import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
+import { PluralPipe } from '../../core/i18n/plural';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
@@ -80,7 +82,7 @@ function toPageSize(value: string | undefined): number {
     return 0;
   }
   const n = toInt(value);
-  return PAGE_SIZE_OPTIONS.some((o) => o.value === n && n !== 0) ? n! : DEFAULT_PAGE_SIZE;
+  return n !== undefined && n !== 0 && PAGE_SIZE_OPTIONS.includes(n) ? n : DEFAULT_PAGE_SIZE;
 }
 
 /** Coin list with filters, sort, list/grid view and paging, in one of the modes above. */
@@ -89,6 +91,8 @@ function toPageSize(value: string | undefined): number {
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    TranslocoPipe,
+    PluralPipe,
     Pagination,
     SortHeader,
     CoinThumb,
@@ -167,9 +171,9 @@ export class Collection {
 
   protected readonly denominations = DENOMINATIONS;
   protected readonly sortColumns = COIN_SORT_COLUMNS;
-  /** Explore spans all public collections, so it has no "Tümü" (the API rejects it too). */
+  /** Explore spans all public collections, so it has no "all" (the API rejects it too). */
   protected readonly pageSizeOptions = computed(() =>
-    this.mode() === 'explore' ? PAGE_SIZE_OPTIONS.filter((o) => o.value !== 0) : PAGE_SIZE_OPTIONS,
+    this.mode() === 'explore' ? PAGE_SIZE_OPTIONS.filter((size) => size !== 0) : PAGE_SIZE_OPTIONS,
   );
   protected readonly countries = this.countryService.countries;
   protected readonly minYear = COIN_LIMITS.minYear;
@@ -322,11 +326,8 @@ export class Collection {
       case 'public':
         return this.publicService.collection(this.collectionIdNumber()).pipe(
           tap((collection) => {
-            // The user name in the URL must belong to the collection
-            if (
-              collection.ownerUserName.toLocaleLowerCase('tr') !==
-              (this.userName() ?? '').toLocaleLowerCase('tr')
-            ) {
+            // The user name in the URL must belong to the collection (user names are ASCII)
+            if (collection.ownerUserName.toLowerCase() !== (this.userName() ?? '').toLowerCase()) {
               this.notFound.set(true);
               return;
             }

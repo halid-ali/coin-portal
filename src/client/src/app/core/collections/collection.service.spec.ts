@@ -1,9 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 
+import { provideTestTransloco, useTestLanguage } from '../i18n/testing';
 import { Collection } from './collection.models';
 import { collectionErrorMessage, coverUrl } from './collection.service';
 
 describe('collection helpers', () => {
+  beforeEach(async () => {
+    TestBed.configureTestingModule({ providers: [provideTestTransloco()] });
+    await useTestLanguage('tr');
+  });
+
   const collection = (cover: Collection['cover'], coverImageId: string | null = null) =>
     ({ id: 1, cover, coverImageId }) as Collection;
 

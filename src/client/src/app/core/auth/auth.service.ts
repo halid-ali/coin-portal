@@ -1,7 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { Observable, firstValueFrom, forkJoin, from, map, switchMap, tap } from 'rxjs';
 
+import { LanguageService } from '../i18n/language.service';
 import { LoginRequest, RegisterRequest, UserResponse } from './auth.models';
 
 const API = '/api/auth';
@@ -9,6 +10,7 @@ const API = '/api/auth';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly language = inject(LanguageService);
 
   private readonly user = signal<UserResponse | null>(null);
 
@@ -42,9 +44,10 @@ export class AuthService {
     return this.user();
   }
 
-  register(request: RegisterRequest): Observable<UserResponse> {
+  /** The current UI language goes along: it becomes the account's saved language. */
+  register(request: Omit<RegisterRequest, 'language'>): Observable<UserResponse> {
     return this.http
-      .post<UserResponse>(`${API}/register`, request)
+      .post<UserResponse>(`${API}/register`, { ...request, language: this.language.current() })
       .pipe(switchMap((user) => this.completeSignIn(user)));
   }
 
@@ -60,6 +63,11 @@ export class AuthService {
       // The old token was bound to the signed-in user, get an anonymous one
       switchMap(() => this.refreshXsrfToken()),
     );
+  }
+
+  /** Keeps the current user in step after a change elsewhere (e.g. the settings page). */
+  patchUser(changes: Partial<UserResponse>): void {
+    this.user.update((user) => user && { ...user, ...changes });
   }
 
   /** Used by the interceptor when the API answers 401 (e.g. the cookie expired). */
@@ -79,8 +87,10 @@ export class AuthService {
     return this.http.get<void>(`${API}/antiforgery`);
   }
 
+  /** The account's saved language wins over the one chosen on this device. */
   private completeSignIn(user: UserResponse): Observable<UserResponse> {
     this.user.set(user);
-    return this.refreshXsrfToken().pipe(map(() => user));
+    const language = user.language ? this.language.use(user.language) : Promise.resolve();
+    return forkJoin([this.refreshXsrfToken(), from(language)]).pipe(map(() => user));
   }
 }

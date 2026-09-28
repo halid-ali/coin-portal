@@ -1,5 +1,7 @@
 import { Component, ElementRef, afterNextRender, input, output, viewChild } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+/** Texts in the active language (translate them before calling confirm()). */
 export interface ConfirmOptions {
   title: string;
   message: string;
@@ -17,6 +19,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-confirm-dialog',
+  imports: [TranslocoPipe],
   template: `
     <dialog
       #dialog
@@ -59,7 +62,7 @@ let nextId = 0;
         <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <!-- Cancel gets the initial focus, the safe choice for destructive actions -->
           <button type="button" class="btn-secondary" autofocus (click)="close(false)">
-            {{ options().cancelText ?? 'Vazgeç' }}
+            {{ options().cancelText ?? ('common.cancel' | transloco) }}
           </button>
           <button
             type="button"
@@ -67,7 +70,7 @@ let nextId = 0;
             [class.btn-primary]="!options().danger"
             (click)="close(true)"
           >
-            {{ options().confirmText ?? 'Onayla' }}
+            {{ options().confirmText ?? ('common.confirm' | transloco) }}
           </button>
         </div>
       </div>

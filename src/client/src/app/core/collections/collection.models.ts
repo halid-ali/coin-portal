@@ -15,23 +15,8 @@ export const COVER_LIMITS = {
 /** Mirrors the API enum. Private is the default for every collection. */
 export type CollectionVisibility = 'Private' | 'Unlisted' | 'Public';
 
-export const VISIBILITY_OPTIONS: readonly {
-  value: CollectionVisibility;
-  label: string;
-  description: string;
-}[] = [
-  { value: 'Private', label: 'Özel', description: 'Sadece sen görürsün.' },
-  {
-    value: 'Unlisted',
-    label: 'Sadece linkle',
-    description: "Gizli linke sahip olan herkes görür; profilinde ve Keşfet'te görünmez.",
-  },
-  {
-    value: 'Public',
-    label: 'Herkese açık',
-    description: "Herkes görür, giriş yapmadan da. Profilinde ve Keşfet'te görünür.",
-  },
-];
+/** In the order shown in the form. Texts: visibility.<value>.label / .description. */
+export const VISIBILITIES: readonly CollectionVisibility[] = ['Private', 'Unlisted', 'Public'];
 
 /** Photo shown on the collection card (a coin photo, see photoUrl). */
 export interface CollectionCover {

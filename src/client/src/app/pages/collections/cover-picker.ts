@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { COVER_LIMITS, Collection } from '../../core/collections/collection.models';
 import { coverUrl } from '../../core/collections/collection.service';
@@ -23,10 +24,10 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
  */
 @Component({
   selector: 'app-cover-picker',
-  imports: [PhotoCropDialog],
+  imports: [PhotoCropDialog, TranslocoPipe],
   host: { class: 'block' },
   template: `
-    <p class="form-label">Kapak fotoğrafı</p>
+    <p class="form-label">{{ 'cover.title' | transloco }}</p>
 
     <div class="relative aspect-video overflow-hidden rounded-lg bg-slate-100">
       @if (displayUrl(); as src) {
@@ -53,7 +54,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
               d="M4 16l4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14M14 8h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"
             />
           </svg>
-          <span class="text-sm font-medium">Kapak seç</span>
+          <span class="text-sm font-medium">{{ 'cover.choose' | transloco }}</span>
         </button>
       }
 
@@ -61,7 +62,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
         <span
           class="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm"
         >
-          {{ text }}
+          {{ text | transloco }}
         </span>
       }
     </div>
@@ -82,7 +83,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
           [disabled]="disabled()"
           (click)="choose()"
         >
-          {{ hasOwnCover() ? 'Değiştir' : 'Kapak yükle' }}
+          {{ (hasOwnCover() ? 'common.change' : 'cover.upload') | transloco }}
         </button>
       }
       @if (hasOwnCover()) {
@@ -92,7 +93,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
           [disabled]="disabled()"
           (click)="remove()"
         >
-          Kaldır
+          {{ 'common.remove' | transloco }}
         </button>
       }
       @if (change() && collection()?.coverImageId) {
@@ -102,13 +103,12 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
           [disabled]="disabled()"
           (click)="change.set(null)"
         >
-          Geri al
+          {{ 'common.undo' | transloco }}
         </button>
       }
     </div>
     <p class="form-hint">
-      İsteğe bağlı, JPG veya PNG (en fazla {{ maxMb }} MB). Yüklemezsen son eklenen coin fotoğrafı
-      kullanılır.
+      {{ 'cover.hint' | transloco: { mb: maxMb } }}
     </p>
     @if (error()) {
       <p class="form-error" role="alert">{{ error() }}</p>
@@ -117,11 +117,11 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
     @if (chosenFile(); as file) {
       <app-photo-crop-dialog
         [file]="file"
-        title="Kapak fotoğrafını kırp"
+        [title]="'cover.cropTitle' | transloco"
         [aspectRatio]="aspectRatio"
         [round]="false"
         [minWidth]="minWidth"
-        [hint]="cropHint"
+        [hint]="'cover.cropHint' | transloco"
         (closed)="onCropped($event)"
       />
     }
@@ -136,9 +136,6 @@ export class CoverPicker {
   protected readonly aspectRatio = COVER_LIMITS.aspectRatio;
   protected readonly minWidth = COVER_LIMITS.minWidth;
   protected readonly maxMb = PHOTO_LIMITS.maxUploadBytes / (1024 * 1024);
-  protected readonly cropHint =
-    'Kartlarda görünecek alanı seç. Çerçeveyi sürükleyip köşelerinden boyutlandırabilirsin; ' +
-    'yakınlaştırınca fotoğrafı çerçevenin dışından tutup kaydırabilirsin.';
   protected readonly chosenFile = signal<File | null>(null);
   protected readonly error = signal<string | null>(null);
   private readonly pendingUrl = signal<string | null>(null);
@@ -166,15 +163,16 @@ export class CoverPicker {
     return coverUrl(collection, 'preview');
   });
 
+  /** Translation key of the badge on the preview, if any. */
   protected readonly badge = computed(() => {
     const change = this.change();
     if (change?.type === 'upload') {
-      return 'Kaydedince yüklenecek';
+      return 'photo.willUpload';
     }
     if (change?.type === 'remove') {
-      return 'Kaydedince kaldırılacak';
+      return 'photo.willRemove';
     }
-    return this.displayUrl() && !this.collection()?.coverImageId ? 'Otomatik' : null;
+    return this.displayUrl() && !this.collection()?.coverImageId ? 'cover.auto' : null;
   });
 
   constructor() {

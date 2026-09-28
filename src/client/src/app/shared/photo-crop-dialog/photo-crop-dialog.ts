@@ -7,6 +7,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ImageCropperComponent, ImageTransform } from 'ngx-image-cropper';
 
 import { PHOTO_LIMITS } from '../../core/coins/coin.models';
@@ -24,7 +25,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
  */
 @Component({
   selector: 'app-photo-crop-dialog',
-  imports: [ImageCropperComponent],
+  imports: [ImageCropperComponent, TranslocoPipe],
   template: `
     <dialog
       #dialog
@@ -34,8 +35,10 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
     >
       <div class="space-y-4 p-6">
         <div>
-          <h2 [id]="titleId" class="text-lg font-semibold">{{ title() }}</h2>
-          <p class="mt-1 text-sm text-slate-600">{{ hint() }}</p>
+          <h2 [id]="titleId" class="text-lg font-semibold">
+            {{ title() ?? ('crop.title' | transloco) }}
+          </h2>
+          <p class="mt-1 text-sm text-slate-600">{{ hint() ?? ('crop.hint' | transloco) }}</p>
         </div>
 
         <div
@@ -43,7 +46,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
         >
           @if (failed()) {
             <p class="p-6 text-center text-sm text-white">
-              Fotoğraf açılamadı. Başka bir dosya dene.
+              {{ 'crop.openFailed' | transloco }}
             </p>
           } @else {
             <image-cropper
@@ -70,9 +73,9 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
         </div>
 
         <div class="flex items-center gap-3">
-          <label for="zoom-{{ titleId }}" class="text-sm font-medium text-slate-700"
-            >Yakınlaştır</label
-          >
+          <label for="zoom-{{ titleId }}" class="text-sm font-medium text-slate-700">{{
+            'crop.zoom' | transloco
+          }}</label>
           <input
             id="zoom-{{ titleId }}"
             type="range"
@@ -87,8 +90,8 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
           <button
             type="button"
             class="btn-icon"
-            title="90° döndür"
-            aria-label="90 derece döndür"
+            [title]="'crop.rotate' | transloco"
+            [attr.aria-label]="'crop.rotateLabel' | transloco"
             [disabled]="!ready()"
             (click)="rotate()"
           >
@@ -108,8 +111,8 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
           <button
             type="button"
             class="btn-icon"
-            title="Sıfırla"
-            aria-label="Yakınlaştırmayı, konumu ve döndürmeyi sıfırla"
+            [title]="'crop.reset' | transloco"
+            [attr.aria-label]="'crop.resetLabel' | transloco"
             [disabled]="!ready()"
             (click)="reset()"
           >
@@ -129,14 +132,16 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
         </div>
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" class="btn-secondary" (click)="close()">Vazgeç</button>
+          <button type="button" class="btn-secondary" (click)="close()">
+            {{ 'common.cancel' | transloco }}
+          </button>
           <button
             type="button"
             class="btn-primary"
             [disabled]="!ready() || cropping()"
             (click)="use()"
           >
-            {{ cropping() ? 'Hazırlanıyor…' : 'Kullan' }}
+            {{ (cropping() ? 'crop.preparing' : 'crop.use') | transloco }}
           </button>
         </div>
       </div>
@@ -145,17 +150,16 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
 })
 export class PhotoCropDialog {
   readonly file = input.required<File>();
-  readonly title = input('Fotoğrafı kırp');
+  /** Translated title; defaults to crop.title. */
+  readonly title = input<string | null>(null);
   /** Width / height of the result. */
   readonly aspectRatio = input(1);
   /** Round guide (coins); the result stays rectangular. */
   readonly round = input(true);
   /** Smallest crop width in source pixels (the API rejects smaller images). */
   readonly minWidth = input<number>(PHOTO_LIMITS.minPixels);
-  readonly hint = input(
-    'Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin; ' +
-      'yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.',
-  );
+  /** Translated hint; defaults to crop.hint (the round coin guide). */
+  readonly hint = input<string | null>(null);
   readonly closed = output<Blob | null>();
 
   protected readonly titleId = `crop-title-${++nextId}`;
