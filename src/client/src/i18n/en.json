@@ -94,7 +94,7 @@
     "firstName": "First name",
     "lastName": "Last name",
     "userName": "Username",
-    "userNameHint": "3–30 characters; letters, digits and . _ -",
+    "userNameHint": "3–20 characters; letters, digits and . _ -",
     "email": "Email",
     "birthDate": "Date of birth",
     "birthDateHint": "You must be at least {{age}} years old to sign up.",
