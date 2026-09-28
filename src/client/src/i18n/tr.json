@@ -147,14 +147,10 @@
       "Quantity": "Adet"
     },
     "sort": {
-      "newest": "En yeni eklenen",
       "Title": { "asc": "A → Z", "desc": "Z → A" },
-      "Denomination": { "asc": "küçükten büyüğe", "desc": "büyükten küçüğe" },
+      "Denomination": { "asc": "1 cent → 2 €", "desc": "2 € → 1 cent" },
       "Country": { "asc": "A → Z", "desc": "Z → A" },
-      "Year": { "asc": "eskiden yeniye", "desc": "yeniden eskiye" },
-      "MintMark": { "asc": "A → Z", "desc": "Z → A" },
-      "Commemorative": { "asc": "önce diğerleri", "desc": "önce hatıralar" },
-      "Quantity": { "asc": "azdan çoğa", "desc": "çoktan aza" }
+      "Year": { "asc": "eski → yeni", "desc": "yeni → eski" }
     },
     "side": {
       "National": {
@@ -212,7 +208,8 @@
     "onlyCommemorative": "Sadece hatıra",
     "notCommemorative": "Hatıra olmayanlar",
     "clearFilters": "Filtreleri temizle",
-    "sortBy": "Sırala:",
+    "filters": "Filtrele",
+    "sort": "Sırala",
     "loadError": "Coin'ler yüklenemedi. Sayfayı yenileyip tekrar dene.",
     "noMatches": "Filtrelere uyan coin bulunamadı.",
     "empty": "Bu koleksiyonda henüz coin yok.",

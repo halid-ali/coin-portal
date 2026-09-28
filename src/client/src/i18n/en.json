@@ -147,14 +147,10 @@
       "Quantity": "Qty"
     },
     "sort": {
-      "newest": "Newest first",
       "Title": { "asc": "A → Z", "desc": "Z → A" },
-      "Denomination": { "asc": "lowest first", "desc": "highest first" },
+      "Denomination": { "asc": "1 cent → 2 €", "desc": "2 € → 1 cent" },
       "Country": { "asc": "A → Z", "desc": "Z → A" },
-      "Year": { "asc": "oldest first", "desc": "newest first" },
-      "MintMark": { "asc": "A → Z", "desc": "Z → A" },
-      "Commemorative": { "asc": "others first", "desc": "commemoratives first" },
-      "Quantity": { "asc": "fewest first", "desc": "most first" }
+      "Year": { "asc": "old → new", "desc": "new → old" }
     },
     "side": {
       "National": {
@@ -212,7 +208,8 @@
     "onlyCommemorative": "Commemorative only",
     "notCommemorative": "Non-commemorative",
     "clearFilters": "Clear filters",
-    "sortBy": "Sort:",
+    "filters": "Filters",
+    "sort": "Sort",
     "loadError": "Couldn't load the coins. Reload the page and try again.",
     "noMatches": "No coins match the filters.",
     "empty": "There are no coins in this collection yet.",

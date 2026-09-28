@@ -234,6 +234,16 @@ export class Collection {
     );
   });
 
+  /** Phones: the filters (all but the search box) fold away behind a toggle, closed by default. */
+  protected readonly filtersOpen = signal(false);
+  /** Filters set behind the toggle, shown on it so they are not forgotten while folded. */
+  protected readonly foldedFilterCount = computed(() => {
+    const q = this.query();
+    return [q.denomination, q.countryCode, q.year, q.isCommemorative, q.owner].filter(
+      (v) => v != null,
+    ).length;
+  });
+
   protected readonly result = signal<PagedResponse<ListedCoin> | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);

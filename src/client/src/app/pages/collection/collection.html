@@ -98,6 +98,10 @@
              [placeholder]="'coinList.searchPlaceholder' | transloco" class="form-input" />
     </div>
 
+    <!-- Phones: everything but the search box folds away behind the "Filters" toggle (closed by
+         default); the toolbar row below moves up (order-1). From sm up this wrapper is display:
+         contents, so the fields sit in the card grid as before -->
+    <div id="coin-filters" [class]="filtersOpen() ? 'order-2 grid gap-4 sm:contents' : 'hidden sm:contents'">
     @if (mode() === 'explore') {
       <div>
         <label for="owner" class="form-label">{{ 'coin.field.collector' | transloco }}</label>
@@ -149,18 +153,54 @@
       </select>
     </div>
 
+    @if (hasFilters()) {
+      <button type="button" class="btn-secondary justify-self-start py-1.5 sm:hidden" (click)="clearFilters()">{{ 'coinList.clearFilters' | transloco }}</button>
+    }
+    </div>
+
     <!-- In the desktop list the table headers sort, so there this row only holds "clear filters";
-         the grid has no headers and keeps the sort select on every screen size -->
-    <div class="flex min-w-0 flex-wrap items-end gap-3 sm:col-span-2 lg:col-span-6"
+         the grid has no headers and keeps the sort select on every screen size. Phones: the
+         filters toggle and the sort select -->
+    <div class="order-1 flex min-w-0 items-center gap-3 sm:flex-wrap sm:order-0 sm:col-span-2 sm:items-end lg:col-span-6"
          [class]="hasFilters() || viewMode() === 'grid' ? '' : 'lg:hidden'">
+      <button type="button" class="btn-secondary shrink-0 gap-2 py-1.5 sm:hidden" aria-controls="coin-filters"
+              [attr.aria-expanded]="filtersOpen()" (click)="filtersOpen.set(!filtersOpen())">
+        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 5h18l-7 8.5V19l-4 2v-7.5z" />
+        </svg>
+        {{ 'coinList.filters' | transloco }}
+        @if (foldedFilterCount(); as count) {
+          <span class="rounded-full bg-brand-100 px-1.5 text-xs font-semibold text-brand-900">{{ count }}</span>
+        }
+        <svg viewBox="0 0 24 24" class="size-4 text-shade-400 transition-transform" [class.rotate-180]="filtersOpen()"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
       @if (hasFilters()) {
-        <button type="button" class="btn-secondary py-1.5" (click)="clearFilters()">{{ 'coinList.clearFilters' | transloco }}</button>
+        <button type="button" class="btn-secondary hidden py-1.5 sm:inline-flex" (click)="clearFilters()">{{ 'coinList.clearFilters' | transloco }}</button>
       }
-      <div class="ml-auto flex min-w-0 max-w-full items-center gap-2" [class]="viewMode() === 'grid' ? '' : 'lg:hidden'">
-        <label for="sort" class="text-sm font-medium text-shade-700">{{ 'coinList.sortBy' | transloco }}</label>
-        <select id="sort" #sortSelect class="form-input w-auto min-w-0 py-1.5"
-                (change)="setSortOption(sortSelect.value)">
-          <option value="Newest" [selected]="sortState().sort === 'Newest'">{{ 'coin.sort.newest' | transloco }}</option>
+      <!-- Looks like the filters toggle: an icon on the left and no label; with the default order
+           it reads "Sort" (a hidden placeholder option), otherwise the chosen order and "clear sort"
+           joins the list. The frame is on the wrapper, not on the select: Chrome indents the
+           options of the open list by the select's left padding, which would be the icon's room.
+           The select keeps its own background: Chrome paints the open list with it (transparent
+           gives a white list in the dark theme) -->
+      <div class="ml-auto flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm
+                  focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/30 sm:flex-none"
+           [class]="viewMode() === 'grid' ? '' : 'lg:hidden'">
+        <svg viewBox="0 0 24 24" class="pointer-events-none size-4 shrink-0 text-shade-700"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
+        </svg>
+        <select id="sort" #sortSelect class="form-input w-full min-w-0 border-0 py-1.5 pl-2 font-medium text-shade-700 shadow-none
+                       focus:ring-0 sm:w-auto"
+                [attr.aria-label]="'coinList.sort' | transloco" (change)="setSortOption(sortSelect.value)">
+          <option value="" disabled hidden [selected]="sortState().sort === 'Newest'">{{ 'coinList.sort' | transloco }}</option>
+          @if (sortState().sort !== 'Newest') {
+            <option value="Newest">{{ 'sort.clear' | transloco }}</option>
+          }
           @for (c of sortColumns; track c.value) {
             <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
               {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.asc' | transloco }})
@@ -340,9 +380,12 @@
               <tr>
                 <th scope="col" class="py-2 pl-4"><span class="sr-only">{{ 'coin.field.photo' | transloco }}</span></th>
                 @for (c of sortColumns; track c.value) {
-                  <th appSortHeader class="px-3 py-2" [class.text-right]="c.value === 'Quantity'"
+                  <th appSortHeader class="px-3 py-2"
                       [label]="'coin.column.' + c.value | transloco" [direction]="sortDirection(c.value)" (toggle)="sortBy(c.value)"></th>
                 }
+                <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">{{ 'coin.column.MintMark' | transloco }}</th>
+                <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">{{ 'coin.column.Commemorative' | transloco }}</th>
+                <th scope="col" class="px-3 py-2 text-right font-medium whitespace-nowrap">{{ 'coin.column.Quantity' | transloco }}</th>
                 @if (mode() === 'owner') {
                   <th scope="col" class="px-3 py-2"><span class="sr-only">{{ 'coin.field.actions' | transloco }}</span></th>
                 } @else if (mode() === 'explore') {

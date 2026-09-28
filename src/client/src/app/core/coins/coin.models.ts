@@ -15,33 +15,23 @@ export const DENOMINATIONS: readonly Denomination[] = [
 ];
 
 /** Mirrors the API's CoinSort enum. 'Newest' is the default and has no direction. */
-export type CoinSort =
-  | 'Newest'
-  | 'Title'
-  | 'Denomination'
-  | 'Country'
-  | 'Year'
-  | 'MintMark'
-  | 'Commemorative'
-  | 'Quantity';
+export type CoinSort = 'Newest' | 'Title' | 'Denomination' | 'Country' | 'Year';
 
 export type SortDirection = 'Asc' | 'Desc';
 
 export type CoinSortColumn = Exclude<CoinSort, 'Newest'>;
 
 /**
- * Sortable table columns in table order. labelKey is the full field name (sort select); table
- * headers use the shorter coin.column.<value>, sized to the fixed column widths. The wording of
- * each direction is coin.sort.<value>.asc / .desc.
+ * Sortable table columns in table order (the mint mark, commemorative and quantity columns after
+ * them do not sort, user choice). labelKey is the full field name (sort select); table headers use the shorter
+ * coin.column.<value>, sized to the fixed column widths. The wording of each direction is
+ * coin.sort.<value>.asc / .desc.
  */
 export const COIN_SORT_COLUMNS: readonly { value: CoinSortColumn; labelKey: string }[] = [
   { value: 'Title', labelKey: 'coin.field.title' },
   { value: 'Denomination', labelKey: 'coin.field.denomination' },
   { value: 'Country', labelKey: 'coin.field.country' },
   { value: 'Year', labelKey: 'coin.field.year' },
-  { value: 'MintMark', labelKey: 'coin.field.mintMark' },
-  { value: 'Commemorative', labelKey: 'coin.field.commemorative' },
-  { value: 'Quantity', labelKey: 'coin.field.quantity' },
 ];
 
 export function isSortColumn(value: string | null | undefined): value is CoinSortColumn {
