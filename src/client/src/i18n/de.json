@@ -147,14 +147,10 @@
       "Quantity": "Stück"
     },
     "sort": {
-      "newest": "Zuletzt hinzugefügt",
       "Title": { "asc": "A → Z", "desc": "Z → A" },
-      "Denomination": { "asc": "kleinster zuerst", "desc": "größter zuerst" },
+      "Denomination": { "asc": "1 Cent → 2 €", "desc": "2 € → 1 Cent" },
       "Country": { "asc": "A → Z", "desc": "Z → A" },
-      "Year": { "asc": "älteste zuerst", "desc": "neueste zuerst" },
-      "MintMark": { "asc": "A → Z", "desc": "Z → A" },
-      "Commemorative": { "asc": "andere zuerst", "desc": "Gedenkmünzen zuerst" },
-      "Quantity": { "asc": "wenigste zuerst", "desc": "meiste zuerst" }
+      "Year": { "asc": "alt → neu", "desc": "neu → alt" }
     },
     "side": {
       "National": {
@@ -212,7 +208,8 @@
     "onlyCommemorative": "Nur Gedenkmünzen",
     "notCommemorative": "Ohne Gedenkmünzen",
     "clearFilters": "Filter zurücksetzen",
-    "sortBy": "Sortieren:",
+    "filters": "Filter",
+    "sort": "Sortieren",
     "loadError": "Die Münzen konnten nicht geladen werden. Lade die Seite neu und versuche es erneut.",
     "noMatches": "Keine Münzen passen zu den Filtern.",
     "empty": "In dieser Sammlung sind noch keine Münzen.",

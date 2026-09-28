@@ -13,10 +13,7 @@ public enum CoinSort
     Title,
     Denomination,  // by face value
     Country,       // by CountryOrder if given, otherwise by ISO code
-    Year,
-    MintMark,      // coins without a mint mark always last
-    Commemorative,
-    Quantity
+    Year
 }
 
 public enum SortDirection

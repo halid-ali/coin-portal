@@ -70,13 +70,6 @@ public static class CoinListing
                 .ThenByDescending(c => c.Denomination).ThenBy(c => c.Year).ThenBy(c => c.Id),
             CoinSort.Year => ThenByCountry(coins.OrderBy(c => c.Year, desc))
                 .ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            CoinSort.MintMark => ThenByCountry(coins.OrderBy(c => c.MintMark == null)
-                    .ThenBy(c => c.MintMark, desc))
-                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            CoinSort.Commemorative => ThenByCountry(coins.OrderBy(c => c.IsCommemorative, desc))
-                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
-            CoinSort.Quantity => ThenByCountry(coins.OrderBy(c => c.Quantity, desc))
-                .ThenBy(c => c.Year).ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
             _ => coins.OrderByDescending(c => c.CreatedAtUtc).ThenByDescending(c => c.Id)
         };
     }

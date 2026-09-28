@@ -150,7 +150,9 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   `toObservable(query)` + `switchMap`.
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan. Mobilde tablo
-  yok, aynı seçenekler "Sırala" select'inde.
+  yok, aynı seçenekler "Sırala" select'inde. Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
+  (`COIN_SORT_COLUMNS`, API `CoinSort`); diğer sütun başlıkları düz. Telefonda filtreler "Filtrele"
+  butonunun arkasında katlanır (arama kutusu hariç).
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
