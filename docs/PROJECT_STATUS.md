@@ -1,12 +1,12 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-28 (tema rengi: 7 vurgu rengi, Ayarlar > Görünüm'de seçiliyor, tercih hesapta;
-birincil buton renge uyuyor, logo altın kalıyor. `feat/accent-color` main'e alındı, kullanıcı tarayıcıda
-kontrol etti. Sıradaki sohbet: genel görsel düzeltmeler. ImageSharp lisans kararı ilk publish'ten önce)
+Son güncelleme: 2026-09-28 (genel görsel düzeltmeler başladı: kaydırma çubuğu kayması giderildi,
+`fix/scrollbar-shift` main'e alındı. Görsel düzeltmeler sohbeti devam ediyor. ImageSharp lisans kararı
+ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/accent-color` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`fix/scrollbar-shift` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -275,6 +275,11 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       girişsiz tarayıcı seçimi, girişte ve yeniden yüklemede hesabın rengi, iki temada renk değiştirme ve
       kayıt, koleksiyon/Koleksiyonlarım/coin formu ekran görüntüleri, dört dilde mobilde yatay taşma yok,
       dört dilde 320–1280 px arası renk satırları (7 ya da 4 + 3) ve kesilen renk adı yok.
+14. **Genel görsel düzeltmeler** (2026-09-28, sohbet devam ediyor; kararlar "Görünüm ve tema: kararlar"):
+    - Kaydırma çubuğu kayması (`fix/scrollbar-shift`): kaydırmasız sayfadan kaydırmalı sayfaya geçince ve
+      pencere açılınca (`html:has(dialog:modal)` kaydırmayı kapatıyor) sayfa yana kayıyordu.
+      `html { scrollbar-gutter: stable }` ile çubuğun yeri hep ayrılıyor; ayrılan şerit koyu temada beyaz
+      kalmasın diye `html` de `bg-shade-50`. Kullanıcı tarayıcıda kontrol etti.
 
 ## Sıradaki adım
 
@@ -372,6 +377,9 @@ Kararlar (2026-09-28, kullanıcıyla):
 - **Birincil buton renge uyar, logo altın kalır** (kullanıcı kararı; logo için ayrı bir çalışma yapılacak).
   Buton dolgusu iki temada aynı: amber/teal/lime açık dolgu + koyu yazı, blue/indigo/violet/rose 600 dolgu
   + beyaz yazı (hover bir ton koyu), okunabilirlik için.
+- **Kaydırma çubuğunun yeri hep ayrılır** (2026-09-28, kullanıcı onayı): `scrollbar-gutter: stable`.
+  `overflow-y: scroll` (hep görünen boş çubuk) ve `both-edges` (iki kenarda boşluk) elendi. Kısa
+  sayfalarda sağda zemin renginde ince bir şerit kalıyor; telefonda çubuk içeriğin üstünde, etkisi yok.
 
 ## Fotoğraflar
 
