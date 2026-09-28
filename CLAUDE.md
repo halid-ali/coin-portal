@@ -166,12 +166,19 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   koleksiyonuna dönülür. Düz bir link koleksiyonu, görünümü ve filtreleri kaybettirir.
 - Koleksiyon silme: ad birebir yazılmadan silinemez (boş olsa da); dolu koleksiyonda varsayılan seçenek
   coin'leri taşımak. Tek koleksiyon silinemez (API `last_collection`).
-- **Renkler tema duyarlı token'larla:** `shade` (nötr, slate yerine), `brand` (amber), `danger` (red),
-  `info` (sky), `success` (emerald); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema
+- **Renkler tema duyarlı token'larla:** `shade` (nötr, slate yerine), `brand` (vurgu rengi, varsayılan
+  amber), `danger` (red), `info` (sky), `success` (emerald), `primary` / `primary-hover` / `on-primary`
+  (birincil butonun dolgusu ve yazısı); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema
   (`<html class="dark">`, `ThemeService`) sadece `styles.css`'teki değişkenleri değiştirir; template'e
   `dark:` ve düz palet (`slate-*`, `amber-*`, `bg-white`) yazılmaz. İstisna: iki temada aynı görünmesi
-  gerekenler (birincil/tehlike butonunun dolgusu, logo, fotoğraf görüntüleyici, tema önizlemeleri).
+  gerekenler (tehlike butonunun dolgusu, logo, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri).
   Tema tercihi dil gibi hesapta (`me` → `theme`, `PUT api/settings`), değişiklik `ThemePreference.change()`.
+- **Vurgu rengi (tema rengi):** `brand` ve `primary` token'ları `--accent-*` değişkenlerinden gelir;
+  her renk `styles.css`'te bir `:root[data-accent='…']` bloğu (amber varsayılan, attribute yok).
+  Renk eklenirken birlikte değişenler: API `AccentColor` enum'u (+ check constraint, migration), client
+  `ACCENT_COLORS` (`core/theme/accent.service.ts`), `index.html`'deki açılış betiği, `styles.css` bloğu,
+  Ayarlar'daki renk örneği (`accent-settings.ts` `SWATCH`) ve `theme.accent.<değer>` çevirileri. Tercih temayla aynı
+  modelde (`me` → `accent`, `AccentService`, `AccentPreference.change()`). Logo her zaman altın kalır.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
   `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu).
