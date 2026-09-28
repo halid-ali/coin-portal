@@ -44,6 +44,7 @@ import { PluralPipe } from '../../core/i18n/plural';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
+import { CoinPlaceholder } from '../../shared/coin-placeholder/coin-placeholder';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
@@ -96,6 +97,7 @@ function toPageSize(value: string | undefined): number {
     Pagination,
     SortHeader,
     CoinThumb,
+    CoinPlaceholder,
     PhotoViewer,
     ViewToggle,
     VisibilityBadge,
