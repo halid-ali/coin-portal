@@ -1,13 +1,13 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-28 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
+Son güncelleme: 2026-09-29 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
 giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
-görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme;
-hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
+görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme,
+telefonda katlanan filtreler, sadeleşen sıralama; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/viewer-wheel` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/mobile-filters` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -313,6 +313,21 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       ulusal → ortak yüz, yukarı tersi, döngü yok (ok tuşları döngülü kalıyor). Bir kaydırma hamlesi tek
       değişiklik: `WheelGesture` (`shared/photo-viewer/wheel-gesture.ts`, testli) olaylar arasında
       300 ms boşluk olunca hamleyi bitmiş sayar, yön dönünce hemen yeni hamle. Kullanıcı tarayıcıda denedi.
+    - Filtre ve sıralama (`feat/mobile-filters`, kullanıcıyla):
+      - Telefonda (`sm` altı) filtreler katlanır: arama kutusu hep açık, altında `Filtrele ▾` butonu
+        (varsayılan kapalı, gizli filtre sayısı rozette, durum URL'e yazılmaz) ve "Sırala". Kapsayıcı
+        `sm` ve üstünde `display: contents`, tablet/masaüstü aynı. Alt panel (bottom sheet) tartışıldı,
+        4-5 anında uygulanan filtre için fazla bulundu.
+      - Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl (kullanıcı kararı): Darphane, Hatıra ve
+        Adet sıralaması menüden, tablo başlığından ve API'den (`CoinSort`) kaldırıldı; sütunlar duruyor.
+      - Yön metinleri kısa: `(1 cent → 2 €)`, `(eski → yeni)` (dile göre "1 Cent", "alt → neu" vb.;
+        `ct` kısaltması tartışıldı, sadece Almancada yerleşik, sitede her yerde "cent" yazıyor).
+      - "Sırala" kutusu her boyutta Filtrele butonuna benzer: solda ikon, etiket yok, varsayılan sırada
+        gizli bir yer tutucu seçenekle "Sırala" yazar; sıralama seçiliyken listenin başında
+        "Sıralamayı kaldır" (`sort.clear`, tablo başlığıyla aynı). "En yeni eklenen" seçeneği kaldırıldı
+        (seçilince "Sırala"ya dönmesi kafa karıştırıyordu). Çerçeve ve ikon kapsayıcıda: Chrome açılan
+        listeyi select'in sol boşluğu kadar içeriden başlatıyor; select'in arka planı şeffaf olmamalı
+        (açılan listeyi onunla boyuyor, koyu temada beyaz kalıyordu).
 
 ## Sıradaki adım
 
