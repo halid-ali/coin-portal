@@ -195,7 +195,10 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   girişsiz de görünür); masaüstü ve mobil menü aynı listeyi kullanır.
 - Paylaşılan (Unlisted) koleksiyonda fotoğraf URL'lerine anahtar eklenir: `photoUrl(…, shareToken)`,
   `coverUrl(…, shareToken)`, `CoinThumb`/`PhotoViewer` `[shareToken]` input'u.
-- Koleksiyon kartı `shared/collection-card`, görünürlük rozeti `shared/visibility-badge`.
+- Koleksiyon kartı `shared/collection-card`, görünürlük rozeti `shared/visibility-badge`. Kapak sadece
+  yüklenen kapak (`coverImageId`); yoksa `CollectionPlaceholder` (`shared/collection-placeholder`).
+- Bir SVG içinde `id` (mask, clipPath) kullanan bileşenler her kopyaya ayrı id verir (sayaçla, bkz.
+  `flag`, `collection-placeholder`): `url(#…)` sayfadaki ilk eşleşen id'yi kullanır.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer`. Fotoğrafı olmayan coin'in yerine `CoinPlaceholder` (`shared/coin-placeholder`).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
