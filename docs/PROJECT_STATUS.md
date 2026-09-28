@@ -1,12 +1,12 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-09-28 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
-giderildi, kullanıcı adı sınırı 20 karaktere indi, hepsi main'de. Görsel düzeltmeler sohbeti devam ediyor. ImageSharp lisans kararı ilk
-publish'ten önce)
+giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin için yeni görsel; hepsi main'de.
+Sırada koleksiyon kapağı olmayan koleksiyonların görseli. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/username-limit` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/coin-placeholder` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -291,6 +291,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       kayıt formu `maxLength`, dört dilde `register.userNameHint`); sütun ve migration değişmedi, mevcut
       kullanıcılar etkilenmez (seed'deki en uzun ad 13). Header'daki `max-w-28` kesmesi yine gerekli
       (genişlik harfe bağlı). Kullanıcı adı, e-posta gibi `NormalizedUserName` unique index'iyle tekil.
+    - Fotoğrafsız coin görseli (`feat/coin-placeholder`): eski iç içe iki daire yerine eğik açıdan
+      görülen, kenarı tırtıllı, yüzünde € olan bir coin (`shared/coin-placeholder`, inline SVG,
+      `currentColor`). Kullanıcıyla birkaç turda çizildi: kenar çizgileri silindir etrafında eşit açıyla
+      (15°, 9 çizgi; eşit x aralığı düz şerit gibi duruyordu), dış çizgi 12, € yayı 8 / yatay çizgiler 6
+      (eşit kalınlıkta çizgiler arasını açmak gerekiyordu). `CoinThumb` ve ızgara kutusunda kullanılıyor.
+      Koleksiyon kartındaki eski daire ikonu duruyor; koleksiyon görseli sıradaki iş.
 
 ## Sıradaki adım
 

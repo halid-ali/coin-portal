@@ -197,7 +197,7 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   `coverUrl(…, shareToken)`, `CoinThumb`/`PhotoViewer` `[shareToken]` input'u.
 - Koleksiyon kartı `shared/collection-card`, görünürlük rozeti `shared/visibility-badge`.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
-  `PhotoViewer`.
+  `PhotoViewer`. Fotoğrafı olmayan coin'in yerine `CoinPlaceholder` (`shared/coin-placeholder`).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
 - Sayfa iskeleti `app.html`: header, `main` (`max-w-5xl px-4`), footer. Header ve footer `sm` ve üstünde
   yapışkan (üstte / altta), telefonda değil (ekranı kaplamasın). İçerikleri de `max-w-5xl px-4`, kenarlar
