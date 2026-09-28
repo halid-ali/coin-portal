@@ -94,7 +94,7 @@
     "firstName": "İsim",
     "lastName": "Soyisim",
     "userName": "Kullanıcı adı",
-    "userNameHint": "3-30 karakter; harf, rakam ve . _ -",
+    "userNameHint": "3-20 karakter; harf, rakam ve . _ -",
     "email": "E-posta",
     "birthDate": "Doğum tarihi",
     "birthDateHint": "Kayıt için en az {{age}} yaşında olmalısın.",

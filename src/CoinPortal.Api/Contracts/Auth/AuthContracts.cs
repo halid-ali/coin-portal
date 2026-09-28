@@ -9,8 +9,8 @@ namespace CoinPortal.Api.Contracts.Auth;
 public sealed record RegisterRequest(
     [Required, StringLength(100)] string FirstName,
     [Required, StringLength(100)] string LastName,
-    [Required, RegularExpression("^[a-zA-Z0-9._-]{3,30}$",
-        ErrorMessage = "Username must be 3-30 characters: letters, digits, '.', '_' or '-'.")]
+    [Required, RegularExpression("^[a-zA-Z0-9._-]{3,20}$",
+        ErrorMessage = "Username must be 3-20 characters: letters, digits, '.', '_' or '-'.")]
     string UserName,
     [Required, EmailAddress, StringLength(256)] string Email,
     [Required, MinimumAge(18)] DateOnly? BirthDate,

@@ -94,7 +94,7 @@
     "firstName": "Vorname",
     "lastName": "Nachname",
     "userName": "Benutzername",
-    "userNameHint": "3–30 Zeichen; Buchstaben ohne Umlaute, Ziffern und . _ -",
+    "userNameHint": "3–20 Zeichen; Buchstaben ohne Umlaute, Ziffern und . _ -",
     "email": "E-Mail-Adresse",
     "birthDate": "Geburtsdatum",
     "birthDateHint": "Für die Registrierung musst du mindestens {{age}} Jahre alt sein.",
