@@ -15,6 +15,13 @@
         document.documentElement.classList.add('dark');
       }
     } catch (e) {}
+    // Accent color too (AccentService); Amber, the default, has no attribute
+    try {
+      var accent = localStorage.getItem('coinportal.accent');
+      if (/^(Teal|Blue|Indigo|Violet|Rose|Lime)$/.test(accent)) {
+        document.documentElement.setAttribute('data-accent', accent);
+      }
+    } catch (e) {}
   </script>
 </head>
 <body>

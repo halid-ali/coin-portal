@@ -382,6 +382,12 @@
       "description": "Helle oder dunkle Darstellung. „System“ folgt der Einstellung deines Geräts. Deine Auswahl wird in deinem Konto gespeichert und auf jedem Gerät verwendet, auf dem du dich anmeldest.",
       "saved": "Gespeichert.",
       "saveFailed": "Das Farbschema konnte nicht gespeichert werden. Bitte versuche es erneut."
+    },
+    "accent": {
+      "title": "Akzentfarbe",
+      "description": "Die Farbe von Links, Hervorhebungen und Hauptschaltflächen. Deine Auswahl wird in deinem Konto gespeichert und auf jedem Gerät verwendet, auf dem du dich anmeldest.",
+      "saved": "Gespeichert.",
+      "saveFailed": "Die Akzentfarbe konnte nicht gespeichert werden. Bitte versuche es erneut."
     }
   },
   "theme": {
@@ -389,6 +395,15 @@
       "Light": "Hell",
       "Dark": "Dunkel",
       "System": "System"
+    },
+    "accent": {
+      "Amber": "Gold",
+      "Teal": "Petrol",
+      "Blue": "Blau",
+      "Indigo": "Indigo",
+      "Violet": "Violett",
+      "Rose": "Rosé",
+      "Lime": "Limette"
     },
     "toDark": "Zum dunklen Farbschema wechseln",
     "toLight": "Zum hellen Farbschema wechseln"

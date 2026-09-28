@@ -124,7 +124,7 @@ const PREVIEW = {
           <span class="h-1.5 w-3/4 rounded-full" [class]="c.text"></span>
           <span class="h-1.5 w-1/2 rounded-full" [class]="c.line"></span>
           <span class="h-1.5 w-2/3 rounded-full" [class]="c.line"></span>
-          <span class="mt-auto h-2.5 w-7 rounded-sm bg-amber-500"></span>
+          <span class="mt-auto h-2.5 w-7 rounded-sm bg-primary"></span>
         </span>
       </span>
     </ng-template>

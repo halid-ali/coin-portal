@@ -1,14 +1,14 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-28 (açık/koyu tema: navbar butonu, tercih hesapta, Ayarlar > Görünüm ve salt
-okunur Profil; tema duyarlı renk token'ları. `feat/theme` main'e alındı, kullanıcı tarayıcıda test etti.
-Watermark kullanıcı isteğiyle ertelendi. ImageSharp lisans kararı ilk publish'ten önce verilecek)
+Son güncelleme: 2026-09-28 (tema rengi: 7 vurgu rengi, Ayarlar > Görünüm'de seçiliyor, tercih hesapta;
+birincil buton renge uyuyor, logo altın kalıyor. `feat/accent-color` main'e alındı, kullanıcı tarayıcıda
+kontrol etti. Sıradaki sohbet: genel görsel düzeltmeler. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/theme` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/accent-color` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
-- Veritabanı en son migration'da (`AddUserPreferredTheme`); dev seed 2026-09-27'de çalıştırıldı
+- Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
@@ -256,6 +256,26 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Diyaloglar (onay, koleksiyon formu, kırpma) ve dil dropdown'ı koyu temada görsel olarak kontrol
       edilmedi.
 
+13. **Tema rengi (vurgu rengi)** (`feat/accent-color`, 2026-09-28; kararlar "Görünüm ve tema: kararlar"):
+    - API: `AccentColor` enum (`Amber = 0`, `Teal`, `Blue`, `Indigo`, `Violet`, `Rose`, `Lime = 6`),
+      `ApplicationUser.PreferredAccent` (nullable int + check constraint; migration `AddUserPreferredAccent`).
+      `me` ve `api/settings` yanıtlarında `accent`; `PUT api/settings` onu da alır (null = seçilmedi).
+    - Client: `core/theme/AccentService` (`<html data-accent="…">`, amber'de attribute yok, tarayıcıda
+      `coinportal.accent`), `core/settings/AccentPreference` (anında uygular, girişliyse kaydeder, hata olursa
+      geri alır). `index.html` betiği rengi Angular'dan önce koyar. Girişte ve açılışta hesabın rengi kazanır.
+    - `styles.css`: her renk için `--accent-50…950` + `--accent-fill` / `-fill-hover` / `-on-fill`;
+      `brand-*` (açık ve koyu) bunlardan türüyor. Yeni token'lar `primary`, `primary-hover`, `on-primary`;
+      `btn-primary` artık bunları kullanıyor (önceden sabit amber).
+    - Ayarlar > Görünüm'de üçüncü kart "Tema rengi": yuvarlak renk örnekleri (radyo, seçilide tik), adları
+      dört dilde (`theme.accent.*`). Tema önizlemelerindeki buton seçili rengi gösteriyor. Kart yeterince
+      genişse tek satır 7, değilse 4 + 3 (kullanıcı isteği; kartın genişliğine bakan container query, çünkü
+      yan menü `md`'de açılıyor ve ekran genişliğine göre 6 + 1 / 5 + 2 bölünmeler oluyordu).
+    - Doğrulama: API 5090'da 11 kontrol (kaydet/oku, `me`, dil/tema değişmiyor, bilinmeyen renk 400,
+      sayısal değer 400, girişsiz 401), Vitest 43 test (+4 `AccentService`), headless Edge (4300 → 5090):
+      girişsiz tarayıcı seçimi, girişte ve yeniden yüklemede hesabın rengi, iki temada renk değiştirme ve
+      kayıt, koleksiyon/Koleksiyonlarım/coin formu ekran görüntüleri, dört dilde mobilde yatay taşma yok,
+      dört dilde 320–1280 px arası renk satırları (7 ya da 4 + 3) ve kesilen renk adı yok.
+
 ## Sıradaki adım
 
 Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi):
@@ -263,7 +283,9 @@ Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
    fotoğraflara mı).
 2. **Görünüm üzerinde çalışmaya devam** (kullanıcı 2026-09-28'de "sitenin görünümü üzerinde çalışalım"
-   dedi, ilk adım koyu tema).
+   dedi; koyu tema ve tema rengi bitti). Kullanıcı ayrı bir sohbette genel görsellerle ilgili birkaç
+   düzeltme ve logo için ayrı bir çalışma yapmak istiyor. O sohbet için bulunan bir sorun: Almanca 640 px
+   civarında header'daki kullanıcı menüsü butonu sağdan ~18 px taşıyor (tüm sayfalarda yatay kaydırma).
 3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
    salt okunur. Hangi alanların değiştirilebileceğine kullanıcıyla karar verilecek (isim/soyisim kolay;
    kullanıcı adı paylaşım linklerini `/u/…` bozar; e-posta doğrulama ister; doğum tarihi 18+ kuralına
@@ -343,6 +365,13 @@ Kararlar (2026-09-28, kullanıcıyla):
 - **Renkler token'la** (Claude'un teknik seçimi): her class'a `dark:` eklemek template'leri şişirirdi.
   Tailwind paletinin yerine tema duyarlı ölçekler; koyu temada ölçek ters döner (düşük adımlar koyu
   zemin/tonlar, yüksek adımlar açık metin), `shade-0` kart yüzeyi. Ton ayarı tek yerden (`styles.css`).
+- **Tema rengi** (2026-09-28, kullanıcıyla): 7 renk: Altın (amber, varsayılan), Camgöbeği (teal), Mavi,
+  Çivit, Mor, Gül (rose), Yeşil (lime; green yerine kullanıcı seçti). Emerald, sky ve red bilerek yok:
+  başarı, bilgi ve tehlike mesajlarıyla karışırdı. Seçim sadece Ayarlar > Görünüm'de (navbar butonu yok),
+  tercih tema gibi hesapta (hesap > tarayıcı > Altın).
+- **Birincil buton renge uyar, logo altın kalır** (kullanıcı kararı; logo için ayrı bir çalışma yapılacak).
+  Buton dolgusu iki temada aynı: amber/teal/lime açık dolgu + koyu yazı, blue/indigo/violet/rose 600 dolgu
+  + beyaz yazı (hover bir ton koyu), okunabilirlik için.
 
 ## Fotoğraflar
 

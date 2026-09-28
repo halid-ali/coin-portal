@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
 import { Language } from '../i18n/languages';
+import { AccentColor } from '../theme/accent.service';
 import { ThemeMode } from '../theme/theme.service';
 
 // Mirrors CoinPortal.Api/Contracts/Settings
@@ -12,6 +13,8 @@ export interface UserSettings {
   language: Language | null;
   /** Null until the user chooses one; the UI then follows this browser's last choice. */
   theme: ThemeMode | null;
+  /** Null until the user chooses one; the UI then follows this browser's last choice. */
+  accent: AccentColor | null;
 }
 
 /** The signed-in user's settings (api/settings). */
@@ -33,10 +36,11 @@ export class SettingsService {
     const settings: UserSettings = {
       language: user?.language ?? null,
       theme: user?.theme ?? null,
+      accent: user?.accent ?? null,
       ...changes,
     };
     return this.http
       .put<UserSettings>('/api/settings', settings)
-      .pipe(tap((saved) => this.auth.patchUser({ language: saved.language, theme: saved.theme })));
+      .pipe(tap(({ language, theme, accent }) => this.auth.patchUser({ language, theme, accent })));
   }
 }

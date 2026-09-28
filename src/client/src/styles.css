@@ -6,11 +6,12 @@
 /*
  * Theme-aware color scales. Templates use these instead of the Tailwind palettes, so dark mode
  * only redefines the variables below (no dark: variants in templates):
- *   shade (neutral, slate), brand (amber), danger (red), info (sky), success (emerald).
+ *   shade (neutral, slate), brand (the accent color, amber by default), danger (red), info (sky),
+ *   success (emerald); primary is the primary button's fill (accent, same in both themes).
  * Light values are the palette itself. In dark mode the scales flip: low steps (backgrounds,
  * tints) become dark, high steps (text) become light; shade-0 is the card/panel surface.
- * Colors that must look the same in both themes (primary/danger buttons, the logo, the photo
- * viewer) keep the plain palette classes.
+ * Colors that must look the same in both themes (danger button, the logo, the photo viewer) keep
+ * the plain palette classes.
  */
 @theme {
   --color-shade-0: var(--color-white);
@@ -26,17 +27,21 @@
   --color-shade-900: var(--color-slate-900);
   --color-shade-950: var(--color-slate-950);
 
-  --color-brand-50: var(--color-amber-50);
-  --color-brand-100: var(--color-amber-100);
-  --color-brand-200: var(--color-amber-200);
-  --color-brand-300: var(--color-amber-300);
-  --color-brand-400: var(--color-amber-400);
-  --color-brand-500: var(--color-amber-500);
-  --color-brand-600: var(--color-amber-600);
-  --color-brand-700: var(--color-amber-700);
-  --color-brand-800: var(--color-amber-800);
-  --color-brand-900: var(--color-amber-900);
-  --color-brand-950: var(--color-amber-950);
+  --color-brand-50: var(--accent-50);
+  --color-brand-100: var(--accent-100);
+  --color-brand-200: var(--accent-200);
+  --color-brand-300: var(--accent-300);
+  --color-brand-400: var(--accent-400);
+  --color-brand-500: var(--accent-500);
+  --color-brand-600: var(--accent-600);
+  --color-brand-700: var(--accent-700);
+  --color-brand-800: var(--accent-800);
+  --color-brand-900: var(--accent-900);
+  --color-brand-950: var(--accent-950);
+
+  --color-primary: var(--accent-fill);
+  --color-primary-hover: var(--accent-fill-hover);
+  --color-on-primary: var(--accent-on-fill);
 
   --color-danger-50: var(--color-red-50);
   --color-danger-100: var(--color-red-100);
@@ -73,6 +78,130 @@
 }
 
 @layer base {
+  /*
+   * Accent color (AccentService): the palette behind the brand scale and the primary button.
+   * Amber is the default; the others apply through data-accent on <html>. The fill and its text
+   * color are the same in both themes: white text on the darker fills, dark text on the light ones.
+   */
+  :root {
+    --accent-50: var(--color-amber-50);
+    --accent-100: var(--color-amber-100);
+    --accent-200: var(--color-amber-200);
+    --accent-300: var(--color-amber-300);
+    --accent-400: var(--color-amber-400);
+    --accent-500: var(--color-amber-500);
+    --accent-600: var(--color-amber-600);
+    --accent-700: var(--color-amber-700);
+    --accent-800: var(--color-amber-800);
+    --accent-900: var(--color-amber-900);
+    --accent-950: var(--color-amber-950);
+    --accent-fill: var(--color-amber-500);
+    --accent-fill-hover: var(--color-amber-400);
+    --accent-on-fill: var(--color-amber-950);
+  }
+
+  :root[data-accent='Teal'] {
+    --accent-50: var(--color-teal-50);
+    --accent-100: var(--color-teal-100);
+    --accent-200: var(--color-teal-200);
+    --accent-300: var(--color-teal-300);
+    --accent-400: var(--color-teal-400);
+    --accent-500: var(--color-teal-500);
+    --accent-600: var(--color-teal-600);
+    --accent-700: var(--color-teal-700);
+    --accent-800: var(--color-teal-800);
+    --accent-900: var(--color-teal-900);
+    --accent-950: var(--color-teal-950);
+    --accent-fill: var(--color-teal-500);
+    --accent-fill-hover: var(--color-teal-400);
+    --accent-on-fill: var(--color-teal-950);
+  }
+
+  :root[data-accent='Blue'] {
+    --accent-50: var(--color-blue-50);
+    --accent-100: var(--color-blue-100);
+    --accent-200: var(--color-blue-200);
+    --accent-300: var(--color-blue-300);
+    --accent-400: var(--color-blue-400);
+    --accent-500: var(--color-blue-500);
+    --accent-600: var(--color-blue-600);
+    --accent-700: var(--color-blue-700);
+    --accent-800: var(--color-blue-800);
+    --accent-900: var(--color-blue-900);
+    --accent-950: var(--color-blue-950);
+    --accent-fill: var(--color-blue-600);
+    --accent-fill-hover: var(--color-blue-700);
+    --accent-on-fill: var(--color-white);
+  }
+
+  :root[data-accent='Indigo'] {
+    --accent-50: var(--color-indigo-50);
+    --accent-100: var(--color-indigo-100);
+    --accent-200: var(--color-indigo-200);
+    --accent-300: var(--color-indigo-300);
+    --accent-400: var(--color-indigo-400);
+    --accent-500: var(--color-indigo-500);
+    --accent-600: var(--color-indigo-600);
+    --accent-700: var(--color-indigo-700);
+    --accent-800: var(--color-indigo-800);
+    --accent-900: var(--color-indigo-900);
+    --accent-950: var(--color-indigo-950);
+    --accent-fill: var(--color-indigo-600);
+    --accent-fill-hover: var(--color-indigo-700);
+    --accent-on-fill: var(--color-white);
+  }
+
+  :root[data-accent='Violet'] {
+    --accent-50: var(--color-violet-50);
+    --accent-100: var(--color-violet-100);
+    --accent-200: var(--color-violet-200);
+    --accent-300: var(--color-violet-300);
+    --accent-400: var(--color-violet-400);
+    --accent-500: var(--color-violet-500);
+    --accent-600: var(--color-violet-600);
+    --accent-700: var(--color-violet-700);
+    --accent-800: var(--color-violet-800);
+    --accent-900: var(--color-violet-900);
+    --accent-950: var(--color-violet-950);
+    --accent-fill: var(--color-violet-600);
+    --accent-fill-hover: var(--color-violet-700);
+    --accent-on-fill: var(--color-white);
+  }
+
+  :root[data-accent='Rose'] {
+    --accent-50: var(--color-rose-50);
+    --accent-100: var(--color-rose-100);
+    --accent-200: var(--color-rose-200);
+    --accent-300: var(--color-rose-300);
+    --accent-400: var(--color-rose-400);
+    --accent-500: var(--color-rose-500);
+    --accent-600: var(--color-rose-600);
+    --accent-700: var(--color-rose-700);
+    --accent-800: var(--color-rose-800);
+    --accent-900: var(--color-rose-900);
+    --accent-950: var(--color-rose-950);
+    --accent-fill: var(--color-rose-600);
+    --accent-fill-hover: var(--color-rose-700);
+    --accent-on-fill: var(--color-white);
+  }
+
+  :root[data-accent='Lime'] {
+    --accent-50: var(--color-lime-50);
+    --accent-100: var(--color-lime-100);
+    --accent-200: var(--color-lime-200);
+    --accent-300: var(--color-lime-300);
+    --accent-400: var(--color-lime-400);
+    --accent-500: var(--color-lime-500);
+    --accent-600: var(--color-lime-600);
+    --accent-700: var(--color-lime-700);
+    --accent-800: var(--color-lime-800);
+    --accent-900: var(--color-lime-900);
+    --accent-950: var(--color-lime-950);
+    --accent-fill: var(--color-lime-400);
+    --accent-fill-hover: var(--color-lime-300);
+    --accent-on-fill: var(--color-lime-950);
+  }
+
   :root.dark {
     color-scheme: dark;
 
@@ -90,16 +219,16 @@
     --color-shade-950: var(--color-slate-50);
 
     /* Tints are the color mixed into the dark surface, texts the light end of the palette */
-    --color-brand-50: color-mix(in oklab, var(--color-amber-400) 10%, var(--color-slate-900));
-    --color-brand-100: color-mix(in oklab, var(--color-amber-400) 18%, var(--color-slate-900));
-    --color-brand-200: color-mix(in oklab, var(--color-amber-400) 32%, var(--color-slate-900));
-    --color-brand-300: var(--color-amber-700);
-    --color-brand-400: var(--color-amber-600);
-    --color-brand-600: var(--color-amber-400);
-    --color-brand-700: var(--color-amber-400);
-    --color-brand-800: var(--color-amber-300);
-    --color-brand-900: var(--color-amber-200);
-    --color-brand-950: var(--color-amber-100);
+    --color-brand-50: color-mix(in oklab, var(--accent-400) 10%, var(--color-slate-900));
+    --color-brand-100: color-mix(in oklab, var(--accent-400) 18%, var(--color-slate-900));
+    --color-brand-200: color-mix(in oklab, var(--accent-400) 32%, var(--color-slate-900));
+    --color-brand-300: var(--accent-700);
+    --color-brand-400: var(--accent-600);
+    --color-brand-600: var(--accent-400);
+    --color-brand-700: var(--accent-400);
+    --color-brand-800: var(--accent-300);
+    --color-brand-900: var(--accent-200);
+    --color-brand-950: var(--accent-100);
 
     --color-danger-50: color-mix(in oklab, var(--color-red-400) 10%, var(--color-slate-900));
     --color-danger-100: color-mix(in oklab, var(--color-red-400) 18%, var(--color-slate-900));
@@ -180,8 +309,8 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-amber-500 px-4 py-2 font-medium text-amber-950
-      hover:bg-amber-400 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none
+    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-on-primary
+      hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none
       disabled:cursor-not-allowed disabled:opacity-60;
   }
 

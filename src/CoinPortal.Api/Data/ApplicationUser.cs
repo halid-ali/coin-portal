@@ -19,4 +19,7 @@ public class ApplicationUser : IdentityUser
 
     // Color theme chosen by the user; null means no choice was saved (see ThemePreference)
     public ThemePreference? PreferredTheme { get; set; }
+
+    // Accent color chosen by the user; null means no choice was saved (see AccentColor)
+    public AccentColor? PreferredAccent { get; set; }
 }
