@@ -2,6 +2,7 @@ import { Component, computed, input } from '@angular/core';
 
 import { Coin } from '../../core/coins/coin.models';
 import { photoUrl, primaryPhoto } from '../../core/coins/coin.service';
+import { CoinPlaceholder } from '../coin-placeholder/coin-placeholder';
 
 /**
  * Round thumbnail of a coin (national side if available), or a coin placeholder without photos.
@@ -9,22 +10,13 @@ import { photoUrl, primaryPhoto } from '../../core/coins/coin.service';
  */
 @Component({
   selector: 'app-coin-thumb',
+  imports: [CoinPlaceholder],
   host: { class: 'block shrink-0 overflow-hidden rounded-full bg-shade-100 ring-1 ring-shade-200' },
   template: `
     @if (src(); as url) {
       <img [src]="url" alt="" loading="lazy" decoding="async" class="size-full object-cover" />
     } @else {
-      <svg
-        viewBox="0 0 24 24"
-        class="size-full p-[22%] text-shade-300"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="5.5" />
-      </svg>
+      <app-coin-placeholder class="size-full p-[14%] text-shade-400" />
     }
   `,
 })

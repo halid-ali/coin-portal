@@ -212,11 +212,7 @@
                   <img [src]="src" alt="" loading="lazy" decoding="async"
                        class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                 } @else {
-                  <svg viewBox="0 0 24 24" class="size-full p-[30%] text-shade-300" fill="none" stroke="currentColor"
-                       stroke-width="1.25" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <circle cx="12" cy="12" r="5.5" />
-                  </svg>
+                  <app-coin-placeholder class="size-full p-[24%] text-shade-300" />
                 }
                 @if (coin.isCommemorative) {
                   <span class="absolute top-2 left-2 rounded-full bg-info-100/95 px-2 py-0.5 text-xs font-medium text-info-800 shadow-sm">{{ 'coin.commemorativeBadge' | transloco }}</span>
