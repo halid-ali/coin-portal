@@ -1,12 +1,12 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-09-28 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
-giderildi, ikisi de main'de. Görsel düzeltmeler sohbeti devam ediyor. ImageSharp lisans kararı ilk
+giderildi, kullanıcı adı sınırı 20 karaktere indi, hepsi main'de. Görsel düzeltmeler sohbeti devam ediyor. ImageSharp lisans kararı ilk
 publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`fix/header-overflow` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/username-limit` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -286,6 +286,11 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       linkler ve logo `whitespace-nowrap`. Headless Edge (gerçek kaydırma çubuğuyla, 4 dil × girişli/girişsiz
       × 320–1280 px): önce 10 sorun, sonra 0; 768 px'te sınıra kadar dolu kullanıcı adıyla Almanca'da 10 px
       pay kalıyor. Not: DevTools cihaz görünümünde kaydırma çubuğu yer kaplamaz, taşmayı olduğundan az gösterir.
+    - Kullanıcı adı sınırı 3–30'dan **3–20** karaktere indi (`feat/username-limit`, kullanıcı kararı): kısa
+      adlar `/u/…` linklerinde, kartlarda ve navbar'da daha iyi duruyor. Sadece doğrulama (API regex,
+      kayıt formu `maxLength`, dört dilde `register.userNameHint`); sütun ve migration değişmedi, mevcut
+      kullanıcılar etkilenmez (seed'deki en uzun ad 13). Header'daki `max-w-28` kesmesi yine gerekli
+      (genişlik harfe bağlı). Kullanıcı adı, e-posta gibi `NormalizedUserName` unique index'iyle tekil.
 
 ## Sıradaki adım
 
