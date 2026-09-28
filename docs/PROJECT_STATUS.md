@@ -1,19 +1,19 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-27 (ilk Claude Code sohbeti kapandı: fotoğraflar, çoklu koleksiyonlar,
-kapaklar, navbar ve paylaşım main'de. Sıradaki adım watermark. ImageSharp lisans kararı ilk publish'ten
-önce verilecek)
+Son güncelleme: 2026-09-28 (çok dilli destek: EN/TR/DE/BG, dil tercihi hesapta, Ayarlar sayfası, bayraklı
+dil seçici, footer, masaüstünde yapışkan header/footer; `feat/i18n` main'e alındı. Watermark kullanıcı
+isteğiyle ertelendi. ImageSharp lisans kararı ilk publish'ten önce verilecek)
 
 ## Yeni sohbete başlarken
 
 - Durum: `main` güncel ve temiz; açık feature branch yok. Push yapılmadı (repo sadece lokal).
-- Veritabanı en son migration'da (`AddCollectionVisibility`); dev seed 2026-09-27'de çalıştırıldı
+- Veritabanı en son migration'da (`AddUserPreferredLanguage`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
-  "Koleksiyonum"u sadece linkle).
-- API'yi Claude bu sohbette kendi arka plan oturumunda çalıştırıyordu; sohbet kapanınca durur. Yeni
+  "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
+- API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
-- İlk iş: "Sıradaki adım"daki watermark kararları (içerik, konum, saydamlık, kapsam). Bekleyen dış konu:
-  Six Labors'tan ImageSharp lisans cevabı (Açık konular 1).
+- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Sıradaki adım"). Bekleyen dış konu: Six Labors'tan
+  ImageSharp lisans cevabı (Açık konular 1).
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -46,6 +46,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
   Windows paylaşımlı hostingde sorunlu. Supabase elendi.
 - **Fotoğraf:** Kararlar ve gerekçeleri "Fotoğraflar" bölümünde (2026-09-27'de kararlaştırıldı).
 - **Ülke isimleri:** Veritabanında çok dilli isim yok; client ISO koddan `Intl.DisplayNames` ile üretiyor.
+- **Çok dilli arayüz:** Transloco (`@jsverse/transloco` 8.4, çalışma anında çeviri, tek derleme). Kararlar
+  ve gerekçeler "Çok dilli destek: kararlar" bölümünde.
 - **daisyUI:** Tartışıldı, ertelendi. Mevcut `.card`/`.btn-primary` class'larıyla çakışıyor, tüm
   template'lere yayılan refactor ister. Yapılacaksa ayrı `chore/daisyui` branch'inde, önce mevcut
   görünümle yan yana karşılaştırılıp kullanıcı "değer" derse.
@@ -189,12 +191,50 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       yerde, paylaşılmayan her şey 404, anahtar iptali anında. Bulunup düzeltilen: Keşfet'te girişsiz
       "tümü" sorgusu (yasaklandı), `owner` uzunluk sınırı. Açık kalan: istek sınırlama (Açık konular 11).
     - Doğrulama: 46 kontrollük API testi, 26 kontrollük arayüz testi (headless Edge, girişsiz akış dahil).
+11. **Çok dilli destek** (`feat/i18n`, 2026-09-28; kararlar "Çok dilli destek: kararlar" bölümünde):
+    - API: `ApplicationUser.PreferredLanguage` (`varchar(8)`, null = seçmedi; migration
+      `AddUserPreferredLanguage`), `Localization/SupportedLanguages` (en, tr, de, bg) +
+      `[SupportedLanguage]` doğrulaması. Kayıtta `language` (tercih olarak kaydedilir, ilk koleksiyonun adı
+      o dilde: "My collection" / "Koleksiyonum" / "Meine Sammlung" / "Моята колекция";
+      `Collection.DefaultNameFor`). `me` yanıtında `language`. `SettingsController` (`GET`/`PUT
+      api/settings`, şimdilik sadece dil).
+    - Client: Transloco, `src/i18n/{en,tr,de,bg}.json` (~280 metin, lazy chunk), `LanguageService`
+      (hesap > tarayıcıdaki seçim > tarayıcı dili > İngilizce), `plural` pipe'ı (`Intl.PluralRules`),
+      çevrilmiş sayfa başlıkları (`TranslatedTitleStrategy`), dile göre ülke adları ve sıralaması, hata ve
+      doğrulama mesajları çeviri anahtarlı. Tüm sayfalardaki sabit metinler anahtarlara taşındı; modellerde
+      enum etiketi kalmadı.
+    - Avatar menüsünde (ve mobil menüde) "Ayarlar".
+    - **Footer** (kullanıcı isteği): solda logo, ortada "© <yıl> Coin Portal", sağda dil seçici;
+      içerik navbar'la hizalı (logo logoyla, seçici avatarla). Header ve footer `sm` ve üstünde
+      yapışkan, telefonda değil (kullanıcıyla kararlaştırıldı: küçük ekranda alan kaplamasın). Header
+      aslında daha önce de yapışmıyordu (`sticky` host'un içindeki `<header>`'daydı), düzeltildi.
+    - **Dil seçici:** bayraklı dropdown (`LanguageSelect` + `Flag`, dikdörtgen SVG bayraklar; İngilizce
+      için Birleşik Krallık), Ayarlar'da ve footer'da aynı bileşen. Footer'dan seçim de girişliyse
+      hesaba kaydedilir. Üst menüdeki girişsiz dil seçici footer gelince kaldırıldı (tekrar olmasın).
+    - **Ayarlar sayfası** (`/settings`, kullanıcı isteği): solda bölüm menüsü (mobilde üstte sekme
+      satırı), sağda bölüm içeriği. İlk bölüm "Dil": bayraklı dropdown (kullanıcı isteği; radyo
+      butonlar kaldırıldı), aktif dil seçili gelir, seçim anında hesaba kaydedilir ve uygulanır.
+      İleride Görünüm, Güvenlik vb. bölümler `SECTIONS` + alt rota olarak eklenecek.
+    - Tablo başlıkları için kısa sütun etiketleri (`coin.column.*`); sütun genişlikleri dört dilin en
+      uzun başlığına göre yeniden dengelendi (Nominal ve Hatıra `w-29`, Ülke `w-28`, sahip "Düzenle"
+      `w-26`). Filtre ızgarası alta hizalı (iki satıra inen etiketlerde select'ler aynı hizada). Sıralama
+      select'i mobilde taşmıyor (`min-w-0`; Bulgarcada yatay kaydırma yapıyordu).
+    - Terimler araştırılarak seçildi (ECB, Bulgaristan Merkez Bankası, Alman darphaneleri; ayrıntılar
+      "Çok dilli destek: kararlar").
+    - Doğrulama: 17 kontrollük API testi (dile göre ilk koleksiyon, ayarlar ucu, geçersiz dil 400, girişsiz
+      401), 44 kontrollük arayüz testi (headless Edge: seçici, hatırlama, girişte hesabın dili, ayarlar,
+      sayfa başlıkları, çoğul, doğrulama mesajı, 4 dilde tablo başlığı taşması ve 4 dilde mobil yatay
+      taşma), Vitest 36 test (dört dosyada anahtar ve `{{parametre}}` eşliği, her dilin çoğul biçimleri).
 
 ## Sıradaki adım
 
-1. **Watermark** (Açık konular 8): paylaşım bittiği için şimdi konuşulacak (içerik, konum, saydamlık,
-   sadece herkese açık fotoğraflara mı).
-2. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
+Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi):
+
+1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
+   fotoğraflara mı).
+2. **Ayarlar sayfasının genişlemesi:** Görünüm (ör. karanlık mod), Güvenlik (parola değiştirme), Profil
+   (ad, soyad) gibi bölümler.
+3. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
 
 ## Koleksiyonlar ve paylaşım: kararlar
 
@@ -220,6 +260,39 @@ Kararlar (2026-09-27, kullanıcıyla):
 - Varsayılanlar (2026-09-27): profil `/u/{kullanıcı}`, herkese açık koleksiyon `/u/{kullanıcı}/{id}`,
   gizli link `/s/{anahtar}`, Keşfet `/explore`; "sadece linkle"den çıkınca link iptal, tekrar
   açılınca yeni link; herkese açık koleksiyonu olmayan profil 404.
+
+## Çok dilli destek: kararlar
+
+Kararlar (2026-09-28, kullanıcıyla):
+
+- **Diller:** İngilizce (varsayılan, tarayıcı dili desteklenmiyorsa), Türkçe, Almanca, Bulgarca. Kaynak
+  dil Türkçe (`tr.json`); diğer dosyalar ona göre, test eşliği denetler.
+- **Kütüphane: Transloco** (kullanıcı biliyor). Angular'ın kendi i18n'i elendi: dil başına ayrı derleme
+  ve `/tr/…` gibi URL ön ekleri, dil değişince sayfa yenilenmesi, `wwwroot`'ta dil başına SPA fallback ve
+  paylaşım linklerinin (`/s/…`, `/u/…`) yönlendirilmesi gerekirdi. Transloco ile tek derleme, dil anında
+  değişir, adresler dilden bağımsız (paylaşılan link herkese kendi dilinde açılır).
+- **Dil seçimi:** hesaptaki dil > bu tarayıcıdaki son seçim > tarayıcı dili > İngilizce. Tercih hesaba
+  kaydedilir (başka cihazda da aynı dil; ileride e-postalar da bu dilde). Kayıtta o anki dil hesaba yazılır;
+  seed ve eski hesaplarda boş kalır (cihaz dili kullanılır, Ayarlar'da seçilince kaydedilir).
+- **Ayarlar sayfası** kullanıcı isteğiyle eklendi, avatar menüsünden açılır; soldaki menü ileride
+  Görünüm, Güvenlik vb. ile genişleyecek. Dil footer'dan (herkes) ve Ayarlar'dan değişir; girişliyse
+  ikisi de hesaba kaydeder.
+- **API arayüz metni üretmez** (hata kodları client'ta çevrilir). İstisna: kullanıcı adına oluşturulan
+  içerik (ilk koleksiyon adı). `Accept-Language` kullanılmıyor, dil istekte açıkça gönderiliyor.
+- **Çoğul:** Transloco'nun ICU eklentisi yerine küçük bir `plural` pipe'ı (`Intl.PluralRules`, anahtar
+  altında `one`/`other`). Ek bağımlılık yok, Türkçe metinlerdeki kesme işaretleri ICU sözdizimiyle
+  çakışmıyor.
+- **Terimler** (araştırma: ECB ve Bulgaristan Merkez Bankası euro sayfaları, Alman darphaneleri MDM/BTN,
+  YouTube/Google yerelleştirmeleri):
+  - Almanca: "du" hitabı (hobi uygulaması, Türkçedeki "sen"e denk). Nennwert, nationale Seite / gemeinsame
+    Seite (ECB), Münzzeichen, Gedenkmünze, "50 Cent", görünürlük Privat / Nur mit Link / Öffentlich.
+  - Bulgarca: küçük harfli "вие" hitabı (Google/Microsoft bg arayüzlerindeki norm), butonlarda emir kipi
+    (Запази, Изтрий, Отказ). Номинал, национална страна / обща страна (ECB, BNB), знак на монетния двор,
+    възпоменателна монета; sentler "1 цент / 2–50 цента" (ECB ve BNB kullanımı; "стотинка" Bulgar
+    paralarında yazıyor ama tüm ülkelerin coin'leri için "цент" daha tarafsız), link için "връзка".
+  - İngilizce: national side / common side (ECB), Denomination (tabloda "Value"), Link only.
+- **Çeviri kontrolü:** kullanıcı şu an anadili konuşan birine kontrol ettiremiyor, Claude'a güveniyor.
+  Yayından önce Almanca ve Bulgarca metinlerin bir anadil konuşanına gösterilmesi önerilir (Açık konular 12).
 
 ## Fotoğraflar
 
@@ -302,8 +375,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    - Tarayıcıda (Canvas) eklemek ve sadece CSS ile bindirmek elendi: ilki API'ye doğrudan yüklemeyle
      atlatılabilir, ikincisi dosyayı korumaz.
    - Karar verilecekler: watermark içeriği (yazı/logo), konum, saydamlık, sadece herkese açıklara mı.
-9. İleride: e-posta doğrulama ve şifre sıfırlama, kayıt formunda kullanıcı adı/e-posta müsaitlik kontrolü,
-   i18n (TR/DE/EN), Register'ın da `applyServerErrors` kullanması, mobilde katlanabilir filtre paneli.
+9. İleride: e-posta doğrulama ve şifre sıfırlama (e-postalar `PreferredLanguage` dilinde), kayıt formunda
+   kullanıcı adı/e-posta müsaitlik kontrolü, Register'ın da `applyServerErrors` kullanması, mobilde
+   katlanabilir filtre paneli.
 10. **Euro dışı, tedavülden kalkmış ve antika coin'ler (ileride, 2026-09-27'de kullanıcı istedi):**
     Birden fazla koleksiyon bunun için temel. Gerekecekler: koleksiyona bir "tür" alanı (Euro / diğer);
     nominalin genelleşmesi (şu an Euro değerleri enum'u, `CK_Coins_Denomination`), ülkenin genelleşmesi
@@ -313,6 +387,16 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 11. **İstek sınırlama (rate limiting) yok:** Girişsiz uçlar (Keşfet, profil, paylaşılan koleksiyon,
     fotoğraflar) ve giriş denemeleri için hosting öncesi ASP.NET Core rate limiter değerlendirilmeli.
     Gizli link anahtarı 128 bit olduğu için tahminle bulunamaz; amaç yükü sınırlamak.
+12. **Çeviriler (2026-09-28):**
+    - Almanca ve Bulgarca metinleri anadili konuşan biri henüz görmedi; yayından önce önerilir.
+      Bulgarcada en emin olunmayanlar: hitap şekli (вие), buton kipi (emir), tablo kısaltmaları
+      ("Год.", "Знак", "Възпом."), "тайна връзка" (gizli link).
+    - Kullanıcının yazdığı içerik (coin başlıkları, koleksiyon adları) çevrilmez. Otomatik başlık önerisi
+      o anki dilde üretilir (ör. "2 € · Deutschland · 2006"); dev seed içeriği Türkçe.
+    - Identity'nin bazı parola hataları (client doğrulamasının yakalamadıkları) API'den İngilizce gelir ve
+      öyle gösterilir; client doğrulaması aynı kuralları uyguladığı için pratikte görünmez.
+    - Yeni bir dil eklemek: `SupportedLanguages` + `languages.ts` + `src/i18n/<dil>.json` +
+      `Collection.DefaultNameFor`; test dosya eşliğini kontrol eder. Tablo başlıklarını ölç.
 
 ## Yayın öncesi yapılacaklar
 
@@ -324,6 +408,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [ ] Production connection string ve `PhotoStorage__RootPath` (site klasörü dışında) hosting panelinde.
 - [ ] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (`MapFallbackToFile("index.html")`).
 - [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
+- [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
+      (Açık konular 12).
 
 ## Hosting seçimi kontrol listesi
 
@@ -367,5 +453,5 @@ liste/tablo/kart görünümü, filtreler (nominal, ülke, kullanıcı, yıl).
 
 Önerilen ek özellikler: "Bende var mı?" hızlı kontrol, görünürlük ayarı (herkese açık / sadece linkle /
 özel) ve paylaşılabilir profil sayfası, ülkeye göre eksik listesi için referans Euro coin kataloğu,
-fotoğraf boyut/tür/kota sınırları, gizlilik politikası ve iletişim sayfası, istatistikler, TR/DE/EN dil
-desteği, karanlık mod, PWA.
+fotoğraf boyut/tür/kota sınırları, gizlilik politikası ve iletişim sayfası, istatistikler, dil desteği
+(yapıldı: EN/TR/DE/BG), karanlık mod, PWA.

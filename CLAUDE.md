@@ -10,7 +10,9 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
 ## Çalışma kuralları
 
 - Kullanıcıyla iletişim **Türkçe**. Koddaki yorumlar, commit mesajları, branch adları **İngilizce**.
-- Arayüz metinleri şimdilik Türkçe, template'lerde ve `shared/form-errors.ts` içinde sabit (i18n ileride).
+- Arayüz dört dilde: İngilizce (varsayılan), Türkçe, Almanca, Bulgarca. Metinler
+  `src/client/src/i18n/<dil>.json` içinde; kaynak dil Türkçe. Yeni bir metin dört dosyaya birden eklenir
+  (test anahtar/parametre eşliğini kontrol eder). Çeviri kuralları "Client kuralları"nda.
 - Kullanıcıya verilen terminal komutları **Git Bash** sözdiziminde (`/c/repos/...`).
 - Büyük bir değişiklikten önce kısa bir plan sun, kullanıcı onaylayınca uygula. Karar kullanıcıya aitse
   (UX, kapsam, kütüphane seçimi) sor; teknik varsayılanı belli olan konularda sorma, seçip söyle.
@@ -75,16 +77,20 @@ API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-da
 ## Mimari
 
 ```
-src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Collections,Countries,Common}/, Data/
+src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Collections,Countries,Common,Settings}/, Data/
                         (entities, AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage +
-                        image processing), Querying/, Validation/, App_Data/photos (gitignored)
-src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, layout/header/, pages/
+                        image processing), Querying/, Validation/, Localization/, App_Data/photos
+                        (gitignored)
+src/client/src/app/     core/{auth,coins,collections,public,http,i18n,settings}/, shared/, layout/header/,
+                        pages/
+src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
 ```
 
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
 - Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
-  `/coins/new?collection=<id>`, `/coins/:id/edit`. Eski `/collection…` adresleri yönlendirilir.
+  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; şimdilik `language`).
+  Eski `/collection…` adresleri yönlendirilir.
   Girişsiz: `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
   koleksiyon), `/s/:token` (sadece linkle). Koleksiyon sayfası tek bileşen, route data `mode`
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
@@ -112,10 +118,15 @@ src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, lay
   Girişsiz okuma uçları `PublicController` (`api/public/...`) altında; yanıtlarda kullanıcı adı dışında
   kişisel veri olmaz, görünmeyen her şey 404. Coin listesi filtre/sıralama/sayfalama `CoinListing`
   ile paylaşılır. Keşfet'te `pageSize=0` (tümü) yasak (girişsiz, tüm veriyi tarar).
-- İstemcinin Türkçe mesaj göstermesi gereken hatalarda ProblemDetails'e makine kodu eklenir
-  (`this.CodedProblem(code, title)`, ör. `invalid_image`, `last_collection`). Alan hatalarında ise
+- **Arayüz metni API'de üretilmez**, çeviri client'ta. İstemcinin kendi mesajını göstermesi gereken
+  hatalarda ProblemDetails'e makine kodu eklenir (`this.CodedProblem(code, title)`, ör.
+  `invalid_image`, `last_collection`). Alan hatalarında ise
   ModelState anahtarı kod olur (ör. `DuplicateName`), client `applyServerErrors`'ın codeMap /
-  messageOverrides parametreleriyle alana eşler ve Türkçeleştirir.
+  messageKeys parametreleriyle alana eşler ve çevirir. API'nin kullanıcı adına ürettiği içerik
+  (ilk koleksiyonun adı, `Collection.DefaultNameFor(lang)`) kullanıcının diline göre yazılır.
+- Dil listesi iki yerde, birlikte değişir: `Localization/SupportedLanguages` ve client
+  `core/i18n/languages.ts`. Kullanıcının dili `ApplicationUser.PreferredLanguage` (null = seçmedi),
+  `me` yanıtında `language`, değişiklik `PUT api/settings`, kayıtta `RegisterRequest.Language`.
 - Kullanıcının yazdığı adların tekillik kontrolü kodda Türkçe + kültürden bağımsız büyük/küçük harf
   duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
@@ -140,10 +151,12 @@ src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, lay
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan. Mobilde tablo
   yok, aynı seçenekler "Sırala" select'inde.
-- Ülke sıralaması dile bağlı: client ülkeleri yerel ada göre sıralayıp `countryOrder=DE,AD,AT,…` olarak
-  gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz; i18n'de de bu yol kullanılır.
+- Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
+  olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart listesi.
+  Başlıklar kısa sütun etiketleriyle (`coin.column.*`), genişlikler dört dilin en uzununa göre;
+  etiket ya da sütun değişince dört dilde başlık taşması headless'ta ölçülür.
 - Koleksiyonun iki görünümü var: liste (masaüstünde tablo, altında kart) ve ızgara (2 / 3 / 5 sütun,
   600 px preview). Seçim URL'de (`view=grid`, varsayılan liste yazılmaz), sayfa ve filtreleri etkilemez.
   Sayfalama satırı: solda görünüm butonları (`<app-pagination>` içine projeksiyon), ortada sayfa
@@ -173,7 +186,29 @@ src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, lay
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer`.
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
-- Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan üretilir (`CountryService`, locale `tr`).
+- Sayfa iskeleti `app.html`: header, `main` (`max-w-5xl px-4`), footer. Header ve footer `sm` ve üstünde
+  yapışkan (üstte / altta), telefonda değil (ekranı kaplamasın). İçerikleri de `max-w-5xl px-4`, kenarlar
+  hizalı.
+- Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan, aktif dilde üretilir (`CountryService`).
+- **i18n (Transloco, `@jsverse/transloco`):**
+  - Template'te `{{ 'anahtar' | transloco }}`, sayıya bağlı metinde `{{ 'anahtar' | plural: n }}`
+    (anahtarın altında `one` / `other`, `Intl.PluralRules`), TS'te `translate()`. Anahtarlar alan/sayfa
+    adıyla gruplu (`coinList.*`, `collectionForm.*`, ortaklar `common.*`, `errors.*`, `validation.*`).
+  - `computed()` içinde çeviri yapılmaz (dil değişince yeniden hesaplanmaz): computed anahtar döner,
+    template çevirir. Dile bağlı `Intl` işleri `LanguageService.current()` signal'ını okur.
+  - Enum etiketleri modelde tutulmaz, anahtar değerden türetilir: `coin.denomination.<değer>`,
+    `coin.side.<değer>.label`, `visibility.<değer>.label`, `coin.sort.<sütun>.asc`.
+  - Dil sırası: hesaptaki dil > bu tarayıcıdaki son seçim (`localStorage` `coinportal.language`) >
+    tarayıcı dili > İngilizce. Açılışta ve girişte `LanguageService.use()`; çeviri yüklenmeden dil
+    değişmez. Dil seçici footer'da (herkes) ve Ayarlar > Dil'de; ikisi de `LanguagePreference.change()`
+    kullanır (girişliyse önce hesaba kaydeder). Seçici `shared/language-select` (bayraklı liste kutusu,
+    klavyeyle kullanılır; native `<select>` resim gösteremez, emoji bayraklar Windows'ta harf çıkar),
+    bayraklar `shared/flag` (inline SVG).
+  - Dil dosyaları dinamik `import()` ile ayrı chunk (sadece aktif dil iner, adlar hash'li).
+  - Route `title`'ları çeviri anahtarıdır (`TranslatedTitleStrategy`: "<metin> · Coin Portal").
+  - Testlerde `provideTestTransloco()` + `await useTestLanguage('tr')` (`core/i18n/testing.ts`).
+  - Ayarlar sayfası: soldaki bölüm menüsü `pages/settings/settings.ts` `SECTIONS`, her bölüm
+    `settings.routes.ts` içinde bir alt rota.
 - Prettier: `printWidth: 100`, `singleQuote`.
 
 ## Bilinen tuzaklar
@@ -187,9 +222,12 @@ src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, lay
 - Kullanıcının API'si çalışırken `bin/` kilitli olur ve `dotnet build` kopyalamada takılır. Bu
   durumda ne yapılacağı "Çalışan uygulamalar" bölümünde.
 - Eski dosyaların çoğunda dosya sonu satır sonu yok (kopyala-yapıştır döneminden); Prettier'ı sadece
-  değiştirilen dosyalarda çalıştır, ilgisiz dosyaları diff'e katma.
+  değiştirilen dosyalarda çalıştır, ilgisiz dosyaları diff'e katma. Harici `.html` şablonları
+  (`collection.html`, `header.html` vb.) hiç Prettier'dan geçmemiş; onlarda çalıştırma, tüm dosyayı
+  yeniden biçimler.
 - Python kurulu değil; betikler için Node veya Bash kullan. Bash `node -e "…"` içinde template literal
-  (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap.
+  (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap. Toplu metin değişikliği
+  gerekirse betiği Write ile scratchpad'e yazıp `node` ile çalıştır (heredoc'lar da bozulabiliyor).
 - **ImageSharp 4.x lisans anahtarı ister:** anahtar yoksa Debug derleme uyarı verir, **Release
   (publish) derleme hata verir.** Karar bekliyor (PROJECT_STATUS "Açık konular").
 - Scratchpad'deki .NET betikleri (`dotnet run x.cs`, `#:package`) repo'nun `nuget.config`'ini görmez;
@@ -208,5 +246,9 @@ src/client/src/app/     core/{auth,coins,collections,public,http}/, shared/, lay
   betiğiyle (`fetch`) ya da `--data-binary @dosya.json` ile yap.
 - `sqlcmd` ile filtreli index'i olan tablolarda (ör. `AspNetUsers`) DELETE/UPDATE için `-I`
   (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
+- `sticky` bir eleman ebeveyninin dışına çıkamaz: bileşen host'u (`<app-header>`) içerikle aynı
+  yükseklikteyse içteki elemana verilen `sticky` işe yaramaz; `sticky` host'a verilir (`host: { class }`).
+- `<select class="w-auto">` en uzun seçeneğe göre genişler; uzun dillerde (Bulgarca) mobilde sayfayı
+  yatay taşırır. Select'e ve flex/grid atalarına `min-w-0` ver.
 - Satır sonları LF (`.gitattributes`). Şirketin global `.npmrc`'sinde Azure DevOps feed'i var;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.
