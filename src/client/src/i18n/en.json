@@ -382,6 +382,12 @@
       "description": "A light or dark look. System follows your device's setting. Your choice is saved to your account and used on every device you sign in on.",
       "saved": "Saved.",
       "saveFailed": "Couldn't save the theme. Please try again."
+    },
+    "accent": {
+      "title": "Accent color",
+      "description": "The color of links, highlights and main buttons. Your choice is saved to your account and used on every device you sign in on.",
+      "saved": "Saved.",
+      "saveFailed": "Couldn't save the accent color. Please try again."
     }
   },
   "theme": {
@@ -389,6 +395,15 @@
       "Light": "Light",
       "Dark": "Dark",
       "System": "System"
+    },
+    "accent": {
+      "Amber": "Gold",
+      "Teal": "Teal",
+      "Blue": "Blue",
+      "Indigo": "Indigo",
+      "Violet": "Violet",
+      "Rose": "Rose",
+      "Lime": "Lime"
     },
     "toDark": "Switch to dark theme",
     "toLight": "Switch to light theme"

@@ -382,6 +382,12 @@
       "description": "Açık ya da koyu görünüm. Sistem seçeneği cihazının ayarını izler. Seçimin hesabına kaydedilir ve giriş yaptığın her cihazda kullanılır.",
       "saved": "Kaydedildi.",
       "saveFailed": "Tema kaydedilemedi. Lütfen tekrar dene."
+    },
+    "accent": {
+      "title": "Tema rengi",
+      "description": "Linklerde, vurgularda ve ana butonlarda kullanılan renk. Seçimin hesabına kaydedilir ve giriş yaptığın her cihazda kullanılır.",
+      "saved": "Kaydedildi.",
+      "saveFailed": "Tema rengi kaydedilemedi. Lütfen tekrar dene."
     }
   },
   "theme": {
@@ -389,6 +395,15 @@
       "Light": "Açık",
       "Dark": "Koyu",
       "System": "Sistem"
+    },
+    "accent": {
+      "Amber": "Altın",
+      "Teal": "Camgöbeği",
+      "Blue": "Mavi",
+      "Indigo": "Çivit",
+      "Violet": "Mor",
+      "Rose": "Gül",
+      "Lime": "Yeşil"
     },
     "toDark": "Koyu temaya geç",
     "toLight": "Açık temaya geç"
