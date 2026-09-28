@@ -4,6 +4,7 @@ import { Component, OnInit, WritableSignal, computed, inject, input, signal } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, UrlTree } from '@angular/router';
+import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { firstValueFrom, merge } from 'rxjs';
 
 import {
@@ -24,7 +25,7 @@ import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
-import { suggestTitle } from '../../shared/coin-format';
+import { denominationLabel, suggestTitle } from '../../shared/coin-format';
 import { errorMessage } from '../../shared/form-errors';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
@@ -34,7 +35,7 @@ import { PhotoSlot } from './photo-slot';
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
 @Component({
   selector: 'app-coin-form',
-  imports: [ReactiveFormsModule, RouterLink, PhotoSlot, PhotoViewer],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, PhotoSlot, PhotoViewer],
   templateUrl: './coin-form.html',
 })
 export class CoinForm implements OnInit {
@@ -82,6 +83,7 @@ export class CoinForm implements OnInit {
   protected readonly formErrors = signal<string[]>([]);
 
   protected readonly denominations = DENOMINATIONS;
+  protected readonly denominationLabel = denominationLabel;
   protected readonly countries = this.countryService.countries;
   protected readonly limits = COIN_LIMITS;
   protected readonly maxYear = maxCoinYear();
@@ -168,7 +170,7 @@ export class CoinForm implements OnInit {
         if (err.status === 404) {
           this.notFound.set(true);
         } else {
-          this.formErrors.set(['Coin yüklenemedi. Sayfayı yenileyip tekrar dene.']);
+          this.formErrors.set([translate('coinForm.loadError')]);
         }
       },
     });
@@ -208,7 +210,7 @@ export class CoinForm implements OnInit {
 
     // The coin exists now: a retry must update it, not create another one
     this.location.replaceState(`/collection/${coin.id}/edit`);
-    this.formErrors.set(['Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:', ...failures]);
+    this.formErrors.set([translate('coinForm.photosFailed'), ...failures]);
   }
 
   protected async remove(): Promise<void> {
@@ -218,10 +220,10 @@ export class CoinForm implements OnInit {
     }
 
     const confirmed = await this.confirmDialog.confirm({
-      title: 'Coini sil',
-      message: `"${this.form.controls.title.value}" koleksiyonundan kalıcı olarak silinecek. Bu işlem geri alınamaz.`,
-      confirmText: 'Sil',
-      cancelText: 'Vazgeç',
+      title: translate('coinForm.deleteTitle'),
+      message: translate('coinForm.deleteMessage', { title: this.form.controls.title.value }),
+      confirmText: translate('common.delete'),
+      cancelText: translate('common.cancel'),
       danger: true,
     });
     if (!confirmed) {
@@ -256,7 +258,7 @@ export class CoinForm implements OnInit {
   /** Applies the pending photo changes one by one; returns messages for the failed ones. */
   private async savePhotos(coinId: number): Promise<string[]> {
     const failures: string[] = [];
-    for (const { value: side, label } of COIN_SIDES) {
+    for (const side of COIN_SIDES) {
       const change = this.photoChanges[side]();
       if (!change) {
         continue;
@@ -279,7 +281,7 @@ export class CoinForm implements OnInit {
           this.photoChanges[side].set(null);
           continue;
         }
-        failures.push(`${label}: ${photoErrorMessage(error)}`);
+        failures.push(`${translate(`coin.side.${side}.label`)}: ${photoErrorMessage(error)}`);
       }
     }
     return failures;

@@ -2,9 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, translate } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { mapValidationProblem } from '../../core/http/problem-details';
+import { httpErrorMessage, mapValidationProblem } from '../../core/http/problem-details';
 import { errorMessage } from '../../shared/form-errors';
 import {
   USER_NAME_PATTERN,
@@ -25,16 +26,17 @@ const IDENTITY_CODE_MAP: Record<string, string> = {
   Password: 'password',
 };
 
-const IDENTITY_MESSAGES: Record<string, string> = {
-  DuplicateEmail: 'Bu e-posta adresiyle zaten bir hesap var.',
-  DuplicateUserName: 'Bu kullanıcı adı alınmış.',
-  InvalidUserName: 'Kullanıcı adında sadece harf, rakam ve . _ - kullanılabilir.',
-  InvalidEmail: 'Geçerli bir e-posta adresi girin.',
+// Identity error codes -> translation keys (the API's own messages are English)
+const IDENTITY_MESSAGE_KEYS: Record<string, string> = {
+  DuplicateEmail: 'register.duplicateEmail',
+  DuplicateUserName: 'register.duplicateUserName',
+  InvalidUserName: 'register.invalidUserName',
+  InvalidEmail: 'validation.email',
 };
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe],
   templateUrl: './register.html',
 })
 export class Register {
@@ -44,6 +46,7 @@ export class Register {
   protected readonly submitting = signal(false);
   protected readonly formErrors = signal<string[]>([]);
   protected readonly errorMessage = errorMessage;
+  protected readonly minAge = MIN_AGE;
   protected readonly maxBirthDate = latestBirthDate(MIN_AGE);
 
   protected readonly form = inject(NonNullableFormBuilder).group(
@@ -92,11 +95,7 @@ export class Register {
 
   private applyServerErrors(err: HttpErrorResponse): void {
     if (err.status !== 400) {
-      this.formErrors.set([
-        err.status === 0
-          ? 'Sunucuya ulaşılamıyor. Bağlantını kontrol et.'
-          : 'Beklenmeyen bir hata oluştu. Lütfen tekrar dene.',
-      ]);
+      this.formErrors.set([httpErrorMessage(err)]);
       return;
     }
 
@@ -104,7 +103,7 @@ export class Register {
       err,
       Object.keys(this.form.controls),
       IDENTITY_CODE_MAP,
-      IDENTITY_MESSAGES,
+      IDENTITY_MESSAGE_KEYS,
     );
 
     for (const [name, message] of Object.entries(mapped.fields)) {
@@ -116,7 +115,7 @@ export class Register {
     const general = mapped.general;
     if (!general.length && !Object.keys(mapped.fields).length) {
       // A 400 without a problem body usually means the antiforgery check failed
-      general.push('İstek doğrulanamadı. Sayfayı yenileyip tekrar dene.');
+      general.push(translate('errors.requestRejected'));
     }
     this.formErrors.set(general);
   }

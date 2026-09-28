@@ -2,8 +2,10 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, of, switchMap, tap } from 'rxjs';
 
+import { PluralPipe } from '../../core/i18n/plural';
 import { PublicProfile } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
@@ -11,15 +13,17 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
 /** Public profile (/u/:userName): the user's public collections. Works signed out. */
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, CollectionCard],
+  imports: [RouterLink, TranslocoPipe, PluralPipe, CollectionCard],
   template: `
     <section class="space-y-6">
       @if (notFound()) {
         <div class="card text-center">
           <p class="text-slate-600">
-            Bu kullanıcının herkese açık bir koleksiyonu yok ya da kullanıcı bulunamadı.
+            {{ 'profile.notFound' | transloco }}
           </p>
-          <a routerLink="/explore" class="btn-secondary mt-4">Keşfet'e git</a>
+          <a routerLink="/explore" class="btn-secondary mt-4">{{
+            'common.goToExplore' | transloco
+          }}</a>
         </div>
       } @else if (profile(); as p) {
         <div class="flex items-center gap-4">
@@ -32,7 +36,8 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
           <div class="min-w-0">
             <h1 class="truncate text-2xl font-semibold text-slate-900">&#64;{{ p.userName }}</h1>
             <p class="text-sm text-slate-600">
-              {{ p.collections.length }} herkese açık koleksiyon · {{ totalCoins() }} coin
+              {{ 'profile.publicCollectionCount' | plural: p.collections.length }} ·
+              {{ 'common.coinCount' | plural: totalCoins() }}
             </p>
           </div>
           <a
@@ -40,7 +45,7 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
             [queryParams]="{ owner: p.userName }"
             class="btn-secondary ml-auto"
           >
-            Tüm coin'leri
+            {{ 'profile.allCoins' | transloco }}
           </a>
         </div>
 
@@ -55,7 +60,7 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
           }
         </ul>
       } @else {
-        <p class="text-center text-slate-500">Yükleniyor…</p>
+        <p class="text-center text-slate-500">{{ 'common.loading' | transloco }}</p>
       }
     </section>
   `,
@@ -71,7 +76,7 @@ export class Profile {
   protected readonly notFound = signal(false);
 
   protected readonly initial = computed(
-    () => this.profile()?.userName.charAt(0).toLocaleUpperCase('tr') ?? '',
+    () => this.profile()?.userName.charAt(0).toUpperCase() ?? '',
   );
   protected readonly totalCoins = computed(() =>
     (this.profile()?.collections ?? []).reduce((sum, c) => sum + c.coinCount, 0),

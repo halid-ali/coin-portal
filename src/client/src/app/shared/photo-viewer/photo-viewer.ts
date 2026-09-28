@@ -8,8 +8,9 @@ import {
   output,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
-import { COIN_SIDES, CoinPhoto, CoinSide } from '../../core/coins/coin.models';
+import { CoinPhoto, CoinSide } from '../../core/coins/coin.models';
 import { photoUrl } from '../../core/coins/coin.service';
 
 let nextId = 0;
@@ -21,6 +22,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-photo-viewer',
+  imports: [TranslocoPipe],
   template: `
     <dialog
       #dialog
@@ -37,7 +39,7 @@ let nextId = 0;
           type="button"
           class="rounded-lg p-2 hover:bg-white/10 focus-visible:ring-2
                 focus-visible:ring-white/60 focus-visible:outline-none"
-          aria-label="Kapat"
+          [attr.aria-label]="'common.close' | transloco"
           (click)="close()"
         >
           <svg
@@ -57,14 +59,18 @@ let nextId = 0;
       @if (current(); as photo) {
         <img
           [src]="url(photo)"
-          [alt]="title() + ' – ' + sideLabel(photo.side)"
+          [alt]="title() + ' – ' + (sideKey(photo.side) | transloco)"
           class="mx-auto aspect-square max-h-[calc(100dvh-9rem)] w-full rounded-xl bg-slate-800 object-contain"
         />
       }
 
       @if (photos().length > 1) {
         <div class="mt-3 flex justify-center">
-          <div class="inline-flex rounded-lg bg-white/10 p-1" role="group" aria-label="Yüz seçimi">
+          <div
+            class="inline-flex rounded-lg bg-white/10 p-1"
+            role="group"
+            [attr.aria-label]="'viewer.sides' | transloco"
+          >
             @for (photo of photos(); track photo.side) {
               <button
                 type="button"
@@ -77,7 +83,7 @@ let nextId = 0;
                 [attr.aria-pressed]="photo.side === side()"
                 (click)="side.set(photo.side)"
               >
-                {{ sideLabel(photo.side) }}
+                {{ sideKey(photo.side) | transloco }}
               </button>
             }
           </div>
@@ -121,8 +127,8 @@ export class PhotoViewer {
     return photoUrl(this.coinId(), photo, 'full', this.shareToken());
   }
 
-  protected sideLabel(side: CoinSide): string {
-    return COIN_SIDES.find((s) => s.value === side)?.label ?? side;
+  protected sideKey(side: CoinSide): string {
+    return `coin.side.${side}.label`;
   }
 
   protected step(delta: number): void {

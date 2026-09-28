@@ -1,30 +1,40 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 
+import { LanguageService } from '../i18n/language.service';
 import { Country } from './coin.models';
 
 export interface CountryOption {
   code: string;
-  /** Localized display name, e.g. "Almanya". */
+  /** Display name in the active language, e.g. "Germany". */
   name: string;
 }
 
 /**
  * Loads the issuing countries once and keeps them for the app lifetime.
- * Names come from the browser (Intl.DisplayNames), not from the API.
+ * Names come from the browser (Intl.DisplayNames) in the active language, not from the API.
  */
 @Injectable({ providedIn: 'root' })
 export class CountryService {
   private readonly http = inject(HttpClient);
-  // Locale is fixed until the i18n step
-  private readonly locale = 'tr';
-  private readonly displayNames = new Intl.DisplayNames([this.locale], { type: 'region' });
+  private readonly language = inject(LanguageService);
 
-  private readonly options = signal<CountryOption[]>([]);
+  private readonly displayNames = computed(
+    () => new Intl.DisplayNames([this.language.current()], { type: 'region' }),
+  );
+  private readonly codes = signal<string[]>([]);
   private requested = false;
 
-  /** Sorted by localized name. Empty until load() completes. */
-  readonly countries = this.options.asReadonly();
+  /**
+   * Sorted by display name in the active language; re-sorted when the language changes (the
+   * coin list sends this order to the API). Empty until load() completes.
+   */
+  readonly countries = computed<CountryOption[]>(() => {
+    const lang = this.language.current();
+    return this.codes()
+      .map((code) => ({ code, name: this.name(code) }))
+      .sort((a, b) => a.name.localeCompare(b.name, lang));
+  });
 
   load(): void {
     if (this.requested) {
@@ -33,20 +43,16 @@ export class CountryService {
     this.requested = true;
 
     this.http.get<Country[]>('/api/countries').subscribe({
-      next: (list) =>
-        this.options.set(
-          list
-            .map((c) => ({ code: c.code, name: this.name(c.code) }))
-            .sort((a, b) => a.name.localeCompare(b.name, this.locale)),
-        ),
+      next: (list) => this.codes.set(list.map((c) => c.code)),
       // Allow a retry on the next call
       error: () => (this.requested = false),
     });
   }
 
+  /** Reads the active language, so templates and computed()s calling it follow a switch. */
   name(code: string): string {
     try {
-      return this.displayNames.of(code) ?? code;
+      return this.displayNames().of(code) ?? code;
     } catch {
       return code;
     }

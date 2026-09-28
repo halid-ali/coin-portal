@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -20,11 +21,11 @@ import {
   COLLECTION_LIMITS,
   Collection,
   CollectionVisibility,
-  VISIBILITY_OPTIONS,
+  VISIBILITIES,
 } from '../../core/collections/collection.models';
 import {
   COLLECTION_ERROR_CODES,
-  COLLECTION_ERROR_MESSAGES,
+  COLLECTION_ERROR_MESSAGE_KEYS,
   CollectionService,
   collectionErrorMessage,
   shareLink,
@@ -46,7 +47,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-collection-form-dialog',
-  imports: [ReactiveFormsModule, CoverPicker, VisibilityBadge],
+  imports: [ReactiveFormsModule, TranslocoPipe, CoverPicker, VisibilityBadge],
   template: `
     <dialog
       #dialog
@@ -56,7 +57,7 @@ let nextId = 0;
     >
       <form [formGroup]="form" (ngSubmit)="save()" novalidate class="space-y-5 p-6">
         <h2 [id]="titleId" class="text-lg font-semibold">
-          {{ saved() ? 'Koleksiyonu düzenle' : 'Yeni koleksiyon' }}
+          {{ (saved() ? 'collectionForm.titleEdit' : 'collectionForm.titleNew') | transloco }}
         </h2>
 
         @if (formErrors().length) {
@@ -68,7 +69,9 @@ let nextId = 0;
         }
 
         <div>
-          <label [for]="titleId + '-name'" class="form-label">Ad</label>
+          <label [for]="titleId + '-name'" class="form-label">{{
+            'collectionForm.name' | transloco
+          }}</label>
           <input
             [id]="titleId + '-name'"
             type="text"
@@ -80,12 +83,14 @@ let nextId = 0;
           @if (errorMessage(form.controls.name); as msg) {
             <p class="form-error">{{ msg }}</p>
           } @else {
-            <p class="form-hint">Örn. Euro koleksiyonum, Takas listesi, Eksiklerim</p>
+            <p class="form-hint">{{ 'collectionForm.nameHint' | transloco }}</p>
           }
         </div>
 
         <div>
-          <label [for]="titleId + '-description'" class="form-label">Açıklama</label>
+          <label [for]="titleId + '-description'" class="form-label">{{
+            'collectionForm.description' | transloco
+          }}</label>
           <textarea
             [id]="titleId + '-description'"
             rows="3"
@@ -97,17 +102,16 @@ let nextId = 0;
             <p class="form-error">{{ msg }}</p>
           } @else {
             <p class="form-hint">
-              İsteğe bağlı. {{ form.controls.description.value.length }}/{{
-                limits.descriptionMaxLength
-              }}
+              {{ 'common.optional' | transloco }}
+              {{ form.controls.description.value.length }}/{{ limits.descriptionMaxLength }}
             </p>
           }
         </div>
 
         <fieldset>
-          <legend class="form-label">Görünürlük</legend>
+          <legend class="form-label">{{ 'collectionForm.visibility' | transloco }}</legend>
           <div class="space-y-2">
-            @for (option of visibilityOptions; track option.value) {
+            @for (option of visibilityOptions; track option) {
               <label
                 class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 transition-colors
                             hover:bg-slate-50 has-checked:border-amber-400 has-checked:bg-amber-50"
@@ -115,26 +119,31 @@ let nextId = 0;
                 <input
                   type="radio"
                   formControlName="visibility"
-                  [value]="option.value"
+                  [value]="option"
                   class="mt-1 accent-amber-500"
                 />
                 <span class="text-sm">
                   <span class="flex items-center gap-2 font-medium text-slate-900">
-                    <app-visibility-badge [visibility]="option.value" />
+                    <app-visibility-badge [visibility]="option" />
                   </span>
-                  <span class="mt-1 block text-slate-600">{{ option.description }}</span>
+                  <span class="mt-1 block text-slate-600">{{
+                    'visibility.' + option + '.description' | transloco
+                  }}</span>
                 </span>
               </label>
             }
           </div>
 
           @if (pendingVisibilityNote(); as note) {
-            <p class="form-hint">{{ note }}</p>
+            <p class="form-hint">{{ note | transloco }}</p>
           } @else if (link(); as url) {
             <div class="mt-3 rounded-lg bg-slate-50 p-3">
               <p class="text-xs font-medium text-slate-600">
                 {{
-                  saved()?.visibility === 'Unlisted' ? 'Gizli paylaşım linki' : 'Herkese açık link'
+                  (saved()?.visibility === 'Unlisted'
+                    ? 'collectionForm.unlistedLink'
+                    : 'collectionForm.publicLink'
+                  ) | transloco
                 }}
               </p>
               <div class="mt-1.5 flex gap-2">
@@ -143,7 +152,7 @@ let nextId = 0;
                   readonly
                   [value]="url"
                   class="form-input min-w-0 flex-1 py-1.5 text-sm"
-                  [attr.aria-label]="'Paylaşım linki'"
+                  [attr.aria-label]="'collectionForm.shareLink' | transloco"
                   (focus)="$any($event.target).select()"
                 />
                 <button
@@ -151,7 +160,7 @@ let nextId = 0;
                   class="btn-secondary shrink-0 px-3 py-1.5 text-sm"
                   (click)="copy(url)"
                 >
-                  {{ copied() ? 'Kopyalandı' : 'Kopyala' }}
+                  {{ (copied() ? 'common.copied' : 'common.copy') | transloco }}
                 </button>
               </div>
               @if (saved()?.visibility === 'Unlisted') {
@@ -161,9 +170,14 @@ let nextId = 0;
                   [disabled]="regenerating()"
                   (click)="regenerate()"
                 >
-                  {{ regenerating() ? 'Yenileniyor…' : 'Yeni link oluştur' }}
+                  {{
+                    (regenerating() ? 'collectionForm.regenerating' : 'collectionForm.regenerate')
+                      | transloco
+                  }}
                 </button>
-                <span class="text-xs text-slate-500"> — eski link çalışmaz hale gelir.</span>
+                <span class="text-xs text-slate-500">
+                  {{ 'collectionForm.regenerateNote' | transloco }}</span
+                >
               }
             </div>
           }
@@ -172,9 +186,13 @@ let nextId = 0;
         <app-cover-picker [collection]="saved()" [disabled]="saving()" [(change)]="coverChange" />
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" class="btn-secondary" (click)="close()">Vazgeç</button>
+          <button type="button" class="btn-secondary" (click)="close()">
+            {{ 'common.cancel' | transloco }}
+          </button>
           <button type="submit" class="btn-primary" [disabled]="saving()">
-            {{ saving() ? 'Kaydediliyor…' : saved() ? 'Kaydet' : 'Oluştur' }}
+            {{
+              (saving() ? 'common.saving' : saved() ? 'common.save' : 'common.create') | transloco
+            }}
           </button>
         </div>
       </form>
@@ -209,7 +227,7 @@ export class CollectionFormDialog {
     visibility: this.fb.control<CollectionVisibility>('Private'),
   });
 
-  protected readonly visibilityOptions = VISIBILITY_OPTIONS;
+  protected readonly visibilityOptions = VISIBILITIES;
   protected readonly copied = signal(false);
   protected readonly regenerating = signal(false);
   private readonly chosenVisibility = toSignal(this.form.controls.visibility.valueChanges, {
@@ -223,7 +241,7 @@ export class CollectionFormDialog {
     return saved && user ? shareLink(saved, user.userName) : null;
   });
 
-  /** What saving will do when the chosen visibility differs from the saved one. */
+  /** What saving will do when the chosen visibility differs from the saved one (a key). */
   protected readonly pendingVisibilityNote = computed(() => {
     const chosen = this.chosenVisibility();
     const current = this.saved()?.visibility ?? 'Private';
@@ -231,12 +249,12 @@ export class CollectionFormDialog {
       return null;
     }
     if (current === 'Unlisted') {
-      return 'Kaydedince mevcut gizli link çalışmaz hale gelir.';
+      return 'collectionForm.noteLinkWillStop';
     }
     return chosen === 'Unlisted'
-      ? 'Kaydedince gizli bir paylaşım linki oluşturulur.'
+      ? 'collectionForm.noteLinkWillBeCreated'
       : chosen === 'Public'
-        ? 'Kaydedince koleksiyon herkese açık olur.'
+        ? 'collectionForm.noteWillBePublic'
         : null;
   });
 
@@ -287,7 +305,7 @@ export class CollectionFormDialog {
             this.form,
             err as HttpErrorResponse,
             COLLECTION_ERROR_CODES,
-            COLLECTION_ERROR_MESSAGES,
+            COLLECTION_ERROR_MESSAGE_KEYS,
           ),
         );
         return;
@@ -298,7 +316,7 @@ export class CollectionFormDialog {
       const coverError = await this.saveCover(collection);
       if (coverError) {
         // The collection exists now; a retry updates it and only sends the cover again
-        this.formErrors.set(['Koleksiyon kaydedildi, ancak kapak kaydedilemedi:', coverError]);
+        this.formErrors.set([translate('collectionForm.coverFailed'), coverError]);
         return;
       }
 
@@ -356,11 +374,10 @@ export class CollectionFormDialog {
       return;
     }
     const confirmed = await this.confirmDialog.confirm({
-      title: 'Yeni link oluştur',
-      message:
-        'Şu anki link çalışmaz hale gelecek. Linki paylaştığın kişilere yenisini göndermen gerekir.',
-      confirmText: 'Yeni link oluştur',
-      cancelText: 'Vazgeç',
+      title: translate('collectionForm.regenerate'),
+      message: translate('collectionForm.regenerateMessage'),
+      confirmText: translate('collectionForm.regenerate'),
+      cancelText: translate('common.cancel'),
     });
     if (!confirmed) {
       return;

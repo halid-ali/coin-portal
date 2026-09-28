@@ -1,6 +1,10 @@
 import { AbstractControl } from '@angular/forms';
+import { translate } from '@jsverse/transloco';
 
-/** Turns the first validation error of a control into a user-facing (Turkish) message. */
+/**
+ * Turns the first validation error of a control into a message in the active language.
+ * "server" errors are already translated when they are set (applyServerErrors).
+ */
 export function errorMessage(control: AbstractControl | null): string | null {
   if (!control?.errors || !(control.touched || control.dirty)) {
     return null;
@@ -8,18 +12,20 @@ export function errorMessage(control: AbstractControl | null): string | null {
   const e = control.errors;
 
   if (e['server']) return e['server'] as string;
-  if (e['required']) return 'Bu alan zorunludur.';
-  if (e['email']) return 'Geçerli bir e-posta adresi girin.';
-  if (e['minlength']) return `En az ${e['minlength'].requiredLength} karakter olmalı.`;
-  if (e['maxlength']) return `En fazla ${e['maxlength'].requiredLength} karakter olabilir.`;
-  if (e['pattern']) return 'Sadece harf, rakam ve . _ - kullanılabilir.';
-  if (e['minAge']) return `Kayıt için en az ${e['minAge'].required} yaşında olmalısın.`;
-  if (e['futureDate']) return 'Doğum tarihi gelecekte olamaz.';
-  if (e['maxAge']) return 'Geçerli bir doğum tarihi girin.';
-  if (e['passwordStrength']) return 'Parola en az bir büyük harf, bir küçük harf ve bir rakam içermeli.';
-  if (e['passwordMismatch']) return 'Parolalar eşleşmiyor.';
-  if (e['min']) return `En az ${e['min'].min} olmalı.`;
-  if (e['max']) return `En fazla ${e['max'].max} olabilir.`;
+  if (e['required']) return translate('validation.required');
+  if (e['email']) return translate('validation.email');
+  if (e['minlength'])
+    return translate('validation.minLength', { min: e['minlength'].requiredLength });
+  if (e['maxlength'])
+    return translate('validation.maxLength', { max: e['maxlength'].requiredLength });
+  if (e['pattern']) return translate('validation.pattern');
+  if (e['minAge']) return translate('validation.minAge', { age: e['minAge'].required });
+  if (e['futureDate']) return translate('validation.futureDate');
+  if (e['maxAge']) return translate('validation.maxAge');
+  if (e['passwordStrength']) return translate('validation.passwordStrength');
+  if (e['passwordMismatch']) return translate('validation.passwordMismatch');
+  if (e['min']) return translate('validation.min', { min: e['min'].min });
+  if (e['max']) return translate('validation.max', { max: e['max'].max });
 
-  return 'Geçersiz değer.';
+  return translate('validation.invalid');
 }

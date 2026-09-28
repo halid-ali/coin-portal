@@ -1,41 +1,46 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
+import { PluralPipe } from '../../core/i18n/plural';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
 import { CollectionFormDialog } from './collection-form-dialog';
 
-/** "Koleksiyonlarım": the user's collections as cards, plus creating a new one. */
+/** My collections: the user's collections as cards, plus creating a new one. */
 @Component({
   selector: 'app-collections',
-  imports: [CollectionCard, CollectionFormDialog],
+  imports: [TranslocoPipe, PluralPipe, CollectionCard, CollectionFormDialog],
   template: `
     <section class="space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-semibold text-slate-900">Koleksiyonlarım</h1>
+          <h1 class="text-2xl font-semibold text-slate-900">
+            {{ 'collections.title' | transloco }}
+          </h1>
           @if (collections(); as list) {
             <p class="text-sm text-slate-600">
-              {{ list.length }} koleksiyon · {{ totalCoins() }} coin
+              {{ 'collections.collectionCount' | plural: list.length }} ·
+              {{ 'common.coinCount' | plural: totalCoins() }}
             </p>
           }
         </div>
         <button type="button" class="btn-primary" (click)="creating.set(true)">
-          + Yeni koleksiyon
+          {{ 'collections.new' | transloco }}
         </button>
       </div>
 
       @if (loadError()) {
         <div role="alert" class="alert-error">
-          Koleksiyonlar yüklenemedi. Sayfayı yenileyip tekrar dene.
+          {{ 'collections.loadError' | transloco }}
         </div>
       } @else if (collections(); as list) {
         @if (list.length === 0) {
           <div class="card text-center">
-            <p class="text-slate-600">Henüz koleksiyonun yok.</p>
+            <p class="text-slate-600">{{ 'collections.empty' | transloco }}</p>
             <button type="button" class="btn-primary mt-4" (click)="creating.set(true)">
-              İlk koleksiyonunu oluştur
+              {{ 'collections.createFirst' | transloco }}
             </button>
           </div>
         } @else {
@@ -52,7 +57,7 @@ import { CollectionFormDialog } from './collection-form-dialog';
           </ul>
         }
       } @else {
-        <p class="text-center text-slate-500">Yükleniyor…</p>
+        <p class="text-center text-slate-500">{{ 'common.loading' | transloco }}</p>
       }
     </section>
 

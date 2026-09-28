@@ -1,11 +1,14 @@
+import { translate } from '@jsverse/transloco';
+
 import { DENOMINATIONS, Denomination } from '../core/coins/coin.models';
 
+/** Label in the active language, e.g. "2 €", "50 cent"; empty for unknown values. */
 export function denominationLabel(value: Denomination | string | null | undefined): string {
-  return DENOMINATIONS.find((d) => d.value === value)?.label ?? '';
+  return isDenomination(value) ? translate(`coin.denomination.${value}`) : '';
 }
 
 export function isDenomination(value: string | null | undefined): value is Denomination {
-  return DENOMINATIONS.some((d) => d.value === value);
+  return DENOMINATIONS.includes(value as Denomination);
 }
 
 /** Default title from the identifying fields, e.g. "2 € · Almanya · 2006". */

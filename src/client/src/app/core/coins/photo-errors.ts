@@ -1,38 +1,36 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { translate } from '@jsverse/transloco';
 
+import { httpErrorMessage } from '../http/problem-details';
 import { PHOTO_LIMITS } from './coin.models';
 
-const MB = 1024 * 1024;
+const MAX_MB = PHOTO_LIMITS.maxUploadBytes / (1024 * 1024);
 
 /** The API adds a machine readable "code" to photo errors (see CoinPhotosController). */
-const MESSAGES: Record<string, string> = {
-  file_missing: 'Fotoğraf dosyası gönderilemedi.',
-  file_too_large: `Fotoğraf en fazla ${PHOTO_LIMITS.maxUploadBytes / MB} MB olabilir.`,
-  invalid_image: 'Fotoğraf işlenemedi. JPG veya PNG olmalı ve çok küçük olmamalı.',
-  quota_exceeded: 'Fotoğraf saklama alanın doldu. Yer açmak için bazı fotoğrafları silebilirsin.',
-  conflict: 'Fotoğraf aynı anda başka bir yerden değiştirildi. Tekrar dene.',
-};
+const CODES = ['file_missing', 'file_too_large', 'invalid_image', 'quota_exceeded', 'conflict'];
+
+function codeMessage(code: string): string {
+  return translate(`photo.errors.${code}`, { mb: MAX_MB });
+}
 
 export function photoErrorMessage(err: HttpErrorResponse): string {
   const code = (err.error as { code?: string } | null)?.code;
-  if (code && MESSAGES[code]) {
-    return MESSAGES[code];
+  if (code && CODES.includes(code)) {
+    return codeMessage(code);
   }
   if (err.status === 0) {
-    return 'Sunucuya ulaşılamıyor. Bağlantını kontrol et.';
+    return httpErrorMessage(err);
   }
-  return err.status === 413
-    ? MESSAGES['file_too_large']
-    : 'Fotoğraf kaydedilemedi. Lütfen tekrar dene.';
+  return err.status === 413 ? codeMessage('file_too_large') : translate('photo.errors.saveFailed');
 }
 
 /** Checks a chosen file before it is opened in the cropper; null when it is fine. */
 export function validatePhotoFile(file: File): string | null {
   if (!(PHOTO_LIMITS.acceptedTypes as readonly string[]).includes(file.type)) {
-    return 'Sadece JPG veya PNG fotoğraf seçebilirsin.';
+    return translate('photo.errors.wrongType');
   }
   if (file.size > PHOTO_LIMITS.maxUploadBytes) {
-    return MESSAGES['file_too_large'];
+    return codeMessage('file_too_large');
   }
   return null;
 }

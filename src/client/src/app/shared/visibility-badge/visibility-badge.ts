@@ -1,16 +1,18 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
-import { CollectionVisibility, VISIBILITY_OPTIONS } from '../../core/collections/collection.models';
+import { CollectionVisibility } from '../../core/collections/collection.models';
 
-/** Small pill with an icon: Özel (lock), Sadece linkle (link), Herkese açık (globe). */
+/** Small pill with an icon: private (lock), link only (link), public (globe). */
 @Component({
   selector: 'app-visibility-badge',
+  imports: [TranslocoPipe],
   host: { class: 'inline-flex' },
   template: `
     <span
       class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1"
       [class]="tone()"
-      [title]="description()"
+      [title]="'visibility.' + visibility() + '.description' | transloco"
     >
       <svg
         viewBox="0 0 24 24"
@@ -38,18 +40,13 @@ import { CollectionVisibility, VISIBILITY_OPTIONS } from '../../core/collections
           }
         }
       </svg>
-      {{ label() }}
+      {{ 'visibility.' + visibility() + '.label' | transloco }}
     </span>
   `,
 })
 export class VisibilityBadge {
   readonly visibility = input.required<CollectionVisibility>();
 
-  private readonly option = computed(
-    () => VISIBILITY_OPTIONS.find((o) => o.value === this.visibility()) ?? VISIBILITY_OPTIONS[0],
-  );
-  protected readonly label = computed(() => this.option().label);
-  protected readonly description = computed(() => this.option().description);
   protected readonly tone = computed(() => {
     switch (this.visibility()) {
       case 'Public':

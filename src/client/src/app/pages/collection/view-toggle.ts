@@ -1,16 +1,18 @@
 import { Component, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export type CollectionView = 'list' | 'grid';
 
 /** Two icon buttons that switch the collection between list and grid view. */
 @Component({
   selector: 'app-view-toggle',
+  imports: [TranslocoPipe],
   host: { class: 'block' },
   template: `
     <div
       class="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 shadow-sm"
       role="group"
-      aria-label="Görünüm"
+      [attr.aria-label]="'view.group' | transloco"
     >
       @for (option of options; track option.value) {
         <button
@@ -23,8 +25,8 @@ export type CollectionView = 'list' | 'grid';
               : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
           "
           [attr.aria-pressed]="option.value === value()"
-          [attr.aria-label]="option.label"
-          [title]="option.label"
+          [attr.aria-label]="option.labelKey | transloco"
+          [title]="option.labelKey | transloco"
           (click)="valueChange.emit(option.value)"
         >
           <svg
@@ -52,8 +54,8 @@ export class ViewToggle {
   readonly value = input.required<CollectionView>();
   readonly valueChange = output<CollectionView>();
 
-  protected readonly options: readonly { value: CollectionView; label: string }[] = [
-    { value: 'list', label: 'Liste görünümü' },
-    { value: 'grid', label: 'Izgara görünümü' },
+  protected readonly options: readonly { value: CollectionView; labelKey: string }[] = [
+    { value: 'list', labelKey: 'view.list' },
+    { value: 'grid', labelKey: 'view.grid' },
   ];
 }

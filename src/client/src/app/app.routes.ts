@@ -2,22 +2,22 @@ import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './core/auth/auth.guards';
 
+// Titles are translation keys, see TranslatedTitleStrategy (no title: just the app name)
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    title: 'Coin Portal',
     loadComponent: () => import('./pages/home/home').then((m) => m.Home),
   },
   {
     path: 'login',
-    title: 'Giriş yap · Coin Portal',
+    title: 'titles.login',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/login/login').then((m) => m.Login),
   },
   {
     path: 'register',
-    title: 'Kayıt ol · Coin Portal',
+    title: 'titles.register',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/register/register').then((m) => m.Register),
   },
@@ -27,12 +27,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Koleksiyonlarım · Coin Portal',
+        title: 'titles.collections',
         loadComponent: () => import('./pages/collections/collections').then((m) => m.Collections),
       },
       {
         path: ':collectionId',
-        title: 'Koleksiyon · Coin Portal',
+        title: 'titles.collection',
         data: { mode: 'owner' },
         loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
       },
@@ -41,24 +41,24 @@ export const routes: Routes = [
   // Shared views: no sign-in needed, read-only (route data "mode" feeds the Collection page)
   {
     path: 'explore',
-    title: 'Keşfet · Coin Portal',
+    title: 'titles.explore',
     data: { mode: 'explore' },
     loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
   },
   {
     path: 'u/:userName',
-    title: 'Profil · Coin Portal',
+    title: 'titles.profile',
     loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
   },
   {
     path: 'u/:userName/:collectionId',
-    title: 'Koleksiyon · Coin Portal',
+    title: 'titles.collection',
     data: { mode: 'public' },
     loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
   },
   {
     path: 's/:token',
-    title: 'Paylaşılan koleksiyon · Coin Portal',
+    title: 'titles.sharedCollection',
     data: { mode: 'shared' },
     loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
   },
@@ -69,15 +69,22 @@ export const routes: Routes = [
       {
         // ?collection=<id> preselects the collection
         path: 'new',
-        title: 'Coin ekle · Coin Portal',
+        title: 'titles.newCoin',
         loadComponent: () => import('./pages/coin-form/coin-form').then((m) => m.CoinForm),
       },
       {
         path: ':id/edit',
-        title: 'Coini düzenle · Coin Portal',
+        title: 'titles.editCoin',
         loadComponent: () => import('./pages/coin-form/coin-form').then((m) => m.CoinForm),
       },
     ],
+  },
+  {
+    path: 'settings',
+    canActivate: [authGuard],
+    title: 'titles.settings',
+    loadComponent: () => import('./pages/settings/settings').then((m) => m.Settings),
+    loadChildren: () => import('./pages/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
   },
   // Addresses from before multiple collections (bookmarks)
   { path: 'collection', pathMatch: 'full', redirectTo: 'collections' },

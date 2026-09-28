@@ -84,7 +84,8 @@ public static class DevDataSeeder
             var now = DateTime.UtcNow;
             var main = new Collection
             {
-                OwnerId = user.Id, Name = Collection.DefaultName, CreatedAtUtc = now, UpdatedAtUtc = now
+                // The seed content (titles, descriptions) is Turkish
+                OwnerId = user.Id, Name = Collection.DefaultNameFor("tr"), CreatedAtUtc = now, UpdatedAtUtc = now
             };
             var commemorative = new Collection
             {

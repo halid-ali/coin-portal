@@ -1,0 +1,369 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "delete": "Löschen",
+    "deleting": "Wird gelöscht…",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "confirm": "Bestätigen",
+    "close": "Schließen",
+    "loading": "Wird geladen…",
+    "all": "Alle",
+    "yes": "Ja",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "change": "Ändern",
+    "remove": "Entfernen",
+    "undo": "Rückgängig",
+    "choose": "Auswählen…",
+    "optional": "Optional.",
+    "goToExplore": "Zu „Entdecken“",
+    "coinCount": {
+      "one": "{{count}} Münze",
+      "other": "{{count}} Münzen"
+    }
+  },
+  "errors": {
+    "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung.",
+    "unexpected": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "requestRejected": "Die Anfrage konnte nicht bestätigt werden. Lade die Seite neu und versuche es erneut."
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich.",
+    "email": "Gib eine gültige E-Mail-Adresse ein.",
+    "minLength": "Mindestens {{min}} Zeichen.",
+    "maxLength": "Höchstens {{max}} Zeichen.",
+    "pattern": "Erlaubt sind nur Buchstaben ohne Umlaute, Ziffern und . _ -",
+    "minAge": "Für die Registrierung musst du mindestens {{age}} Jahre alt sein.",
+    "futureDate": "Das Geburtsdatum darf nicht in der Zukunft liegen.",
+    "maxAge": "Gib ein gültiges Geburtsdatum ein.",
+    "passwordStrength": "Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Ziffer enthalten.",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+    "min": "Mindestens {{min}}.",
+    "max": "Höchstens {{max}}.",
+    "invalid": "Ungültiger Wert."
+  },
+  "titles": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "collections": "Meine Sammlungen",
+    "collection": "Sammlung",
+    "explore": "Entdecken",
+    "profile": "Profil",
+    "sharedCollection": "Geteilte Sammlung",
+    "newCoin": "Münze hinzufügen",
+    "editCoin": "Münze bearbeiten",
+    "settings": "Einstellungen"
+  },
+  "nav": {
+    "main": "Hauptmenü",
+    "collections": "Meine Sammlungen",
+    "explore": "Entdecken",
+    "settings": "Einstellungen",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "loggingOut": "Wird abgemeldet…",
+    "toggleMenu": "Menü öffnen oder schließen",
+    "language": "Sprache"
+  },
+  "home": {
+    "headline": "Deine Euro-Münzsammlung – immer dabei",
+    "welcome": "Willkommen, {{name}}!",
+    "goToCollections": "Zu meinen Sammlungen",
+    "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine schon hast, und teile deine Sammlung mit Freunden.",
+    "registerFree": "Kostenlos registrieren",
+    "browseCollectors": "Andere Sammler entdecken →"
+  },
+  "login": {
+    "title": "Anmelden",
+    "userNameOrEmail": "Benutzername oder E-Mail-Adresse",
+    "password": "Passwort",
+    "rememberMe": "Angemeldet bleiben",
+    "submit": "Anmelden",
+    "submitting": "Wird angemeldet…",
+    "noAccount": "Noch kein Konto?",
+    "registerLink": "Registrieren",
+    "invalidCredentials": "Benutzername/E-Mail-Adresse oder Passwort ist falsch.",
+    "lockedOut": "Zu viele Fehlversuche. Dein Konto ist vorübergehend gesperrt; bitte versuche es in 10 Minuten erneut."
+  },
+  "register": {
+    "title": "Registrieren",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "userName": "Benutzername",
+    "userNameHint": "3–30 Zeichen; Buchstaben ohne Umlaute, Ziffern und . _ -",
+    "email": "E-Mail-Adresse",
+    "birthDate": "Geburtsdatum",
+    "birthDateHint": "Für die Registrierung musst du mindestens {{age}} Jahre alt sein.",
+    "password": "Passwort",
+    "passwordHint": "Mindestens 8 Zeichen, Groß- und Kleinbuchstaben sowie eine Ziffer.",
+    "confirmPassword": "Passwort bestätigen",
+    "submit": "Registrieren",
+    "submitting": "Konto wird erstellt…",
+    "haveAccount": "Du hast schon ein Konto?",
+    "loginLink": "Anmelden",
+    "duplicateEmail": "Mit dieser E-Mail-Adresse gibt es bereits ein Konto.",
+    "duplicateUserName": "Dieser Benutzername ist bereits vergeben.",
+    "invalidUserName": "Benutzernamen dürfen nur Buchstaben ohne Umlaute, Ziffern und . _ - enthalten."
+  },
+  "coin": {
+    "denomination": {
+      "Euro2": "2 €",
+      "Euro1": "1 €",
+      "Cent50": "50 Cent",
+      "Cent20": "20 Cent",
+      "Cent10": "10 Cent",
+      "Cent5": "5 Cent",
+      "Cent2": "2 Cent",
+      "Cent1": "1 Cent"
+    },
+    "field": {
+      "collection": "Sammlung",
+      "title": "Titel",
+      "denomination": "Nennwert",
+      "country": "Land",
+      "year": "Jahr",
+      "mintMark": "Münzzeichen",
+      "mintMarkLong": "Münzzeichen",
+      "commemorative": "Gedenkmünze",
+      "commemorativeCoin": "Gedenkmünze",
+      "quantity": "Anzahl",
+      "description": "Beschreibung",
+      "photos": "Fotos",
+      "photo": "Foto",
+      "collector": "Sammler",
+      "actions": "Aktionen"
+    },
+    "column": {
+      "Title": "Titel",
+      "Denomination": "Nennwert",
+      "Country": "Land",
+      "Year": "Jahr",
+      "MintMark": "Münzz.",
+      "Commemorative": "Gedenkm.",
+      "Quantity": "Stück"
+    },
+    "sort": {
+      "newest": "Zuletzt hinzugefügt",
+      "Title": { "asc": "A → Z", "desc": "Z → A" },
+      "Denomination": { "asc": "kleinster zuerst", "desc": "größter zuerst" },
+      "Country": { "asc": "A → Z", "desc": "Z → A" },
+      "Year": { "asc": "älteste zuerst", "desc": "neueste zuerst" },
+      "MintMark": { "asc": "A → Z", "desc": "Z → A" },
+      "Commemorative": { "asc": "andere zuerst", "desc": "Gedenkmünzen zuerst" },
+      "Quantity": { "asc": "wenigste zuerst", "desc": "meiste zuerst" }
+    },
+    "side": {
+      "National": {
+        "label": "Nationale Seite",
+        "hint": "Die länderspezifische Seite"
+      },
+      "Common": {
+        "label": "Gemeinsame Seite",
+        "hint": "Die Seite mit dem Wert, in allen Ländern gleich"
+      }
+    },
+    "commemorativeBadge": "Gedenkmünze",
+    "quantityBadge": {
+      "one": "{{count}} Stück",
+      "other": "{{count}} Stück"
+    },
+    "viewPhotos": "Fotos von {{title}} vergrößern",
+    "editNamed": "{{title}} bearbeiten"
+  },
+  "sort": {
+    "ascending": "Aufsteigend sortieren",
+    "descending": "Absteigend sortieren",
+    "clear": "Sortierung aufheben"
+  },
+  "view": {
+    "group": "Ansicht",
+    "list": "Listenansicht",
+    "grid": "Rasteransicht"
+  },
+  "pagination": {
+    "nav": "Seitennavigation",
+    "first": "Erste Seite",
+    "previous": "Vorherige Seite",
+    "next": "Nächste Seite",
+    "last": "Letzte Seite",
+    "perPage": "Pro Seite"
+  },
+  "coinList": {
+    "notFoundOwn": "Sammlung nicht gefunden. Sie wurde vielleicht gelöscht oder gehört dir nicht.",
+    "backToCollections": "Zurück zu meinen Sammlungen",
+    "notFoundShared": "Sammlung nicht gefunden. Der Link ist vielleicht ungültig, oder die Sammlung wird nicht mehr geteilt.",
+    "exploreTitle": "Entdecken",
+    "exploreSubtitle": "Münzen aus öffentlichen Sammlungen",
+    "recordCount": {
+      "one": "{{count}} Münze",
+      "other": "{{count}} Münzen"
+    },
+    "filtered": "(gefiltert)",
+    "sharedBy": "Geteilt von @{{userName}}",
+    "copyLink": "Link kopieren",
+    "addCoin": "+ Münze hinzufügen",
+    "sharedNotice": "Diese Sammlung wurde über einen privaten Link mit dir geteilt; sie erscheint in keiner öffentlichen Liste.",
+    "search": "Suchen",
+    "searchPlaceholder": "Titel oder Beschreibung",
+    "onlyCommemorative": "Nur Gedenkmünzen",
+    "notCommemorative": "Ohne Gedenkmünzen",
+    "clearFilters": "Filter zurücksetzen",
+    "sortBy": "Sortieren:",
+    "loadError": "Die Münzen konnten nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    "noMatches": "Keine Münzen passen zu den Filtern.",
+    "empty": "In dieser Sammlung sind noch keine Münzen.",
+    "addFirstCoin": "Erste Münze hinzufügen",
+    "noPublicCollections": "Es gibt noch keine öffentlichen Sammlungen."
+  },
+  "coinForm": {
+    "titleNew": "Münze hinzufügen",
+    "titleEdit": "Münze bearbeiten",
+    "backToCollection": "Zurück zur Sammlung",
+    "notFound": "Münze nicht gefunden. Sie wurde vielleicht gelöscht oder gehört dir nicht.",
+    "loadError": "Die Münze konnte nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    "moveHint": "Beim Speichern wird die Münze in diese Sammlung verschoben.",
+    "needCollection": "Um Münzen hinzuzufügen, erstelle zuerst eine Sammlung.",
+    "loadingCollections": "Sammlungen werden geladen…",
+    "titleHint": "Wird aus Nennwert, Land und Jahr ausgefüllt; du kannst ihn ändern.",
+    "mintMarkHint": "Optional, z. B. A, D, F, G, J",
+    "photosHint": "Optional. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
+    "photosFailed": "Die Münze wurde gespeichert, aber einige Fotos konnten nicht gespeichert werden:",
+    "deleteTitle": "Münze löschen",
+    "deleteMessage": "„{{title}}“ wird endgültig aus deiner Sammlung gelöscht. Das kann nicht rückgängig gemacht werden."
+  },
+  "photo": {
+    "viewLarge": "{{side}} vergrößern",
+    "choose": "Foto auswählen",
+    "fileHint": "JPG oder PNG, bis {{mb}} MB",
+    "willUpload": "Wird beim Speichern hochgeladen",
+    "willDelete": "Wird beim Speichern gelöscht",
+    "willRemove": "Wird beim Speichern entfernt",
+    "cropTitle": "Foto zuschneiden: {{side}}",
+    "errors": {
+      "file_missing": "Die Fotodatei konnte nicht gesendet werden.",
+      "file_too_large": "Fotos dürfen höchstens {{mb}} MB groß sein.",
+      "invalid_image": "Das Foto konnte nicht verarbeitet werden. Es muss ein JPG oder PNG sein und darf nicht zu klein sein.",
+      "quota_exceeded": "Dein Speicherplatz für Fotos ist voll. Lösche einige Fotos, um Platz zu schaffen.",
+      "conflict": "Das Foto wurde gleichzeitig an anderer Stelle geändert. Bitte versuche es erneut.",
+      "saveFailed": "Das Foto konnte nicht gespeichert werden. Bitte versuche es erneut.",
+      "wrongType": "Du kannst nur JPG- oder PNG-Fotos auswählen."
+    }
+  },
+  "crop": {
+    "title": "Foto zuschneiden",
+    "hint": "Richte die Münze mittig im Kreis aus. Du kannst den Kreis verschieben und an den Ecken seine Größe ändern; nach dem Vergrößern kannst du das Foto außerhalb des Kreises greifen und verschieben.",
+    "openFailed": "Das Foto konnte nicht geöffnet werden. Versuche es mit einer anderen Datei.",
+    "zoom": "Zoom",
+    "rotate": "Um 90° drehen",
+    "rotateLabel": "Um 90 Grad drehen",
+    "reset": "Zurücksetzen",
+    "resetLabel": "Zoom, Position und Drehung zurücksetzen",
+    "preparing": "Wird vorbereitet…",
+    "use": "Übernehmen"
+  },
+  "viewer": {
+    "sides": "Seite wählen"
+  },
+  "collections": {
+    "title": "Meine Sammlungen",
+    "collectionCount": {
+      "one": "{{count}} Sammlung",
+      "other": "{{count}} Sammlungen"
+    },
+    "new": "+ Neue Sammlung",
+    "loadError": "Deine Sammlungen konnten nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    "empty": "Du hast noch keine Sammlungen.",
+    "createFirst": "Erste Sammlung erstellen",
+    "errors": {
+      "last_collection": "Deine einzige Sammlung kann nicht gelöscht werden. Erstelle zuerst eine neue.",
+      "invalid_target": "Die Sammlung, in die die Münzen verschoben werden sollen, ist ungültig.",
+      "not_unlisted": "Der Link kann nur bei Sammlungen erneuert werden, die „Nur mit Link“ geteilt sind.",
+      "notFound": "Sammlung nicht gefunden. Sie wurde vielleicht gelöscht.",
+      "duplicateName": "Du hast bereits eine Sammlung mit diesem Namen."
+    }
+  },
+  "visibility": {
+    "Private": {
+      "label": "Privat",
+      "description": "Nur du kannst sie sehen."
+    },
+    "Unlisted": {
+      "label": "Nur mit Link",
+      "description": "Alle mit dem privaten Link können sie sehen; sie erscheint weder auf deinem Profil noch unter „Entdecken“."
+    },
+    "Public": {
+      "label": "Öffentlich",
+      "description": "Alle können sie sehen, auch ohne Anmeldung. Sie erscheint auf deinem Profil und unter „Entdecken“."
+    }
+  },
+  "collectionForm": {
+    "titleNew": "Neue Sammlung",
+    "titleEdit": "Sammlung bearbeiten",
+    "name": "Name",
+    "nameHint": "Z. B. Meine Euro-Münzen, Tauschliste, Fehlliste",
+    "description": "Beschreibung",
+    "visibility": "Sichtbarkeit",
+    "unlistedLink": "Privater Link zum Teilen",
+    "publicLink": "Öffentlicher Link",
+    "shareLink": "Link zum Teilen",
+    "regenerate": "Neuen Link erstellen",
+    "regenerating": "Wird erstellt…",
+    "regenerateNote": "– der alte Link funktioniert dann nicht mehr.",
+    "regenerateMessage": "Der aktuelle Link funktioniert dann nicht mehr. Du musst den neuen Link allen schicken, mit denen du ihn geteilt hast.",
+    "noteLinkWillStop": "Beim Speichern funktioniert der aktuelle private Link nicht mehr.",
+    "noteLinkWillBeCreated": "Beim Speichern wird ein privater Link zum Teilen erstellt.",
+    "noteWillBePublic": "Beim Speichern wird die Sammlung öffentlich.",
+    "coverFailed": "Die Sammlung wurde gespeichert, aber das Titelbild konnte nicht gespeichert werden:"
+  },
+  "cover": {
+    "title": "Titelbild",
+    "choose": "Titelbild auswählen",
+    "upload": "Titelbild hochladen",
+    "auto": "Automatisch",
+    "hint": "Optional, JPG oder PNG (bis {{mb}} MB). Ohne Titelbild wird das zuletzt hinzugefügte Münzfoto verwendet.",
+    "cropTitle": "Titelbild zuschneiden",
+    "cropHint": "Wähle den Ausschnitt, der auf den Karten zu sehen ist. Du kannst den Rahmen verschieben und an den Ecken seine Größe ändern; nach dem Vergrößern kannst du das Foto außerhalb des Rahmens greifen und verschieben."
+  },
+  "collectionDelete": {
+    "title": "Sammlung löschen",
+    "willBeDeleted": "wird endgültig gelöscht.",
+    "containsCoins": {
+      "one": "Sie enthält {{count}} Münze.",
+      "other": "Sie enthält {{count}} Münzen."
+    },
+    "isEmpty": "Die Sammlung ist leer.",
+    "whatAboutCoins": "Was soll mit den Münzen passieren?",
+    "moveTo": "In eine andere Sammlung verschieben",
+    "moveTarget": "Zielsammlung",
+    "deleteCoins": "Münzen ebenfalls löschen",
+    "deleteCoinsNote": {
+      "one": "{{count}} Münze und ihre Fotos werden endgültig gelöscht.",
+      "other": "{{count}} Münzen und ihre Fotos werden endgültig gelöscht."
+    },
+    "typeName": "Gib zur Bestätigung den Namen der Sammlung ein:",
+    "submit": "Sammlung löschen"
+  },
+  "profile": {
+    "notFound": "Dieser Nutzer hat keine öffentlichen Sammlungen, oder es gibt ihn nicht.",
+    "publicCollectionCount": {
+      "one": "{{count}} öffentliche Sammlung",
+      "other": "{{count}} öffentliche Sammlungen"
+    },
+    "allCoins": "Alle Münzen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "sections": "Bereiche der Einstellungen",
+    "language": {
+      "nav": "Sprache",
+      "title": "Sprache",
+      "description": "Die Sprache der Benutzeroberfläche. Deine Auswahl wird in deinem Konto gespeichert und auf jedem Gerät verwendet, auf dem du dich anmeldest.",
+      "saved": "Gespeichert.",
+      "saveFailed": "Die Sprache konnte nicht gespeichert werden. Bitte versuche es erneut."
+    }
+  }
+}

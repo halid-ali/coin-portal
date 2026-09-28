@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
+import { translate } from '@jsverse/transloco';
 
 /** Shape of ASP.NET Core ValidationProblemDetails (only the parts we use). */
 interface ValidationProblem {
@@ -21,13 +22,14 @@ export interface MappedErrors {
  *
  * @param controlNames form control names, matched case-insensitively
  * @param codeMap Identity error code -> control name
- * @param messageOverrides Identity error code -> localized message
+ * @param messageKeys error code -> translation key of the message to show instead of the
+ *   API's (English) one
  */
 export function mapValidationProblem(
   error: HttpErrorResponse,
   controlNames: string[],
   codeMap: Record<string, string> = {},
-  messageOverrides: Record<string, string> = {},
+  messageKeys: Record<string, string> = {},
 ): MappedErrors {
   const result: MappedErrors = { fields: {}, general: [] };
   const problem = error.error as ValidationProblem | null;
@@ -37,7 +39,7 @@ export function mapValidationProblem(
   }
 
   for (const [rawKey, messages] of Object.entries(problem.errors)) {
-    const message = messageOverrides[rawKey] ?? messages[0];
+    const message = messageKeys[rawKey] ? translate(messageKeys[rawKey]) : messages[0];
     const key = rawKey.replace(/^\$\./, '').toLowerCase();
 
     const control =
@@ -63,17 +65,13 @@ export function applyServerErrors(
   form: FormGroup,
   error: HttpErrorResponse,
   codeMap: Record<string, string> = {},
-  messageOverrides: Record<string, string> = {},
+  messageKeys: Record<string, string> = {},
 ): string[] {
   if (error.status !== 400) {
-    return [
-      error.status === 0
-        ? 'Sunucuya ulaşılamıyor. Bağlantını kontrol et.'
-        : 'Beklenmeyen bir hata oluştu. Lütfen tekrar dene.',
-    ];
+    return [httpErrorMessage(error)];
   }
 
-  const mapped = mapValidationProblem(error, Object.keys(form.controls), codeMap, messageOverrides);
+  const mapped = mapValidationProblem(error, Object.keys(form.controls), codeMap, messageKeys);
 
   for (const [name, message] of Object.entries(mapped.fields)) {
     const control = form.get(name);
@@ -84,7 +82,12 @@ export function applyServerErrors(
   const general = mapped.general;
   if (!general.length && !Object.keys(mapped.fields).length) {
     // A 400 without a problem body usually means the antiforgery check failed
-    general.push('İstek doğrulanamadı. Sayfayı yenileyip tekrar dene.');
+    general.push(translate('errors.requestRejected'));
   }
   return general;
+}
+
+/** Generic message for a failed request that has no more specific one. */
+export function httpErrorMessage(error: HttpErrorResponse): string {
+  return translate(error.status === 0 ? 'errors.network' : 'errors.unexpected');
 }

@@ -2,13 +2,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, translate } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { httpErrorMessage } from '../../core/http/problem-details';
 import { errorMessage } from '../../shared/form-errors';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe],
   templateUrl: './login.html',
 })
 export class Login {
@@ -53,15 +55,13 @@ export class Login {
   private describeError(err: HttpErrorResponse): string {
     switch (err.status) {
       case 401:
-        return 'Kullanıcı adı/e-posta veya parola hatalı.';
+        return translate('login.invalidCredentials');
       case 423:
-        return 'Çok fazla hatalı deneme yapıldı. Hesabın geçici olarak kilitlendi, lütfen 10 dakika sonra tekrar dene.';
+        return translate('login.lockedOut');
       case 400:
-        return 'İstek doğrulanamadı. Sayfayı yenileyip tekrar dene.';
-      case 0:
-        return 'Sunucuya ulaşılamıyor. Bağlantını kontrol et.';
+        return translate('errors.requestRejected');
       default:
-        return 'Beklenmeyen bir hata oluştu. Lütfen tekrar dene.';
+        return httpErrorMessage(err);
     }
   }
 

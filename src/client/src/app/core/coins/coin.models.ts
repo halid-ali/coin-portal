@@ -2,16 +2,16 @@
 export type Denomination =
   'Cent1' | 'Cent2' | 'Cent5' | 'Cent10' | 'Cent20' | 'Cent50' | 'Euro1' | 'Euro2';
 
-/** Largest first, the order used in selects and labels. */
-export const DENOMINATIONS: readonly { value: Denomination; label: string }[] = [
-  { value: 'Euro2', label: '2 €' },
-  { value: 'Euro1', label: '1 €' },
-  { value: 'Cent50', label: '50 cent' },
-  { value: 'Cent20', label: '20 cent' },
-  { value: 'Cent10', label: '10 cent' },
-  { value: 'Cent5', label: '5 cent' },
-  { value: 'Cent2', label: '2 cent' },
-  { value: 'Cent1', label: '1 cent' },
+/** Largest first, the order used in selects. Labels: coin.denomination.<value> (denominationLabel). */
+export const DENOMINATIONS: readonly Denomination[] = [
+  'Euro2',
+  'Euro1',
+  'Cent50',
+  'Cent20',
+  'Cent10',
+  'Cent5',
+  'Cent2',
+  'Cent1',
 ];
 
 /** Mirrors the API's CoinSort enum. 'Newest' is the default and has no direction. */
@@ -29,20 +29,19 @@ export type SortDirection = 'Asc' | 'Desc';
 
 export type CoinSortColumn = Exclude<CoinSort, 'Newest'>;
 
-/** Sortable table columns with the wording of each direction (used by the mobile select). */
-export const COIN_SORT_COLUMNS: readonly {
-  value: CoinSortColumn;
-  label: string;
-  asc: string;
-  desc: string;
-}[] = [
-  { value: 'Title', label: 'Başlık', asc: 'A → Z', desc: 'Z → A' },
-  { value: 'Denomination', label: 'Nominal', asc: 'küçükten büyüğe', desc: 'büyükten küçüğe' },
-  { value: 'Country', label: 'Ülke', asc: 'A → Z', desc: 'Z → A' },
-  { value: 'Year', label: 'Yıl', asc: 'eskiden yeniye', desc: 'yeniden eskiye' },
-  { value: 'MintMark', label: 'Darphane', asc: 'A → Z', desc: 'Z → A' },
-  { value: 'Commemorative', label: 'Hatıra', asc: 'önce diğerleri', desc: 'önce hatıralar' },
-  { value: 'Quantity', label: 'Adet', asc: 'azdan çoğa', desc: 'çoktan aza' },
+/**
+ * Sortable table columns in table order. labelKey is the full field name (sort select); table
+ * headers use the shorter coin.column.<value>, sized to the fixed column widths. The wording of
+ * each direction is coin.sort.<value>.asc / .desc.
+ */
+export const COIN_SORT_COLUMNS: readonly { value: CoinSortColumn; labelKey: string }[] = [
+  { value: 'Title', labelKey: 'coin.field.title' },
+  { value: 'Denomination', labelKey: 'coin.field.denomination' },
+  { value: 'Country', labelKey: 'coin.field.country' },
+  { value: 'Year', labelKey: 'coin.field.year' },
+  { value: 'MintMark', labelKey: 'coin.field.mintMark' },
+  { value: 'Commemorative', labelKey: 'coin.field.commemorative' },
+  { value: 'Quantity', labelKey: 'coin.field.quantity' },
 ];
 
 export function isSortColumn(value: string | null | undefined): value is CoinSortColumn {
@@ -50,12 +49,7 @@ export function isSortColumn(value: string | null | undefined): value is CoinSor
 }
 
 /** 0 means "all items on one page" (the API accepts pageSize=0). */
-export const PAGE_SIZE_OPTIONS: readonly { value: number; label: string }[] = [
-  { value: 10, label: '10' },
-  { value: 25, label: '25' },
-  { value: 50, label: '50' },
-  { value: 0, label: 'Tümü' },
-];
+export const PAGE_SIZE_OPTIONS: readonly number[] = [10, 25, 50, 0];
 
 export const DEFAULT_PAGE_SIZE = 10;
 
@@ -91,15 +85,13 @@ export interface Coin {
 }
 
 /**
- * Mirrors the API's CoinSide enum, in euro coin terms. "Ön/arka yüz" is avoided on purpose:
- * people use it for either side. The national side identifies the coin, so it comes first.
+ * Mirrors the API's CoinSide enum, in euro coin terms (ECB: national side / common side).
+ * "Obverse/reverse" is avoided on purpose: people use it for either side. The national side
+ * identifies the coin, so it comes first. Texts: coin.side.<value>.label / .hint.
  */
 export type CoinSide = 'National' | 'Common';
 
-export const COIN_SIDES: readonly { value: CoinSide; label: string; hint: string }[] = [
-  { value: 'National', label: 'Ulusal yüz', hint: 'Ülkeye özgü taraf' },
-  { value: 'Common', label: 'Ortak yüz', hint: 'Değerin yazdığı, tüm ülkelerde aynı taraf' },
-];
+export const COIN_SIDES: readonly CoinSide[] = ['National', 'Common'];
 
 export interface CoinPhoto {
   side: CoinSide;

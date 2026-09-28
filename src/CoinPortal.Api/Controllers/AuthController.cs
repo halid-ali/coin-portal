@@ -23,7 +23,8 @@ public class AuthController(
             Email = request.Email.Trim(),
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
-            BirthDate = request.BirthDate!.Value
+            BirthDate = request.BirthDate!.Value,
+            PreferredLanguage = request.Language
         };
 
         var result = await userManager.CreateAsync(user, request.Password);
@@ -40,7 +41,7 @@ public class AuthController(
         db.Collections.Add(new Collection
         {
             OwnerId = user.Id,
-            Name = Collection.DefaultName,
+            Name = Collection.DefaultNameFor(request.Language),
             CreatedAtUtc = now,
             UpdatedAtUtc = now
         });

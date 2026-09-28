@@ -1,0 +1,369 @@
+{
+  "common": {
+    "cancel": "Vazgeç",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "delete": "Sil",
+    "deleting": "Siliniyor…",
+    "edit": "Düzenle",
+    "create": "Oluştur",
+    "confirm": "Onayla",
+    "close": "Kapat",
+    "loading": "Yükleniyor…",
+    "all": "Tümü",
+    "yes": "Evet",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "change": "Değiştir",
+    "remove": "Kaldır",
+    "undo": "Geri al",
+    "choose": "Seç…",
+    "optional": "İsteğe bağlı.",
+    "goToExplore": "Keşfet'e git",
+    "coinCount": {
+      "one": "{{count}} coin",
+      "other": "{{count}} coin"
+    }
+  },
+  "errors": {
+    "network": "Sunucuya ulaşılamıyor. Bağlantını kontrol et.",
+    "unexpected": "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",
+    "requestRejected": "İstek doğrulanamadı. Sayfayı yenileyip tekrar dene."
+  },
+  "validation": {
+    "required": "Bu alan zorunludur.",
+    "email": "Geçerli bir e-posta adresi girin.",
+    "minLength": "En az {{min}} karakter olmalı.",
+    "maxLength": "En fazla {{max}} karakter olabilir.",
+    "pattern": "Sadece harf, rakam ve . _ - kullanılabilir.",
+    "minAge": "Kayıt için en az {{age}} yaşında olmalısın.",
+    "futureDate": "Doğum tarihi gelecekte olamaz.",
+    "maxAge": "Geçerli bir doğum tarihi girin.",
+    "passwordStrength": "Parola en az bir büyük harf, bir küçük harf ve bir rakam içermeli.",
+    "passwordMismatch": "Parolalar eşleşmiyor.",
+    "min": "En az {{min}} olmalı.",
+    "max": "En fazla {{max}} olabilir.",
+    "invalid": "Geçersiz değer."
+  },
+  "titles": {
+    "login": "Giriş yap",
+    "register": "Kayıt ol",
+    "collections": "Koleksiyonlarım",
+    "collection": "Koleksiyon",
+    "explore": "Keşfet",
+    "profile": "Profil",
+    "sharedCollection": "Paylaşılan koleksiyon",
+    "newCoin": "Coin ekle",
+    "editCoin": "Coini düzenle",
+    "settings": "Ayarlar"
+  },
+  "nav": {
+    "main": "Ana menü",
+    "collections": "Koleksiyonlarım",
+    "explore": "Keşfet",
+    "settings": "Ayarlar",
+    "login": "Giriş yap",
+    "register": "Kayıt ol",
+    "logout": "Çıkış yap",
+    "loggingOut": "Çıkış yapılıyor…",
+    "toggleMenu": "Menüyü aç/kapat",
+    "language": "Dil"
+  },
+  "home": {
+    "headline": "Euro coin koleksiyonun, her yerde yanında",
+    "welcome": "Hoş geldin, {{name}}!",
+    "goToCollections": "Koleksiyonlarıma git",
+    "intro": "Coinlerini fotoğraflarıyla kaydet, elinde olup olmadığını saniyeler içinde kontrol et ve koleksiyonunu arkadaşlarınla paylaş.",
+    "registerFree": "Ücretsiz kayıt ol",
+    "browseCollectors": "Diğer koleksiyonculara göz at →"
+  },
+  "login": {
+    "title": "Giriş yap",
+    "userNameOrEmail": "Kullanıcı adı veya e-posta",
+    "password": "Parola",
+    "rememberMe": "Beni hatırla",
+    "submit": "Giriş yap",
+    "submitting": "Giriş yapılıyor…",
+    "noAccount": "Hesabın yok mu?",
+    "registerLink": "Kayıt ol",
+    "invalidCredentials": "Kullanıcı adı/e-posta veya parola hatalı.",
+    "lockedOut": "Çok fazla hatalı deneme yapıldı. Hesabın geçici olarak kilitlendi, lütfen 10 dakika sonra tekrar dene."
+  },
+  "register": {
+    "title": "Kayıt ol",
+    "firstName": "İsim",
+    "lastName": "Soyisim",
+    "userName": "Kullanıcı adı",
+    "userNameHint": "3-30 karakter; harf, rakam ve . _ -",
+    "email": "E-posta",
+    "birthDate": "Doğum tarihi",
+    "birthDateHint": "Kayıt için en az {{age}} yaşında olmalısın.",
+    "password": "Parola",
+    "passwordHint": "En az 8 karakter, büyük/küçük harf ve rakam.",
+    "confirmPassword": "Parola (tekrar)",
+    "submit": "Kayıt ol",
+    "submitting": "Hesap oluşturuluyor…",
+    "haveAccount": "Zaten hesabın var mı?",
+    "loginLink": "Giriş yap",
+    "duplicateEmail": "Bu e-posta adresiyle zaten bir hesap var.",
+    "duplicateUserName": "Bu kullanıcı adı alınmış.",
+    "invalidUserName": "Kullanıcı adında sadece harf, rakam ve . _ - kullanılabilir."
+  },
+  "coin": {
+    "denomination": {
+      "Euro2": "2 €",
+      "Euro1": "1 €",
+      "Cent50": "50 cent",
+      "Cent20": "20 cent",
+      "Cent10": "10 cent",
+      "Cent5": "5 cent",
+      "Cent2": "2 cent",
+      "Cent1": "1 cent"
+    },
+    "field": {
+      "collection": "Koleksiyon",
+      "title": "Başlık",
+      "denomination": "Nominal",
+      "country": "Ülke",
+      "year": "Yıl",
+      "mintMark": "Darphane",
+      "mintMarkLong": "Darphane işareti",
+      "commemorative": "Hatıra",
+      "commemorativeCoin": "Hatıra parası",
+      "quantity": "Adet",
+      "description": "Açıklama",
+      "photos": "Fotoğraflar",
+      "photo": "Fotoğraf",
+      "collector": "Koleksiyoncu",
+      "actions": "İşlemler"
+    },
+    "column": {
+      "Title": "Başlık",
+      "Denomination": "Nominal",
+      "Country": "Ülke",
+      "Year": "Yıl",
+      "MintMark": "Darphane",
+      "Commemorative": "Hatıra",
+      "Quantity": "Adet"
+    },
+    "sort": {
+      "newest": "En yeni eklenen",
+      "Title": { "asc": "A → Z", "desc": "Z → A" },
+      "Denomination": { "asc": "küçükten büyüğe", "desc": "büyükten küçüğe" },
+      "Country": { "asc": "A → Z", "desc": "Z → A" },
+      "Year": { "asc": "eskiden yeniye", "desc": "yeniden eskiye" },
+      "MintMark": { "asc": "A → Z", "desc": "Z → A" },
+      "Commemorative": { "asc": "önce diğerleri", "desc": "önce hatıralar" },
+      "Quantity": { "asc": "azdan çoğa", "desc": "çoktan aza" }
+    },
+    "side": {
+      "National": {
+        "label": "Ulusal yüz",
+        "hint": "Ülkeye özgü taraf"
+      },
+      "Common": {
+        "label": "Ortak yüz",
+        "hint": "Değerin yazdığı, tüm ülkelerde aynı taraf"
+      }
+    },
+    "commemorativeBadge": "Hatıra",
+    "quantityBadge": {
+      "one": "{{count}} adet",
+      "other": "{{count}} adet"
+    },
+    "viewPhotos": "{{title}} fotoğraflarını büyük göster",
+    "editNamed": "{{title}} düzenle"
+  },
+  "sort": {
+    "ascending": "Artan sırala",
+    "descending": "Azalan sırala",
+    "clear": "Sıralamayı kaldır"
+  },
+  "view": {
+    "group": "Görünüm",
+    "list": "Liste görünümü",
+    "grid": "Izgara görünümü"
+  },
+  "pagination": {
+    "nav": "Sayfalama",
+    "first": "İlk sayfa",
+    "previous": "Önceki sayfa",
+    "next": "Sonraki sayfa",
+    "last": "Son sayfa",
+    "perPage": "Sayfa başına"
+  },
+  "coinList": {
+    "notFoundOwn": "Koleksiyon bulunamadı. Silinmiş ya da sana ait olmayabilir.",
+    "backToCollections": "Koleksiyonlarıma dön",
+    "notFoundShared": "Koleksiyon bulunamadı. Link geçersiz olabilir ya da koleksiyon artık paylaşılmıyor.",
+    "exploreTitle": "Keşfet",
+    "exploreSubtitle": "Herkese açık koleksiyonlardaki coin'ler",
+    "recordCount": {
+      "one": "{{count}} kayıt",
+      "other": "{{count}} kayıt"
+    },
+    "filtered": "(filtrelenmiş)",
+    "sharedBy": "@{{userName}} paylaştı",
+    "copyLink": "Linki kopyala",
+    "addCoin": "+ Coin ekle",
+    "sharedNotice": "Bu koleksiyon sana gizli bir linkle paylaşıldı; herkese açık listelerde görünmez.",
+    "search": "Ara",
+    "searchPlaceholder": "Başlık veya açıklama",
+    "onlyCommemorative": "Sadece hatıra",
+    "notCommemorative": "Hatıra olmayanlar",
+    "clearFilters": "Filtreleri temizle",
+    "sortBy": "Sırala:",
+    "loadError": "Coin'ler yüklenemedi. Sayfayı yenileyip tekrar dene.",
+    "noMatches": "Filtrelere uyan coin bulunamadı.",
+    "empty": "Bu koleksiyonda henüz coin yok.",
+    "addFirstCoin": "İlk coinini ekle",
+    "noPublicCollections": "Henüz herkese açık bir koleksiyon yok."
+  },
+  "coinForm": {
+    "titleNew": "Coin ekle",
+    "titleEdit": "Coini düzenle",
+    "backToCollection": "Koleksiyona dön",
+    "notFound": "Coin bulunamadı. Silinmiş ya da sana ait olmayabilir.",
+    "loadError": "Coin yüklenemedi. Sayfayı yenileyip tekrar dene.",
+    "moveHint": "Kaydedince coin bu koleksiyona taşınır.",
+    "needCollection": "Coin ekleyebilmek için önce bir koleksiyon oluşturmalısın.",
+    "loadingCollections": "Koleksiyonlar yükleniyor…",
+    "titleHint": "Nominal, ülke ve yıldan otomatik doldurulur; istersen değiştirebilirsin.",
+    "mintMarkHint": "İsteğe bağlı, örn. A, D, F, G, J",
+    "photosHint": "İsteğe bağlı. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
+    "photosFailed": "Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:",
+    "deleteTitle": "Coini sil",
+    "deleteMessage": "\"{{title}}\" koleksiyonundan kalıcı olarak silinecek. Bu işlem geri alınamaz."
+  },
+  "photo": {
+    "viewLarge": "{{side}} büyük göster",
+    "choose": "Fotoğraf seç",
+    "fileHint": "JPG veya PNG, en fazla {{mb}} MB",
+    "willUpload": "Kaydedince yüklenecek",
+    "willDelete": "Kaydedince silinecek",
+    "willRemove": "Kaydedince kaldırılacak",
+    "cropTitle": "{{side}} fotoğrafını kırp",
+    "errors": {
+      "file_missing": "Fotoğraf dosyası gönderilemedi.",
+      "file_too_large": "Fotoğraf en fazla {{mb}} MB olabilir.",
+      "invalid_image": "Fotoğraf işlenemedi. JPG veya PNG olmalı ve çok küçük olmamalı.",
+      "quota_exceeded": "Fotoğraf saklama alanın doldu. Yer açmak için bazı fotoğrafları silebilirsin.",
+      "conflict": "Fotoğraf aynı anda başka bir yerden değiştirildi. Tekrar dene.",
+      "saveFailed": "Fotoğraf kaydedilemedi. Lütfen tekrar dene.",
+      "wrongType": "Sadece JPG veya PNG fotoğraf seçebilirsin."
+    }
+  },
+  "crop": {
+    "title": "Fotoğrafı kırp",
+    "hint": "Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin; yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.",
+    "openFailed": "Fotoğraf açılamadı. Başka bir dosya dene.",
+    "zoom": "Yakınlaştır",
+    "rotate": "90° döndür",
+    "rotateLabel": "90 derece döndür",
+    "reset": "Sıfırla",
+    "resetLabel": "Yakınlaştırmayı, konumu ve döndürmeyi sıfırla",
+    "preparing": "Hazırlanıyor…",
+    "use": "Kullan"
+  },
+  "viewer": {
+    "sides": "Yüz seçimi"
+  },
+  "collections": {
+    "title": "Koleksiyonlarım",
+    "collectionCount": {
+      "one": "{{count}} koleksiyon",
+      "other": "{{count}} koleksiyon"
+    },
+    "new": "+ Yeni koleksiyon",
+    "loadError": "Koleksiyonlar yüklenemedi. Sayfayı yenileyip tekrar dene.",
+    "empty": "Henüz koleksiyonun yok.",
+    "createFirst": "İlk koleksiyonunu oluştur",
+    "errors": {
+      "last_collection": "Tek koleksiyonun silinemez. Önce yeni bir koleksiyon oluştur.",
+      "invalid_target": "Coin'lerin taşınacağı koleksiyon geçerli değil.",
+      "not_unlisted": "Link sadece \"Sadece linkle\" paylaşılan koleksiyonlarda yenilenebilir.",
+      "notFound": "Koleksiyon bulunamadı. Silinmiş olabilir.",
+      "duplicateName": "Bu adla bir koleksiyonun zaten var."
+    }
+  },
+  "visibility": {
+    "Private": {
+      "label": "Özel",
+      "description": "Sadece sen görürsün."
+    },
+    "Unlisted": {
+      "label": "Sadece linkle",
+      "description": "Gizli linke sahip olan herkes görür; profilinde ve Keşfet'te görünmez."
+    },
+    "Public": {
+      "label": "Herkese açık",
+      "description": "Herkes görür, giriş yapmadan da. Profilinde ve Keşfet'te görünür."
+    }
+  },
+  "collectionForm": {
+    "titleNew": "Yeni koleksiyon",
+    "titleEdit": "Koleksiyonu düzenle",
+    "name": "Ad",
+    "nameHint": "Örn. Euro koleksiyonum, Takas listesi, Eksiklerim",
+    "description": "Açıklama",
+    "visibility": "Görünürlük",
+    "unlistedLink": "Gizli paylaşım linki",
+    "publicLink": "Herkese açık link",
+    "shareLink": "Paylaşım linki",
+    "regenerate": "Yeni link oluştur",
+    "regenerating": "Yenileniyor…",
+    "regenerateNote": "— eski link çalışmaz hale gelir.",
+    "regenerateMessage": "Şu anki link çalışmaz hale gelecek. Linki paylaştığın kişilere yenisini göndermen gerekir.",
+    "noteLinkWillStop": "Kaydedince mevcut gizli link çalışmaz hale gelir.",
+    "noteLinkWillBeCreated": "Kaydedince gizli bir paylaşım linki oluşturulur.",
+    "noteWillBePublic": "Kaydedince koleksiyon herkese açık olur.",
+    "coverFailed": "Koleksiyon kaydedildi, ancak kapak kaydedilemedi:"
+  },
+  "cover": {
+    "title": "Kapak fotoğrafı",
+    "choose": "Kapak seç",
+    "upload": "Kapak yükle",
+    "auto": "Otomatik",
+    "hint": "İsteğe bağlı, JPG veya PNG (en fazla {{mb}} MB). Yüklemezsen son eklenen coin fotoğrafı kullanılır.",
+    "cropTitle": "Kapak fotoğrafını kırp",
+    "cropHint": "Kartlarda görünecek alanı seç. Çerçeveyi sürükleyip köşelerinden boyutlandırabilirsin; yakınlaştırınca fotoğrafı çerçevenin dışından tutup kaydırabilirsin."
+  },
+  "collectionDelete": {
+    "title": "Koleksiyonu sil",
+    "willBeDeleted": "kalıcı olarak silinecek.",
+    "containsCoins": {
+      "one": "İçinde {{count}} coin var.",
+      "other": "İçinde {{count}} coin var."
+    },
+    "isEmpty": "Koleksiyon boş.",
+    "whatAboutCoins": "Coin'ler ne olsun?",
+    "moveTo": "Başka bir koleksiyona taşı",
+    "moveTarget": "Taşınacak koleksiyon",
+    "deleteCoins": "Coin'leri de sil",
+    "deleteCoinsNote": {
+      "one": "{{count}} coin ve fotoğrafları geri alınamaz şekilde silinir.",
+      "other": "{{count}} coin ve fotoğrafları geri alınamaz şekilde silinir."
+    },
+    "typeName": "Onaylamak için koleksiyonun adını yaz:",
+    "submit": "Koleksiyonu sil"
+  },
+  "profile": {
+    "notFound": "Bu kullanıcının herkese açık bir koleksiyonu yok ya da kullanıcı bulunamadı.",
+    "publicCollectionCount": {
+      "one": "{{count}} herkese açık koleksiyon",
+      "other": "{{count}} herkese açık koleksiyon"
+    },
+    "allCoins": "Tüm coin'leri"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "sections": "Ayar bölümleri",
+    "language": {
+      "nav": "Dil",
+      "title": "Dil",
+      "description": "Arayüzün dili. Seçimin hesabına kaydedilir ve giriş yaptığın her cihazda kullanılır.",
+      "saved": "Kaydedildi.",
+      "saveFailed": "Dil kaydedilemedi. Lütfen tekrar dene."
+    }
+  }
+}

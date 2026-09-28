@@ -23,8 +23,17 @@ public class Collection
     /// <summary>16 random bytes as base64url.</summary>
     public const int ShareTokenLength = 22;
 
-    /// <summary>Created for every new user and by the migration for existing users.</summary>
-    public const string DefaultName = "Koleksiyonum";
+    /// <summary>
+    /// Name of the collection every new user starts with, in the user's UI language
+    /// (English for unknown ones). The AddCollections migration used "Koleksiyonum".
+    /// </summary>
+    public static string DefaultNameFor(string? language) => language switch
+    {
+        "tr" => "Koleksiyonum",
+        "de" => "Meine Sammlung",
+        "bg" => "Моята колекция",
+        _ => "My collection"
+    };
 
     public int Id { get; set; }
 

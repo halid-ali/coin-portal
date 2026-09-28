@@ -1,0 +1,369 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "edit": "Edit",
+    "create": "Create",
+    "confirm": "Confirm",
+    "close": "Close",
+    "loading": "Loading…",
+    "all": "All",
+    "yes": "Yes",
+    "copy": "Copy",
+    "copied": "Copied",
+    "change": "Change",
+    "remove": "Remove",
+    "undo": "Undo",
+    "choose": "Select…",
+    "optional": "Optional.",
+    "goToExplore": "Go to Explore",
+    "coinCount": {
+      "one": "{{count}} coin",
+      "other": "{{count}} coins"
+    }
+  },
+  "errors": {
+    "network": "Can't reach the server. Check your connection.",
+    "unexpected": "Something went wrong. Please try again.",
+    "requestRejected": "The request could not be verified. Reload the page and try again."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "minLength": "Must be at least {{min}} characters.",
+    "maxLength": "Can be at most {{max}} characters.",
+    "pattern": "Only letters, digits and . _ - are allowed.",
+    "minAge": "You must be at least {{age}} years old to sign up.",
+    "futureDate": "The date of birth can't be in the future.",
+    "maxAge": "Enter a valid date of birth.",
+    "passwordStrength": "The password needs at least one uppercase letter, one lowercase letter and one digit.",
+    "passwordMismatch": "The passwords don't match.",
+    "min": "Must be at least {{min}}.",
+    "max": "Can be at most {{max}}.",
+    "invalid": "Invalid value."
+  },
+  "titles": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "collections": "My collections",
+    "collection": "Collection",
+    "explore": "Explore",
+    "profile": "Profile",
+    "sharedCollection": "Shared collection",
+    "newCoin": "Add coin",
+    "editCoin": "Edit coin",
+    "settings": "Settings"
+  },
+  "nav": {
+    "main": "Main menu",
+    "collections": "My collections",
+    "explore": "Explore",
+    "settings": "Settings",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "loggingOut": "Signing out…",
+    "toggleMenu": "Open or close the menu",
+    "language": "Language"
+  },
+  "home": {
+    "headline": "Your euro coin collection, wherever you go",
+    "welcome": "Welcome, {{name}}!",
+    "goToCollections": "Go to my collections",
+    "intro": "Record your coins with photos, check in seconds whether you already have one, and share your collection with friends.",
+    "registerFree": "Sign up for free",
+    "browseCollectors": "Browse other collectors →"
+  },
+  "login": {
+    "title": "Sign in",
+    "userNameOrEmail": "Username or email",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Sign up",
+    "invalidCredentials": "Wrong username/email or password.",
+    "lockedOut": "Too many failed attempts. Your account is temporarily locked; please try again in 10 minutes."
+  },
+  "register": {
+    "title": "Sign up",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "userName": "Username",
+    "userNameHint": "3–30 characters; letters, digits and . _ -",
+    "email": "Email",
+    "birthDate": "Date of birth",
+    "birthDateHint": "You must be at least {{age}} years old to sign up.",
+    "password": "Password",
+    "passwordHint": "At least 8 characters, upper and lower case letters and a digit.",
+    "confirmPassword": "Confirm password",
+    "submit": "Sign up",
+    "submitting": "Creating your account…",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "duplicateEmail": "There is already an account with this email address.",
+    "duplicateUserName": "This username is taken.",
+    "invalidUserName": "Usernames can only contain letters, digits and . _ -"
+  },
+  "coin": {
+    "denomination": {
+      "Euro2": "2 €",
+      "Euro1": "1 €",
+      "Cent50": "50 cent",
+      "Cent20": "20 cent",
+      "Cent10": "10 cent",
+      "Cent5": "5 cent",
+      "Cent2": "2 cent",
+      "Cent1": "1 cent"
+    },
+    "field": {
+      "collection": "Collection",
+      "title": "Title",
+      "denomination": "Denomination",
+      "country": "Country",
+      "year": "Year",
+      "mintMark": "Mint mark",
+      "mintMarkLong": "Mint mark",
+      "commemorative": "Commemorative",
+      "commemorativeCoin": "Commemorative coin",
+      "quantity": "Quantity",
+      "description": "Description",
+      "photos": "Photos",
+      "photo": "Photo",
+      "collector": "Collector",
+      "actions": "Actions"
+    },
+    "column": {
+      "Title": "Title",
+      "Denomination": "Value",
+      "Country": "Country",
+      "Year": "Year",
+      "MintMark": "Mint",
+      "Commemorative": "Commem.",
+      "Quantity": "Qty"
+    },
+    "sort": {
+      "newest": "Newest first",
+      "Title": { "asc": "A → Z", "desc": "Z → A" },
+      "Denomination": { "asc": "lowest first", "desc": "highest first" },
+      "Country": { "asc": "A → Z", "desc": "Z → A" },
+      "Year": { "asc": "oldest first", "desc": "newest first" },
+      "MintMark": { "asc": "A → Z", "desc": "Z → A" },
+      "Commemorative": { "asc": "others first", "desc": "commemoratives first" },
+      "Quantity": { "asc": "fewest first", "desc": "most first" }
+    },
+    "side": {
+      "National": {
+        "label": "National side",
+        "hint": "The side specific to each country"
+      },
+      "Common": {
+        "label": "Common side",
+        "hint": "The side showing the value, the same in every country"
+      }
+    },
+    "commemorativeBadge": "Commemorative",
+    "quantityBadge": {
+      "one": "{{count}} piece",
+      "other": "{{count}} pieces"
+    },
+    "viewPhotos": "Show photos of {{title}}",
+    "editNamed": "Edit {{title}}"
+  },
+  "sort": {
+    "ascending": "Sort ascending",
+    "descending": "Sort descending",
+    "clear": "Remove sorting"
+  },
+  "view": {
+    "group": "View",
+    "list": "List view",
+    "grid": "Grid view"
+  },
+  "pagination": {
+    "nav": "Pagination",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "perPage": "Per page"
+  },
+  "coinList": {
+    "notFoundOwn": "Collection not found. It may have been deleted or may not belong to you.",
+    "backToCollections": "Back to my collections",
+    "notFoundShared": "Collection not found. The link may be invalid, or the collection is no longer shared.",
+    "exploreTitle": "Explore",
+    "exploreSubtitle": "Coins in public collections",
+    "recordCount": {
+      "one": "{{count}} coin",
+      "other": "{{count}} coins"
+    },
+    "filtered": "(filtered)",
+    "sharedBy": "Shared by @{{userName}}",
+    "copyLink": "Copy link",
+    "addCoin": "+ Add coin",
+    "sharedNotice": "This collection was shared with you through a private link; it doesn't appear in public lists.",
+    "search": "Search",
+    "searchPlaceholder": "Title or description",
+    "onlyCommemorative": "Commemorative only",
+    "notCommemorative": "Non-commemorative",
+    "clearFilters": "Clear filters",
+    "sortBy": "Sort:",
+    "loadError": "Couldn't load the coins. Reload the page and try again.",
+    "noMatches": "No coins match the filters.",
+    "empty": "There are no coins in this collection yet.",
+    "addFirstCoin": "Add your first coin",
+    "noPublicCollections": "There are no public collections yet."
+  },
+  "coinForm": {
+    "titleNew": "Add coin",
+    "titleEdit": "Edit coin",
+    "backToCollection": "Back to the collection",
+    "notFound": "Coin not found. It may have been deleted or may not belong to you.",
+    "loadError": "Couldn't load the coin. Reload the page and try again.",
+    "moveHint": "When you save, the coin moves to this collection.",
+    "needCollection": "To add coins, create a collection first.",
+    "loadingCollections": "Loading collections…",
+    "titleHint": "Filled in from the denomination, country and year; you can change it.",
+    "mintMarkHint": "Optional, e.g. A, D, F, G, J",
+    "photosHint": "Optional. Changes are applied when you press Save; Cancel discards them all.",
+    "photosFailed": "The coin was saved, but some photos couldn't be saved:",
+    "deleteTitle": "Delete coin",
+    "deleteMessage": "\"{{title}}\" will be permanently deleted from your collection. This can't be undone."
+  },
+  "photo": {
+    "viewLarge": "Show {{side}} larger",
+    "choose": "Choose photo",
+    "fileHint": "JPG or PNG, up to {{mb}} MB",
+    "willUpload": "Uploaded when you save",
+    "willDelete": "Deleted when you save",
+    "willRemove": "Removed when you save",
+    "cropTitle": "Crop {{side}} photo",
+    "errors": {
+      "file_missing": "The photo file couldn't be sent.",
+      "file_too_large": "Photos can be at most {{mb}} MB.",
+      "invalid_image": "The photo couldn't be processed. It must be a JPG or PNG and not too small.",
+      "quota_exceeded": "Your photo storage is full. Delete some photos to free up space.",
+      "conflict": "The photo was changed somewhere else at the same time. Please try again.",
+      "saveFailed": "The photo couldn't be saved. Please try again.",
+      "wrongType": "You can only choose JPG or PNG photos."
+    }
+  },
+  "crop": {
+    "title": "Crop photo",
+    "hint": "Center the coin in the circle. Drag the circle and resize it from its corners; after zooming in, drag the photo from outside the circle to move it.",
+    "openFailed": "The photo couldn't be opened. Try another file.",
+    "zoom": "Zoom",
+    "rotate": "Rotate 90°",
+    "rotateLabel": "Rotate 90 degrees",
+    "reset": "Reset",
+    "resetLabel": "Reset zoom, position and rotation",
+    "preparing": "Preparing…",
+    "use": "Use photo"
+  },
+  "viewer": {
+    "sides": "Choose side"
+  },
+  "collections": {
+    "title": "My collections",
+    "collectionCount": {
+      "one": "{{count}} collection",
+      "other": "{{count}} collections"
+    },
+    "new": "+ New collection",
+    "loadError": "Couldn't load your collections. Reload the page and try again.",
+    "empty": "You don't have any collections yet.",
+    "createFirst": "Create your first collection",
+    "errors": {
+      "last_collection": "You can't delete your only collection. Create a new one first.",
+      "invalid_target": "The collection to move the coins to isn't valid.",
+      "not_unlisted": "The link can only be renewed for collections shared \"Link only\".",
+      "notFound": "Collection not found. It may have been deleted.",
+      "duplicateName": "You already have a collection with this name."
+    }
+  },
+  "visibility": {
+    "Private": {
+      "label": "Private",
+      "description": "Only you can see it."
+    },
+    "Unlisted": {
+      "label": "Link only",
+      "description": "Anyone with the private link can see it; it doesn't appear on your profile or in Explore."
+    },
+    "Public": {
+      "label": "Public",
+      "description": "Everyone can see it, even without signing in. It appears on your profile and in Explore."
+    }
+  },
+  "collectionForm": {
+    "titleNew": "New collection",
+    "titleEdit": "Edit collection",
+    "name": "Name",
+    "nameHint": "E.g. My euro coins, Swaps, Missing coins",
+    "description": "Description",
+    "visibility": "Visibility",
+    "unlistedLink": "Private share link",
+    "publicLink": "Public link",
+    "shareLink": "Share link",
+    "regenerate": "Create new link",
+    "regenerating": "Creating…",
+    "regenerateNote": "— the old link will stop working.",
+    "regenerateMessage": "The current link will stop working. You'll need to send the new one to the people you shared it with.",
+    "noteLinkWillStop": "When you save, the current private link will stop working.",
+    "noteLinkWillBeCreated": "When you save, a private share link will be created.",
+    "noteWillBePublic": "When you save, the collection will become public.",
+    "coverFailed": "The collection was saved, but the cover couldn't be saved:"
+  },
+  "cover": {
+    "title": "Cover photo",
+    "choose": "Choose cover",
+    "upload": "Upload cover",
+    "auto": "Automatic",
+    "hint": "Optional, JPG or PNG (up to {{mb}} MB). Without one, the most recently added coin photo is used.",
+    "cropTitle": "Crop cover photo",
+    "cropHint": "Choose the area shown on the cards. Drag the frame and resize it from its corners; after zooming in, drag the photo from outside the frame to move it."
+  },
+  "collectionDelete": {
+    "title": "Delete collection",
+    "willBeDeleted": "will be permanently deleted.",
+    "containsCoins": {
+      "one": "It contains {{count}} coin.",
+      "other": "It contains {{count}} coins."
+    },
+    "isEmpty": "The collection is empty.",
+    "whatAboutCoins": "What should happen to the coins?",
+    "moveTo": "Move them to another collection",
+    "moveTarget": "Collection to move them to",
+    "deleteCoins": "Delete the coins too",
+    "deleteCoinsNote": {
+      "one": "{{count}} coin and its photos will be deleted for good.",
+      "other": "{{count}} coins and their photos will be deleted for good."
+    },
+    "typeName": "To confirm, type the name of the collection:",
+    "submit": "Delete collection"
+  },
+  "profile": {
+    "notFound": "This user has no public collections, or the user doesn't exist.",
+    "publicCollectionCount": {
+      "one": "{{count}} public collection",
+      "other": "{{count}} public collections"
+    },
+    "allCoins": "All coins"
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": "Settings sections",
+    "language": {
+      "nav": "Language",
+      "title": "Language",
+      "description": "The language of the interface. Your choice is saved to your account and used on every device you sign in on.",
+      "saved": "Saved.",
+      "saveFailed": "Couldn't save the language. Please try again."
+    }
+  }
+}
