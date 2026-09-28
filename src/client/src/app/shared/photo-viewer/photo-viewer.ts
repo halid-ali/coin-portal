@@ -10,15 +10,16 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { CoinPhoto, CoinSide } from '../../core/coins/coin.models';
+import { COIN_SIDES, CoinPhoto, CoinSide } from '../../core/coins/coin.models';
 import { photoUrl } from '../../core/coins/coin.service';
+import { WheelGesture } from './wheel-gesture';
 
 let nextId = 0;
 
 /**
  * Fullscreen view of a coin's photos (largest size) in a modal <dialog>, with a switch
- * between the national and common side (buttons or arrow keys). Render it with @if and remove it
- * on (closed), like the other dialogs.
+ * between the national and common side (buttons, arrow keys or the mouse wheel). Render it with
+ * @if and remove it on (closed), like the other dialogs.
  */
 @Component({
   selector: 'app-photo-viewer',
@@ -32,6 +33,7 @@ let nextId = 0;
       (click)="onDialogClick($event)"
       (keydown.arrowleft)="step(-1)"
       (keydown.arrowright)="step(1)"
+      (wheel)="onWheel($event)"
     >
       <div class="flex items-center justify-between gap-4 pb-3">
         <h2 [id]="titleId" class="truncate text-base font-medium">{{ title() }}</h2>
@@ -114,6 +116,7 @@ export class PhotoViewer {
   );
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly wheel = new WheelGesture();
 
   constructor() {
     afterNextRender(() => {
@@ -137,6 +140,21 @@ export class PhotoViewer {
     const next = photos[(index + delta + photos.length) % photos.length];
     if (next) {
       this.side.set(next.side);
+    }
+  }
+
+  // One scroll gesture moves one side in COIN_SIDES order without wrapping: down goes from the
+  // national to the common side, up goes back (user choice; the arrow keys cycle)
+  protected onWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const delta = this.wheel.next(event);
+    if (delta === 0) {
+      return;
+    }
+    const sides = COIN_SIDES.filter((s) => this.photos().some((p) => p.side === s));
+    const next = sides[sides.indexOf(this.current()?.side as CoinSide) + delta];
+    if (next) {
+      this.side.set(next);
     }
   }
 
