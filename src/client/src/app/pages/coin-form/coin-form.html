@@ -1,6 +1,6 @@
 <section class="mx-auto w-full max-w-2xl">
   <div class="mb-6 flex items-center justify-between gap-3">
-    <h1 class="text-2xl font-semibold text-slate-900">
+    <h1 class="text-2xl font-semibold text-shade-900">
       {{ (isEdit() ? 'coinForm.titleEdit' : 'coinForm.titleNew') | transloco }}
     </h1>
     <a [routerLink]="returnTree()" class="link text-sm">‹ {{ 'coinForm.backToCollection' | transloco }}</a>
@@ -8,11 +8,11 @@
 
   @if (notFound()) {
     <div class="card text-center">
-      <p class="text-slate-600">{{ 'coinForm.notFound' | transloco }}</p>
+      <p class="text-shade-600">{{ 'coinForm.notFound' | transloco }}</p>
       <a [routerLink]="returnTree()" class="btn-secondary mt-4">{{ 'coinForm.backToCollection' | transloco }}</a>
     </div>
   } @else if (loading()) {
-    <p class="text-center text-slate-500">{{ 'common.loading' | transloco }}</p>
+    <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
   } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
       @if (formErrors().length) {
@@ -123,8 +123,8 @@
 
         <div class="flex items-center gap-2 sm:pt-7">
           <input id="isCommemorative" type="checkbox" formControlName="isCommemorative"
-                 class="size-4 rounded border-slate-300 accent-amber-500" />
-          <label for="isCommemorative" class="text-sm font-medium text-slate-700">{{ 'coin.field.commemorativeCoin' | transloco }}</label>
+                 class="size-4 rounded border-shade-300 accent-brand-500" />
+          <label for="isCommemorative" class="text-sm font-medium text-shade-700">{{ 'coin.field.commemorativeCoin' | transloco }}</label>
         </div>
       </div>
 
@@ -159,7 +159,7 @@
 
       <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         @if (isEdit()) {
-          <button type="button" class="btn-secondary text-red-700 hover:bg-red-50"
+          <button type="button" class="btn-secondary text-danger-700 hover:bg-danger-50"
                   [disabled]="deleting() || submitting()" (click)="remove()">
             {{ (deleting() ? 'common.deleting' : 'common.delete') | transloco }}
           </button>

@@ -18,8 +18,8 @@ import { SortDirection } from '../../core/coins/coin.models';
   template: `
     <button
       type="button"
-      class="group -mx-1.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-1 font-medium transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:outline-none"
-      [class.text-slate-900]="direction()"
+      class="group -mx-1.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-1 font-medium transition-colors hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-brand-500/50 focus-visible:outline-none"
+      [class.text-shade-900]="direction()"
       [title]="hint() | transloco"
       (click)="toggle.emit()"
     >
@@ -68,8 +68,8 @@ export class SortHeader {
   // Active: amber badge; inactive: muted icon that lights up on hover
   protected readonly iconClass = computed(() =>
     this.direction()
-      ? 'bg-amber-100 text-amber-700'
-      : 'text-slate-400 group-hover:bg-slate-200/70 group-hover:text-slate-600',
+      ? 'bg-brand-100 text-brand-700'
+      : 'text-shade-400 group-hover:bg-shade-200/70 group-hover:text-shade-600',
   );
 
   /** Tooltip (translation key) describing what the next click does. */

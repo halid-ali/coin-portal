@@ -67,7 +67,7 @@ let nextId = 0;
         </button>
 
         <span
-          class="min-w-16 px-2 text-center text-sm font-medium text-slate-700"
+          class="min-w-16 px-2 text-center text-sm font-medium text-shade-700"
           aria-current="page"
         >
           {{ page() }} / {{ totalPages() }}
@@ -113,9 +113,9 @@ let nextId = 0;
         </button>
       </nav>
 
-      <div class="flex items-center gap-3 justify-self-end text-sm text-slate-600">
+      <div class="flex items-center gap-3 justify-self-end text-sm text-shade-600">
         <span>{{ range() }} / {{ totalCount() }}</span>
-        <label [for]="selectId" class="font-medium text-slate-700 max-sm:sr-only">{{
+        <label [for]="selectId" class="font-medium text-shade-700 max-sm:sr-only">{{
           'pagination.perPage' | transloco
         }}</label>
         <select

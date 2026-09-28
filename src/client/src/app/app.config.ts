@@ -21,6 +21,7 @@ import { LanguageService } from './core/i18n/language.service';
 import { DEFAULT_LANGUAGE, LANGUAGES } from './core/i18n/languages';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
 import { TranslationLoader } from './core/i18n/translation-loader';
+import { ThemeService } from './core/theme/theme.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -43,11 +44,17 @@ export const appConfig: ApplicationConfig = {
       withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }),
     ),
     // Before the first navigation: restore the session so guards see the right state, then
-    // load the language (the account's, otherwise this device's) so no page shows raw keys
+    // load the language (the account's, otherwise this device's) so no page shows raw keys.
+    // The account's theme wins too; otherwise ThemeService keeps this browser's choice
     provideAppInitializer(async () => {
       const auth = inject(AuthService);
       const language = inject(LanguageService);
+      const theme = inject(ThemeService);
       await auth.init();
+      const savedTheme = auth.currentUser()?.theme;
+      if (savedTheme) {
+        theme.use(savedTheme);
+      }
       await language.use(auth.currentUser()?.language ?? language.deviceLanguage());
     }),
   ],

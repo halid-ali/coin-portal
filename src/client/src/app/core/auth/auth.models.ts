@@ -1,4 +1,5 @@
 import { Language } from '../i18n/languages';
+import { ThemeMode } from '../theme/theme.service';
 
 // Mirrors CoinPortal.Api/Contracts/Auth/UserResponse
 export interface UserResponse {
@@ -7,8 +8,11 @@ export interface UserResponse {
   email: string;
   firstName: string;
   lastName: string;
+  birthDate: string; // ISO date (yyyy-MM-dd)
   /** Saved UI language; null until the user chooses one in the settings. */
   language: Language | null;
+  /** Saved color theme; null until the user chooses one (navbar button or settings). */
+  theme: ThemeMode | null;
 }
 
 // Mirrors CoinPortal.Api/Contracts/Auth/RegisterRequest

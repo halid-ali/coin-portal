@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, firstValueFrom, forkJoin, from, map, switchMap, tap } from 'rxjs';
 
 import { LanguageService } from '../i18n/language.service';
+import { ThemeService } from '../theme/theme.service';
 import { LoginRequest, RegisterRequest, UserResponse } from './auth.models';
 
 const API = '/api/auth';
@@ -11,6 +12,7 @@ const API = '/api/auth';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly language = inject(LanguageService);
+  private readonly theme = inject(ThemeService);
 
   private readonly user = signal<UserResponse | null>(null);
 
@@ -87,9 +89,12 @@ export class AuthService {
     return this.http.get<void>(`${API}/antiforgery`);
   }
 
-  /** The account's saved language wins over the one chosen on this device. */
+  /** The account's saved language and theme win over the ones chosen on this device. */
   private completeSignIn(user: UserResponse): Observable<UserResponse> {
     this.user.set(user);
+    if (user.theme) {
+      this.theme.use(user.theme);
+    }
     const language = user.language ? this.language.use(user.language) : Promise.resolve();
     return forkJoin([this.refreshXsrfToken(), from(language)]).pipe(map(() => user));
   }

@@ -358,12 +358,39 @@
   "settings": {
     "title": "Settings",
     "sections": "Settings sections",
+    "profile": {
+      "nav": "Profile",
+      "title": "Profile",
+      "description": "Your account details. For now they can only be viewed; editing will come later.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "userName": "Username",
+      "email": "Email",
+      "birthDate": "Date of birth"
+    },
+    "appearance": {
+      "nav": "Appearance"
+    },
     "language": {
-      "nav": "Language",
       "title": "Language",
       "description": "The language of the interface. Your choice is saved to your account and used on every device you sign in on.",
       "saved": "Saved.",
       "saveFailed": "Couldn't save the language. Please try again."
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "A light or dark look. System follows your device's setting. Your choice is saved to your account and used on every device you sign in on.",
+      "saved": "Saved.",
+      "saveFailed": "Couldn't save the theme. Please try again."
     }
+  },
+  "theme": {
+    "mode": {
+      "Light": "Light",
+      "Dark": "Dark",
+      "System": "System"
+    },
+    "toDark": "Switch to dark theme",
+    "toLight": "Switch to light theme"
   }
 }

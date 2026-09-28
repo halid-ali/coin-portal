@@ -1,5 +1,5 @@
 <section class="mx-auto w-full max-w-lg">
-  <h1 class="mb-6 text-2xl font-semibold text-slate-900">{{ 'register.title' | transloco }}</h1>
+  <h1 class="mb-6 text-2xl font-semibold text-shade-900">{{ 'register.title' | transloco }}</h1>
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
     @if (formErrors().length) {
@@ -87,7 +87,7 @@
       {{ (submitting() ? 'register.submitting' : 'register.submit') | transloco }}
     </button>
 
-    <p class="text-center text-sm text-slate-600">
+    <p class="text-center text-sm text-shade-600">
       {{ 'register.haveAccount' | transloco }}
       <a routerLink="/login" class="link">{{ 'register.loginLink' | transloco }}</a>
     </p>

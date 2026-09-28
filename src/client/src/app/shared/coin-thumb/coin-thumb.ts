@@ -9,14 +9,14 @@ import { photoUrl, primaryPhoto } from '../../core/coins/coin.service';
  */
 @Component({
   selector: 'app-coin-thumb',
-  host: { class: 'block shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200' },
+  host: { class: 'block shrink-0 overflow-hidden rounded-full bg-shade-100 ring-1 ring-shade-200' },
   template: `
     @if (src(); as url) {
       <img [src]="url" alt="" loading="lazy" decoding="async" class="size-full object-cover" />
     } @else {
       <svg
         viewBox="0 0 24 24"
-        class="size-full p-[22%] text-slate-300"
+        class="size-full p-[22%] text-shade-300"
         fill="none"
         stroke="currentColor"
         stroke-width="1.5"

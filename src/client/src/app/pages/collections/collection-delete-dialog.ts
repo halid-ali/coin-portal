@@ -40,7 +40,7 @@ let nextId = 0;
       <div class="space-y-5 p-6">
         <div class="flex items-start gap-4">
           <div
-            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600"
+            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-danger-100 text-danger-600"
           >
             <svg
               viewBox="0 0 24 24"
@@ -61,8 +61,8 @@ let nextId = 0;
             <h2 [id]="titleId" class="text-lg font-semibold">
               {{ 'collectionDelete.title' | transloco }}
             </h2>
-            <p class="mt-1 text-sm text-slate-600">
-              <strong class="font-semibold text-slate-900">{{ collection().name }}</strong>
+            <p class="mt-1 text-sm text-shade-600">
+              <strong class="font-semibold text-shade-900">{{ collection().name }}</strong>
               {{ 'collectionDelete.willBeDeleted' | transloco }}
               @if (collection().coinCount) {
                 {{ 'collectionDelete.containsCoins' | plural: collection().coinCount }}
@@ -82,17 +82,17 @@ let nextId = 0;
                 {{ 'collectionDelete.whatAboutCoins' | transloco }}
               </legend>
               <label
-                class="flex items-start gap-3 rounded-lg border border-slate-200 p-3 has-checked:border-amber-400 has-checked:bg-amber-50"
+                class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-checked:border-brand-400 has-checked:bg-brand-50"
               >
                 <input
                   type="radio"
                   name="{{ titleId }}-mode"
-                  class="mt-1 accent-amber-500"
+                  class="mt-1 accent-brand-500"
                   [checked]="mode() === 'move'"
                   (change)="mode.set('move')"
                 />
                 <span class="flex-1 space-y-2">
-                  <span class="block text-sm font-medium text-slate-900">{{
+                  <span class="block text-sm font-medium text-shade-900">{{
                     'collectionDelete.moveTo' | transloco
                   }}</span>
                   <select
@@ -109,20 +109,20 @@ let nextId = 0;
                 </span>
               </label>
               <label
-                class="flex items-start gap-3 rounded-lg border border-slate-200 p-3 has-checked:border-red-300 has-checked:bg-red-50"
+                class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-checked:border-danger-300 has-checked:bg-danger-50"
               >
                 <input
                   type="radio"
                   name="{{ titleId }}-mode"
-                  class="mt-1 accent-red-600"
+                  class="mt-1 accent-danger-600"
                   [checked]="mode() === 'delete'"
                   (change)="mode.set('delete')"
                 />
                 <span class="text-sm">
-                  <span class="block font-medium text-slate-900">{{
+                  <span class="block font-medium text-shade-900">{{
                     'collectionDelete.deleteCoins' | transloco
                   }}</span>
-                  <span class="text-slate-600">{{
+                  <span class="text-shade-600">{{
                     'collectionDelete.deleteCoinsNote' | plural: collection().coinCount
                   }}</span>
                 </span>
@@ -133,7 +133,7 @@ let nextId = 0;
           <div>
             <label [for]="titleId + '-confirm'" class="form-label">
               {{ 'collectionDelete.typeName' | transloco }}
-              <span class="font-semibold text-slate-900 select-all">{{ collection().name }}</span>
+              <span class="font-semibold text-shade-900 select-all">{{ collection().name }}</span>
             </label>
             <input
               [id]="titleId + '-confirm'"

@@ -1,13 +1,14 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-28 (çok dilli destek: EN/TR/DE/BG, dil tercihi hesapta, Ayarlar sayfası, bayraklı
-dil seçici, footer, masaüstünde yapışkan header/footer; `feat/i18n` main'e alındı. Watermark kullanıcı
-isteğiyle ertelendi. ImageSharp lisans kararı ilk publish'ten önce verilecek)
+Son güncelleme: 2026-09-28 (açık/koyu tema: navbar butonu, tercih hesapta, Ayarlar > Görünüm ve salt
+okunur Profil; tema duyarlı renk token'ları. `feat/theme` main'e alındı, kullanıcı tarayıcıda test etti.
+Watermark kullanıcı isteğiyle ertelendi. ImageSharp lisans kararı ilk publish'ten önce verilecek)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok. Push yapılmadı (repo sadece lokal).
-- Veritabanı en son migration'da (`AddUserPreferredLanguage`); dev seed 2026-09-27'de çalıştırıldı
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/theme` 2026-09-28'de merge edildi).
+  Push yapılmadı (repo sadece lokal).
+- Veritabanı en son migration'da (`AddUserPreferredTheme`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
@@ -225,6 +226,35 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       401), 44 kontrollük arayüz testi (headless Edge: seçici, hatırlama, girişte hesabın dili, ayarlar,
       sayfa başlıkları, çoğul, doğrulama mesajı, 4 dilde tablo başlığı taşması ve 4 dilde mobil yatay
       taşma), Vitest 36 test (dört dosyada anahtar ve `{{parametre}}` eşliği, her dilin çoğul biçimleri).
+12. **Açık/koyu tema** (`feat/theme`, 2026-09-28; kararlar "Görünüm ve tema: kararlar" bölümünde):
+    - API: `ThemePreference` enum (`System = 0`, `Light = 1`, `Dark = 2`), `ApplicationUser.PreferredTheme`
+      (nullable int + check constraint; migration `AddUserPreferredTheme`). `me` ve `api/settings`
+      yanıtlarında `theme`. `PUT api/settings` hâlâ tüm ayarları değiştirir ama `language` artık zorunlu
+      değil: null "seçilmedi" demek, böylece sadece tema değişince dil açık bir seçime dönüşmez.
+    - Client: `core/theme/ThemeService` (`<html>`'de `dark` class'ı, sistem temasını `matchMedia` ile canlı
+      izler), `core/settings/ThemePreference` (anında uygular, girişliyse hesaba kaydeder, hata olursa geri
+      alır), `SettingsService.update` kısmi değişiklik alır (diğer ayarlar mevcut kullanıcıdan).
+      `index.html`'deki küçük script Angular'dan önce `dark` class'ını koyar (açılışta beyaz parlama olmaz).
+    - Navbar'da güneş/ay butonu (`shared/theme-toggle`, herkes görür, mobilde hamburger'in yanında).
+    - Ayarlar'da "Dil" bölümü **"Görünüm"** oldu (`/settings/appearance`, eski `/settings/language`
+      yönlenir): Dil kartı + Tema kartı (Açık / Koyu / Sistem, küçük önizlemeli radyo kartlar; Sistem
+      yarı açık yarı koyu).
+    - **Ayarlar > Profil** (kullanıcı isteği, menüde Görünüm'ün üstünde, `/settings` buraya açılır):
+      isim, soyisim, kullanıcı adı, e-posta, doğum tarihi (aktif dilde uzun tarih). Şimdilik salt okunur,
+      veri `me` yanıtından (ek istek yok). Neyin değiştirilebileceği sonra kararlaştırılacak (Sıradaki adım).
+    - Ayarlar menüsündeki aktif bölümün çerçevesi görünmüyordu (sadece köşelerde koyuluk): mobil sekme
+      satırı için `overflow-x-auto` olan liste, butonun dışına çizilen ring'i kesiyordu. Listeye iç boşluk
+      verildi; aktif bölüm artık navbar'daki gibi (aynı class'lar) vurgulu.
+    - **Renk token'ları:** `styles.css`'te tema duyarlı ölçekler: `shade` (slate), `brand` (amber),
+      `danger` (red), `info` (sky), `success` (emerald). ~290 renk class'ı betikle bunlara taşındı; koyu
+      temada sadece CSS değişkenleri değişir, template'lerde `dark:` yok (avatar ve bayrak çerçevesi
+      hariç). İki temada aynı kalanlar düz palet: birincil/tehlike butonları, logo, fotoğraf görüntüleyici,
+      kırpma sahnesi.
+    - Doğrulama: API 5090'da (Dark/System kaydı, dil null kalıyor, geçersiz tema 400, sayısal değer 400),
+      Vitest 39 test (+3 `ThemeService`), headless Edge ile iki temada ekran görüntüleri (giriş, Keşfet,
+      Koleksiyonlarım, liste, ızgara, coin formu, Ayarlar, kullanıcı menüsü, mobil liste ve menü).
+      Diyaloglar (onay, koleksiyon formu, kırpma) ve dil dropdown'ı koyu temada görsel olarak kontrol
+      edilmedi.
 
 ## Sıradaki adım
 
@@ -232,9 +262,13 @@ Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
    fotoğraflara mı).
-2. **Ayarlar sayfasının genişlemesi:** Görünüm (ör. karanlık mod), Güvenlik (parola değiştirme), Profil
-   (ad, soyad) gibi bölümler.
-3. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
+2. **Görünüm üzerinde çalışmaya devam** (kullanıcı 2026-09-28'de "sitenin görünümü üzerinde çalışalım"
+   dedi, ilk adım koyu tema).
+3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
+   salt okunur. Hangi alanların değiştirilebileceğine kullanıcıyla karar verilecek (isim/soyisim kolay;
+   kullanıcı adı paylaşım linklerini `/u/…` bozar; e-posta doğrulama ister; doğum tarihi 18+ kuralına
+   bağlı). Ayarlar'da ayrıca Güvenlik (parola değiştirme) bölümü düşünülüyor.
+4. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
 
 ## Koleksiyonlar ve paylaşım: kararlar
 
@@ -293,6 +327,22 @@ Kararlar (2026-09-28, kullanıcıyla):
   - İngilizce: national side / common side (ECB), Denomination (tabloda "Value"), Link only.
 - **Çeviri kontrolü:** kullanıcı şu an anadili konuşan birine kontrol ettiremiyor, Claude'a güveniyor.
   Yayından önce Almanca ve Bulgarca metinlerin bir anadil konuşanına gösterilmesi önerilir (Açık konular 12).
+
+## Görünüm ve tema: kararlar
+
+Kararlar (2026-09-28, kullanıcıyla):
+
+- **Üç seçenek: Açık / Koyu / Sistem.** Navbar butonu sadece açık ↔ koyu geçer (Sistem'deyken görünenin
+  tersine); Sistem'e dönmek Ayarlar'dan. Üç durumlu döngü sezgisel bulunmadı.
+- **Tercih hesapta**, dil gibi: hesaptaki tema > bu tarayıcıdaki son seçim (`localStorage`
+  `coinportal.theme`) > Sistem. Hesapta null = hiç seçmedi (tarayıcının seçimi geçerli), `System` =
+  açıkça "cihazı izle". Girişsiz kullanıcı da butonu kullanır, seçim tarayıcıda kalır. Kayıtta tema
+  gönderilmez (dil ilk koleksiyonun adı için gönderiliyor; temada gerek yok).
+- **Ayarlar > Görünüm:** görünümle ilgili ayarlar tek bölümde (şimdilik dil ve tema). Tema seçici küçük
+  önizlemeli kartlar (kullanıcı onayı).
+- **Renkler token'la** (Claude'un teknik seçimi): her class'a `dark:` eklemek template'leri şişirirdi.
+  Tailwind paletinin yerine tema duyarlı ölçekler; koyu temada ölçek ters döner (düşük adımlar koyu
+  zemin/tonlar, yüksek adımlar açık metin), `shade-0` kart yüzeyi. Ton ayarı tek yerden (`styles.css`).
 
 ## Fotoğraflar
 

@@ -38,7 +38,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
           <h2 [id]="titleId" class="text-lg font-semibold">
             {{ title() ?? ('crop.title' | transloco) }}
           </h2>
-          <p class="mt-1 text-sm text-slate-600">{{ hint() ?? ('crop.hint' | transloco) }}</p>
+          <p class="mt-1 text-sm text-shade-600">{{ hint() ?? ('crop.hint' | transloco) }}</p>
         </div>
 
         <div
@@ -73,7 +73,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
         </div>
 
         <div class="flex items-center gap-3">
-          <label for="zoom-{{ titleId }}" class="text-sm font-medium text-slate-700">{{
+          <label for="zoom-{{ titleId }}" class="text-sm font-medium text-shade-700">{{
             'crop.zoom' | transloco
           }}</label>
           <input
@@ -82,7 +82,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
             min="1"
             max="3"
             step="0.05"
-            class="flex-1 accent-amber-500"
+            class="flex-1 accent-brand-500"
             [value]="transform().scale ?? 1"
             [disabled]="!ready()"
             (input)="zoom($any($event.target).valueAsNumber)"

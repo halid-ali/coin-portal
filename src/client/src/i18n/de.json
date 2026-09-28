@@ -358,12 +358,39 @@
   "settings": {
     "title": "Einstellungen",
     "sections": "Bereiche der Einstellungen",
+    "profile": {
+      "nav": "Profil",
+      "title": "Profil",
+      "description": "Deine Kontodaten. Vorerst können sie nur angezeigt werden; das Bearbeiten folgt später.",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "userName": "Benutzername",
+      "email": "E-Mail-Adresse",
+      "birthDate": "Geburtsdatum"
+    },
+    "appearance": {
+      "nav": "Darstellung"
+    },
     "language": {
-      "nav": "Sprache",
       "title": "Sprache",
       "description": "Die Sprache der Benutzeroberfläche. Deine Auswahl wird in deinem Konto gespeichert und auf jedem Gerät verwendet, auf dem du dich anmeldest.",
       "saved": "Gespeichert.",
       "saveFailed": "Die Sprache konnte nicht gespeichert werden. Bitte versuche es erneut."
+    },
+    "theme": {
+      "title": "Farbschema",
+      "description": "Helle oder dunkle Darstellung. „System“ folgt der Einstellung deines Geräts. Deine Auswahl wird in deinem Konto gespeichert und auf jedem Gerät verwendet, auf dem du dich anmeldest.",
+      "saved": "Gespeichert.",
+      "saveFailed": "Das Farbschema konnte nicht gespeichert werden. Bitte versuche es erneut."
     }
+  },
+  "theme": {
+    "mode": {
+      "Light": "Hell",
+      "Dark": "Dunkel",
+      "System": "System"
+    },
+    "toDark": "Zum dunklen Farbschema wechseln",
+    "toLight": "Zum hellen Farbschema wechseln"
   }
 }

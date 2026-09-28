@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CoinPortal.Api.Controllers;
 
-/// <summary>The signed-in user's own settings (settings page). Today only the UI language.</summary>
+/// <summary>The signed-in user's own settings (settings page). UI language and color theme.</summary>
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
@@ -27,6 +27,7 @@ public class SettingsController(UserManager<ApplicationUser> userManager) : Cont
             return Unauthorized();
 
         user.PreferredLanguage = request.Language;
+        user.PreferredTheme = request.Theme;
 
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -40,5 +41,5 @@ public class SettingsController(UserManager<ApplicationUser> userManager) : Cont
     }
 
     private static UserSettingsResponse ToResponse(ApplicationUser user) =>
-        new(user.PreferredLanguage);
+        new(user.PreferredLanguage, user.PreferredTheme);
 }

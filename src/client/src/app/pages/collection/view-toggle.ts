@@ -10,7 +10,7 @@ export type CollectionView = 'list' | 'grid';
   host: { class: 'block' },
   template: `
     <div
-      class="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 shadow-sm"
+      class="inline-flex rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
       role="group"
       [attr.aria-label]="'view.group' | transloco"
     >
@@ -18,11 +18,11 @@ export type CollectionView = 'list' | 'grid';
         <button
           type="button"
           class="inline-flex size-8 items-center justify-center rounded-md transition-colors
-                focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
+                focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
           [class]="
             option.value === value()
-              ? 'bg-amber-100 text-amber-800'
-              : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+              ? 'bg-brand-100 text-brand-800'
+              : 'text-shade-500 hover:bg-shade-100 hover:text-shade-700'
           "
           [attr.aria-pressed]="option.value === value()"
           [attr.aria-label]="option.labelKey | transloco"

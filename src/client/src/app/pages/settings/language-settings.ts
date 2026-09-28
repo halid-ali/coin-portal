@@ -7,7 +7,7 @@ import { LanguagePreference } from '../../core/settings/language-preference';
 import { LanguageSelect } from '../../shared/language-select/language-select';
 
 /**
- * Settings > Language. The dropdown shows the active language (the saved one, otherwise the one
+ * Settings > Appearance > Language. The dropdown shows the active language (the saved one, otherwise the one
  * this device picked). A choice is saved to the account right away (no save button) and then
  * applied, so the page switches to the new language.
  */
@@ -17,10 +17,10 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
   template: `
     <div class="card space-y-5">
       <div>
-        <h2 class="text-lg font-semibold text-slate-900">
+        <h2 class="text-lg font-semibold text-shade-900">
           {{ 'settings.language.title' | transloco }}
         </h2>
-        <p class="mt-1 text-sm text-slate-600">{{ 'settings.language.description' | transloco }}</p>
+        <p class="mt-1 text-sm text-shade-600">{{ 'settings.language.description' | transloco }}</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
@@ -32,7 +32,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
         />
         <span aria-live="polite">
           @if (status() === 'saved') {
-            <span class="text-sm text-emerald-700"
+            <span class="text-sm text-success-700"
               >✓ {{ 'settings.language.saved' | transloco }}</span
             >
           }

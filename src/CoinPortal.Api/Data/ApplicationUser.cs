@@ -16,4 +16,7 @@ public class ApplicationUser : IdentityUser
     // UI language chosen by the user (SupportedLanguages); null means no choice was saved and
     // the client follows the device (its own saved choice or the browser language)
     public string? PreferredLanguage { get; set; }
+
+    // Color theme chosen by the user; null means no choice was saved (see ThemePreference)
+    public ThemePreference? PreferredTheme { get; set; }
 }

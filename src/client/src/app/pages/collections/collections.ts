@@ -16,11 +16,11 @@ import { CollectionFormDialog } from './collection-form-dialog';
     <section class="space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-semibold text-slate-900">
+          <h1 class="text-2xl font-semibold text-shade-900">
             {{ 'collections.title' | transloco }}
           </h1>
           @if (collections(); as list) {
-            <p class="text-sm text-slate-600">
+            <p class="text-sm text-shade-600">
               {{ 'collections.collectionCount' | plural: list.length }} ·
               {{ 'common.coinCount' | plural: totalCoins() }}
             </p>
@@ -38,7 +38,7 @@ import { CollectionFormDialog } from './collection-form-dialog';
       } @else if (collections(); as list) {
         @if (list.length === 0) {
           <div class="card text-center">
-            <p class="text-slate-600">{{ 'collections.empty' | transloco }}</p>
+            <p class="text-shade-600">{{ 'collections.empty' | transloco }}</p>
             <button type="button" class="btn-primary mt-4" (click)="creating.set(true)">
               {{ 'collections.createFirst' | transloco }}
             </button>
@@ -57,7 +57,7 @@ import { CollectionFormDialog } from './collection-form-dialog';
           </ul>
         }
       } @else {
-        <p class="text-center text-slate-500">{{ 'common.loading' | transloco }}</p>
+        <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
       }
     </section>
 

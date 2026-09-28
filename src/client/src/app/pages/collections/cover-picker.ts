@@ -29,7 +29,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
   template: `
     <p class="form-label">{{ 'cover.title' | transloco }}</p>
 
-    <div class="relative aspect-video overflow-hidden rounded-lg bg-slate-100">
+    <div class="relative aspect-video overflow-hidden rounded-lg bg-shade-100">
       @if (displayUrl(); as src) {
         <img [src]="src" alt="" class="size-full object-cover" />
       } @else {
@@ -37,8 +37,8 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
           type="button"
           [disabled]="disabled()"
           (click)="choose()"
-          class="flex size-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300
-                       text-slate-500 transition-colors hover:border-amber-400 hover:text-amber-700 disabled:opacity-60"
+          class="flex size-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-shade-300
+                       text-shade-500 transition-colors hover:border-brand-400 hover:text-brand-700 disabled:opacity-60"
         >
           <svg
             viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
 
       @if (badge(); as text) {
         <span
-          class="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm"
+          class="absolute top-2 left-2 rounded-full bg-shade-0/90 px-2 py-0.5 text-xs font-medium text-shade-700 shadow-sm"
         >
           {{ text | transloco }}
         </span>
@@ -89,7 +89,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
       @if (hasOwnCover()) {
         <button
           type="button"
-          class="btn-secondary px-3 py-1.5 text-sm text-red-700 hover:bg-red-50"
+          class="btn-secondary px-3 py-1.5 text-sm text-danger-700 hover:bg-danger-50"
           [disabled]="disabled()"
           (click)="remove()"
         >
