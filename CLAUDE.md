@@ -89,7 +89,7 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
 - Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
-  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; şimdilik `language`).
+  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`).
   Eski `/collection…` adresleri yönlendirilir.
   Girişsiz: `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
   koleksiyon), `/s/:token` (sadece linkle). Koleksiyon sayfası tek bileşen, route data `mode`
@@ -166,6 +166,12 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   koleksiyonuna dönülür. Düz bir link koleksiyonu, görünümü ve filtreleri kaybettirir.
 - Koleksiyon silme: ad birebir yazılmadan silinemez (boş olsa da); dolu koleksiyonda varsayılan seçenek
   coin'leri taşımak. Tek koleksiyon silinemez (API `last_collection`).
+- **Renkler tema duyarlı token'larla:** `shade` (nötr, slate yerine), `brand` (amber), `danger` (red),
+  `info` (sky), `success` (emerald); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema
+  (`<html class="dark">`, `ThemeService`) sadece `styles.css`'teki değişkenleri değiştirir; template'e
+  `dark:` ve düz palet (`slate-*`, `amber-*`, `bg-white`) yazılmaz. İstisna: iki temada aynı görünmesi
+  gerekenler (birincil/tehlike butonunun dolgusu, logo, fotoğraf görüntüleyici, tema önizlemeleri).
+  Tema tercihi dil gibi hesapta (`me` → `theme`, `PUT api/settings`), değişiklik `ThemePreference.change()`.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
   `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu).
@@ -200,7 +206,7 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
     `coin.side.<değer>.label`, `visibility.<değer>.label`, `coin.sort.<sütun>.asc`.
   - Dil sırası: hesaptaki dil > bu tarayıcıdaki son seçim (`localStorage` `coinportal.language`) >
     tarayıcı dili > İngilizce. Açılışta ve girişte `LanguageService.use()`; çeviri yüklenmeden dil
-    değişmez. Dil seçici footer'da (herkes) ve Ayarlar > Dil'de; ikisi de `LanguagePreference.change()`
+    değişmez. Dil seçici footer'da (herkes) ve Ayarlar > Görünüm'de; ikisi de `LanguagePreference.change()`
     kullanır (girişliyse önce hesaba kaydeder). Seçici `shared/language-select` (bayraklı liste kutusu,
     klavyeyle kullanılır; native `<select>` resim gösteremez, emoji bayraklar Windows'ta harf çıkar),
     bayraklar `shared/flag` (inline SVG).
@@ -220,7 +226,9 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
 - `.csproj` içindeki XML yorumlarında `--` kullanılamaz.
 - `@for` ile oluşan `<option>`'larda seçili değer `[selected]` ile verilir; `<select [value]>` güvenilir değil.
 - Kullanıcının API'si çalışırken `bin/` kilitli olur ve `dotnet build` kopyalamada takılır. Bu
-  durumda ne yapılacağı "Çalışan uygulamalar" bölümünde.
+  durumda ne yapılacağı "Çalışan uygulamalar" bölümünde. `dotnet ef migrations add` / `database update`
+  için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
+  (`--configuration` ile ayrı konfigürasyon işe yaramaz: Debug dışı her derleme ImageSharp lisansı ister).
 - Eski dosyaların çoğunda dosya sonu satır sonu yok (kopyala-yapıştır döneminden); Prettier'ı sadece
   değiştirilen dosyalarda çalıştır, ilgisiz dosyaları diff'e katma. Harici `.html` şablonları
   (`collection.html`, `header.html` vb.) hiç Prettier'dan geçmemiş; onlarda çalıştırma, tüm dosyayı
