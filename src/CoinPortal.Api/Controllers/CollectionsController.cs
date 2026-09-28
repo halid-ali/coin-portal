@@ -197,7 +197,7 @@ public class CollectionsController(
     private Task<CollectionResponse> ProjectOneAsync(int id, CancellationToken ct) =>
         Project(db.Collections.Where(c => c.Id == id)).FirstAsync(ct);
 
-    // Coin count and cover in the same query
+    // Coin count in the same query
     private static IQueryable<CollectionResponse> Project(IQueryable<Collection> collections) =>
         collections.Select(c => new CollectionResponse(
             c.Id,
@@ -207,10 +207,6 @@ public class CollectionsController(
             c.ShareToken,
             c.Coins.Count,
             c.CoverImageId,
-            c.Coins.SelectMany(coin => coin.Photos)
-                .OrderBy(p => p.Side).ThenByDescending(p => p.CreatedAtUtc)
-                .Select(p => new CollectionCoverResponse(p.CoinId, p.Side, p.Id))
-                .FirstOrDefault(),
             c.CreatedAtUtc,
             c.UpdatedAtUtc));
 

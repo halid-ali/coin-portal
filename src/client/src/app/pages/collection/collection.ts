@@ -137,7 +137,7 @@ export class Collection {
   protected readonly notFound = signal(false);
   protected readonly collectionCover = computed(() => {
     const header = this.header();
-    return header ? coverUrl(header, 'preview', this.shareToken()) : null;
+    return header ? coverUrl(header, this.shareToken()) : null;
   });
   protected readonly editing = signal(false);
   /** All collections while the delete dialog is open (it offers the others as move targets). */

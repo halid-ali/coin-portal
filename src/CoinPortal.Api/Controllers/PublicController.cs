@@ -130,9 +130,5 @@ public class PublicController(AppDbContext db) : ControllerBase
             c.Owner.UserName!,
             c.Visibility,
             c.Coins.Count,
-            c.CoverImageId,
-            c.Coins.SelectMany(coin => coin.Photos)
-                .OrderBy(p => p.Side).ThenByDescending(p => p.CreatedAtUtc)
-                .Select(p => new CollectionCoverResponse(p.CoinId, p.Side, p.Id))
-                .FirstOrDefault()));
+            c.CoverImageId));
 }

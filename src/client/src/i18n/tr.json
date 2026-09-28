@@ -323,8 +323,7 @@
     "title": "Kapak fotoğrafı",
     "choose": "Kapak seç",
     "upload": "Kapak yükle",
-    "auto": "Otomatik",
-    "hint": "İsteğe bağlı, JPG veya PNG (en fazla {{mb}} MB). Yüklemezsen son eklenen coin fotoğrafı kullanılır.",
+    "hint": "İsteğe bağlı, JPG veya PNG (en fazla {{mb}} MB). Yüklemezsen kartta varsayılan koleksiyon görseli gösterilir.",
     "cropTitle": "Kapak fotoğrafını kırp",
     "cropHint": "Kartlarda görünecek alanı seç. Çerçeveyi sürükleyip köşelerinden boyutlandırabilirsin; yakınlaştırınca fotoğrafı çerçevenin dışından tutup kaydırabilirsin."
   },

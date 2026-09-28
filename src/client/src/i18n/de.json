@@ -323,8 +323,7 @@
     "title": "Titelbild",
     "choose": "Titelbild auswählen",
     "upload": "Titelbild hochladen",
-    "auto": "Automatisch",
-    "hint": "Optional, JPG oder PNG (bis {{mb}} MB). Ohne Titelbild wird das zuletzt hinzugefügte Münzfoto verwendet.",
+    "hint": "Optional, JPG oder PNG (bis {{mb}} MB). Ohne Titelbild zeigt die Karte das Standardbild der Sammlung.",
     "cropTitle": "Titelbild zuschneiden",
     "cropHint": "Wähle den Ausschnitt, der auf den Karten zu sehen ist. Du kannst den Rahmen verschieben und an den Ecken seine Größe ändern; nach dem Vergrößern kannst du das Foto außerhalb des Rahmens greifen und verschieben."
   },

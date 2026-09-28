@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Contracts.Coins;
-using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 
 namespace CoinPortal.Api.Contracts.Public;
@@ -15,8 +14,7 @@ public sealed record PublicCollectionResponse(
     string OwnerUserName,
     CollectionVisibility Visibility,
     int CoinCount,
-    Guid? CoverImageId,
-    CollectionCoverResponse? Cover);
+    Guid? CoverImageId);
 
 public sealed record PublicProfileResponse(string UserName, IReadOnlyList<PublicCollectionResponse> Collections);
 

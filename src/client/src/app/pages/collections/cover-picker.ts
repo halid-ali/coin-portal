@@ -18,8 +18,8 @@ import { ImageChange } from '../../shared/image-change';
 import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialog';
 
 /**
- * Collection cover in the collection form: a 16:9 preview of the pending upload, the uploaded
- * cover or the automatic one (latest coin photo). Choosing a file opens the crop dialog in 16:9;
+ * Collection cover in the collection form: a 16:9 preview of the pending upload or the uploaded
+ * cover (without one, cards show the default picture). Choosing a file opens the crop dialog in 16:9;
  * the result is kept as a pending change (two-way bound `change`) and uploaded on save.
  */
 @Component({
@@ -153,14 +153,8 @@ export class CoverPicker {
       return this.pendingUrl();
     }
     const collection = this.collection();
-    if (!collection) {
-      return null;
-    }
-    if (change?.type === 'remove') {
-      // What the card falls back to
-      return coverUrl({ ...collection, coverImageId: null }, 'preview');
-    }
-    return coverUrl(collection, 'preview');
+    // After a removal the card shows the default picture; here the empty picker does
+    return collection && change?.type !== 'remove' ? coverUrl(collection) : null;
   });
 
   /** Translation key of the badge on the preview, if any. */
@@ -169,10 +163,7 @@ export class CoverPicker {
     if (change?.type === 'upload') {
       return 'photo.willUpload';
     }
-    if (change?.type === 'remove') {
-      return 'photo.willRemove';
-    }
-    return this.displayUrl() && !this.collection()?.coverImageId ? 'cover.auto' : null;
+    return change?.type === 'remove' ? 'photo.willRemove' : null;
   });
 
   constructor() {

@@ -1,12 +1,12 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-09-28 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
-giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin için yeni görsel; hepsi main'de.
-Sırada koleksiyon kapağı olmayan koleksiyonların görseli. ImageSharp lisans kararı ilk publish'ten önce)
+giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
+görseller, son coin fotoğrafı artık kapak değil; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/coin-placeholder` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/collection-placeholder` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -165,7 +165,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
    - Not: seed yeniden çalıştırıldığı için seed kullanıcılarındaki fotoğraflar silindi (12 kayıt;
      kullanıcının bu hesaplarla yaptığı yüklemeler de dahil olabilir).
    - **Kapak fotoğrafı** (kullanıcı isteği): koleksiyon düzenleme/oluşturma penceresinde 16:9 kırpma
-     (dikdörtgen çerçeve), Kaydet'te yüklenir; yoksa son coin fotoğrafı "Otomatik" olarak kullanılır.
+     (dikdörtgen çerçeve), Kaydet'te yüklenir; yoksa son coin fotoğrafı "Otomatik" olarak kullanılır
+     (2026-09-28'de kaldırıldı: kapak yoksa varsayılan koleksiyon görseli, Tamamlananlar 14).
      API: `Collection.CoverImageId`/`CoverSizeBytes` (migration `AddCollectionCover`),
      `CollectionCoversController` (`PUT`/`DELETE`/`GET api/collections/{id}/cover?v=`), en fazla 1200×675
      WebP, büyütme yok, en az 320 px genişlik; kotaya dahil (`PhotoQuota`); koleksiyon silinince dosya
@@ -296,7 +297,17 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `currentColor`). Kullanıcıyla birkaç turda çizildi: kenar çizgileri silindir etrafında eşit açıyla
       (15°, 9 çizgi; eşit x aralığı düz şerit gibi duruyordu), dış çizgi 12, € yayı 8 / yatay çizgiler 6
       (eşit kalınlıkta çizgiler arasını açmak gerekiyordu). `CoinThumb` ve ızgara kutusunda kullanılıyor.
-      Koleksiyon kartındaki eski daire ikonu duruyor; koleksiyon görseli sıradaki iş.
+    - Koleksiyon görseli ve kapak (`feat/collection-placeholder`, kullanıcı kararı): kapağı yüklenmemiş
+      koleksiyonda artık **son coin fotoğrafı kullanılmıyor**, kartta varsayılan görsel çıkıyor
+      (`shared/collection-placeholder`, kartta kapak alanı yüksekliğinin %80i kadar kare, masaüstü kartta ~142 px; 96 px küçük, tam yükseklik büyük geldi): üst üste iki coin + onlara 28° yaslanan üçüncü coin
+      (kullanıcının fikri; Claude'un albüm / yığın / kutu taslaklarıyla karşılaştırıldı, Claude da bunu
+      seçti: coin görseliyle aynı dil, küçük boyutta okunaklı). Her coin coin görselinin tamamının 0,577
+      ölçekli hâli (çizgi oranları aynı kalsın diye); dik coin'in €'su yüzü gibi yatayda 0,46 daraltılmış,
+      1,4 büyütülmüş, çizgileri 10 / 7,5. Yığının dik coin'in arkasında kalan kısmı maskeyle gizleniyor;
+      maske kimliği her kopyada ayrı (`url(#…)` sayfadaki ilk eşleşen kimliği kullanır, önizlemede
+      kopyalar birbirinin maskesini aldı). API: `CollectionResponse` / `PublicCollectionResponse`'tan
+      `Cover` ve alt sorgusu kaldırıldı; client `coverUrl(collection, shareToken?)` sadece yüklenen kapak.
+      Kapak seçicide "Otomatik" rozeti kalktı, `cover.hint` dört dilde güncellendi (`cover.auto` silindi).
 
 ## Sıradaki adım
 
