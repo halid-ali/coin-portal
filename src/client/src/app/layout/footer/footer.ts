@@ -17,13 +17,13 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
   imports: [RouterLink, TranslocoPipe, LanguageSelect],
   host: {
     class:
-      'z-30 block border-t border-slate-200/80 bg-white/85 backdrop-blur supports-backdrop-filter:bg-white/70 sm:sticky sm:bottom-0',
+      'z-30 block border-t border-shade-200/80 bg-shade-0/85 backdrop-blur supports-backdrop-filter:bg-shade-0/70 sm:sticky sm:bottom-0',
   },
   template: `
     <div
       class="mx-auto grid max-w-5xl grid-cols-2 items-center gap-x-6 gap-y-2 px-4 py-3 sm:grid-cols-[1fr_auto_1fr]"
     >
-      <a routerLink="/" class="flex items-center gap-2 justify-self-start font-bold text-slate-900">
+      <a routerLink="/" class="flex items-center gap-2 justify-self-start font-bold text-shade-900">
         <span
           aria-hidden="true"
           class="grid size-8 place-items-center rounded-full bg-linear-to-br from-amber-300 to-amber-500 text-sm
@@ -34,7 +34,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
       </a>
 
       <p
-        class="order-last col-span-2 text-center text-xs text-slate-500 sm:order-none sm:col-span-1"
+        class="order-last col-span-2 text-center text-xs text-shade-500 sm:order-none sm:col-span-1"
       >
         © {{ year }} Coin Portal
       </p>

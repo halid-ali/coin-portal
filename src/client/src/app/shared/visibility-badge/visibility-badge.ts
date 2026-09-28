@@ -50,11 +50,11 @@ export class VisibilityBadge {
   protected readonly tone = computed(() => {
     switch (this.visibility()) {
       case 'Public':
-        return 'bg-emerald-50 text-emerald-800 ring-emerald-200';
+        return 'bg-success-50 text-success-800 ring-success-200';
       case 'Unlisted':
-        return 'bg-sky-50 text-sky-800 ring-sky-200';
+        return 'bg-info-50 text-info-800 ring-info-200';
       default:
-        return 'bg-slate-100 text-slate-600 ring-slate-200';
+        return 'bg-shade-100 text-shade-600 ring-shade-200';
     }
   });
 }

@@ -9,12 +9,12 @@ import { AuthService } from '../../core/auth/auth.service';
   imports: [RouterLink, TranslocoPipe],
   template: `
     <section class="mx-auto max-w-2xl py-8 text-center">
-      <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl">
+      <h1 class="text-3xl font-bold text-shade-900 sm:text-4xl">
         {{ 'home.headline' | transloco }}
       </h1>
 
       @if (auth.currentUser(); as user) {
-        <p class="mt-4 text-lg text-slate-600">
+        <p class="mt-4 text-lg text-shade-600">
           {{ 'home.welcome' | transloco: { name: user.firstName } }}
         </p>
         <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -24,7 +24,7 @@ import { AuthService } from '../../core/auth/auth.service';
           <a routerLink="/explore" class="btn-secondary">{{ 'nav.explore' | transloco }}</a>
         </div>
       } @else {
-        <p class="mt-4 text-lg text-slate-600">
+        <p class="mt-4 text-lg text-shade-600">
           {{ 'home.intro' | transloco }}
         </p>
         <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

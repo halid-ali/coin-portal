@@ -32,9 +32,9 @@ let nextId = 0;
     <button
       #trigger
       type="button"
-      class="flex items-center gap-2 rounded-lg border border-slate-300 bg-white py-1.5 pr-2 pl-2.5 text-sm
-             text-slate-800 shadow-sm transition-colors hover:bg-slate-50 focus-visible:ring-2
-             focus-visible:ring-amber-500 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+      class="flex items-center gap-2 rounded-lg border border-shade-300 bg-shade-0 py-1.5 pr-2 pl-2.5 text-sm
+             text-shade-800 shadow-sm transition-colors hover:bg-shade-50 focus-visible:ring-2
+             focus-visible:ring-brand-500 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
       aria-haspopup="listbox"
       [attr.aria-expanded]="open()"
       [attr.aria-controls]="listId"
@@ -48,7 +48,7 @@ let nextId = 0;
       <span [attr.lang]="current().code">{{ current().name }}</span>
       <svg
         viewBox="0 0 24 24"
-        class="size-4 text-slate-400 transition-transform"
+        class="size-4 text-shade-400 transition-transform"
         [class.rotate-180]="open()"
         fill="none"
         stroke="currentColor"
@@ -68,7 +68,7 @@ let nextId = 0;
         [id]="listId"
         [attr.aria-label]="label()"
         [attr.aria-activedescendant]="listId + '-' + active()"
-        class="absolute z-40 w-max min-w-full rounded-xl text-left border border-slate-200 bg-white p-1 shadow-lg
+        class="absolute z-40 w-max min-w-full rounded-xl text-left border border-shade-200 bg-shade-0 p-1 shadow-lg
                focus:outline-none"
         [class]="placementClass()"
         (keydown)="onListKey($event)"
@@ -79,8 +79,8 @@ let nextId = 0;
             [id]="listId + '-' + i"
             [attr.lang]="l.code"
             [attr.aria-selected]="l.code === value()"
-            class="flex cursor-pointer items-center gap-2 rounded-lg py-1.5 pr-2 pl-2.5 text-sm text-slate-700"
-            [class.bg-slate-100]="i === active()"
+            class="flex cursor-pointer items-center gap-2 rounded-lg py-1.5 pr-2 pl-2.5 text-sm text-shade-700"
+            [class.bg-shade-100]="i === active()"
             [class.font-semibold]="l.code === value()"
             (click)="choose(l.code)"
             (mouseenter)="active.set(i)"
@@ -89,7 +89,7 @@ let nextId = 0;
             <span class="flex-1">{{ l.name }}</span>
             <svg
               viewBox="0 0 24 24"
-              class="size-4 text-amber-600"
+              class="size-4 text-brand-600"
               [class.invisible]="l.code !== value()"
               fill="none"
               stroke="currentColor"

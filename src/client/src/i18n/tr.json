@@ -358,12 +358,39 @@
   "settings": {
     "title": "Ayarlar",
     "sections": "Ayar bölümleri",
+    "profile": {
+      "nav": "Profil",
+      "title": "Profil",
+      "description": "Hesap bilgilerin. Şimdilik sadece görüntülenebilir; değiştirme ileride eklenecek.",
+      "firstName": "İsim",
+      "lastName": "Soyisim",
+      "userName": "Kullanıcı adı",
+      "email": "E-posta",
+      "birthDate": "Doğum tarihi"
+    },
+    "appearance": {
+      "nav": "Görünüm"
+    },
     "language": {
-      "nav": "Dil",
       "title": "Dil",
       "description": "Arayüzün dili. Seçimin hesabına kaydedilir ve giriş yaptığın her cihazda kullanılır.",
       "saved": "Kaydedildi.",
       "saveFailed": "Dil kaydedilemedi. Lütfen tekrar dene."
+    },
+    "theme": {
+      "title": "Tema",
+      "description": "Açık ya da koyu görünüm. Sistem seçeneği cihazının ayarını izler. Seçimin hesabına kaydedilir ve giriş yaptığın her cihazda kullanılır.",
+      "saved": "Kaydedildi.",
+      "saveFailed": "Tema kaydedilemedi. Lütfen tekrar dene."
     }
+  },
+  "theme": {
+    "mode": {
+      "Light": "Açık",
+      "Dark": "Koyu",
+      "System": "Sistem"
+    },
+    "toDark": "Koyu temaya geç",
+    "toLight": "Açık temaya geç"
   }
 }

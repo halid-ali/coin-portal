@@ -33,7 +33,7 @@ let nextId = 0;
         <div class="flex items-start gap-4">
           @if (options().danger) {
             <div
-              class="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600"
+              class="flex size-10 shrink-0 items-center justify-center rounded-full bg-danger-100 text-danger-600"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -52,10 +52,10 @@ let nextId = 0;
             </div>
           }
           <div>
-            <h2 [id]="titleId" class="text-lg font-semibold text-slate-900">
+            <h2 [id]="titleId" class="text-lg font-semibold text-shade-900">
               {{ options().title }}
             </h2>
-            <p [id]="messageId" class="mt-2 text-sm text-slate-600">{{ options().message }}</p>
+            <p [id]="messageId" class="mt-2 text-sm text-shade-600">{{ options().message }}</p>
           </div>
         </div>
 

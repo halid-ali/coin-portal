@@ -14,10 +14,10 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
   template: `
     <a
       [routerLink]="link()"
-      class="card group block h-full overflow-hidden p-0 transition-colors hover:border-amber-300
-             focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
+      class="card group block h-full overflow-hidden p-0 transition-colors hover:border-brand-300
+             focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
     >
-      <div class="relative aspect-video overflow-hidden bg-slate-100">
+      <div class="relative aspect-video overflow-hidden bg-shade-100">
         @if (cover(); as src) {
           <img
             [src]="src"
@@ -30,7 +30,7 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
           <div class="flex size-full items-center justify-center">
             <svg
               viewBox="0 0 24 24"
-              class="size-16 text-slate-300"
+              class="size-16 text-shade-300"
               fill="none"
               stroke="currentColor"
               stroke-width="1.25"
@@ -49,11 +49,11 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
         }
       </div>
       <div class="space-y-1 p-4">
-        <h2 class="truncate font-semibold text-slate-900">{{ collection().name }}</h2>
+        <h2 class="truncate font-semibold text-shade-900">{{ collection().name }}</h2>
         @if (collection().description) {
-          <p class="line-clamp-2 text-sm text-slate-600">{{ collection().description }}</p>
+          <p class="line-clamp-2 text-sm text-shade-600">{{ collection().description }}</p>
         }
-        <p class="text-sm text-slate-500">
+        <p class="text-sm text-shade-500">
           {{ 'common.coinCount' | plural: collection().coinCount }}
         </p>
       </div>

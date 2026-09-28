@@ -113,20 +113,20 @@ let nextId = 0;
           <div class="space-y-2">
             @for (option of visibilityOptions; track option) {
               <label
-                class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 transition-colors
-                            hover:bg-slate-50 has-checked:border-amber-400 has-checked:bg-amber-50"
+                class="flex cursor-pointer items-start gap-3 rounded-lg border border-shade-200 p-3 transition-colors
+                            hover:bg-shade-50 has-checked:border-brand-400 has-checked:bg-brand-50"
               >
                 <input
                   type="radio"
                   formControlName="visibility"
                   [value]="option"
-                  class="mt-1 accent-amber-500"
+                  class="mt-1 accent-brand-500"
                 />
                 <span class="text-sm">
-                  <span class="flex items-center gap-2 font-medium text-slate-900">
+                  <span class="flex items-center gap-2 font-medium text-shade-900">
                     <app-visibility-badge [visibility]="option" />
                   </span>
-                  <span class="mt-1 block text-slate-600">{{
+                  <span class="mt-1 block text-shade-600">{{
                     'visibility.' + option + '.description' | transloco
                   }}</span>
                 </span>
@@ -137,8 +137,8 @@ let nextId = 0;
           @if (pendingVisibilityNote(); as note) {
             <p class="form-hint">{{ note | transloco }}</p>
           } @else if (link(); as url) {
-            <div class="mt-3 rounded-lg bg-slate-50 p-3">
-              <p class="text-xs font-medium text-slate-600">
+            <div class="mt-3 rounded-lg bg-shade-50 p-3">
+              <p class="text-xs font-medium text-shade-600">
                 {{
                   (saved()?.visibility === 'Unlisted'
                     ? 'collectionForm.unlistedLink'
@@ -175,7 +175,7 @@ let nextId = 0;
                       | transloco
                   }}
                 </button>
-                <span class="text-xs text-slate-500">
+                <span class="text-xs text-shade-500">
                   {{ 'collectionForm.regenerateNote' | transloco }}</span
                 >
               }

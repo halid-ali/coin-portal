@@ -12,7 +12,8 @@ let nextId = 0;
 @Component({
   selector: 'app-flag',
   host: {
-    class: 'inline-block h-3.5 w-5 shrink-0 overflow-hidden rounded-[2px] ring-1 ring-black/10',
+    class:
+      'inline-block h-3.5 w-5 shrink-0 overflow-hidden rounded-[2px] ring-1 ring-black/10 dark:ring-white/15',
     'aria-hidden': 'true',
   },
   template: `

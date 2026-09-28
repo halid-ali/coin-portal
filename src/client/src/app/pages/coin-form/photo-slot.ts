@@ -29,9 +29,9 @@ let nextId = 0;
   host: { class: 'block' },
   template: `
     <p class="form-label mb-0">{{ label() }}</p>
-    <p class="mb-2 text-xs text-slate-500">{{ hint() }}</p>
+    <p class="mb-2 text-xs text-shade-500">{{ hint() }}</p>
 
-    <div class="relative aspect-square overflow-hidden rounded-xl bg-slate-100">
+    <div class="relative aspect-square overflow-hidden rounded-xl bg-shade-100">
       @if (displayUrl(); as src) {
         @if (canView()) {
           <button
@@ -51,8 +51,8 @@ let nextId = 0;
           [disabled]="disabled()"
           (click)="choose()"
           class="flex size-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed
-                       border-slate-300 p-4 text-center text-slate-500 transition-colors hover:border-amber-400
-                       hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                       border-shade-300 p-4 text-center text-shade-500 transition-colors hover:border-brand-400
+                       hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <svg
             viewBox="0 0 24 24"
@@ -77,7 +77,7 @@ let nextId = 0;
 
       @if (change()?.type === 'upload') {
         <span
-          class="absolute top-2 left-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 shadow-sm"
+          class="absolute top-2 left-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-900 shadow-sm"
         >
           {{ 'photo.willUpload' | transloco }}
         </span>
@@ -104,7 +104,7 @@ let nextId = 0;
         </button>
         <button
           type="button"
-          class="btn-secondary px-3 py-1.5 text-sm text-red-700 hover:bg-red-50"
+          class="btn-secondary px-3 py-1.5 text-sm text-danger-700 hover:bg-danger-50"
           [disabled]="disabled()"
           (click)="remove()"
         >
