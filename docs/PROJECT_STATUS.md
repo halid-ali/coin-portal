@@ -1,12 +1,12 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-28 (genel görsel düzeltmeler başladı: kaydırma çubuğu kayması giderildi,
-`fix/scrollbar-shift` main'e alındı. Görsel düzeltmeler sohbeti devam ediyor. ImageSharp lisans kararı
-ilk publish'ten önce)
+Son güncelleme: 2026-09-28 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
+giderildi, ikisi de main'de. Görsel düzeltmeler sohbeti devam ediyor. ImageSharp lisans kararı ilk
+publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`fix/scrollbar-shift` 2026-09-28'de merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`fix/header-overflow` 2026-09-28'de merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -280,6 +280,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       pencere açılınca (`html:has(dialog:modal)` kaydırmayı kapatıyor) sayfa yana kayıyordu.
       `html { scrollbar-gutter: stable }` ile çubuğun yeri hep ayrılıyor; ayrılan şerit koyu temada beyaz
       kalmasın diye `html` de `bg-shade-50`. Kullanıcı tarayıcıda kontrol etti.
+    - Header taşması (`fix/header-overflow`): girişliyken 640–700 px arasında menü linkleri iki satıra
+      kırılıyor, Almanca/Türkçe/Bulgarca'da sayfa 34 px'e kadar yatay taşıyordu. Kullanıcı adı `md` altında
+      gizli (sadece avatar; açılan menüde ad ve e-posta var), `md` ve üstünde `max-w-28` + `truncate`;
+      linkler ve logo `whitespace-nowrap`. Headless Edge (gerçek kaydırma çubuğuyla, 4 dil × girişli/girişsiz
+      × 320–1280 px): önce 10 sorun, sonra 0; 768 px'te sınıra kadar dolu kullanıcı adıyla Almanca'da 10 px
+      pay kalıyor. Not: DevTools cihaz görünümünde kaydırma çubuğu yer kaplamaz, taşmayı olduğundan az gösterir.
 
 ## Sıradaki adım
 
@@ -289,8 +295,8 @@ Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi
    fotoğraflara mı).
 2. **Görünüm üzerinde çalışmaya devam** (kullanıcı 2026-09-28'de "sitenin görünümü üzerinde çalışalım"
    dedi; koyu tema ve tema rengi bitti). Kullanıcı ayrı bir sohbette genel görsellerle ilgili birkaç
-   düzeltme ve logo için ayrı bir çalışma yapmak istiyor. O sohbet için bulunan bir sorun: Almanca 640 px
-   civarında header'daki kullanıcı menüsü butonu sağdan ~18 px taşıyor (tüm sayfalarda yatay kaydırma).
+   düzeltme ve logo için ayrı bir çalışma yapmak istiyor. Genel düzeltmeler sohbeti 2026-09-28'de başladı
+   (Tamamlananlar 14).
 3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
    salt okunur. Hangi alanların değiştirilebileceğine kullanıcıyla karar verilecek (isim/soyisim kolay;
    kullanıcı adı paylaşım linklerini `/u/…` bozar; e-posta doğrulama ister; doğum tarihi 18+ kuralına
