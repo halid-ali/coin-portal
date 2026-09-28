@@ -23,10 +23,12 @@ public sealed record LoginRequest(
     bool RememberMe = false);
 
 /// <param name="Language">Saved UI language, or null if the user never chose one.</param>
+/// <param name="Theme">Saved color theme, or null if the user never chose one.</param>
 public sealed record UserResponse(
     string Id, string UserName, string Email,
-    string FirstName, string LastName, DateOnly BirthDate, string? Language)
+    string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme)
 {
     public static UserResponse From(ApplicationUser u) =>
-        new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage);
+        new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
+            u.PreferredTheme);
 }
