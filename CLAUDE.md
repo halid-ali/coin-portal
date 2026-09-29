@@ -44,7 +44,12 @@ terminallerinde sürekli çalışır halde tutuyor.
 - Conventional Commits (`feat(api): …`, `feat(client): …`, `chore: …`), İngilizce, küçük ve anlamlı commit'ler.
 - Commit ve merge **kullanıcı onayıyla** yapılır. Commit öncesinde gelen düzeltme istekleri önce uygulanır,
   commit son haliyle atılır (sonradan "fix" commit'i yığmak yerine).
-- **Push yok.** Yayın izni netleşene kadar repo sadece lokal (bkz. PROJECT_STATUS "Açık konular 2").
+- **Push kullanıcı onayıyla.** Repo kullanıcının kişisel GitHub hesabında, public (karar 2026-09-29).
+  Sadece `main` ve etiketler push edilir (`git push origin main`, `git push origin vX.Y.Z`); feature
+  branch'leri lokal kalır. Force-push yok.
+- CI: `.github/workflows/ci.yml` (ubuntu; API: Debug build + migration'sız model değişikliği kontrolü;
+  Web: `npm ci`, Prettier, `ng build`, `ng test`). Dependabot haftalık, gruplu. Release derlemesi CI'da
+  yok (ImageSharp anahtarı).
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
