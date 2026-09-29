@@ -39,12 +39,26 @@ terminallerinde sürekli çalışır halde tutuyor.
 ## Git akışı
 
 - **main'e doğrudan commit yok.** Her iş `feat/…`, `fix/…` veya `chore/…` branch'inde yapılır, main'e
-  `git merge --no-ff` ile alınır.
+  `git merge --no-ff --no-edit <branch>` ile alınır; merge mesajı git'in varsayılanıdır
+  (`Merge branch 'feat/x'`, 2026-09-29'dan beri; eski `feat: merge x` biçimi changelog'da tekrar üretir).
 - Conventional Commits (`feat(api): …`, `feat(client): …`, `chore: …`), İngilizce, küçük ve anlamlı commit'ler.
 - Commit ve merge **kullanıcı onayıyla** yapılır. Commit öncesinde gelen düzeltme istekleri önce uygulanır,
   commit son haliyle atılır (sonradan "fix" commit'i yığmak yerine).
 - **Push yok.** Yayın izni netleşene kadar repo sadece lokal (bkz. PROJECT_STATUS "Açık konular 2").
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
+
+### Sürüm ve yayın
+
+- SemVer; **git etiketi (`vX.Y.Z`, annotated) tek doğruluk kaynağı.** API sürümünü MinVer
+  (`Directory.Build.props`) etiketten türetir, `GET /api/health` `version` döner (etiketsiz commit'lerde
+  `X.Y.Z-preview.0.N`). Client sürümü derlemede gömülür: `ng build --define "APP_VERSION='X.Y.Z'"`
+  (`core/app-version.ts`, footer'da görünür; verilmezse görünmez). `package.json` sürümü 0.0.0 kalır.
+- CHANGELOG.md git-cliff ile commit'lerden üretilir (`cliff.toml`, Keep a Changelog): `feat` → Added,
+  `fix` → Fixed, `refactor`/`perf` → Changed; diğerleri ve merge commit'leri gizli. Elle yazılmaz.
+- Yayın akışı (kullanıcı onayıyla): main'de `npx git-cliff --bumped-version` önerisine bakılır (1.0.0'a
+  kadar breaking → minor, feat → minor, fix → patch; karar kullanıcıyla) → `chore/release-vX.Y.Z`
+  branch'inde `npx git-cliff --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
+  merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
 
 ## Komutlar
 
@@ -65,6 +79,10 @@ cd src/web && npm install && ng serve
 cd src/web && ng build
 cd src/web && ng test --watch=false               # Vitest + jsdom
 cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
+
+# Changelog and version (repo root)
+npx git-cliff --bumped-version                        # suggested next version
+npx git-cliff --tag vX.Y.Z -o CHANGELOG.md            # regenerate for a release
 ```
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
@@ -104,6 +122,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Unlisted iken var; başka görünürlüğe geçince silinir) / `Public`.
 
 - Auth: ASP.NET Core Identity + HttpOnly cookie `coinportal.auth` (JWT yok, SPA ile API aynı origin).
+  **Tek kimlik doğrulama şeması cookie + antiforgery kalır** (web, PWA, TWA; karar 2026-09-29): bearer/JWT
+  şeması, CORS ya da "bearer'da antiforgery atla" kodu eklenmez; yeni uçlar düz `[Authorize]` + policy.
+  Native mobil gerekirse önce cookie'yi koruyan yol denenir (`docs/reviews/2026-09-29-project-direction.md`).
 - CSRF: antiforgery, header `X-XSRF-TOKEN`; client `GET /api/auth/antiforgery` ile okunabilir
   `XSRF-TOKEN` cookie'si alır (açılışta ve her login/register/logout sonrası, token kullanıcıya bağlı).
 - Yayın hedefi: Angular derlemesi API'nin `wwwroot`'undan sunulacak, tek site, Windows hosting.

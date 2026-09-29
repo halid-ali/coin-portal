@@ -80,6 +80,7 @@ sits behind a single interface (`IImageProcessor`), so the library can be replac
 
 ## Documentation
 
+- [CHANGELOG.md](CHANGELOG.md): release notes, generated from the commit history
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md): current state, decisions and roadmap
 - [docs/reviews/](docs/reviews/): dated reviews of the project's direction
 - [CLAUDE.md](CLAUDE.md): development rules and known pitfalls
