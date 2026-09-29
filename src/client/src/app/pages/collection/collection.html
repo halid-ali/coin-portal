@@ -69,15 +69,41 @@
         </div>
       </div>
       @if (mode() === 'owner') {
-        <div class="flex flex-wrap gap-2">
+        <!-- Phones: link / edit / delete are icon buttons (titles and aria-labels name them) so
+             "Add coin" stays on the same row; from md up they show their text too. If the actions
+             grow, a "more" (⋯) menu is the next step (PROJECT_STATUS) -->
+        <div class="flex flex-wrap gap-1.5 sm:gap-2">
           @if (ownLink(); as url) {
-            <button type="button" class="btn-secondary" (click)="copyLink(url)">
-              {{ (copied() ? 'common.copied' : 'coinList.copyLink') | transloco }}
+            <button type="button" class="btn-secondary gap-2 p-2.5 md:px-4 md:py-2" (click)="copyLink(url)"
+                    [attr.aria-label]="'coinList.copyLink' | transloco" [title]="'coinList.copyLink' | transloco">
+              <svg viewBox="0 0 24 24" class="size-5 shrink-0" [class.text-success-600]="copied()" fill="none" stroke="currentColor"
+                   stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                @if (copied()) {
+                  <path d="m5 12.5 4.5 4.5L19 7.5" />
+                } @else {
+                  <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" />
+                }
+              </svg>
+              <span class="hidden md:inline">{{ (copied() ? 'common.copied' : 'coinList.copyLink') | transloco }}</span>
             </button>
+            <span class="sr-only" aria-live="polite">{{ copied() ? ('common.copied' | transloco) : '' }}</span>
           }
-          <button type="button" class="btn-secondary" [disabled]="!collection()" (click)="editing.set(true)">{{ 'common.edit' | transloco }}</button>
-          <button type="button" class="btn-secondary text-danger-700 hover:bg-danger-50" [disabled]="!collection()"
-                  (click)="openDelete()">{{ 'common.delete' | transloco }}</button>
+          <button type="button" class="btn-secondary gap-2 p-2.5 md:px-4 md:py-2" [disabled]="!collection()" (click)="editing.set(true)"
+                  [attr.aria-label]="'common.edit' | transloco" [title]="'common.edit' | transloco">
+            <svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+            </svg>
+            <span class="hidden md:inline">{{ 'common.edit' | transloco }}</span>
+          </button>
+          <button type="button" class="btn-secondary gap-2 p-2.5 text-danger-700 hover:bg-danger-50 md:px-4 md:py-2" [disabled]="!collection()"
+                  (click)="openDelete()" [attr.aria-label]="'common.delete' | transloco" [title]="'common.delete' | transloco">
+            <svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+            </svg>
+            <span class="hidden md:inline">{{ 'common.delete' | transloco }}</span>
+          </button>
           <a routerLink="/coins/new" [queryParams]="{ collection: collectionId() }" class="btn-primary">{{ 'coinList.addCoin' | transloco }}</a>
         </div>
       }
