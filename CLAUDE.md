@@ -65,6 +65,11 @@ terminallerinde sürekli çalışır halde tutuyor.
   kadar breaking → minor, feat → minor, fix → patch; karar kullanıcıyla) → `chore/release-vX.Y.Z`
   branch'inde `npx git-cliff --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
   merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
+- Etiket push edildikten sonra GitHub'da bir Release açılır (kullanıcı onayıyla): kısa giriş, öne
+  çıkanlar ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil.
+- GitHub rulesets: `main`'de silme ve force-push, `v*` etiketlerinde silme, güncelleme ve force-push yasak.
+  **Push edilmiş bir etiket düzeltilemez**; yanlışsa yeni bir patch sürümü atılır. Etiketi push etmeden
+  önce doğru commit'te olduğunu kontrol et.
 
 ## Komutlar
 
