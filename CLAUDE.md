@@ -43,7 +43,7 @@ terminallerinde sürekli çalışır halde tutuyor.
 - Conventional Commits (`feat(api): …`, `feat(client): …`, `chore: …`), İngilizce, küçük ve anlamlı commit'ler.
 - Commit ve merge **kullanıcı onayıyla** yapılır. Commit öncesinde gelen düzeltme istekleri önce uygulanır,
   commit son haliyle atılır (sonradan "fix" commit'i yığmak yerine).
-- **Push yok.** Şirket politikası netleşene kadar repo sadece lokal (bkz. PROJECT_STATUS "Açık konular").
+- **Push yok.** Yayın izni netleşene kadar repo sadece lokal (bkz. PROJECT_STATUS "Açık konular 2").
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ## Komutlar
@@ -267,7 +267,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **ImageSharp 4.x lisans anahtarı ister:** anahtar yoksa Debug derleme uyarı verir, **Release
   (publish) derleme hata verir.** Karar bekliyor (PROJECT_STATUS "Açık konular").
 - Scratchpad'deki .NET betikleri (`dotnet run x.cs`, `#:package`) repo'nun `nuget.config`'ini görmez;
-  şirket feed'i 401 verir. Betik klasörüne repo'daki `nuget.config` kopyalanır.
+  makinenin global NuGet ayarlarındaki özel bir feed 401 verebilir. Betik klasörüne repo'daki
+  `nuget.config` kopyalanır.
 - ngx-image-cropper `allowMoveImage`: sürükleme farkını piksel olarak ekler, transform'un varsayılan
   birimi ise yüzde; `translateUnit: 'px'` verilmezse fotoğraf fareden kat kat hızlı kayar. Konum
   `(transformChange)` ile saklanmazsa yakınlaştırma değişince geri zıplar.
@@ -288,7 +289,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
 - `sticky` bir eleman ebeveyninin dışına çıkamaz: bileşen host'u (`<app-header>`) içerikle aynı
   yükseklikteyse içteki elemana verilen `sticky` işe yaramaz; `sticky` host'a verilir (`host: { class }`).
+- `ng serve` `src/index.html` değişikliklerini almaz (eski başlığı sunmaya devam eder); index.html
+  değişince `ng serve` yeniden başlatılır.
 - `<select class="w-auto">` en uzun seçeneğe göre genişler; uzun dillerde (Bulgarca) mobilde sayfayı
   yatay taşırır. Select'e ve flex/grid atalarına `min-w-0` ver.
-- Satır sonları LF (`.gitattributes`). Şirketin global `.npmrc`'sinde Azure DevOps feed'i var;
+- Satır sonları LF (`.gitattributes`). Makinenin global `.npmrc`'sinde özel bir feed tanımlı olabilir;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.
