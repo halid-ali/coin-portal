@@ -1,0 +1,18 @@
+<Project>
+
+  <!--
+    Versioning: the Git tag (v0.1.0, v1.2.3) is the single source of truth. MinVer derives the
+    assembly and informational version from the nearest tag at build time; commits after a tag
+    get a pre-release version such as 0.1.1-preview.0.3. The SDK appends the commit hash to the
+    informational version (0.1.0+a1b2c3d). CI checkouts need the full history (fetch-depth: 0).
+  -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
