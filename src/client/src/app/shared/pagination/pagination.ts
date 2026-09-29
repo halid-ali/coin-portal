@@ -6,7 +6,10 @@ let nextId = 0;
 /**
  * Pagination bar in three parts: projected content on the left (e.g. view switch), first /
  * previous / current / next / last buttons in the middle, range and page size on the right.
- * On narrow screens left and right share a row and the buttons move below, centered.
+ * Phones keep it to one row, by `placement`: above the list the projected content, previous /
+ * current / next and the page size; below it only the page buttons, centered. The range is
+ * hidden on phones (the page header shows the total). Below 360 px the top one falls back to two
+ * rows (the "all" option makes the page size select too wide); the "per page" label shows from md.
  */
 @Component({
   selector: 'app-pagination',
@@ -14,18 +17,22 @@ let nextId = 0;
   // Custom elements are inline by default; block lets the parent's spacing apply
   host: { class: 'block' },
   template: `
-    <div class="grid grid-cols-2 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-      <div class="justify-self-start">
+    <div
+      class="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]"
+      [class]="bottom() ? 'grid-cols-1' : 'grid-cols-[auto_1fr_auto] max-[359px]:grid-cols-2'"
+    >
+      <div class="justify-self-start" [class.max-sm:hidden]="bottom()">
         <ng-content />
       </div>
 
       <nav
-        class="order-last col-span-2 flex items-center justify-center gap-1 sm:order-none sm:col-span-1"
+        class="flex items-center justify-center gap-1 max-[359px]:order-last max-[359px]:col-span-2"
         [attr.aria-label]="'pagination.nav' | transloco"
       >
         <button
           type="button"
           class="btn-icon"
+          [class.max-sm:hidden]="!bottom()"
           [disabled]="disabled() || isFirst()"
           (click)="pageChange.emit(1)"
           [attr.aria-label]="'pagination.first' | transloco"
@@ -95,6 +102,7 @@ let nextId = 0;
         <button
           type="button"
           class="btn-icon"
+          [class.max-sm:hidden]="!bottom()"
           [disabled]="disabled() || isLast()"
           (click)="pageChange.emit(totalPages())"
           [attr.aria-label]="'pagination.last' | transloco"
@@ -113,9 +121,12 @@ let nextId = 0;
         </button>
       </nav>
 
-      <div class="flex items-center gap-3 justify-self-end text-sm text-shade-600">
-        <span>{{ range() }} / {{ totalCount() }}</span>
-        <label [for]="selectId" class="font-medium text-shade-700 max-sm:sr-only">{{
+      <div
+        class="flex items-center gap-3 justify-self-end text-sm text-shade-600"
+        [class.max-sm:hidden]="bottom()"
+      >
+        <span class="whitespace-nowrap max-sm:hidden">{{ range() }} / {{ totalCount() }}</span>
+        <label [for]="selectId" class="font-medium text-shade-700 max-md:sr-only">{{
           'pagination.perPage' | transloco
         }}</label>
         <select
@@ -144,6 +155,8 @@ export class Pagination {
   /** Page sizes; 0 is shown as "all". */
   readonly options = input.required<readonly number[]>();
   readonly disabled = input(false);
+  /** Above or below the list; decides what phones keep (see above). */
+  readonly placement = input<'top' | 'bottom'>('top');
 
   readonly pageChange = output<number>();
   readonly pageSizeChange = output<number>();
@@ -151,6 +164,7 @@ export class Pagination {
   // Unique per instance, the component is rendered above and below the list
   protected readonly selectId = `page-size-${++nextId}`;
 
+  protected readonly bottom = computed(() => this.placement() === 'bottom');
   protected readonly isFirst = computed(() => this.page() <= 1);
   protected readonly isLast = computed(() => this.page() >= this.totalPages());
 

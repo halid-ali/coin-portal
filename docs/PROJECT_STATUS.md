@@ -3,11 +3,12 @@
 Son güncelleme: 2026-09-29 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
 giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
 görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme,
-telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı, koleksiyon aksiyonları telefonda ikon; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
+telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı, koleksiyon aksiyonları telefonda
+ikon, telefonda tek satır sayfalama; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/collection-action-icons` 2026-09-29'da merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/compact-pagination` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -336,6 +337,11 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Almanca/Bulgarcada 640–767 px'te yine ikiye bölüyordu. Kopyalanınca ikon 2 sn yeşil onay, ekran
       okuyucuya `aria-live` ile "Kopyalandı". Sadece 320 px'te Almanca/Bulgarca iki satır. "⋯" menüsü
       ileriye bırakıldı (Sıradaki adım 2).
+    - Telefonda tek satır sayfalama (`feat/compact-pagination`, kullanıcı isteği): `Pagination`'a
+      `placement` (`top` / `bottom`). Üstte görünüm butonları + ‹ n / N › + sayfa başına; altta sadece
+      « ‹ n / N › », ortada. Aralık metni telefonda gizli (başlıkta toplam var). 360 px altında üstteki
+      iki satıra düşer ("Tümü" seçeneği kutuyu genişletiyor). "Sayfa başına" etiketi `md`'den itibaren
+      (640–767 px'te Türkçe/Bulgarcada metinler kendi içinde bölünüyordu).
 
 ## Sıradaki adım
 

@@ -162,7 +162,8 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
 - Koleksiyonun iki görünümü var: liste (masaüstünde tablo, altında kart) ve ızgara (2 / 3 / 5 sütun,
   600 px preview). Seçim URL'de (`view=grid`, varsayılan liste yazılmaz), sayfa ve filtreleri etkilemez.
   Sayfalama satırı: solda görünüm butonları (`<app-pagination>` içine projeksiyon), ortada sayfa
-  butonları, sağda sayfa başına.
+  butonları, sağda sayfa başına. Telefonda tek satır: listenin altındaki `placement="bottom"` sadece
+  sayfa butonlarını gösterir, üstteki ilk/son butonlarını ve aralığı gizler.
 - Detay/form sayfalarından listeye dönüşler (geri linki, Vazgeç, kaydet/sil sonrası) koleksiyon
   sayfasının son adresiyle yapılır (`CollectionReturn` servisi, `returnTree()`); yoksa coin'in
   koleksiyonuna dönülür. Düz bir link koleksiyonu, görünümü ve filtreleri kaybettirir.
