@@ -1,14 +1,14 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-29 (yol haritasının 2. ve 3. adımları tamam: klasörler `src/api` ve `src/web`,
-client'ın tamamı Prettier'dan geçti, kök `.editorconfig`. Aynı gün GitHub yayını öncesi proje yönü
-değerlendirmesi yapıldı, ayrıntılar [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md),
-sıra "Yol haritası" bölümünde. Görünümde sırada logo), sıra
-"Yol haritası" bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada logo)
+Son güncelleme: 2026-09-29 (yol haritasının 2.–4. adımları tamam: klasörler `src/api` ve `src/web`,
+client'ın tamamı Prettier'dan geçti, kök `.editorconfig`, MIT LICENSE, İngilizce README. Aynı gün GitHub
+yayını öncesi proje yönü değerlendirmesi yapıldı; ayrıntılar
+[reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
+bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada logo)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/format` 2026-09-29'da merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/publish-prep` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal). Yeni yollar: API `src/api`, client `src/web` (komutlar CLAUDE.md'de).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -55,7 +55,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
   template'lere yayılan refactor ister. Yapılacaksa ayrı `chore/daisyui` branch'inde, önce mevcut
   görünümle yan yana karşılaştırılıp kullanıcı "değer" derse.
 
-## Ortam (kullanıcının bilgisayarı)
+## Ortam (geliştirme makinesi)
 
 - Node.js 22.19.0, npm 11, Git 2.55, .NET SDK 10 (yanında 9.0.306), Angular CLI 21.2.24, PowerShell 7.6,
   VS Code (C# Dev Kit, Angular Language Service, Tailwind CSS IntelliSense, ESLint, Prettier,
@@ -63,11 +63,9 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
 - `dotnet-ef` 10.0.12 local tool (`.config/dotnet-tools.json`). `global.json` SDK'yı sabitliyor, `nuget.config`
   sadece nuget.org.
 - Terminal çoğunlukla Git Bash (MINGW64).
-- Repo: `C:\repos\private\coin-web-portal`. Şirket bilgisayarı; Git kimliği sadece repo seviyesinde
-  (`72255478+halid-ali@users.noreply.github.com`).
-- Şirketin global `.npmrc`'sinde Azure DevOps feed'i var. Eski dokümanda `src/web/.npmrc` ile public
-  npm'e sabitlendiği yazıyordu ama bu dosya repoda yok (2026-09-27 kontrolü). Paket kurulumunda sorun
-  çıkarsa yeniden eklenmeli.
+- Git kimliği sadece repo seviyesinde tanımlı (GitHub noreply adresi); global Git ayarlarına dokunulmaz.
+- Makinenin global `.npmrc`'sinde özel bir feed tanımlı. Paket kurulumunda sorun çıkarsa `src/web/.npmrc`
+  ile public npm registry'sine sabitlenir (şu an böyle bir dosya yok).
 - TS5011 uyarısı çözüldü: `tsconfig.app.json`/`tsconfig.spec.json` içinde `"rootDir": "./src"`,
   `.vscode/settings.json` içinde `"js/ts.tsdk.path"`.
 
@@ -372,6 +370,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       koyu tema, 135 karşılaştırmanın hepsi piksel piksel aynı. Girişli sayfalar (coin formu, kullanıcı
       menüsü) görsel olarak karşılaştırılmadı, derlenmiş koddaki farkları incelendi. `dotnet build`,
       `ng test` (47 test), `prettier --check` temiz.
+17. **Yayın hazırlığı** (`chore/publish-prep`, 2026-09-29; yol haritası 4. adım, kullanıcı kararları):
+    - `LICENSE`: MIT. README İngilizce: özellikler, teknoloji, klasör düzeni, kurulum, testler, ImageSharp
+      lisans anahtarı notu, iç dokümanların Türkçe olduğu notu. "Docker gerekmez" yazıyor.
+    - CLAUDE.md ve bu doküman public kalacak (kullanıcı kararı); işverene ve geliştirme makinesine özel
+      satırlar (şirket politikası, şirket npm/NuGet feed'leri, makine yolu) nötr ifadelere çevrildi.
+      Ayrıntılar lokal `.notes/environment.md`'de.
+    - `index.html`: başlık "Client" → "Coin Portal", `meta description`. `theme-color` ve
+      `apple-touch-icon` logo çalışması ve PWA manifest'iyle birlikte (ikon henüz yok).
 
 ## Yol haritası
 
@@ -388,7 +394,7 @@ mağaza için TWA.
 - [ ] 1. Yayın izni (Açık konular 2), diğer adımlarla paralel; 7'yi bloklar.
 - [x] 2. `chore/folder-layout`: klasör taşıması (API ve `ng serve` durdurulur, terminaller repo köküne).
 - [x] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
-- [ ] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
+- [x] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
       nötrleştirilmesi, `index.html` başlığı ve meta.
 - [ ] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
       CHANGELOG, `v0.1.0`.
@@ -408,9 +414,9 @@ mağaza için TWA.
 
 ## Sıradaki adım
 
-Yol haritasının 4. adımı (`chore/publish-prep`) öneriliyor; LICENSE türü ve CLAUDE.md / PROJECT_STATUS'un
-public kalıp kalmayacağı kullanıcı kararı. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha
-ertelensin" dendi):
+Yol haritasının 5. adımı (`chore/release-tooling`) öneriliyor; MinVer mi düz `<Version>` mı ve merge
+mesajının git varsayılanına dönmesi kullanıcı kararı. Diğer ürün adayları aşağıda (2026-09-28'de watermark
+"biraz daha ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
    fotoğraflara mı).
@@ -567,8 +573,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
      ImageSharp 3.1.12 (anahtarsız) önerilmiyor: Ekim 2025'ten beri güncelleme almıyor.
    - Debug derleme (lokal geliştirme) etkilenmiyor. **İlk publish'ten önce çözülmeli**; kütüphane
      değişikliği gerekirse main'den ayrı bir branch'te yapılır (ör. `chore/skiasharp`).
-2. **Şirket politikası:** Kişisel projeyi şirket bilgisayarında geliştirme, GitHub'a push ve yapay zeka
-   asistanı kullanımı yönetici/IT ile netleştirilecek. Cevaba kadar repo **sadece lokal**, push yok.
+2. **Yayın izni:** GitHub'a push ve repo'nun public/private olması netleşene kadar repo **sadece lokal**,
+   push yok.
 3. **Hosting seçilmedi.** Seçerken aşağıdaki "Hosting seçimi kontrol listesi" kullanılacak.
 4. GitHub'a yayınlarken: **boş** repo, sonra `git remote add origin <url>` ve `git push -u origin main`.
 5. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
