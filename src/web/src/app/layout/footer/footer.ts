@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
+import { appVersion } from '../../core/app-version';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Language } from '../../core/i18n/languages';
 import { LanguagePreference } from '../../core/settings/language-preference';
@@ -37,6 +38,9 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
         class="order-last col-span-2 text-center text-xs text-shade-500 sm:order-none sm:col-span-1"
       >
         © {{ year }} Coin Portal
+        @if (version) {
+          <span class="text-shade-400">· v{{ version }}</span>
+        }
       </p>
 
       <app-language-select
@@ -55,6 +59,8 @@ export class Footer {
   private readonly preference = inject(LanguagePreference);
 
   protected readonly year = new Date().getFullYear();
+  // Shown only in release builds (see core/app-version.ts)
+  protected readonly version = appVersion;
 
   protected async choose(lang: Language): Promise<void> {
     try {
