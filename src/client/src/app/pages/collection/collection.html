@@ -383,23 +383,29 @@
 
         <!-- Desktop: table -->
         <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
-             so they stay the same on every page. The title column takes the rest. The last
-             column is "edit" for the owner, the collector in Explore, and absent otherwise. -->
+             so they stay the same on every page and in every language. The title column takes
+             the rest. The last column is "edit" for the owner, the collector in Explore, and
+             absent otherwise.
+             Widths are measured (headless, 14 px, all four languages): the widest of header
+             (+ 26 px sort icon) and content, + 24 px cell padding + 4 px for other fonts.
+             Denomination: "Nennwert" + icon; country: the longest name ("Нидерландия");
+             year: "Year" + icon; mint mark: "Darphane"; commemorative: "Commem."; collector:
+             "@maximilian.schneider" (a long 20-character name; wider ones are cut, the title
+             shows them); edit: the 20 px icon. A new language means measuring again. -->
         <div class="card hidden overflow-x-auto p-0 lg:block">
           <table class="w-full table-fixed text-left text-sm">
             <colgroup>
               <col class="w-16" />
               <col />
-              <col class="w-29" />
-              <col class="w-28" />
-              <col class="w-20" />
-              <col class="w-28" />
-              <col class="w-29" />
-              <col class="w-22" />
+              <col class="w-[118px]" />
+              <col class="w-[116px]" />
+              <col class="w-[81px]" />
+              <col class="w-[91px]" />
+              <col class="w-[94px]" />
               @if (mode() === 'owner') {
-                <col class="w-26" />
+                <col class="w-12" />
               } @else if (mode() === 'explore') {
-                <col class="w-40" />
+                <col class="w-[176px]" />
               }
             </colgroup>
             <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
@@ -411,7 +417,6 @@
                 }
                 <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">{{ 'coin.column.MintMark' | transloco }}</th>
                 <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">{{ 'coin.column.Commemorative' | transloco }}</th>
-                <th scope="col" class="px-3 py-2 text-right font-medium whitespace-nowrap">{{ 'coin.column.Quantity' | transloco }}</th>
                 @if (mode() === 'owner') {
                   <th scope="col" class="px-3 py-2"><span class="sr-only">{{ 'coin.field.actions' | transloco }}</span></th>
                 } @else if (mode() === 'explore') {
@@ -441,13 +446,18 @@
                   <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
                   <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">{{ coin.mintMark ?? '–' }}</td>
                   <td class="truncate px-3 py-3">{{ coin.isCommemorative ? ('common.yes' | transloco) : '–' }}</td>
-                  <td class="truncate px-3 py-3 text-right tabular-nums">{{ coin.quantity }}</td>
                   @if (mode() === 'owner') {
-                    <td class="truncate px-3 py-3 text-right">
-                      <a [routerLink]="['/coins', coin.id, 'edit']" class="link">{{ 'common.edit' | transloco }}</a>
+                    <td class="px-3 py-3 text-right">
+                      <a [routerLink]="['/coins', coin.id, 'edit']" class="link inline-flex align-middle"
+                         [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }" [title]="'common.edit' | transloco">
+                        <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+                        </svg>
+                      </a>
                     </td>
                   } @else if (mode() === 'explore') {
-                    <td class="truncate px-3 py-3" [title]="coin.collectionName">
+                    <td class="truncate px-3 py-3" [title]="'@' + coin.ownerUserName + ' · ' + coin.collectionName">
                       <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]" class="link">&#64;{{ coin.ownerUserName }}</a>
                     </td>
                   }

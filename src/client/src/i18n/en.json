@@ -143,8 +143,7 @@
       "Country": "Country",
       "Year": "Year",
       "MintMark": "Mint",
-      "Commemorative": "Commem.",
-      "Quantity": "Qty"
+      "Commemorative": "Commem."
     },
     "sort": {
       "Title": { "asc": "A → Z", "desc": "Z → A" },

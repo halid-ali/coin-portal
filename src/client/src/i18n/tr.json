@@ -143,8 +143,7 @@
       "Country": "Ülke",
       "Year": "Yıl",
       "MintMark": "Darphane",
-      "Commemorative": "Hatıra",
-      "Quantity": "Adet"
+      "Commemorative": "Hatıra"
     },
     "sort": {
       "Title": { "asc": "A → Z", "desc": "Z → A" },
