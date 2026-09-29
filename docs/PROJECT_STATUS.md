@@ -3,11 +3,11 @@
 Son güncelleme: 2026-09-29 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
 giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
 görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme,
-telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
+telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı, koleksiyon aksiyonları telefonda ikon; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/mobile-menu-divider` 2026-09-29'da merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/collection-action-icons` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -330,6 +330,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
         (açılan listeyi onunla boyuyor, koyu temada beyaz kalıyordu).
     - Mobil menüde (hamburger) navigasyon linkleri ile Ayarlar / Çıkış arasında avatarın altındakiyle aynı
       ayırıcı çizgi (`feat/mobile-menu-divider`, kullanıcı isteği).
+    - Koleksiyon sayfasında sahip aksiyonları (`feat/collection-action-icons`, kullanıcı isteği): "+ Coin
+      ekle" telefonda ikinci satıra düşüyordu. Linki kopyala / Düzenle / Sil `md` altında ikon buton
+      (zincir, kalem, çöp kutusu; `title` + `aria-label`), `md` ve üstünde ikon + metin. `sm` eşiği
+      Almanca/Bulgarcada 640–767 px'te yine ikiye bölüyordu. Kopyalanınca ikon 2 sn yeşil onay, ekran
+      okuyucuya `aria-live` ile "Kopyalandı". Sadece 320 px'te Almanca/Bulgarca iki satır. "⋯" menüsü
+      ileriye bırakıldı (Sıradaki adım 2).
 
 ## Sıradaki adım
 
@@ -340,7 +346,9 @@ Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi
 2. **Görünüm üzerinde çalışmaya devam** (kullanıcı 2026-09-28'de "sitenin görünümü üzerinde çalışalım"
    dedi; koyu tema ve tema rengi bitti). Kullanıcı ayrı bir sohbette genel görsellerle ilgili birkaç
    düzeltme ve logo için ayrı bir çalışma yapmak istiyor. Genel düzeltmeler sohbeti 2026-09-28'de başladı
-   (Tamamlananlar 14).
+   (Tamamlananlar 14). Akılda tutulacak (kullanıcı, 2026-09-29): koleksiyon sayfasındaki sahip
+   aksiyonları (Linki kopyala / Düzenle / Sil) çoğalırsa ya da tasarım değişirse tek bir "⋯" (daha
+   fazla) menüsüne toplanabilir; şimdilik telefonda ikon butonlar yetiyor.
 3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
    salt okunur. Hangi alanların değiştirilebileceğine kullanıcıyla karar verilecek (isim/soyisim kolay;
    kullanıcı adı paylaşım linklerini `/u/…` bozar; e-posta doğrulama ister; doğum tarihi 18+ kuralına
