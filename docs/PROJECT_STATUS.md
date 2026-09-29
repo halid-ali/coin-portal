@@ -4,11 +4,13 @@ Son güncelleme: 2026-09-29 (genel görsel düzeltmeler: kaydırma çubuğu kaym
 giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
 görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme,
 telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı, koleksiyon aksiyonları telefonda
-ikon, telefonda tek satır sayfalama; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
+ikon, telefonda tek satır sayfalama, coin tablosunda sabit sütun genişlikleri ve Adet'siz tablo; hepsi
+main'de, genel görsel düzeltmeler sohbeti bitti. Görünümde sırada logo. ImageSharp lisans kararı ilk
+publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/compact-pagination` 2026-09-29'da merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/table-columns` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -342,6 +344,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       « ‹ n / N › », ortada. Aralık metni telefonda gizli (başlıkta toplam var). 360 px altında üstteki
       iki satıra düşer ("Tümü" seçeneği kutuyu genişletiyor). "Sayfa başına" etiketi `md`'den itibaren
       (640–767 px'te Türkçe/Bulgarcada metinler kendi içinde bölünüyordu).
+    - Coin tablosu sütunları (`feat/table-columns`, kullanıcıyla; koleksiyon ve Keşfet): Adet sütunu
+      tablodan kalktı (veri, API ve form aynı; telefondaki kartlarda "N adet" rozeti duruyor). Sahip için
+      "Düzenle" yerine kalem ikonu (48 px sütun). Sabit sütunlar dört dilde headless ölçülüp piksel olarak
+      sabitlendi, dil değişince değişmiyor: Nominal 118, Ülke 116 (en uzun ad "Нидерландия"), Yıl 81,
+      Darphane 91, Hatıra 94, Koleksiyoncu 176 (`@maximilian.schneider` gibi uzun 20 karakterlik ad;
+      daha genişleri kesilir, ipucunda "@kullanıcı · koleksiyon"). Başlık sütunu 1280 px'te ~250 →
+      ~380 px (sahip). Yeni dil eklenince yeniden ölçülecek (CLAUDE.md "Yeni dil eklerken").
+    - **Genel görsel düzeltmeler sohbeti 2026-09-29'da bitti.** Sıradaki görünüm işi: logo çalışması.
 
 ## Sıradaki adım
 
@@ -351,8 +361,8 @@ Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi
    fotoğraflara mı).
 2. **Görünüm üzerinde çalışmaya devam** (kullanıcı 2026-09-28'de "sitenin görünümü üzerinde çalışalım"
    dedi; koyu tema ve tema rengi bitti). Kullanıcı ayrı bir sohbette genel görsellerle ilgili birkaç
-   düzeltme ve logo için ayrı bir çalışma yapmak istiyor. Genel düzeltmeler sohbeti 2026-09-28'de başladı
-   (Tamamlananlar 14). Akılda tutulacak (kullanıcı, 2026-09-29): koleksiyon sayfasındaki sahip
+   düzeltme ve logo için ayrı bir çalışma yapmak istiyor. Genel düzeltmeler sohbeti 2026-09-28/29'da
+   yapıldı ve bitti (Tamamlananlar 14); görünümde sırada logo var. Akılda tutulacak (kullanıcı, 2026-09-29): koleksiyon sayfasındaki sahip
    aksiyonları (Linki kopyala / Düzenle / Sil) çoğalırsa ya da tasarım değişirse tek bir "⋯" (daha
    fazla) menüsüne toplanabilir; şimdilik telefonda ikon butonlar yetiyor.
 3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
