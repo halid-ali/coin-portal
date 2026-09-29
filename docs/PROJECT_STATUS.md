@@ -1,23 +1,25 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-29 (yol haritasının 2.–5. adımları tamam: klasörler `src/api` ve `src/web`,
-client'ın tamamı Prettier'dan geçti, kök `.editorconfig`, MIT LICENSE, İngilizce README, sürüm araçları
-ve ilk etiket `v0.1.0`. Aynı gün GitHub yayını öncesi proje yönü değerlendirmesi yapıldı; ayrıntılar
-[reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
-bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada logo)
+Son güncelleme: 2026-09-30 (proje GitHub'da public: https://github.com/halid-ali/coin-portal, CI yeşil,
+ilk release `v0.1.0`, repo ayarları ve koruma kuralları kuruldu. Yol haritasının 1.–7. adımları tamam;
+proje yönü değerlendirmesi [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md),
+sıra "Yol haritası" bölümünde. Yayın sohbeti bitti; sıradaki adım yeni sohbette seçilecek)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/ci` 2026-09-29'da merge edildi, son
-  etiket `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler
-  push edilir, CI her push'ta koşar). Yollar: API `src/api`, client `src/web` (komutlar CLAUDE.md'de).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/session-close` 2026-09-30'da merge
+  edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+  sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
+  lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
+  (komutlar CLAUDE.md'de).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
 - İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım"). Bekleyen dış konu:
-  Six Labors'tan ImageSharp lisans cevabı (Açık konular 1).
+  Six Labors'tan ImageSharp lisans cevabı; kullanıcı başvurusunu public repo adresiyle güncelleyecek
+  (Açık konular 1).
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -409,6 +411,22 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       npm ve NuGet'te major önermiyor, Angular paketleri tek grupta.
     - Yayın izni kapandı (Açık konular 2): kişisel GitHub, public; CLAUDE.md "Push yok" kuralı "push
       kullanıcı onayıyla, sadece main ve etiketler" oldu.
+20. **GitHub yayını** (2026-09-29/30; yol haritası 7. adım):
+    - Repo: https://github.com/halid-ali/coin-portal (public, adı ürünle aynı `coin-portal`; lokal klasör
+      `coin-web-portal` olarak kaldı, Claude Code hafızası klasör yoluna bağlı). Açıklama ve topic'ler
+      (euro-coins, coin-collection, aspnet-core, angular, tailwindcss, dotnet), wiki kapalı.
+    - Güvenlik (kullanıcı ayarladı): private vulnerability reporting, dependency graph, Dependabot
+      alerts ve security updates, secret scanning ve push protection açık. Öneri: malware alerts ve
+      grouped security updates da açılsın. CodeQL şimdilik kapalı (istenirse "Default setup" tek tık).
+    - Rulesets: `main` (silme ve force-push yasak) ve `release-tags` (`v*`: silme, güncelleme,
+      force-push yasak; yayınlanmış etiket taşınamaz). Bypass yok. PR ve zorunlu status check bilinçli
+      olarak yok: lokal merge + doğrudan `main` push akışını engellerdi; CI yine her push'ta koşar.
+    - Commit'lerdeki `Co-Authored-By: Claude` satırları kullanıcı kararıyla kaldı (geçmiş yeniden
+      yazılmadı).
+    - Release `v0.1.0` (2026-09-30): kısa giriş + öne çıkanlar + etiketteki CHANGELOG'a link; derleme
+      eki yok (Release derlemesi ImageSharp anahtarı ister, hosting yok). Kullanıcı onayıyla Claude
+      oluşturdu: Git Credential Manager'daki GitHub oturumu REST API için kullanıldı (anahtar
+      gösterilmedi, kaydedilmedi); betik ve notlar lokal `.notes/` klasöründe.
 
 ## Yol haritası
 
@@ -430,7 +448,8 @@ mağaza için TWA.
 - [x] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
       CHANGELOG, `v0.1.0`.
 - [x] 6. `chore/ci`: GitHub Actions + Dependabot.
-- [ ] 7. GitHub publish; Six Labors başvurusu repo adresiyle güncellenir.
+- [x] 7. GitHub publish (2026-09-29/30), release `v0.1.0`. Six Labors başvurusunun repo adresiyle
+      güncellenmesi kullanıcıda.
 - [ ] 8. `tests/api` (xUnit) ve `tests/e2e` (Playwright).
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma,
       DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB düzeltmesi, beni hatırla, PWA manifest.
@@ -445,8 +464,9 @@ mağaza için TWA.
 
 ## Sıradaki adım
 
-Yol haritasının 7. adımı (GitHub publish) sürüyor. Diğer ürün adayları aşağıda (2026-09-28'de watermark
-"biraz daha ertelensin" dendi):
+Yeni sohbette kullanıcıyla seçilecek. Yol haritasında sırada 8. adım (`tests/api` xUnit ve `tests/e2e`
+Playwright) ve 9. adım (hosting temeli) var; kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22
+yükseltmesini andı. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
    fotoğraflara mı).
@@ -598,7 +618,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 ## Açık konular
 
 1. **ImageSharp lisans anahtarı (2026-09-27):** 4.x anahtarsız Release derlemede hata veriyor, publish
-   yapılamaz. Kullanıcı Six Labors'a ücretsiz anahtar için yazdı, cevap bekleniyor.
+   yapılamaz. Kullanıcı Six Labors'a ücretsiz anahtar için yazdı, cevap bekleniyor. Repo artık public
+   (https://github.com/halid-ali/coin-portal, MIT); başvuru bu adresle güncellenirse açık kaynak
+   projelere verilen ücretsiz anahtar koşulu doğrudan sağlanır.
    - Olumlu: anahtar derlemeye `SixLaborsLicenseKey` (ortam değişkeni/MSBuild property) veya
      `sixlabors.lic` dosyası ile verilir; anahtar repoya girmemeli.
    - Olumsuz: `SkiaSharpImageProcessor` yazılır (MIT, aktif bakımlı; native `libSkiaSharp.dll` içerir),
