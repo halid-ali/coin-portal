@@ -3,11 +3,11 @@
 Son güncelleme: 2026-09-29 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
 giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
 görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme,
-telefonda katlanan filtreler, sadeleşen sıralama; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
+telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı; hepsi main'de. ImageSharp lisans kararı ilk publish'ten önce)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/mobile-filters` 2026-09-29'da merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/mobile-menu-divider` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -328,6 +328,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
         (seçilince "Sırala"ya dönmesi kafa karıştırıyordu). Çerçeve ve ikon kapsayıcıda: Chrome açılan
         listeyi select'in sol boşluğu kadar içeriden başlatıyor; select'in arka planı şeffaf olmamalı
         (açılan listeyi onunla boyuyor, koyu temada beyaz kalıyordu).
+    - Mobil menüde (hamburger) navigasyon linkleri ile Ayarlar / Çıkış arasında avatarın altındakiyle aynı
+      ayırıcı çizgi (`feat/mobile-menu-divider`, kullanıcı isteği).
 
 ## Sıradaki adım
 
