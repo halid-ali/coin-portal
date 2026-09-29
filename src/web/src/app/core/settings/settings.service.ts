@@ -7,7 +7,7 @@ import { Language } from '../i18n/languages';
 import { AccentColor } from '../theme/accent.service';
 import { ThemeMode } from '../theme/theme.service';
 
-// Mirrors CoinPortal.Api/Contracts/Settings
+// Mirrors src/api/Contracts/Settings
 export interface UserSettings {
   /** Null until the user chooses one; the UI then follows the device. */
   language: Language | null;

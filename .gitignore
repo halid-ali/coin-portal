@@ -485,4 +485,10 @@ $RECYCLE.BIN/
 .claude/settings.local.json
 
 # Locally stored coin photos (PhotoStorage:RootPath)
-src/CoinPortal.Api/App_Data/
+src/api/App_Data/
+
+# Angular build output copied into the API for publishing
+src/api/wwwroot/
+
+# ImageSharp license key file (never commit)
+sixlabors.lic

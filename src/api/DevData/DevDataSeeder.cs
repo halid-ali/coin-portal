@@ -10,7 +10,7 @@ namespace CoinPortal.Api.DevData;
 /// <summary>
 /// Development-only test data. Creates the users in dev-seed.json if they are missing and
 /// replaces their coins with the ones in the file, so running it again resets the dataset.
-/// Usage (from src/CoinPortal.Api): dotnet run --launch-profile http -- --seed-dev-data
+/// Usage (from src/api): dotnet run --launch-profile http -- --seed-dev-data
 /// </summary>
 public static class DevDataSeeder
 {
@@ -30,7 +30,7 @@ public static class DevDataSeeder
         if (!File.Exists(path))
         {
             throw new FileNotFoundException(
-                $"Seed file not found at {path}. Run the command from src/CoinPortal.Api.", path);
+                $"Seed file not found at {path}. Run the command from src/api.", path);
         }
 
         SeedData data;
