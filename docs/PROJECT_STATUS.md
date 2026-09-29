@@ -401,6 +401,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Lokal ön kontroller: 219 göreli import/şablon yolunda büyük/küçük harf uyuşmazlığı yok (Linux),
       aynı adlı farklı harfli dosya yok, EF kontrolü Production ortamında sahte bağlantıyla geçiyor.
       Workflow'un kendisi ilk push'ta GitHub'da doğrulanacak.
+    - **İlk push (2026-09-29):** `main` ve `v0.1.0` gönderildi; `main` üzerindeki ilk CI koşusu başarılı
+      (API ve Web). Dependabot hemen 8 PR açtı, hepsi major: action'lar (checkout 7, setup-node 7,
+      setup-dotnet 6; CI'da geçti) ve Angular 22, Vitest 5, jsdom 30 (Angular core/common ve Vitest
+      tek başına başarısız). Kullanıcı npm PR'larını (#4–#8) "ignore this major version" ile kapattı.
+      Action sürümleri lokalde `chore/deps` ile alındı (PR #1–#3'ü Dependabot kapatır); Dependabot artık
+      npm ve NuGet'te major önermiyor, Angular paketleri tek grupta.
     - Yayın izni kapandı (Açık konular 2): kişisel GitHub, public; CLAUDE.md "Push yok" kuralı "push
       kullanıcı onayıyla, sadece main ve etiketler" oldu.
 
@@ -455,6 +461,9 @@ Yol haritasının 7. adımı (GitHub publish) sürüyor. Diğer ürün adayları
    kullanıcı adı paylaşım linklerini `/u/…` bozar; e-posta doğrulama ister; doğum tarihi 18+ kuralına
    bağlı). Ayarlar'da ayrıca Güvenlik (parola değiştirme) bölümü düşünülüyor.
 4. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
+5. **Angular 22'ye yükseltme** (2026-09-29'da Dependabot gösterdi): `ng update @angular/core @angular/cli`
+   ile ayrı bir branch'te, Vitest 5 ve jsdom 30 ile birlikte; testler ve görsel kontrol. Dependabot bu
+   major sürümleri artık önermiyor, takip burada.
 
 ## Koleksiyonlar ve paylaşım: kararlar
 

@@ -48,7 +48,8 @@ terminallerinde sürekli çalışır halde tutuyor.
   Sadece `main` ve etiketler push edilir (`git push origin main`, `git push origin vX.Y.Z`); feature
   branch'leri lokal kalır. Force-push yok.
 - CI: `.github/workflows/ci.yml` (ubuntu; API: Debug build + migration'sız model değişikliği kontrolü;
-  Web: `npm ci`, Prettier, `ng build`, `ng test`). Dependabot haftalık, gruplu. Release derlemesi CI'da
+  Web: `npm ci`, Prettier, `ng build`, `ng test`). Dependabot haftalık, gruplu; npm ve NuGet'te
+  major sürüm önermez (onlar planlı iş, Angular için `ng update`). Release derlemesi CI'da
   yok (ImageSharp anahtarı).
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
