@@ -1,25 +1,38 @@
-# Weekly dependency updates, grouped so that related packages arrive in one pull request
+# Weekly dependency updates, grouped so that related packages arrive in one pull request.
+# Major versions of NuGet and npm packages are not proposed: they are planned upgrades done in their
+# own branch (Angular with `ng update`, together with Vitest and jsdom), not single-package bumps.
 version: 2
 updates:
   - package-ecosystem: nuget
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
     groups:
-      dotnet-minor-and-patch:
-        update-types: [minor, patch]
+      dotnet:
+        patterns: ['*']
 
   - package-ecosystem: npm
     directory: /src/web
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
     groups:
+      # Angular packages must move together; listed first so they do not fall into the catch-all group
       angular:
-        patterns: ['@angular/*', '@angular-devkit/*']
-      web-minor-and-patch:
-        update-types: [minor, patch]
+        patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular']
+      web:
+        patterns: ['*']
 
+  # Action majors are usually drop-in; keep proposing them
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
