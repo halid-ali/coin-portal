@@ -1,15 +1,16 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-29 (yol haritasının 2.–4. adımları tamam: klasörler `src/api` ve `src/web`,
-client'ın tamamı Prettier'dan geçti, kök `.editorconfig`, MIT LICENSE, İngilizce README. Aynı gün GitHub
-yayını öncesi proje yönü değerlendirmesi yapıldı; ayrıntılar
+Son güncelleme: 2026-09-29 (yol haritasının 2.–5. adımları tamam: klasörler `src/api` ve `src/web`,
+client'ın tamamı Prettier'dan geçti, kök `.editorconfig`, MIT LICENSE, İngilizce README, sürüm araçları
+ve ilk etiket `v0.1.0`. Aynı gün GitHub yayını öncesi proje yönü değerlendirmesi yapıldı; ayrıntılar
 [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
 bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada logo)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/publish-prep` 2026-09-29'da merge edildi).
-  Push yapılmadı (repo sadece lokal). Yeni yollar: API `src/api`, client `src/web` (komutlar CLAUDE.md'de).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-tooling` 2026-09-29'da merge
+  edildi, `v0.1.0` etiketi atıldı). Push yapılmadı (repo sadece lokal). Yollar: API `src/api`, client
+  `src/web` (komutlar CLAUDE.md'de).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
@@ -378,6 +379,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Ayrıntılar lokal `.notes/environment.md`'de.
     - `index.html`: başlık "Client" → "Coin Portal", `meta description`. `theme-color` ve
       `apple-touch-icon` logo çalışması ve PWA manifest'iyle birlikte (ikon henüz yok).
+18. **Sürüm araçları ve `v0.1.0`** (`chore/release-tooling`, 2026-09-29; yol haritası 5. adım, kullanıcı
+    kararları: MinVer, git'in varsayılan merge mesajı):
+    - Kök `Directory.Build.props`: MinVer 8.0.0, etiket öneki `v`, etiketsiz commit'lerde `preview.0`.
+      `GET /api/health` artık `version` döner (ör. `0.1.0+<commit>`).
+    - Client: `core/app-version.ts`, `ng build --define "APP_VERSION='X.Y.Z'"` ile gömülür; footer'da
+      "© 2026 Coin Portal · v0.1.0" (headless Edge'de doğrulandı). Geliştirmede ve testte boş, görünmez.
+    - `cliff.toml` + `CHANGELOG.md` (git-cliff 2.14, `npx`; Keep a Changelog; merge ve bakım commit'leri
+      gizli grup, `breaking_always_bump_major = false`). İlk sürüm `v0.1.0` geriye dönük üretildi.
+    - CLAUDE.md: "Sürüm ve yayın" bölümü, merge mesajı kuralı, "tek kimlik doğrulama şeması cookie"
+      kararı. Merge'ler artık `git merge --no-ff --no-edit` (`Merge branch '…'`).
+    - Not: yeni eklenen bir derleme paketi (MinVer) ilk derlemede etkisiz kalabiliyor; sürüm ikinci
+      derlemede doğru geldi.
 
 ## Yol haritası
 
@@ -396,7 +409,7 @@ mağaza için TWA.
 - [x] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
 - [x] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
       nötrleştirilmesi, `index.html` başlığı ve meta.
-- [ ] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
+- [x] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
       CHANGELOG, `v0.1.0`.
 - [ ] 6. `chore/ci`: pasif GitHub Actions + Dependabot.
 - [ ] 7. GitHub publish; Six Labors başvurusu repo adresiyle güncellenir.
@@ -414,8 +427,7 @@ mağaza için TWA.
 
 ## Sıradaki adım
 
-Yol haritasının 5. adımı (`chore/release-tooling`) öneriliyor; MinVer mi düz `<Version>` mı ve merge
-mesajının git varsayılanına dönmesi kullanıcı kararı. Diğer ürün adayları aşağıda (2026-09-28'de watermark
+Yol haritasının 6. adımı (`chore/ci`: pasif GitHub Actions + Dependabot) öneriliyor. Diğer ürün adayları aşağıda (2026-09-28'de watermark
 "biraz daha ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
