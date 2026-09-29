@@ -127,6 +127,11 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
 - Dil listesi iki yerde, birlikte değişir: `Localization/SupportedLanguages` ve client
   `core/i18n/languages.ts`. Kullanıcının dili `ApplicationUser.PreferredLanguage` (null = seçmedi),
   `me` yanıtında `language`, değişiklik `PUT api/settings`, kayıtta `RegisterRequest.Language`.
+  **Yeni dil eklerken kontrol edilecekler:** yeni `i18n/<dil>.json` dosyasında tüm anahtarlar
+  (test eşliği kontrol eder), `Collection.DefaultNameFor`, dil seçicideki bayrak (`shared/flag`) ve
+  coin tablosunun sütun genişlikleri: yeni dildeki sütun başlıkları ve **ülke adları** mevcut en uzundan
+  (şu an "Нидерландия") uzunsa `collection.html` `<colgroup>` genişlikleri headless ölçümle büyütülür
+  (ölçüm yöntemi colgroup'un üstündeki yorumda).
 - Kullanıcının yazdığı adların tekillik kontrolü kodda Türkçe + kültürden bağımsız büyük/küçük harf
   duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
@@ -157,8 +162,11 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart listesi.
-  Başlıklar kısa sütun etiketleriyle (`coin.column.*`), genişlikler dört dilin en uzununa göre;
-  etiket ya da sütun değişince dört dilde başlık taşması headless'ta ölçülür.
+  Başlıklar kısa sütun etiketleriyle (`coin.column.*`). Başlık dışındaki sütunlar sabit piksel
+  genişliğinde, dört dilin en genişine göre ölçülmüş (dil değişince değişmez): başlık (+ sıralama
+  ikonu) ya da içerik, hangisi genişse + 24 px dolgu + 4 px pay; Ülke en uzun ülke adına göre.
+  Etiket, sütun ya da dil değişince dört dilde headless'ta yeniden ölçülür. Adet sütunu tabloda yok
+  (kartlarda rozet), sahip için düzenle kalem ikonu.
 - Koleksiyonun iki görünümü var: liste (masaüstünde tablo, altında kart) ve ızgara (2 / 3 / 5 sütun,
   600 px preview). Seçim URL'de (`view=grid`, varsayılan liste yazılmaz), sayfa ve filtreleri etkilemez.
   Sayfalama satırı: solda görünüm butonları (`<app-pagination>` içine projeksiyon), ortada sayfa

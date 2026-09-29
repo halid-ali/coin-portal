@@ -143,8 +143,7 @@
       "Country": "Land",
       "Year": "Jahr",
       "MintMark": "Münzz.",
-      "Commemorative": "Gedenkm.",
-      "Quantity": "Stück"
+      "Commemorative": "Gedenkm."
     },
     "sort": {
       "Title": { "asc": "A → Z", "desc": "Z → A" },
