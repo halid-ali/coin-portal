@@ -1,10 +1,22 @@
 <!-- Navbar: logo and main navigation on the left, account on the right. Sticky from sm up (on
      the host, see header.ts) -->
-<header class="border-b border-shade-200/80 bg-shade-0/85 backdrop-blur supports-backdrop-filter:bg-shade-0/70">
-  <nav class="mx-auto flex h-16 max-w-5xl items-center gap-6 px-4" [attr.aria-label]="'nav.main' | transloco">
-    <a routerLink="/" (click)="closeMenus()" class="flex shrink-0 items-center gap-2 text-lg font-bold whitespace-nowrap text-shade-900">
-      <span aria-hidden="true"
-            class="grid size-8 place-items-center rounded-full bg-linear-to-br from-amber-300 to-amber-500 text-sm text-amber-950 shadow-sm ring-1 ring-amber-600/20">€</span>
+<header
+  class="border-b border-shade-200/80 bg-shade-0/85 backdrop-blur supports-backdrop-filter:bg-shade-0/70"
+>
+  <nav
+    class="mx-auto flex h-16 max-w-5xl items-center gap-6 px-4"
+    [attr.aria-label]="'nav.main' | transloco"
+  >
+    <a
+      routerLink="/"
+      (click)="closeMenus()"
+      class="flex shrink-0 items-center gap-2 text-lg font-bold whitespace-nowrap text-shade-900"
+    >
+      <span
+        aria-hidden="true"
+        class="grid size-8 place-items-center rounded-full bg-linear-to-br from-amber-300 to-amber-500 text-sm text-amber-950 shadow-sm ring-1 ring-amber-600/20"
+        >€</span
+      >
       Coin Portal
     </a>
 
@@ -12,9 +24,11 @@
     <ul class="hidden items-center gap-1 sm:flex">
       @for (item of navItems(); track item.path) {
         <li>
-          <a [routerLink]="item.path" routerLinkActive="!bg-brand-50 !text-brand-800 ring-1 ring-brand-200"
-             class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors
-                    hover:bg-shade-100 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none">
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="!bg-brand-50 !text-brand-800 ring-1 ring-brand-200"
+            class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+          >
             <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
             {{ item.labelKey | transloco }}
           </a>
@@ -24,65 +38,113 @@
 
     <!-- Right side: theme button (everyone, every width), then account or sign-in links -->
     <div class="ml-auto flex items-center gap-2">
-    <app-theme-toggle />
+      <app-theme-toggle />
 
-    @if (auth.currentUser(); as user) {
-      <!-- Desktop: account menu -->
-      <div class="relative hidden sm:block" (click)="$event.stopPropagation()">
-        <button type="button" (click)="toggleUserMenu()"
-                class="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 text-sm font-medium text-shade-700 transition-colors
-                       hover:bg-shade-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
-                [attr.aria-expanded]="userMenuOpen()" aria-haspopup="menu" aria-controls="user-menu">
-          <span aria-hidden="true"
-                class="grid size-8 place-items-center rounded-full bg-slate-800 text-xs font-semibold tracking-wide text-white dark:bg-slate-700">
-            {{ initials(user) }}
-          </span>
-          <!-- Avatar only below md (the menu shows the full name); long user names are cut -->
-          <span class="hidden max-w-28 truncate md:inline">{{ user.userName }}</span>
-          <svg viewBox="0 0 24 24" class="size-4 text-shade-400 transition-transform" [class.rotate-180]="userMenuOpen()"
-               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
+      @if (auth.currentUser(); as user) {
+        <!-- Desktop: account menu -->
+        <div class="relative hidden sm:block" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            (click)="toggleUserMenu()"
+            class="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 text-sm font-medium text-shade-700 transition-colors hover:bg-shade-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+            [attr.aria-expanded]="userMenuOpen()"
+            aria-haspopup="menu"
+            aria-controls="user-menu"
+          >
+            <span
+              aria-hidden="true"
+              class="grid size-8 place-items-center rounded-full bg-slate-800 text-xs font-semibold tracking-wide text-white dark:bg-slate-700"
+            >
+              {{ initials(user) }}
+            </span>
+            <!-- Avatar only below md (the menu shows the full name); long user names are cut -->
+            <span class="hidden max-w-28 truncate md:inline">{{ user.userName }}</span>
+            <svg
+              viewBox="0 0 24 24"
+              class="size-4 text-shade-400 transition-transform"
+              [class.rotate-180]="userMenuOpen()"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
 
-        @if (userMenuOpen()) {
-          <div id="user-menu" role="menu"
-               class="absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-shade-200 bg-shade-0 p-1.5 shadow-lg">
-            <div class="border-b border-shade-100 px-3 py-2.5">
-              <p class="truncate text-sm font-semibold text-shade-900">{{ user.firstName }} {{ user.lastName }}</p>
-              <p class="truncate text-xs text-shade-500">{{ user.email }}</p>
+          @if (userMenuOpen()) {
+            <div
+              id="user-menu"
+              role="menu"
+              class="absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-shade-200 bg-shade-0 p-1.5 shadow-lg"
+            >
+              <div class="border-b border-shade-100 px-3 py-2.5">
+                <p class="truncate text-sm font-semibold text-shade-900">
+                  {{ user.firstName }} {{ user.lastName }}
+                </p>
+                <p class="truncate text-xs text-shade-500">{{ user.email }}</p>
+              </div>
+              <a
+                routerLink="/settings"
+                role="menuitem"
+                (click)="closeMenus()"
+                class="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100"
+              >
+                <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'settings' }" />
+                {{ 'nav.settings' | transloco }}
+              </a>
+              <button
+                type="button"
+                role="menuitem"
+                (click)="logout()"
+                [disabled]="loggingOut()"
+                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100 disabled:opacity-60"
+              >
+                <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'logout' }" />
+                {{ (loggingOut() ? 'nav.loggingOut' : 'nav.logout') | transloco }}
+              </button>
             </div>
-            <a routerLink="/settings" role="menuitem" (click)="closeMenus()"
-               class="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100">
-              <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'settings' }" />
-              {{ 'nav.settings' | transloco }}
-            </a>
-            <button type="button" role="menuitem" (click)="logout()" [disabled]="loggingOut()"
-                    class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100 disabled:opacity-60">
-              <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'logout' }" />
-              {{ (loggingOut() ? 'nav.loggingOut' : 'nav.logout') | transloco }}
-            </button>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="hidden items-center gap-2 sm:flex">
-        <a routerLink="/login" routerLinkActive="!text-brand-800" class="rounded-lg px-3 py-2 text-sm font-medium text-shade-600 hover:bg-shade-100 hover:text-shade-900">{{ 'nav.login' | transloco }}</a>
-        <a routerLink="/register" class="btn-primary py-1.5 text-sm">{{ 'nav.register' | transloco }}</a>
-      </div>
-    }
+          }
+        </div>
+      } @else {
+        <div class="hidden items-center gap-2 sm:flex">
+          <a
+            routerLink="/login"
+            routerLinkActive="!text-brand-800"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-shade-600 hover:bg-shade-100 hover:text-shade-900"
+            >{{ 'nav.login' | transloco }}</a
+          >
+          <a routerLink="/register" class="btn-primary py-1.5 text-sm">{{
+            'nav.register' | transloco
+          }}</a>
+        </div>
+      }
 
-    <!-- Mobile menu toggle -->
-    <button type="button" (click)="toggleMenu()" class="rounded-lg p-2 text-shade-600 hover:bg-shade-100 sm:hidden"
-            [attr.aria-expanded]="menuOpen()" aria-controls="main-menu" [attr.aria-label]="'nav.toggleMenu' | transloco">
-      <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        @if (menuOpen()) {
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-        } @else {
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        }
-      </svg>
-    </button>
+      <!-- Mobile menu toggle -->
+      <button
+        type="button"
+        (click)="toggleMenu()"
+        class="rounded-lg p-2 text-shade-600 hover:bg-shade-100 sm:hidden"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="main-menu"
+        [attr.aria-label]="'nav.toggleMenu' | transloco"
+      >
+        <svg
+          class="size-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          @if (menuOpen()) {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          } @else {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          }
+        </svg>
+      </button>
     </div>
   </nav>
 
@@ -91,19 +153,28 @@
     <div id="main-menu" class="border-t border-shade-200 bg-shade-0 px-4 py-3 sm:hidden">
       @if (auth.currentUser(); as user) {
         <div class="flex items-center gap-3 px-2 py-2">
-          <span aria-hidden="true" class="grid size-9 place-items-center rounded-full bg-slate-800 text-xs font-semibold text-white dark:bg-slate-700">
+          <span
+            aria-hidden="true"
+            class="grid size-9 place-items-center rounded-full bg-slate-800 text-xs font-semibold text-white dark:bg-slate-700"
+          >
             {{ initials(user) }}
           </span>
           <div class="min-w-0">
-            <p class="truncate text-sm font-semibold text-shade-900">{{ user.firstName }} {{ user.lastName }}</p>
+            <p class="truncate text-sm font-semibold text-shade-900">
+              {{ user.firstName }} {{ user.lastName }}
+            </p>
             <p class="truncate text-xs text-shade-500">&#64;{{ user.userName }}</p>
           </div>
         </div>
         <ul class="mt-2 space-y-1 border-t border-shade-100 pt-2">
           @for (item of navItems(); track item.path) {
             <li>
-              <a [routerLink]="item.path" routerLinkActive="!bg-brand-50 !text-brand-800" (click)="closeMenus()"
-                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100">
+              <a
+                [routerLink]="item.path"
+                routerLinkActive="!bg-brand-50 !text-brand-800"
+                (click)="closeMenus()"
+                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
+              >
                 <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
                 {{ item.labelKey | transloco }}
               </a>
@@ -113,15 +184,23 @@
         <!-- Account items apart from the navigation, with the same divider as under the avatar -->
         <ul class="mt-2 space-y-1 border-t border-shade-100 pt-2">
           <li>
-            <a routerLink="/settings" routerLinkActive="!bg-brand-50 !text-brand-800" (click)="closeMenus()"
-               class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100">
+            <a
+              routerLink="/settings"
+              routerLinkActive="!bg-brand-50 !text-brand-800"
+              (click)="closeMenus()"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
+            >
               <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'settings' }" />
               {{ 'nav.settings' | transloco }}
             </a>
           </li>
           <li>
-            <button type="button" (click)="logout()" [disabled]="loggingOut()"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-shade-700 hover:bg-shade-100">
+            <button
+              type="button"
+              (click)="logout()"
+              [disabled]="loggingOut()"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-shade-700 hover:bg-shade-100"
+            >
               <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'logout' }" />
               {{ (loggingOut() ? 'nav.loggingOut' : 'nav.logout') | transloco }}
             </button>
@@ -131,8 +210,12 @@
         <ul class="mb-3 space-y-1">
           @for (item of navItems(); track item.path) {
             <li>
-              <a [routerLink]="item.path" routerLinkActive="!bg-brand-50 !text-brand-800" (click)="closeMenus()"
-                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100">
+              <a
+                [routerLink]="item.path"
+                routerLinkActive="!bg-brand-50 !text-brand-800"
+                (click)="closeMenus()"
+                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
+              >
                 <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
                 {{ item.labelKey | transloco }}
               </a>
@@ -140,8 +223,12 @@
           }
         </ul>
         <div class="flex flex-col gap-2">
-          <a routerLink="/login" (click)="closeMenus()" class="btn-secondary">{{ 'nav.login' | transloco }}</a>
-          <a routerLink="/register" (click)="closeMenus()" class="btn-primary">{{ 'nav.register' | transloco }}</a>
+          <a routerLink="/login" (click)="closeMenus()" class="btn-secondary">{{
+            'nav.login' | transloco
+          }}</a>
+          <a routerLink="/register" (click)="closeMenus()" class="btn-primary">{{
+            'nav.register' | transloco
+          }}</a>
         </div>
       }
     </div>
@@ -149,13 +236,23 @@
 </header>
 
 <ng-template #navIcon let-icon>
-  <svg viewBox="0 0 24 24" class="size-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
-       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    class="size-4.5 shrink-0"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
     @switch (icon) {
       @case ('collections') {
         <!-- stacked coins -->
         <ellipse cx="12" cy="6" rx="7" ry="3" />
-        <path d="M5 6v4c0 1.66 3.13 3 7 3s7-1.34 7-3V6M5 10v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4M5 14v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4" />
+        <path
+          d="M5 6v4c0 1.66 3.13 3 7 3s7-1.34 7-3V6M5 10v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4M5 14v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4"
+        />
       }
       @case ('explore') {
         <!-- compass -->
@@ -165,7 +262,9 @@
       @case ('settings') {
         <!-- gear -->
         <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+        <path
+          d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+        />
       }
       @case ('logout') {
         <path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9" />

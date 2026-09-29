@@ -60,10 +60,7 @@ export function passwordStrengthValidator(control: AbstractControl): ValidationE
 }
 
 /** Group validator: sets "passwordMismatch" on the confirm control when the two differ. */
-export function passwordMatchValidator(
-  passwordKey: string,
-  confirmKey: string,
-): ValidatorFn {
+export function passwordMatchValidator(passwordKey: string, confirmKey: string): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
     const password = group.get(passwordKey);
     const confirm = group.get(confirmKey);

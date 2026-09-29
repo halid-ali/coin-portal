@@ -7,9 +7,16 @@
     }
 
     <div>
-      <label for="userNameOrEmail" class="form-label">{{ 'login.userNameOrEmail' | transloco }}</label>
-      <input id="userNameOrEmail" type="text" formControlName="userNameOrEmail"
-             autocomplete="username" class="form-input" />
+      <label for="userNameOrEmail" class="form-label">{{
+        'login.userNameOrEmail' | transloco
+      }}</label>
+      <input
+        id="userNameOrEmail"
+        type="text"
+        formControlName="userNameOrEmail"
+        autocomplete="username"
+        class="form-input"
+      />
       @if (errorMessage(form.controls.userNameOrEmail); as msg) {
         <p class="form-error">{{ msg }}</p>
       }
@@ -17,16 +24,24 @@
 
     <div>
       <label for="password" class="form-label">{{ 'login.password' | transloco }}</label>
-      <input id="password" type="password" formControlName="password"
-             autocomplete="current-password" class="form-input" />
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        class="form-input"
+      />
       @if (errorMessage(form.controls.password); as msg) {
         <p class="form-error">{{ msg }}</p>
       }
     </div>
 
     <label class="flex items-center gap-2 text-sm text-shade-700">
-      <input type="checkbox" formControlName="rememberMe"
-             class="size-4 rounded border-shade-300 text-brand-600 focus:ring-brand-500" />
+      <input
+        type="checkbox"
+        formControlName="rememberMe"
+        class="size-4 rounded border-shade-300 text-brand-600 focus:ring-brand-500"
+      />
       {{ 'login.rememberMe' | transloco }}
     </label>
 

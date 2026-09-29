@@ -1,388 +1,624 @@
 <section class="mx-auto w-full max-w-6xl space-y-6">
- @if (notFound()) {
-  <div class="card text-center">
-    @if (mode() === 'owner') {
-      <p class="text-shade-600">{{ 'coinList.notFoundOwn' | transloco }}</p>
-      <a routerLink="/collections" class="btn-secondary mt-4">{{ 'coinList.backToCollections' | transloco }}</a>
-    } @else {
-      <p class="text-shade-600">{{ 'coinList.notFoundShared' | transloco }}</p>
-      <a routerLink="/explore" class="btn-secondary mt-4">{{ 'common.goToExplore' | transloco }}</a>
-    }
-  </div>
- } @else {
-  @if (mode() === 'explore') {
-    <div>
-      <h1 class="text-2xl font-semibold text-shade-900">{{ 'coinList.exploreTitle' | transloco }}</h1>
-      <p class="mt-1 text-sm text-shade-600">
-        {{ 'coinList.exploreSubtitle' | transloco }}
-        @if (result(); as r) {
-          · {{ 'coinList.recordCount' | plural: r.totalCount }}
-        }
-        @if (hasFilters()) {
-          {{ 'coinList.filtered' | transloco }}
-        }
-      </p>
+  @if (notFound()) {
+    <div class="card text-center">
+      @if (mode() === 'owner') {
+        <p class="text-shade-600">{{ 'coinList.notFoundOwn' | transloco }}</p>
+        <a routerLink="/collections" class="btn-secondary mt-4">{{
+          'coinList.backToCollections' | transloco
+        }}</a>
+      } @else {
+        <p class="text-shade-600">{{ 'coinList.notFoundShared' | transloco }}</p>
+        <a routerLink="/explore" class="btn-secondary mt-4">{{
+          'common.goToExplore' | transloco
+        }}</a>
+      }
     </div>
   } @else {
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div class="flex min-w-0 items-end gap-4">
-        @if (collectionCover(); as src) {
-          <img [src]="src" alt="" class="hidden aspect-video w-32 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-shade-200 sm:block" />
-        }
-        <div class="min-w-0">
-          @switch (mode()) {
-            @case ('owner') {
-              <a routerLink="/collections" class="link text-sm">‹ {{ 'nav.collections' | transloco }}</a>
-            }
-            @case ('public') {
-              @if (header(); as h) {
-                <a [routerLink]="['/u', h.ownerUserName]" class="link text-sm">‹ &#64;{{ h.ownerUserName }}</a>
-              }
-            }
-            @case ('shared') {
-              @if (header(); as h) {
-                <p class="text-sm text-shade-500">
-                  {{ 'coinList.sharedBy' | transloco: { userName: h.ownerUserName } }}
-                </p>
-              }
-            }
-          }
-          <div class="mt-1 flex min-w-0 items-center gap-3">
-            <h1 class="truncate text-2xl font-semibold text-shade-900">{{ header()?.name ?? ' ' }}</h1>
-            @if (header(); as h) {
-              @if (mode() === 'owner') {
-                <app-visibility-badge [visibility]="h.visibility" />
-              }
-            }
-          </div>
-          @if (header()?.description; as description) {
-            <p class="mt-1 max-w-prose text-sm text-shade-600">{{ description }}</p>
-          }
-          @if (result(); as r) {
-            <p class="mt-1 text-sm text-shade-500">
-              {{ 'coinList.recordCount' | plural: r.totalCount }}
-              @if (hasFilters()) {
-                {{ 'coinList.filtered' | transloco }}
-              }
-            </p>
-          }
-        </div>
-      </div>
-      @if (mode() === 'owner') {
-        <!-- Phones: link / edit / delete are icon buttons (titles and aria-labels name them) so
-             "Add coin" stays on the same row; from md up they show their text too. If the actions
-             grow, a "more" (⋯) menu is the next step (PROJECT_STATUS) -->
-        <div class="flex flex-wrap gap-1.5 sm:gap-2">
-          @if (ownLink(); as url) {
-            <button type="button" class="btn-secondary gap-2 p-2.5 md:px-4 md:py-2" (click)="copyLink(url)"
-                    [attr.aria-label]="'coinList.copyLink' | transloco" [title]="'coinList.copyLink' | transloco">
-              <svg viewBox="0 0 24 24" class="size-5 shrink-0" [class.text-success-600]="copied()" fill="none" stroke="currentColor"
-                   stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                @if (copied()) {
-                  <path d="m5 12.5 4.5 4.5L19 7.5" />
-                } @else {
-                  <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" />
-                }
-              </svg>
-              <span class="hidden md:inline">{{ (copied() ? 'common.copied' : 'coinList.copyLink') | transloco }}</span>
-            </button>
-            <span class="sr-only" aria-live="polite">{{ copied() ? ('common.copied' | transloco) : '' }}</span>
-          }
-          <button type="button" class="btn-secondary gap-2 p-2.5 md:px-4 md:py-2" [disabled]="!collection()" (click)="editing.set(true)"
-                  [attr.aria-label]="'common.edit' | transloco" [title]="'common.edit' | transloco">
-            <svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
-            </svg>
-            <span class="hidden md:inline">{{ 'common.edit' | transloco }}</span>
-          </button>
-          <button type="button" class="btn-secondary gap-2 p-2.5 text-danger-700 hover:bg-danger-50 md:px-4 md:py-2" [disabled]="!collection()"
-                  (click)="openDelete()" [attr.aria-label]="'common.delete' | transloco" [title]="'common.delete' | transloco">
-            <svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
-            </svg>
-            <span class="hidden md:inline">{{ 'common.delete' | transloco }}</span>
-          </button>
-          <a routerLink="/coins/new" [queryParams]="{ collection: collectionId() }" class="btn-primary">{{ 'coinList.addCoin' | transloco }}</a>
-        </div>
-      }
-    </div>
-
-    @if (mode() === 'shared') {
-      <p class="rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
-        {{ 'coinList.sharedNotice' | transloco }}
-      </p>
-    }
-  }
-
-  <!-- Filters -->
-  <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
-    <div [class]="mode() === 'explore' ? 'sm:col-span-2 lg:col-span-1' : 'sm:col-span-2'">
-      <label for="search" class="form-label">{{ 'coinList.search' | transloco }}</label>
-      <input id="search" type="search" [formControl]="searchControl"
-             [placeholder]="'coinList.searchPlaceholder' | transloco" class="form-input" />
-    </div>
-
-    <!-- Phones: everything but the search box folds away behind the "Filters" toggle (closed by
-         default); the toolbar row below moves up (order-1). From sm up this wrapper is display:
-         contents, so the fields sit in the card grid as before -->
-    <div id="coin-filters" [class]="filtersOpen() ? 'order-2 grid gap-4 sm:contents' : 'hidden sm:contents'">
     @if (mode() === 'explore') {
       <div>
-        <label for="owner" class="form-label">{{ 'coin.field.collector' | transloco }}</label>
-        <select id="owner" #ownerSelect class="form-input" (change)="setFilters({ owner: ownerSelect.value })">
-          <option value="" [selected]="!query().owner">{{ 'common.all' | transloco }}</option>
-          @for (c of collectors(); track c.userName) {
-            <option [value]="c.userName" [selected]="c.userName === query().owner">&#64;{{ c.userName }} ({{ c.coinCount }})</option>
+        <h1 class="text-2xl font-semibold text-shade-900">
+          {{ 'coinList.exploreTitle' | transloco }}
+        </h1>
+        <p class="mt-1 text-sm text-shade-600">
+          {{ 'coinList.exploreSubtitle' | transloco }}
+          @if (result(); as r) {
+            · {{ 'coinList.recordCount' | plural: r.totalCount }}
           }
-        </select>
+          @if (hasFilters()) {
+            {{ 'coinList.filtered' | transloco }}
+          }
+        </p>
       </div>
+    } @else {
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div class="flex min-w-0 items-end gap-4">
+          @if (collectionCover(); as src) {
+            <img
+              [src]="src"
+              alt=""
+              class="hidden aspect-video w-32 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-shade-200 sm:block"
+            />
+          }
+          <div class="min-w-0">
+            @switch (mode()) {
+              @case ('owner') {
+                <a routerLink="/collections" class="link text-sm"
+                  >‹ {{ 'nav.collections' | transloco }}</a
+                >
+              }
+              @case ('public') {
+                @if (header(); as h) {
+                  <a [routerLink]="['/u', h.ownerUserName]" class="link text-sm"
+                    >‹ &#64;{{ h.ownerUserName }}</a
+                  >
+                }
+              }
+              @case ('shared') {
+                @if (header(); as h) {
+                  <p class="text-sm text-shade-500">
+                    {{ 'coinList.sharedBy' | transloco: { userName: h.ownerUserName } }}
+                  </p>
+                }
+              }
+            }
+            <div class="mt-1 flex min-w-0 items-center gap-3">
+              <h1 class="truncate text-2xl font-semibold text-shade-900">
+                {{ header()?.name ?? ' ' }}
+              </h1>
+              @if (header(); as h) {
+                @if (mode() === 'owner') {
+                  <app-visibility-badge [visibility]="h.visibility" />
+                }
+              }
+            </div>
+            @if (header()?.description; as description) {
+              <p class="mt-1 max-w-prose text-sm text-shade-600">{{ description }}</p>
+            }
+            @if (result(); as r) {
+              <p class="mt-1 text-sm text-shade-500">
+                {{ 'coinList.recordCount' | plural: r.totalCount }}
+                @if (hasFilters()) {
+                  {{ 'coinList.filtered' | transloco }}
+                }
+              </p>
+            }
+          </div>
+        </div>
+        @if (mode() === 'owner') {
+          <!-- Phones: link / edit / delete are icon buttons (titles and aria-labels name them) so
+             "Add coin" stays on the same row; from md up they show their text too. If the actions
+             grow, a "more" (⋯) menu is the next step (PROJECT_STATUS) -->
+          <div class="flex flex-wrap gap-1.5 sm:gap-2">
+            @if (ownLink(); as url) {
+              <button
+                type="button"
+                class="btn-secondary gap-2 p-2.5 md:px-4 md:py-2"
+                (click)="copyLink(url)"
+                [attr.aria-label]="'coinList.copyLink' | transloco"
+                [title]="'coinList.copyLink' | transloco"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="size-5 shrink-0"
+                  [class.text-success-600]="copied()"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  @if (copied()) {
+                    <path d="m5 12.5 4.5 4.5L19 7.5" />
+                  } @else {
+                    <path
+                      d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"
+                    />
+                  }
+                </svg>
+                <span class="hidden md:inline">{{
+                  (copied() ? 'common.copied' : 'coinList.copyLink') | transloco
+                }}</span>
+              </button>
+              <span class="sr-only" aria-live="polite">{{
+                copied() ? ('common.copied' | transloco) : ''
+              }}</span>
+            }
+            <button
+              type="button"
+              class="btn-secondary gap-2 p-2.5 md:px-4 md:py-2"
+              [disabled]="!collection()"
+              (click)="editing.set(true)"
+              [attr.aria-label]="'common.edit' | transloco"
+              [title]="'common.edit' | transloco"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="size-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+              </svg>
+              <span class="hidden md:inline">{{ 'common.edit' | transloco }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn-secondary gap-2 p-2.5 text-danger-700 hover:bg-danger-50 md:px-4 md:py-2"
+              [disabled]="!collection()"
+              (click)="openDelete()"
+              [attr.aria-label]="'common.delete' | transloco"
+              [title]="'common.delete' | transloco"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="size-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"
+                />
+              </svg>
+              <span class="hidden md:inline">{{ 'common.delete' | transloco }}</span>
+            </button>
+            <a
+              routerLink="/coins/new"
+              [queryParams]="{ collection: collectionId() }"
+              class="btn-primary"
+              >{{ 'coinList.addCoin' | transloco }}</a
+            >
+          </div>
+        }
+      </div>
+
+      @if (mode() === 'shared') {
+        <p class="rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
+          {{ 'coinList.sharedNotice' | transloco }}
+        </p>
+      }
     }
 
-    <div>
-      <label for="denomination" class="form-label">{{ 'coin.field.denomination' | transloco }}</label>
-      <select id="denomination" #denominationSelect class="form-input"
-              (change)="setFilters({ denomination: denominationSelect.value })">
-        <option value="" [selected]="!query().denomination">{{ 'common.all' | transloco }}</option>
-        @for (d of denominations; track d) {
-          <option [value]="d" [selected]="d === query().denomination">{{ denominationLabel(d) }}</option>
+    <!-- Filters -->
+    <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
+      <div [class]="mode() === 'explore' ? 'sm:col-span-2 lg:col-span-1' : 'sm:col-span-2'">
+        <label for="search" class="form-label">{{ 'coinList.search' | transloco }}</label>
+        <input
+          id="search"
+          type="search"
+          [formControl]="searchControl"
+          [placeholder]="'coinList.searchPlaceholder' | transloco"
+          class="form-input"
+        />
+      </div>
+
+      <!-- Phones: everything but the search box folds away behind the "Filters" toggle (closed by
+         default); the toolbar row below moves up (order-1). From sm up this wrapper is display:
+         contents, so the fields sit in the card grid as before -->
+      <div
+        id="coin-filters"
+        [class]="filtersOpen() ? 'order-2 grid gap-4 sm:contents' : 'hidden sm:contents'"
+      >
+        @if (mode() === 'explore') {
+          <div>
+            <label for="owner" class="form-label">{{ 'coin.field.collector' | transloco }}</label>
+            <select
+              id="owner"
+              #ownerSelect
+              class="form-input"
+              (change)="setFilters({ owner: ownerSelect.value })"
+            >
+              <option value="" [selected]="!query().owner">{{ 'common.all' | transloco }}</option>
+              @for (c of collectors(); track c.userName) {
+                <option [value]="c.userName" [selected]="c.userName === query().owner">
+                  &#64;{{ c.userName }} ({{ c.coinCount }})
+                </option>
+              }
+            </select>
+          </div>
         }
-      </select>
-    </div>
 
-    <div>
-      <label for="country" class="form-label">{{ 'coin.field.country' | transloco }}</label>
-      <select id="country" #countrySelect class="form-input"
-              (change)="setFilters({ countryCode: countrySelect.value })">
-        <option value="" [selected]="!query().countryCode">{{ 'common.all' | transloco }}</option>
-        @for (c of countries(); track c.code) {
-          <option [value]="c.code" [selected]="c.code === query().countryCode">{{ c.name }}</option>
+        <div>
+          <label for="denomination" class="form-label">{{
+            'coin.field.denomination' | transloco
+          }}</label>
+          <select
+            id="denomination"
+            #denominationSelect
+            class="form-input"
+            (change)="setFilters({ denomination: denominationSelect.value })"
+          >
+            <option value="" [selected]="!query().denomination">
+              {{ 'common.all' | transloco }}
+            </option>
+            @for (d of denominations; track d) {
+              <option [value]="d" [selected]="d === query().denomination">
+                {{ denominationLabel(d) }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="country" class="form-label">{{ 'coin.field.country' | transloco }}</label>
+          <select
+            id="country"
+            #countrySelect
+            class="form-input"
+            (change)="setFilters({ countryCode: countrySelect.value })"
+          >
+            <option value="" [selected]="!query().countryCode">
+              {{ 'common.all' | transloco }}
+            </option>
+            @for (c of countries(); track c.code) {
+              <option [value]="c.code" [selected]="c.code === query().countryCode">
+                {{ c.name }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="year" class="form-label">{{ 'coin.field.year' | transloco }}</label>
+          <input
+            id="year"
+            #yearInput
+            type="number"
+            inputmode="numeric"
+            class="form-input"
+            [min]="minYear"
+            [max]="maxYear"
+            [value]="query().year ?? ''"
+            (change)="setYear(yearInput.value)"
+          />
+        </div>
+
+        <div>
+          <label for="commemorative" class="form-label">{{
+            'coin.field.commemorativeCoin' | transloco
+          }}</label>
+          <select
+            id="commemorative"
+            #commemorativeSelect
+            class="form-input"
+            (change)="setFilters({ isCommemorative: commemorativeSelect.value })"
+          >
+            <option value="" [selected]="query().isCommemorative === undefined">
+              {{ 'common.all' | transloco }}
+            </option>
+            <option value="true" [selected]="query().isCommemorative === true">
+              {{ 'coinList.onlyCommemorative' | transloco }}
+            </option>
+            <option value="false" [selected]="query().isCommemorative === false">
+              {{ 'coinList.notCommemorative' | transloco }}
+            </option>
+          </select>
+        </div>
+
+        @if (hasFilters()) {
+          <button
+            type="button"
+            class="btn-secondary justify-self-start py-1.5 sm:hidden"
+            (click)="clearFilters()"
+          >
+            {{ 'coinList.clearFilters' | transloco }}
+          </button>
         }
-      </select>
-    </div>
+      </div>
 
-    <div>
-      <label for="year" class="form-label">{{ 'coin.field.year' | transloco }}</label>
-      <input id="year" #yearInput type="number" inputmode="numeric" class="form-input"
-             [min]="minYear" [max]="maxYear" [value]="query().year ?? ''"
-             (change)="setYear(yearInput.value)" />
-    </div>
-
-    <div>
-      <label for="commemorative" class="form-label">{{ 'coin.field.commemorativeCoin' | transloco }}</label>
-      <select id="commemorative" #commemorativeSelect class="form-input"
-              (change)="setFilters({ isCommemorative: commemorativeSelect.value })">
-        <option value="" [selected]="query().isCommemorative === undefined">{{ 'common.all' | transloco }}</option>
-        <option value="true" [selected]="query().isCommemorative === true">{{ 'coinList.onlyCommemorative' | transloco }}</option>
-        <option value="false" [selected]="query().isCommemorative === false">{{ 'coinList.notCommemorative' | transloco }}</option>
-      </select>
-    </div>
-
-    @if (hasFilters()) {
-      <button type="button" class="btn-secondary justify-self-start py-1.5 sm:hidden" (click)="clearFilters()">{{ 'coinList.clearFilters' | transloco }}</button>
-    }
-    </div>
-
-    <!-- In the desktop list the table headers sort, so there this row only holds "clear filters";
+      <!-- In the desktop list the table headers sort, so there this row only holds "clear filters";
          the grid has no headers and keeps the sort select on every screen size. Phones: the
          filters toggle and the sort select -->
-    <div class="order-1 flex min-w-0 items-center gap-3 sm:flex-wrap sm:order-0 sm:col-span-2 sm:items-end lg:col-span-6"
-         [class]="hasFilters() || viewMode() === 'grid' ? '' : 'lg:hidden'">
-      <button type="button" class="btn-secondary shrink-0 gap-2 py-1.5 sm:hidden" aria-controls="coin-filters"
-              [attr.aria-expanded]="filtersOpen()" (click)="filtersOpen.set(!filtersOpen())">
-        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 5h18l-7 8.5V19l-4 2v-7.5z" />
-        </svg>
-        {{ 'coinList.filters' | transloco }}
-        @if (foldedFilterCount(); as count) {
-          <span class="rounded-full bg-brand-100 px-1.5 text-xs font-semibold text-brand-900">{{ count }}</span>
+      <div
+        class="order-1 flex min-w-0 items-center gap-3 sm:flex-wrap sm:order-0 sm:col-span-2 sm:items-end lg:col-span-6"
+        [class]="hasFilters() || viewMode() === 'grid' ? '' : 'lg:hidden'"
+      >
+        <button
+          type="button"
+          class="btn-secondary shrink-0 gap-2 py-1.5 sm:hidden"
+          aria-controls="coin-filters"
+          [attr.aria-expanded]="filtersOpen()"
+          (click)="filtersOpen.set(!filtersOpen())"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="size-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 5h18l-7 8.5V19l-4 2v-7.5z" />
+          </svg>
+          {{ 'coinList.filters' | transloco }}
+          @if (foldedFilterCount(); as count) {
+            <span class="rounded-full bg-brand-100 px-1.5 text-xs font-semibold text-brand-900">{{
+              count
+            }}</span>
+          }
+          <svg
+            viewBox="0 0 24 24"
+            class="size-4 text-shade-400 transition-transform"
+            [class.rotate-180]="filtersOpen()"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        @if (hasFilters()) {
+          <button
+            type="button"
+            class="btn-secondary hidden py-1.5 sm:inline-flex"
+            (click)="clearFilters()"
+          >
+            {{ 'coinList.clearFilters' | transloco }}
+          </button>
         }
-        <svg viewBox="0 0 24 24" class="size-4 text-shade-400 transition-transform" [class.rotate-180]="filtersOpen()"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </button>
-      @if (hasFilters()) {
-        <button type="button" class="btn-secondary hidden py-1.5 sm:inline-flex" (click)="clearFilters()">{{ 'coinList.clearFilters' | transloco }}</button>
-      }
-      <!-- Looks like the filters toggle: an icon on the left and no label; with the default order
+        <!-- Looks like the filters toggle: an icon on the left and no label; with the default order
            it reads "Sort" (a hidden placeholder option), otherwise the chosen order and "clear sort"
            joins the list. The frame is on the wrapper, not on the select: Chrome indents the
            options of the open list by the select's left padding, which would be the icon's room.
            The select keeps its own background: Chrome paints the open list with it (transparent
            gives a white list in the dark theme) -->
-      <div class="ml-auto flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm
-                  focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/30 sm:flex-none"
-           [class]="viewMode() === 'grid' ? '' : 'lg:hidden'">
-        <svg viewBox="0 0 24 24" class="pointer-events-none size-4 shrink-0 text-shade-700"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
-        </svg>
-        <select id="sort" #sortSelect class="form-input w-full min-w-0 border-0 py-1.5 pl-2 font-medium text-shade-700 shadow-none
-                       focus:ring-0 sm:w-auto"
-                [attr.aria-label]="'coinList.sort' | transloco" (change)="setSortOption(sortSelect.value)">
-          <option value="" disabled hidden [selected]="sortState().sort === 'Newest'">{{ 'coinList.sort' | transloco }}</option>
-          @if (sortState().sort !== 'Newest') {
-            <option value="Newest">{{ 'sort.clear' | transloco }}</option>
-          }
-          @for (c of sortColumns; track c.value) {
-            <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
-              {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.asc' | transloco }})
+        <div
+          class="ml-auto flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/30 sm:flex-none"
+          [class]="viewMode() === 'grid' ? '' : 'lg:hidden'"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="pointer-events-none size-4 shrink-0 text-shade-700"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
+          </svg>
+          <select
+            id="sort"
+            #sortSelect
+            class="form-input w-full min-w-0 border-0 py-1.5 pl-2 font-medium text-shade-700 shadow-none focus:ring-0 sm:w-auto"
+            [attr.aria-label]="'coinList.sort' | transloco"
+            (change)="setSortOption(sortSelect.value)"
+          >
+            <option value="" disabled hidden [selected]="sortState().sort === 'Newest'">
+              {{ 'coinList.sort' | transloco }}
             </option>
-            <option [value]="c.value + ':Desc'" [selected]="sortDirection(c.value) === 'Desc'">
-              {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.desc' | transloco }})
-            </option>
-          }
-        </select>
+            @if (sortState().sort !== 'Newest') {
+              <option value="Newest">{{ 'sort.clear' | transloco }}</option>
+            }
+            @for (c of sortColumns; track c.value) {
+              <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
+                {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.asc' | transloco }})
+              </option>
+              <option [value]="c.value + ':Desc'" [selected]="sortDirection(c.value) === 'Desc'">
+                {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.desc' | transloco }})
+              </option>
+            }
+          </select>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Results -->
-  @if (loadError()) {
-    <div role="alert" class="alert-error">{{ 'coinList.loadError' | transloco }}</div>
-  } @else if (result(); as r) {
-    @if (r.items.length === 0) {
-      <div class="card text-center">
-        @if (hasFilters()) {
-          <p class="text-shade-600">{{ 'coinList.noMatches' | transloco }}</p>
-          <button type="button" class="btn-secondary mt-4" (click)="clearFilters()">{{ 'coinList.clearFilters' | transloco }}</button>
-        } @else if (mode() === 'owner') {
-          <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
-          <a routerLink="/coins/new" [queryParams]="{ collection: collectionId() }" class="btn-primary mt-4">{{ 'coinList.addFirstCoin' | transloco }}</a>
-        } @else if (mode() === 'explore') {
-          <p class="text-shade-600">{{ 'coinList.noPublicCollections' | transloco }}</p>
-        } @else {
-          <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
-        }
-      </div>
-    } @else {
-      <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
-                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions()" [disabled]="loading()"
-                      (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)">
-        <app-view-toggle [value]="viewMode()" (valueChange)="setView($event)" />
-      </app-pagination>
+    <!-- Results -->
+    @if (loadError()) {
+      <div role="alert" class="alert-error">{{ 'coinList.loadError' | transloco }}</div>
+    } @else if (result(); as r) {
+      @if (r.items.length === 0) {
+        <div class="card text-center">
+          @if (hasFilters()) {
+            <p class="text-shade-600">{{ 'coinList.noMatches' | transloco }}</p>
+            <button type="button" class="btn-secondary mt-4" (click)="clearFilters()">
+              {{ 'coinList.clearFilters' | transloco }}
+            </button>
+          } @else if (mode() === 'owner') {
+            <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
+            <a
+              routerLink="/coins/new"
+              [queryParams]="{ collection: collectionId() }"
+              class="btn-primary mt-4"
+              >{{ 'coinList.addFirstCoin' | transloco }}</a
+            >
+          } @else if (mode() === 'explore') {
+            <p class="text-shade-600">{{ 'coinList.noPublicCollections' | transloco }}</p>
+          } @else {
+            <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
+          }
+        </div>
+      } @else {
+        <app-pagination
+          [page]="r.page"
+          [totalPages]="r.totalPages"
+          [totalCount]="r.totalCount"
+          [pageSize]="query().pageSize ?? 0"
+          [options]="pageSizeOptions()"
+          [disabled]="loading()"
+          (pageChange)="goToPage($event)"
+          (pageSizeChange)="setPageSize($event)"
+        >
+          <app-view-toggle [value]="viewMode()" (valueChange)="setView($event)" />
+        </app-pagination>
 
-      <div class="transition-opacity" [class.opacity-60]="loading()">
-       @if (viewMode() === 'grid') {
-        <!-- Grid: 2 / 3 / 5 per row. An invisible control covers the whole tile: it opens the
+        <div class="transition-opacity" [class.opacity-60]="loading()">
+          @if (viewMode() === 'grid') {
+            <!-- Grid: 2 / 3 / 5 per row. An invisible control covers the whole tile: it opens the
              fullscreen viewer, or (owner) the coin form when there is no photo to show. The pencil
              and owner links sit above it (z-10), so all work without nesting interactive elements -->
-        <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          @for (coin of r.items; track coin.id) {
-            <li class="card group relative overflow-hidden p-0 hover:border-brand-300">
-              <div class="relative aspect-square overflow-hidden bg-shade-100">
-                @if (previewUrl(coin); as src) {
-                  <img [src]="src" alt="" loading="lazy" decoding="async"
-                       class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
-                } @else {
-                  <app-coin-placeholder class="size-full p-[24%] text-shade-300" />
-                }
-                @if (coin.isCommemorative) {
-                  <span class="absolute top-2 left-2 rounded-full bg-info-100/95 px-2 py-0.5 text-xs font-medium text-info-800 shadow-sm">{{ 'coin.commemorativeBadge' | transloco }}</span>
-                }
-              </div>
-              <div class="space-y-1.5 p-3">
-                <p class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900" [title]="coin.title">
-                  {{ coin.title }}
-                </p>
-                <div class="flex items-center gap-2 text-xs text-shade-600">
-                  <span class="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-semibold text-brand-900">
-                    {{ denominationLabel(coin.denomination) }}
-                  </span>
-                  <span class="truncate">{{ countryName(coin.countryCode) }} · {{ coin.year }}</span>
-                </div>
-                @if (coin.ownerUserName) {
-                  <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
-                     class="relative z-10 block truncate text-xs text-shade-500 hover:text-brand-700"
-                     [title]="coin.collectionName">&#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}</a>
-                }
-              </div>
-
-              @if (coin.photos.length) {
-                <button type="button" class="absolute inset-0 cursor-zoom-in rounded-xl focus-visible:ring-2
-                        focus-visible:ring-brand-500 focus-visible:outline-none focus-visible:ring-inset"
-                        [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }" (click)="viewerCoin.set(coin)">
-                </button>
-              } @else if (!readOnly()) {
-                <a [routerLink]="['/coins', coin.id, 'edit']" class="absolute inset-0 rounded-xl
-                   focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none focus-visible:ring-inset"
-                   [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"></a>
-              }
-
-              @if (!readOnly()) {
-                <a [routerLink]="['/coins', coin.id, 'edit']"
-                   class="absolute top-2 right-2 z-10 rounded-full bg-shade-0/90 p-1.5 text-shade-700 shadow-sm
-                          transition-opacity hover:bg-shade-0 hover:text-brand-700 focus-visible:opacity-100
-                          focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
-                          pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
-                   [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }" [title]="'common.edit' | transloco">
-                  <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2"
-                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
-                  </svg>
-                </a>
-              }
-            </li>
-          }
-        </ul>
-       } @else {
-        <!-- Mobile: stacked list -->
-        <ul class="space-y-3 lg:hidden">
-          @for (coin of r.items; track coin.id) {
-            <!-- Owner: the title link stretches over the whole card (after:inset-0); the thumbnail
-                 button sits above it (z-10), so both work without nesting interactive elements -->
-            <li class="card relative flex gap-3 p-4" [class.hover:border-brand-300]="!readOnly()">
-              @if (coin.photos.length) {
-                <button type="button" class="relative z-10 self-start rounded-full focus-visible:ring-2
-                        focus-visible:ring-brand-500 focus-visible:outline-none"
-                        [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }" (click)="viewerCoin.set(coin)">
-                  <app-coin-thumb class="size-14" [coin]="coin" [shareToken]="shareToken()" />
-                </button>
-              } @else {
-                <app-coin-thumb class="size-14" [coin]="coin" />
-              }
-              <div class="min-w-0 flex-1">
-                <div class="flex items-start justify-between gap-3">
-                  @if (readOnly()) {
-                    <p class="font-medium text-shade-900">{{ coin.title }}</p>
-                  } @else {
-                    <a [routerLink]="['/coins', coin.id, 'edit']"
-                       class="font-medium text-shade-900 after:absolute after:inset-0 after:rounded-xl
-                              focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-500">
+            <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+              @for (coin of r.items; track coin.id) {
+                <li class="card group relative overflow-hidden p-0 hover:border-brand-300">
+                  <div class="relative aspect-square overflow-hidden bg-shade-100">
+                    @if (previewUrl(coin); as src) {
+                      <img
+                        [src]="src"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      />
+                    } @else {
+                      <app-coin-placeholder class="size-full p-[24%] text-shade-300" />
+                    }
+                    @if (coin.isCommemorative) {
+                      <span
+                        class="absolute top-2 left-2 rounded-full bg-info-100/95 px-2 py-0.5 text-xs font-medium text-info-800 shadow-sm"
+                        >{{ 'coin.commemorativeBadge' | transloco }}</span
+                      >
+                    }
+                  </div>
+                  <div class="space-y-1.5 p-3">
+                    <p
+                      class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900"
+                      [title]="coin.title"
+                    >
                       {{ coin.title }}
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-shade-600">
+                      <span
+                        class="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-semibold text-brand-900"
+                      >
+                        {{ denominationLabel(coin.denomination) }}
+                      </span>
+                      <span class="truncate"
+                        >{{ countryName(coin.countryCode) }} · {{ coin.year }}</span
+                      >
+                    </div>
+                    @if (coin.ownerUserName) {
+                      <a
+                        [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                        class="relative z-10 block truncate text-xs text-shade-500 hover:text-brand-700"
+                        [title]="coin.collectionName"
+                        >&#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}</a
+                      >
+                    }
+                  </div>
+
+                  @if (coin.photos.length) {
+                    <button
+                      type="button"
+                      class="absolute inset-0 cursor-zoom-in rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none focus-visible:ring-inset"
+                      [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                      (click)="viewerCoin.set(coin)"
+                    ></button>
+                  } @else if (!readOnly()) {
+                    <a
+                      [routerLink]="['/coins', coin.id, 'edit']"
+                      class="absolute inset-0 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none focus-visible:ring-inset"
+                      [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                    ></a>
+                  }
+
+                  @if (!readOnly()) {
+                    <a
+                      [routerLink]="['/coins', coin.id, 'edit']"
+                      class="absolute top-2 right-2 z-10 rounded-full bg-shade-0/90 p-1.5 text-shade-700 shadow-sm transition-opacity hover:bg-shade-0 hover:text-brand-700 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
+                      [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                      [title]="'common.edit' | transloco"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="size-4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+                      </svg>
                     </a>
                   }
-                  <span class="shrink-0 rounded-md bg-brand-100 px-2 py-0.5 text-sm font-semibold text-brand-900">
-                    {{ denominationLabel(coin.denomination) }}
-                  </span>
-                </div>
-                <p class="mt-1 text-sm text-shade-600">
-                  {{ countryName(coin.countryCode) }} · {{ coin.year }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
-                </p>
-                @if (coin.ownerUserName) {
-                  <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
-                     class="relative z-10 mt-1 block truncate text-xs text-shade-500 hover:text-brand-700">
-                    &#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}
-                  </a>
-                }
-                <div class="mt-2 flex gap-2 text-xs">
-                  @if (coin.isCommemorative) {
-                    <span class="rounded-full bg-info-100 px-2 py-0.5 text-info-800">{{ 'coin.commemorativeBadge' | transloco }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <!-- Mobile: stacked list -->
+            <ul class="space-y-3 lg:hidden">
+              @for (coin of r.items; track coin.id) {
+                <!-- Owner: the title link stretches over the whole card (after:inset-0); the thumbnail
+                 button sits above it (z-10), so both work without nesting interactive elements -->
+                <li
+                  class="card relative flex gap-3 p-4"
+                  [class.hover:border-brand-300]="!readOnly()"
+                >
+                  @if (coin.photos.length) {
+                    <button
+                      type="button"
+                      class="relative z-10 self-start rounded-full focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                      [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                      (click)="viewerCoin.set(coin)"
+                    >
+                      <app-coin-thumb class="size-14" [coin]="coin" [shareToken]="shareToken()" />
+                    </button>
+                  } @else {
+                    <app-coin-thumb class="size-14" [coin]="coin" />
                   }
-                  @if (coin.quantity > 1) {
-                    <span class="rounded-full bg-shade-100 px-2 py-0.5 text-shade-700">{{ 'coin.quantityBadge' | plural: coin.quantity }}</span>
-                  }
-                </div>
-              </div>
-            </li>
-          }
-        </ul>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-3">
+                      @if (readOnly()) {
+                        <p class="font-medium text-shade-900">{{ coin.title }}</p>
+                      } @else {
+                        <a
+                          [routerLink]="['/coins', coin.id, 'edit']"
+                          class="font-medium text-shade-900 after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-500"
+                        >
+                          {{ coin.title }}
+                        </a>
+                      }
+                      <span
+                        class="shrink-0 rounded-md bg-brand-100 px-2 py-0.5 text-sm font-semibold text-brand-900"
+                      >
+                        {{ denominationLabel(coin.denomination) }}
+                      </span>
+                    </div>
+                    <p class="mt-1 text-sm text-shade-600">
+                      {{ countryName(coin.countryCode) }} · {{ coin.year
+                      }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
+                    </p>
+                    @if (coin.ownerUserName) {
+                      <a
+                        [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                        class="relative z-10 mt-1 block truncate text-xs text-shade-500 hover:text-brand-700"
+                      >
+                        &#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}
+                      </a>
+                    }
+                    <div class="mt-2 flex gap-2 text-xs">
+                      @if (coin.isCommemorative) {
+                        <span class="rounded-full bg-info-100 px-2 py-0.5 text-info-800">{{
+                          'coin.commemorativeBadge' | transloco
+                        }}</span>
+                      }
+                      @if (coin.quantity > 1) {
+                        <span class="rounded-full bg-shade-100 px-2 py-0.5 text-shade-700">{{
+                          'coin.quantityBadge' | plural: coin.quantity
+                        }}</span>
+                      }
+                    </div>
+                  </div>
+                </li>
+              }
+            </ul>
 
-        <!-- Desktop: table -->
-        <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
+            <!-- Desktop: table -->
+            <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
              so they stay the same on every page and in every language. The title column takes
              the rest. The last column is "edit" for the owner, the collector in Explore, and
              absent otherwise.
@@ -392,95 +628,155 @@
              year: "Year" + icon; mint mark: "Darphane"; commemorative: "Commem."; collector:
              "@maximilian.schneider" (a long 20-character name; wider ones are cut, the title
              shows them); edit: the 20 px icon. A new language means measuring again. -->
-        <div class="card hidden overflow-x-auto p-0 lg:block">
-          <table class="w-full table-fixed text-left text-sm">
-            <colgroup>
-              <col class="w-16" />
-              <col />
-              <col class="w-[118px]" />
-              <col class="w-[116px]" />
-              <col class="w-[81px]" />
-              <col class="w-[91px]" />
-              <col class="w-[94px]" />
-              @if (mode() === 'owner') {
-                <col class="w-12" />
-              } @else if (mode() === 'explore') {
-                <col class="w-[176px]" />
-              }
-            </colgroup>
-            <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
-              <tr>
-                <th scope="col" class="py-2 pl-4"><span class="sr-only">{{ 'coin.field.photo' | transloco }}</span></th>
-                @for (c of sortColumns; track c.value) {
-                  <th appSortHeader class="px-3 py-2"
-                      [label]="'coin.column.' + c.value | transloco" [direction]="sortDirection(c.value)" (toggle)="sortBy(c.value)"></th>
-                }
-                <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">{{ 'coin.column.MintMark' | transloco }}</th>
-                <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">{{ 'coin.column.Commemorative' | transloco }}</th>
-                @if (mode() === 'owner') {
-                  <th scope="col" class="px-3 py-2"><span class="sr-only">{{ 'coin.field.actions' | transloco }}</span></th>
-                } @else if (mode() === 'explore') {
-                  <th scope="col" class="px-3 py-2 font-medium">{{ 'coin.field.collector' | transloco }}</th>
-                }
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-shade-100">
-              @for (coin of r.items; track coin.id) {
-                <tr class="hover:bg-brand-50/50">
-                  <td class="py-2 pl-4">
-                    @if (coin.photos.length) {
-                      <button type="button" class="block rounded-full focus-visible:ring-2 focus-visible:ring-brand-500
-                              focus-visible:outline-none" [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
-                              (click)="viewerCoin.set(coin)">
-                        <app-coin-thumb class="size-10" [coin]="coin" [shareToken]="shareToken()" />
-                      </button>
-                    } @else {
-                      <app-coin-thumb class="size-10" [coin]="coin" />
-                    }
-                  </td>
-                  <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">{{ coin.title }}</td>
-                  <td class="truncate px-3 py-3">{{ denominationLabel(coin.denomination) }}</td>
-                  <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
-                    {{ countryName(coin.countryCode) }}
-                  </td>
-                  <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
-                  <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">{{ coin.mintMark ?? '–' }}</td>
-                  <td class="truncate px-3 py-3">{{ coin.isCommemorative ? ('common.yes' | transloco) : '–' }}</td>
+            <div class="card hidden overflow-x-auto p-0 lg:block">
+              <table class="w-full table-fixed text-left text-sm">
+                <colgroup>
+                  <col class="w-16" />
+                  <col />
+                  <col class="w-[118px]" />
+                  <col class="w-[116px]" />
+                  <col class="w-[81px]" />
+                  <col class="w-[91px]" />
+                  <col class="w-[94px]" />
                   @if (mode() === 'owner') {
-                    <td class="px-3 py-3 text-right">
-                      <a [routerLink]="['/coins', coin.id, 'edit']" class="link inline-flex align-middle"
-                         [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }" [title]="'common.edit' | transloco">
-                        <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                          <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
-                        </svg>
-                      </a>
-                    </td>
+                    <col class="w-12" />
                   } @else if (mode() === 'explore') {
-                    <td class="truncate px-3 py-3" [title]="'@' + coin.ownerUserName + ' · ' + coin.collectionName">
-                      <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]" class="link">&#64;{{ coin.ownerUserName }}</a>
-                    </td>
+                    <col class="w-[176px]" />
                   }
-                </tr>
-              }
-            </tbody>
-          </table>
+                </colgroup>
+                <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
+                  <tr>
+                    <th scope="col" class="py-2 pl-4">
+                      <span class="sr-only">{{ 'coin.field.photo' | transloco }}</span>
+                    </th>
+                    @for (c of sortColumns; track c.value) {
+                      <th
+                        appSortHeader
+                        class="px-3 py-2"
+                        [label]="'coin.column.' + c.value | transloco"
+                        [direction]="sortDirection(c.value)"
+                        (toggle)="sortBy(c.value)"
+                      ></th>
+                    }
+                    <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
+                      {{ 'coin.column.MintMark' | transloco }}
+                    </th>
+                    <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
+                      {{ 'coin.column.Commemorative' | transloco }}
+                    </th>
+                    @if (mode() === 'owner') {
+                      <th scope="col" class="px-3 py-2">
+                        <span class="sr-only">{{ 'coin.field.actions' | transloco }}</span>
+                      </th>
+                    } @else if (mode() === 'explore') {
+                      <th scope="col" class="px-3 py-2 font-medium">
+                        {{ 'coin.field.collector' | transloco }}
+                      </th>
+                    }
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-shade-100">
+                  @for (coin of r.items; track coin.id) {
+                    <tr class="hover:bg-brand-50/50">
+                      <td class="py-2 pl-4">
+                        @if (coin.photos.length) {
+                          <button
+                            type="button"
+                            class="block rounded-full focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                            [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                            (click)="viewerCoin.set(coin)"
+                          >
+                            <app-coin-thumb
+                              class="size-10"
+                              [coin]="coin"
+                              [shareToken]="shareToken()"
+                            />
+                          </button>
+                        } @else {
+                          <app-coin-thumb class="size-10" [coin]="coin" />
+                        }
+                      </td>
+                      <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
+                        {{ coin.title }}
+                      </td>
+                      <td class="truncate px-3 py-3">{{ denominationLabel(coin.denomination) }}</td>
+                      <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
+                        {{ countryName(coin.countryCode) }}
+                      </td>
+                      <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
+                      <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">
+                        {{ coin.mintMark ?? '–' }}
+                      </td>
+                      <td class="truncate px-3 py-3">
+                        {{ coin.isCommemorative ? ('common.yes' | transloco) : '–' }}
+                      </td>
+                      @if (mode() === 'owner') {
+                        <td class="px-3 py-3 text-right">
+                          <a
+                            [routerLink]="['/coins', coin.id, 'edit']"
+                            class="link inline-flex align-middle"
+                            [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                            [title]="'common.edit' | transloco"
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              class="size-5"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+                            </svg>
+                          </a>
+                        </td>
+                      } @else if (mode() === 'explore') {
+                        <td
+                          class="truncate px-3 py-3"
+                          [title]="'@' + coin.ownerUserName + ' · ' + coin.collectionName"
+                        >
+                          <a
+                            [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                            class="link"
+                            >&#64;{{ coin.ownerUserName }}</a
+                          >
+                        </td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
         </div>
-       }
-      </div>
 
-      <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
-                      [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions()" [disabled]="loading()"
-                      placement="bottom" (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
+        <app-pagination
+          [page]="r.page"
+          [totalPages]="r.totalPages"
+          [totalCount]="r.totalCount"
+          [pageSize]="query().pageSize ?? 0"
+          [options]="pageSizeOptions()"
+          [disabled]="loading()"
+          placement="bottom"
+          (pageChange)="goToPage($event)"
+          (pageSizeChange)="setPageSize($event)"
+        />
+      }
+    } @else if (loading()) {
+      <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
     }
-  } @else if (loading()) {
-    <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
   }
- }
 
   @if (viewerCoin(); as coin) {
-    <app-photo-viewer [coinId]="coin.id" [photos]="coin.photos" [title]="coin.title" [shareToken]="shareToken()"
-                      (closed)="viewerCoin.set(null)" />
+    <app-photo-viewer
+      [coinId]="coin.id"
+      [photos]="coin.photos"
+      [title]="coin.title"
+      [shareToken]="shareToken()"
+      (closed)="viewerCoin.set(null)"
+    />
   }
 
   @if (editing() && collection(); as c) {
@@ -489,7 +785,11 @@
 
   @if (deleteTargets(); as all) {
     @if (collection(); as c) {
-      <app-collection-delete-dialog [collection]="c" [collections]="all" (closed)="onDeleted($event)" />
+      <app-collection-delete-dialog
+        [collection]="c"
+        [collections]="all"
+        (closed)="onDeleted($event)"
+      />
     }
   }
 </section>

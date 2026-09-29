@@ -1,30 +1,33 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Client</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script>
-    // Dark theme before the first paint, so pages do not flash white. Same storage key and rules
-    // as ThemeService, which takes over (and applies the account's theme) once Angular starts.
-    try {
-      var mode = localStorage.getItem('coinportal.theme');
-      if (mode === 'Dark' || (mode !== 'Light' && matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
-    } catch (e) {}
-    // Accent color too (AccentService); Amber, the default, has no attribute
-    try {
-      var accent = localStorage.getItem('coinportal.accent');
-      if (/^(Teal|Blue|Indigo|Violet|Rose|Lime)$/.test(accent)) {
-        document.documentElement.setAttribute('data-accent', accent);
-      }
-    } catch (e) {}
-  </script>
-</head>
-<body>
-  <app-root></app-root>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Client</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <script>
+      // Dark theme before the first paint, so pages do not flash white. Same storage key and rules
+      // as ThemeService, which takes over (and applies the account's theme) once Angular starts.
+      try {
+        var mode = localStorage.getItem('coinportal.theme');
+        if (
+          mode === 'Dark' ||
+          (mode !== 'Light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+      // Accent color too (AccentService); Amber, the default, has no attribute
+      try {
+        var accent = localStorage.getItem('coinportal.accent');
+        if (/^(Teal|Blue|Indigo|Violet|Rose|Lime)$/.test(accent)) {
+          document.documentElement.setAttribute('data-accent', accent);
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
 </html>
