@@ -1,13 +1,14 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-29 (klasörler taşındı: API `src/api`, client `src/web`, Angular proje adı
-`web`; yol haritasının 2. adımı tamam. Aynı gün GitHub yayını öncesi proje yönü değerlendirmesi yapıldı,
-ayrıntılar [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra
+Son güncelleme: 2026-09-29 (yol haritasının 2. ve 3. adımları tamam: klasörler `src/api` ve `src/web`,
+client'ın tamamı Prettier'dan geçti, kök `.editorconfig`. Aynı gün GitHub yayını öncesi proje yönü
+değerlendirmesi yapıldı, ayrıntılar [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md),
+sıra "Yol haritası" bölümünde. Görünümde sırada logo), sıra
 "Yol haritası" bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada logo)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/folder-layout` 2026-09-29'da merge edildi).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/format` 2026-09-29'da merge edildi).
   Push yapılmadı (repo sadece lokal). Yeni yollar: API `src/api`, client `src/web` (komutlar CLAUDE.md'de).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -359,6 +360,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `.git/info/exclude` ile dışlandı (ham analiz çıktıları).
     - Doğrulama: `dotnet build`, `dotnet ef migrations list`, `ng build`, `ng test` (47 test); eski yol
       referansı kalmadı (dondurulmuş değerlendirme dokümanı hariç).
+16. **Bir kerelik biçimleme** (`chore/format`, 2026-09-29; yol haritası 3. adım, kullanıcı kararı):
+    - Client'ın tamamı Prettier'dan geçti: 6 ts dosyası ve daha önce hiç biçimlenmemiş 7 html dosyası
+      (`collection.html`, `header.html`, `coin-form.html`, `login.html`, `register.html`, `app.html`,
+      `index.html`). CLAUDE.md'deki "harici şablonlarda Prettier çalıştırma" uyarısı kalktı.
+    - Kök `.editorconfig` (client'taki kaldırıldı): LF, dosya sonu satır sonu, C# 4 boşluk, EF migration'ları
+      ve `launchSettings.json` BOM'lu kalır. Dosya sonu satır sonu eksik 20 dosya (17 C#, 3 JSON) düzeltildi.
+    - Doğrulama: production derlemesi önce/sonra karşılaştırıldı; tek fark, `{{ … }}` kendi satırına
+      alınan yerlerde metnin başına/sonuna eklenen boşluk (blok öğeler ve `<option>`, görünmez).
+      Headless Edge ile eski ve yeni derleme yan yana: 9 girişsiz sayfa × 375/768/1280 px × 4 dil +
+      koyu tema, 135 karşılaştırmanın hepsi piksel piksel aynı. Girişli sayfalar (coin formu, kullanıcı
+      menüsü) görsel olarak karşılaştırılmadı, derlenmiş koddaki farkları incelendi. `dotnet build`,
+      `ng test` (47 test), `prettier --check` temiz.
 
 ## Yol haritası
 
@@ -374,7 +387,7 @@ mağaza için TWA.
 
 - [ ] 1. Yayın izni (Açık konular 2), diğer adımlarla paralel; 7'yi bloklar.
 - [x] 2. `chore/folder-layout`: klasör taşıması (API ve `ng serve` durdurulur, terminaller repo köküne).
-- [ ] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
+- [x] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
 - [ ] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
       nötrleştirilmesi, `index.html` başlığı ve meta.
 - [ ] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
@@ -395,8 +408,8 @@ mağaza için TWA.
 
 ## Sıradaki adım
 
-Yol haritasının 3. adımı (`chore/format`) öneriliyor; html şablonlarının Prettier'dan geçirilmesi
-kullanıcı kararı. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha
+Yol haritasının 4. adımı (`chore/publish-prep`) öneriliyor; LICENSE türü ve CLAUDE.md / PROJECT_STATUS'un
+public kalıp kalmayacağı kullanıcı kararı. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha
 ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık

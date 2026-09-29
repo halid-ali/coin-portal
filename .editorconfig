@@ -3,10 +3,21 @@ root = true
 
 [*]
 charset = utf-8
+end_of_line = lf
 indent_style = space
 indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
+
+[*.cs]
+indent_size = 4
+
+# EF Core and the project templates write these with a byte order mark; keep it
+[src/api/Data/Migrations/*.cs]
+charset = utf-8-bom
+
+[src/api/Properties/launchSettings.json]
+charset = utf-8-bom
 
 [*.ts]
 quote_type = single

@@ -257,10 +257,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   durumda ne yapılacağı "Çalışan uygulamalar" bölümünde. `dotnet ef migrations add` / `database update`
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
   (`--configuration` ile ayrı konfigürasyon işe yaramaz: Debug dışı her derleme ImageSharp lisansı ister).
-- Eski dosyaların çoğunda dosya sonu satır sonu yok (kopyala-yapıştır döneminden); Prettier'ı sadece
-  değiştirilen dosyalarda çalıştır, ilgisiz dosyaları diff'e katma. Harici `.html` şablonları
-  (`collection.html`, `header.html` vb.) hiç Prettier'dan geçmemiş; onlarda çalıştırma, tüm dosyayı
-  yeniden biçimler.
+- Biçim kuralları kökteki `.editorconfig`'te (LF, dosya sonu satır sonu, C# 4 boşluk, EF migration'ları
+  BOM'lu). Client'ın tamamı, harici `.html` şablonları dahil, Prettier'dan geçmiş durumda (2026-09-29);
+  `prettier --check` temiz kalmalı. Prettier bir `{{ … }}` ifadesini kendi satırına alınca metnin
+  başına/sonuna boşluk ekler; blok ve flex öğelerde görünmez, satır içi öğelerde kontrol et.
 - Python kurulu değil; betikler için Node veya Bash kullan. Bash `node -e "…"` içinde template literal
   (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap. Toplu metin değişikliği
   gerekirse betiği Write ile scratchpad'e yazıp `node` ile çalıştır (heredoc'lar da bozulabiliyor).
