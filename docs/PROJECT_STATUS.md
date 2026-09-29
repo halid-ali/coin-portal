@@ -1,4 +1,4 @@
-# Coin Web Portal - Proje Durumu ve Kararlar
+# Coin Portal - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-09-29 (yol haritasının 2.–5. adımları tamam: klasörler `src/api` ve `src/web`,
 client'ın tamamı Prettier'dan geçti, kök `.editorconfig`, MIT LICENSE, İngilizce README, sürüm araçları
@@ -8,16 +8,16 @@ bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada log
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-tooling` 2026-09-29'da merge
-  edildi, `v0.1.0` etiketi atıldı). Push yapılmadı (repo sadece lokal). Yollar: API `src/api`, client
-  `src/web` (komutlar CLAUDE.md'de).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/ci` 2026-09-29'da merge edildi, son
+  etiket `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler
+  push edilir, CI her push'ta koşar). Yollar: API `src/api`, client `src/web` (komutlar CLAUDE.md'de).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
-- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım"). Bekleyen dış konular:
-  yayın izni (Açık konular 2) ve Six Labors'tan ImageSharp lisans cevabı (Açık konular 1).
+- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım"). Bekleyen dış konu:
+  Six Labors'tan ImageSharp lisans cevabı (Açık konular 1).
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -391,6 +391,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       kararı. Merge'ler artık `git merge --no-ff --no-edit` (`Merge branch '…'`).
     - Not: yeni eklenen bir derleme paketi (MinVer) ilk derlemede etkisiz kalabiliyor; sürüm ikinci
       derlemede doğru geldi.
+19. **CI** (`chore/ci`, 2026-09-29; yol haritası 6. adım, kullanıcı kararı: push'tan önce):
+    - `.github/workflows/ci.yml`: `push main`, `pull_request`, elle tetikleme; ubuntu. API işi:
+      `fetch-depth: 0` (MinVer), `global.json`'daki SDK, `dotnet tool restore`, Debug build,
+      `dotnet ef migrations has-pending-model-changes` (sahte bağlantı dizesiyle, DB'ye bağlanmaz).
+      Web işi: Node 22, npm önbelleği, `npm ci`, Prettier kontrolü, `ng build`, `ng test`.
+    - `.github/dependabot.yml`: nuget (kök), npm (`src/web`), github-actions; haftalık, minor/patch ve
+      Angular paketleri gruplu.
+    - Lokal ön kontroller: 219 göreli import/şablon yolunda büyük/küçük harf uyuşmazlığı yok (Linux),
+      aynı adlı farklı harfli dosya yok, EF kontrolü Production ortamında sahte bağlantıyla geçiyor.
+      Workflow'un kendisi ilk push'ta GitHub'da doğrulanacak.
+    - Yayın izni kapandı (Açık konular 2): kişisel GitHub, public; CLAUDE.md "Push yok" kuralı "push
+      kullanıcı onayıyla, sadece main ve etiketler" oldu.
 
 ## Yol haritası
 
@@ -404,14 +416,14 @@ container şimdi yok (tetikleyici bekler); tek kimlik doğrulama şeması cookie
 mobil de buna göre); sosyal katman kendi domain modeliyle, önce temel, yorum en son; mobil PWA önce,
 mağaza için TWA.
 
-- [ ] 1. Yayın izni (Açık konular 2), diğer adımlarla paralel; 7'yi bloklar.
+- [x] 1. Yayın izni (Açık konular 2): kişisel GitHub, public (2026-09-29).
 - [x] 2. `chore/folder-layout`: klasör taşıması (API ve `ng serve` durdurulur, terminaller repo köküne).
 - [x] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
 - [x] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
       nötrleştirilmesi, `index.html` başlığı ve meta.
 - [x] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
       CHANGELOG, `v0.1.0`.
-- [ ] 6. `chore/ci`: pasif GitHub Actions + Dependabot.
+- [x] 6. `chore/ci`: GitHub Actions + Dependabot.
 - [ ] 7. GitHub publish; Six Labors başvurusu repo adresiyle güncellenir.
 - [ ] 8. `tests/api` (xUnit) ve `tests/e2e` (Playwright).
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma,
@@ -427,7 +439,7 @@ mağaza için TWA.
 
 ## Sıradaki adım
 
-Yol haritasının 6. adımı (`chore/ci`: pasif GitHub Actions + Dependabot) öneriliyor. Diğer ürün adayları aşağıda (2026-09-28'de watermark
+Yol haritasının 7. adımı (GitHub publish) sürüyor. Diğer ürün adayları aşağıda (2026-09-28'de watermark
 "biraz daha ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
@@ -585,10 +597,11 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
      ImageSharp 3.1.12 (anahtarsız) önerilmiyor: Ekim 2025'ten beri güncelleme almıyor.
    - Debug derleme (lokal geliştirme) etkilenmiyor. **İlk publish'ten önce çözülmeli**; kütüphane
      değişikliği gerekirse main'den ayrı bir branch'te yapılır (ör. `chore/skiasharp`).
-2. **Yayın izni:** GitHub'a push ve repo'nun public/private olması netleşene kadar repo **sadece lokal**,
-   push yok.
+2. ~~**Yayın izni**~~ (kapandı 2026-09-29): hobi projesi, kullanıcının kişisel GitHub hesabında public
+   repo. Push yine kullanıcı onayıyla.
 3. **Hosting seçilmedi.** Seçerken aşağıdaki "Hosting seçimi kontrol listesi" kullanılacak.
-4. GitHub'a yayınlarken: **boş** repo, sonra `git remote add origin <url>` ve `git push -u origin main`.
+4. GitHub: https://github.com/halid-ali/coin-portal (public, 2026-09-29'da boş oluşturuldu; remote `origin`).
+   Push'ta etiketler ayrıca gönderilir (`git push origin vX.Y.Z`).
 5. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
    parolalı connection string repoya girmeyecek.
 6. **Yayında SPA fallback:** `MapFallbackToFile("index.html")`.

@@ -1,5 +1,7 @@
 # Coin Portal
 
+[![CI](https://github.com/halid-ali/coin-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/halid-ali/coin-portal/actions/workflows/ci.yml)
+
 A web application for managing a personal euro coin collection. Users register, organise their coins
 into collections, add photos of both sides, and share collections publicly or through a private link.
 
