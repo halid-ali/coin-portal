@@ -1,12 +1,10 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-29 (genel görsel düzeltmeler: kaydırma çubuğu kayması ve header taşması
-giderildi, kullanıcı adı sınırı 20 karaktere indi, fotoğrafsız coin ve kapaksız koleksiyon için yeni
-görseller, son coin fotoğrafı artık kapak değil, görüntüleyicide fare tekerleğiyle yüz değiştirme,
-telefonda katlanan filtreler, sadeleşen sıralama, mobil menüde ayırıcı, koleksiyon aksiyonları telefonda
-ikon, telefonda tek satır sayfalama, coin tablosunda sabit sütun genişlikleri ve Adet'siz tablo; hepsi
-main'de, genel görsel düzeltmeler sohbeti bitti. Görünümde sırada logo. ImageSharp lisans kararı ilk
-publish'ten önce)
+Son güncelleme: 2026-09-29 (GitHub yayını öncesi proje yönü değerlendirmesi yapıldı: klasör yapısı,
+container, sosyal özellikler, sürümleme/CI/deploy, mobil. Ayrıntılar
+[reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
+bölümünde; kararların çoğu kullanıcıda. Aynı gün genel görsel düzeltmeler sohbeti de bitti, görünümde
+sırada logo. ImageSharp lisans kararı artık GitHub yayınından sonra, bkz. Yol haritası)
 
 ## Yeni sohbete başlarken
 
@@ -17,8 +15,8 @@ publish'ten önce)
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
-- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Sıradaki adım"). Bekleyen dış konu: Six Labors'tan
-  ImageSharp lisans cevabı (Açık konular 1).
+- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım"). Bekleyen dış konular:
+  yayın izni (Açık konular 2) ve Six Labors'tan ImageSharp lisans cevabı (Açık konular 1).
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -353,9 +351,43 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       ~380 px (sahip). Yeni dil eklenince yeniden ölçülecek (CLAUDE.md "Yeni dil eklerken").
     - **Genel görsel düzeltmeler sohbeti 2026-09-29'da bitti.** Sıradaki görünüm işi: logo çalışması.
 
+## Yol haritası
+
+2026-09-29'daki proje yönü değerlendirmesinden çıkan sıra. Gerekçeler, elenen seçenekler, tuzaklar ve
+doğrulanan dış bilgiler [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md)
+içinde (dondurulmuş doküman; burası güncel tutulur). Adımlar kullanıcı onayıyla başlar; durum değiştikçe
+başındaki işaret güncellenir.
+
+Özet kararlar (öneri, kullanıcı onayı bekliyor): klasörler `src/api` + `src/web` + `tests/` + `docs/`;
+container şimdi yok (tetikleyici bekler); tek kimlik doğrulama şeması cookie + antiforgery kalır (JWT yok,
+mobil de buna göre); sosyal katman kendi domain modeliyle, önce temel, yorum en son; mobil PWA önce,
+mağaza için TWA.
+
+- [ ] 1. Yayın izni (Açık konular 2), diğer adımlarla paralel; 7'yi bloklar.
+- [ ] 2. `chore/folder-layout`: klasör taşıması (API ve `ng serve` durdurulur, terminaller repo köküne).
+- [ ] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
+- [ ] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
+      nötrleştirilmesi, `index.html` başlığı ve meta.
+- [ ] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
+      CHANGELOG, `v0.1.0`.
+- [ ] 6. `chore/ci`: pasif GitHub Actions + Dependabot.
+- [ ] 7. GitHub publish; Six Labors başvurusu repo adresiyle güncellenir.
+- [ ] 8. `tests/api` (xUnit) ve `tests/e2e` (Playwright).
+- [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma,
+      DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB düzeltmesi, beni hatırla, PWA manifest.
+- [ ] 10. ImageSharp kararı → CI Release + `release.yml` (cevap gelmezse SkiaSharp).
+- [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
+- [ ] 12. Admin rolü + `api/admin/*` (arayüzsüz).
+- [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
+- [ ] 14. Bildirim + Web Push.
+- [ ] 15. Yorum + şikayet + moderasyon paneli + e-posta doğrulama.
+- [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
+- [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
+
 ## Sıradaki adım
 
-Kullanıcıyla seçilecek (2026-09-28'de watermark "biraz daha ertelensin" dendi):
+Yol haritasının 2. adımı öneriliyor. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha
+ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
    fotoğraflara mı).
