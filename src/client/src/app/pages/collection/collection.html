@@ -461,7 +461,7 @@
 
       <app-pagination [page]="r.page" [totalPages]="r.totalPages" [totalCount]="r.totalCount"
                       [pageSize]="query().pageSize ?? 0" [options]="pageSizeOptions()" [disabled]="loading()"
-                      (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
+                      placement="bottom" (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
     }
   } @else if (loading()) {
     <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
