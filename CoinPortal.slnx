@@ -1,5 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/CoinPortal.Api/CoinPortal.Api.csproj" />
+    <Project Path="src/api/CoinPortal.Api.csproj" />
   </Folder>
 </Solution>

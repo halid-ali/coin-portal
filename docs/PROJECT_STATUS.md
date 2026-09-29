@@ -1,15 +1,14 @@
 # Coin Web Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-29 (GitHub yayını öncesi proje yönü değerlendirmesi yapıldı: klasör yapısı,
-container, sosyal özellikler, sürümleme/CI/deploy, mobil. Ayrıntılar
-[reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
-bölümünde; kararların çoğu kullanıcıda. Aynı gün genel görsel düzeltmeler sohbeti de bitti, görünümde
-sırada logo. ImageSharp lisans kararı artık GitHub yayınından sonra, bkz. Yol haritası)
+Son güncelleme: 2026-09-29 (klasörler taşındı: API `src/api`, client `src/web`, Angular proje adı
+`web`; yol haritasının 2. adımı tamam. Aynı gün GitHub yayını öncesi proje yönü değerlendirmesi yapıldı,
+ayrıntılar [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra
+"Yol haritası" bölümünde. Genel görsel düzeltmeler sohbeti bitti, görünümde sırada logo)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/table-columns` 2026-09-29'da merge edildi).
-  Push yapılmadı (repo sadece lokal).
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/folder-layout` 2026-09-29'da merge edildi).
+  Push yapılmadı (repo sadece lokal). Yeni yollar: API `src/api`, client `src/web` (komutlar CLAUDE.md'de).
 - Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
@@ -60,12 +59,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
 - Node.js 22.19.0, npm 11, Git 2.55, .NET SDK 10 (yanında 9.0.306), Angular CLI 21.2.24, PowerShell 7.6,
   VS Code (C# Dev Kit, Angular Language Service, Tailwind CSS IntelliSense, ESLint, Prettier,
   Claude Code), SQL Server LocalDB 16, `sqlcmd`.
-- `dotnet-ef` 10.0.12 local tool (`dotnet-tools.json`). `global.json` SDK'yı sabitliyor, `nuget.config`
+- `dotnet-ef` 10.0.12 local tool (`.config/dotnet-tools.json`). `global.json` SDK'yı sabitliyor, `nuget.config`
   sadece nuget.org.
 - Terminal çoğunlukla Git Bash (MINGW64).
 - Repo: `C:\repos\private\coin-web-portal`. Şirket bilgisayarı; Git kimliği sadece repo seviyesinde
   (`72255478+halid-ali@users.noreply.github.com`).
-- Şirketin global `.npmrc`'sinde Azure DevOps feed'i var. Eski dokümanda `src/client/.npmrc` ile public
+- Şirketin global `.npmrc`'sinde Azure DevOps feed'i var. Eski dokümanda `src/web/.npmrc` ile public
   npm'e sabitlendiği yazıyordu ama bu dosya repoda yok (2026-09-27 kontrolü). Paket kurulumunda sorun
   çıkarsa yeniden eklenmeli.
 - TS5011 uyarısı çözüldü: `tsconfig.app.json`/`tsconfig.spec.json` içinde `"rootDir": "./src"`,
@@ -350,6 +349,16 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       daha genişleri kesilir, ipucunda "@kullanıcı · koleksiyon"). Başlık sütunu 1280 px'te ~250 →
       ~380 px (sahip). Yeni dil eklenince yeniden ölçülecek (CLAUDE.md "Yeni dil eklerken").
     - **Genel görsel düzeltmeler sohbeti 2026-09-29'da bitti.** Sıradaki görünüm işi: logo çalışması.
+15. **Klasör düzeni** (`chore/folder-layout`, 2026-09-29; yol haritası 2. adım, kullanıcı onayı):
+    - `src/CoinPortal.Api` → `src/api`, `src/client` → `src/web` (saf `git mv` commit'i, 184 rename;
+      proje, assembly ve namespace adları aynen). Angular proje adı `client` → `web` (çıktı
+      `dist/web/browser`), `package.json` adı `coinportal-web`.
+    - `dotnet-tools.json` → `.config/dotnet-tools.json`. `src/client/.vscode/` şablonu silindi (repo kökü
+      açıkken kullanılmıyordu, `launch.json` Karma'ya işaret ediyordu); öneri kök `.vscode/extensions.json`'da.
+    - `.gitignore`: `src/api/App_Data/`, yeni `src/api/wwwroot/` ve `sixlabors.lic`. Lokal `.notes/` klasörü
+      `.git/info/exclude` ile dışlandı (ham analiz çıktıları).
+    - Doğrulama: `dotnet build`, `dotnet ef migrations list`, `ng build`, `ng test` (47 test); eski yol
+      referansı kalmadı (dondurulmuş değerlendirme dokümanı hariç).
 
 ## Yol haritası
 
@@ -364,7 +373,7 @@ mobil de buna göre); sosyal katman kendi domain modeliyle, önce temel, yorum e
 mağaza için TWA.
 
 - [ ] 1. Yayın izni (Açık konular 2), diğer adımlarla paralel; 7'yi bloklar.
-- [ ] 2. `chore/folder-layout`: klasör taşıması (API ve `ng serve` durdurulur, terminaller repo köküne).
+- [x] 2. `chore/folder-layout`: klasör taşıması (API ve `ng serve` durdurulur, terminaller repo köküne).
 - [ ] 3. `chore/format`: bir kerelik Prettier / dosya sonu satır sonu / kök `.editorconfig`.
 - [ ] 4. `chore/publish-prep`: LICENSE, İngilizce README, dokümanlarda ortama özel notların
       nötrleştirilmesi, `index.html` başlığı ve meta.
@@ -386,7 +395,8 @@ mağaza için TWA.
 
 ## Sıradaki adım
 
-Yol haritasının 2. adımı öneriliyor. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha
+Yol haritasının 3. adımı (`chore/format`) öneriliyor; html şablonlarının Prettier'dan geçirilmesi
+kullanıcı kararı. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha
 ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık

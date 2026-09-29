@@ -1,4 +1,4 @@
 {
   "files.eol": "\n",
-  "js/ts.tsdk.path": "src/client/node_modules/typescript/lib",
+  "js/ts.tsdk.path": "src/web/node_modules/typescript/lib",
 }

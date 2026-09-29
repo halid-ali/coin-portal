@@ -2,7 +2,7 @@ import { Language } from '../i18n/languages';
 import { AccentColor } from '../theme/accent.service';
 import { ThemeMode } from '../theme/theme.service';
 
-// Mirrors CoinPortal.Api/Contracts/Auth/UserResponse
+// Mirrors src/api/Contracts/Auth/UserResponse
 export interface UserResponse {
   id: string;
   userName: string;
@@ -18,7 +18,7 @@ export interface UserResponse {
   accent: AccentColor | null;
 }
 
-// Mirrors CoinPortal.Api/Contracts/Auth/RegisterRequest
+// Mirrors src/api/Contracts/Auth/RegisterRequest
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
@@ -30,7 +30,7 @@ export interface RegisterRequest {
   language: Language;
 }
 
-// Mirrors CoinPortal.Api/Contracts/Auth/LoginRequest
+// Mirrors src/api/Contracts/Auth/LoginRequest
 export interface LoginRequest {
   userNameOrEmail: string;
   password: string;

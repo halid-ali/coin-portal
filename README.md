@@ -18,21 +18,21 @@ Geliştirme kuralları: [CLAUDE.md](CLAUDE.md)
 ```bash
 # First time on a fresh clone
 dotnet tool restore
-dotnet ef database update --project src/CoinPortal.Api
-(cd src/client && npm install)
+dotnet ef database update --project src/api
+(cd src/web && npm install)
 
 # Optional: test data (5 users, 567 coins, password Coinportal1)
-cd src/CoinPortal.Api && dotnet run --launch-profile http -- --seed-dev-data
+cd src/api && dotnet run --launch-profile http -- --seed-dev-data
 
 # Terminal 1: API on http://localhost:5080 (Swagger: /swagger)
-cd src/CoinPortal.Api && dotnet run --launch-profile http
+cd src/api && dotnet run --launch-profile http
 
 # Terminal 2: client on http://localhost:4200 (/api is proxied to the API)
-cd src/client && ng serve
+cd src/web && ng serve
 ```
 
 ## Testler
 
 ```bash
-cd src/client && ng test --watch=false
+cd src/web && ng test --watch=false
 ```

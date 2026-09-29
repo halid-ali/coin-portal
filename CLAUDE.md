@@ -11,7 +11,7 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
 
 - Kullanıcıyla iletişim **Türkçe**. Koddaki yorumlar, commit mesajları, branch adları **İngilizce**.
 - Arayüz dört dilde: İngilizce (varsayılan), Türkçe, Almanca, Bulgarca. Metinler
-  `src/client/src/i18n/<dil>.json` içinde; kaynak dil Türkçe. Yeni bir metin dört dosyaya birden eklenir
+  `src/web/src/i18n/<dil>.json` içinde; kaynak dil Türkçe. Yeni bir metin dört dosyaya birden eklenir
   (test anahtar/parametre eşliğini kontrol eder). Çeviri kuralları "Client kuralları"nda.
 - Kullanıcıya verilen terminal komutları **Git Bash** sözdiziminde (`/c/repos/...`).
 - Büyük bir değişiklikten önce kısa bir plan sun, kullanıcı onaylayınca uygula. Karar kullanıcıya aitse
@@ -30,8 +30,8 @@ terminallerinde sürekli çalışır halde tutuyor.
 - Bunları durdurmak gerekirse (ör. `bin/` kilidi, migration, API'nin yeni kodla yeniden başlaması)
   **önce kullanıcıya sor**, sadece onay verirse durdur.
 - Kullanıcı "durdurma" derse işlemlere dokunma; derlemeyi başka klasöre al
-  (`dotnet build src/CoinPortal.Api -o <scratchpad>/apibuild`), gerekirse oradan başka portta çalıştır
-  (`--urls http://localhost:5090`, content root `src/CoinPortal.Api`). İş bitince bu test işlemlerini kapat.
+  (`dotnet build src/api -o <scratchpad>/apibuild`), gerekirse oradan başka portta çalıştır
+  (`--urls http://localhost:5090`, content root `src/api`). İş bitince bu test işlemlerini kapat.
 - **Geliştirme bitince API ve client en güncel kodla çalışır durumda olmalı.** `ng serve` değişiklikleri
   kendisi alır; API almaz. Backend değiştiyse ve API durdurulduysa yeniden başlat (ya da kullanıcıdan
   kendi terminalinde başlatmasını iste) ve `GET /api/health` ile doğrula.
@@ -53,18 +53,18 @@ Repo kökünden (`/c/repos/private/coin-web-portal`):
 ```bash
 dotnet tool restore                                   # dotnet-ef local tool (fresh clone)
 dotnet build                                          # backend build
-dotnet ef migrations add <Name> --project src/CoinPortal.Api --output-dir Data/Migrations
-dotnet ef database update --project src/CoinPortal.Api
+dotnet ef migrations add <Name> --project src/api --output-dir Data/Migrations
+dotnet ef database update --project src/api
 
 # API (http://localhost:5080, Swagger: /swagger), content root must be the project folder
-cd src/CoinPortal.Api && dotnet run --launch-profile http
-cd src/CoinPortal.Api && dotnet run --launch-profile http -- --seed-dev-data   # dev data, then exits
+cd src/api && dotnet run --launch-profile http
+cd src/api && dotnet run --launch-profile http -- --seed-dev-data   # dev data, then exits
 
 # Client (http://localhost:4200, /api proxied to 5080)
-cd src/client && npm install && ng serve
-cd src/client && ng build
-cd src/client && ng test --watch=false               # Vitest + jsdom
-cd src/client && npx prettier --check "src/**/*.{ts,html,css}"
+cd src/web && npm install && ng serve
+cd src/web && ng build
+cd src/web && ng test --watch=false               # Vitest + jsdom
+cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
 ```
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
@@ -77,14 +77,20 @@ API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-da
 ## Mimari
 
 ```
-src/CoinPortal.Api/     Controllers/, Contracts/{Auth,Coins,Collections,Countries,Common,Settings}/, Data/
-                        (entities, AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage +
-                        image processing), Querying/, Validation/, Localization/, App_Data/photos
-                        (gitignored)
-src/client/src/app/     core/{auth,coins,collections,public,http,i18n,settings}/, shared/, layout/header/,
+src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/, Contracts/{Auth,Coins,
+                        Collections,Countries,Common,Settings}/, Data/ (entities, AppDbContext,
+                        Migrations/), DevData/ (dev only), Photos/ (storage + image processing),
+                        Querying/, Validation/, Localization/, App_Data/photos (gitignored)
+src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
+src/web/src/app/        core/{auth,coins,collections,public,http,i18n,settings}/, shared/, layout/header/,
                         pages/
-src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
+src/web/src/i18n/       en.json, tr.json, de.json, bg.json (çeviriler)
+tests/                  (planlı) api/ xUnit, e2e/ Playwright. Angular unit testleri kodun yanında kalır.
+docs/                   PROJECT_STATUS.md (yaşayan durum), reviews/ (tarihli değerlendirmeler)
+.config/                dotnet-tools.json (dotnet-ef local tool)
 ```
+
+Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), commit'lenmez.
 
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
@@ -270,7 +276,11 @@ src/client/src/i18n/    en.json, tr.json, de.json, bg.json (çeviriler)
   `img.decode()` bekler durur; adresi `fetch` ile kontrol et.
 - Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
   Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
-- Seed komutu `src/CoinPortal.Api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
+- Seed komutu `src/api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
+- Proje klasörünü yeniden adlandırmak (`git mv`) Windows'ta "Permission denied" verebilir: API ve
+  `ng serve`'den başka, çalışma dizini o klasörde olan PowerShell terminalleri ve VS Code'un C# dil
+  sunucusu (`Microsoft.CodeAnalysis.LanguageServer.exe`) klasörü kilitler. Git Bash terminalleri
+  kilitlemiyor. Taşımadan sonra `bin/`, `obj/`, `.angular/`, `dist/` silinir (mutlak yol önbellekleri).
 - Git Bash komut satırı argümanlarındaki Türkçe karakterler Windows ANSI kod sayfasına çevrilir
   (`curl -d '{"name":"LİSTE"}'` API'ye "LISTE" olarak gider). Türkçe içerikli API testlerini Node
   betiğiyle (`fetch`) ya da `--data-binary @dosya.json` ile yap.
