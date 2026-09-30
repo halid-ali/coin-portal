@@ -16,7 +16,12 @@ export interface UserResponse {
   theme: ThemeMode | null;
   /** Saved accent color; null until the user chooses one in the settings. */
   accent: AccentColor | null;
+  /** Identity roles, e.g. ['Admin']; empty for most users. */
+  roles: string[];
 }
+
+/** Role names as the API sends them (src/api/Authorization/AppRoles). */
+export const ADMIN_ROLE = 'Admin';
 
 // Mirrors src/api/Contracts/Auth/RegisterRequest
 export interface RegisterRequest {
