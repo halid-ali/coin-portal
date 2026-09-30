@@ -12,6 +12,14 @@ public sealed record TestUser(ApiClient Client, UserResponse User)
 
     public string UserName => User.UserName;
 
+    /// <summary>Signs out and in again: the new cookie carries the current roles.</summary>
+    public async Task<TestUser> SignInAgainAsync()
+    {
+        await Client.LogoutAsync();
+        using var response = await Client.LoginAsync(UserName, Password);
+        return this with { User = await response.ReadJsonAsync<UserResponse>() };
+    }
+
     public static RegisterRequest NewRegisterRequest(string? language = "en")
     {
         // 13 characters, within the 3-20 limit

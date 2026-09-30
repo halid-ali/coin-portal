@@ -1,5 +1,7 @@
+using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -57,8 +59,13 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
 
     public async ValueTask InitializeAsync()
     {
-        await using var scope = Services.CreateAsyncScope();
-        await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
+        // Before the host starts: startup code (the admin role sync) already needs the schema
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseSqlServer(connectionString).Options;
+        await using (var db = new AppDbContext(options))
+        {
+            await db.Database.MigrateAsync();
+        }
+        _ = Services;
     }
 
     public override async ValueTask DisposeAsync()
@@ -94,4 +101,34 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         var user = await client.RegisterAsync(TestUser.NewRegisterRequest(language));
         return new TestUser(client, user);
     }
+
+    /// <summary>
+    /// Signs up a user and gives them the Admin role directly (not through the configuration),
+    /// then signs in again so the cookie carries the role. Tests that use it belong to the
+    /// <see cref="AdminCollection"/>, because <see cref="SyncAdminsAsync"/> revokes other admins.
+    /// </summary>
+    public async Task<TestUser> SignUpAdminAsync()
+    {
+        var admin = await SignUpAsync();
+        await using (var scope = Services.CreateAsyncScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await users.FindByIdAsync(admin.User.Id);
+            Assert.True((await users.AddToRoleAsync(user!, AppRoles.Admin)).Succeeded);
+        }
+        return await admin.SignInAgainAsync();
+    }
+
+    /// <summary>Runs the startup sync with this list instead of the configuration.</summary>
+    public async Task SyncAdminsAsync(params string[] userIds)
+    {
+        await using var scope = Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<AdminRoleSync>().SyncAsync(userIds);
+    }
+}
+
+/// <summary>Tests that change who is an admin run one after another.</summary>
+public static class AdminCollection
+{
+    public const string Name = "Admin";
 }
