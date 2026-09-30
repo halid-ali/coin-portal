@@ -5,7 +5,7 @@ import { Observable, firstValueFrom, forkJoin, from, map, switchMap, tap } from 
 import { LanguageService } from '../i18n/language.service';
 import { AccentService } from '../theme/accent.service';
 import { ThemeService } from '../theme/theme.service';
-import { LoginRequest, RegisterRequest, UserResponse } from './auth.models';
+import { ADMIN_ROLE, LoginRequest, RegisterRequest, UserResponse } from './auth.models';
 
 const API = '/api/auth';
 
@@ -21,6 +21,8 @@ export class AuthService {
   /** The signed-in user, or null for anonymous visitors. */
   readonly currentUser = this.user.asReadonly();
   readonly isAuthenticated = computed(() => this.user() !== null);
+  /** Shows the admin panel link; the API checks the role on every admin request. */
+  readonly isAdmin = computed(() => this.user()?.roles.includes(ADMIN_ROLE) ?? false);
 
   /**
    * Called once at startup (provideAppInitializer): restores the session from the

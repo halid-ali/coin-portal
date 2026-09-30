@@ -1,15 +1,13 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-30 (API testleri eklendi: `tests/api`, 70 test, CI'da SQL Server'a karşı;
-Açık konular 7 kapandı. Yol haritası yeniden sıralandı: yönetici paneli temeli arayüzüyle birlikte
-hosting'den önce, sıradaki adım o. Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son
-release `v0.1.0`; proje yönü değerlendirmesi
-[reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
-bölümünde)
+Son güncelleme: 2026-09-30 (Yönetici paneli kararları alındı ("Yönetici paneli: kararlar"), ilk branch
+`feat/admin-role` tamam: Admin rolü ayardan, `GET api/admin/stats`. Öncesinde API testleri eklendi
+(`tests/api`, CI'da SQL Server'a karşı). Proje GitHub'da public: https://github.com/halid-ali/coin-portal,
+son release `v0.1.0`; yol haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/api-tests` 2026-09-30'da merge
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/admin-role` 2026-09-30'da merge
   edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -20,6 +18,7 @@ bölümünde)
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
 - İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım").
+- Lokal admin: `src/api/appsettings.Development.json` → `Admin:UserIds` (API açılışta rolü verir).
 - Backend değişikliklerinden sonra `dotnet test` (API çalışırken `-p:BaseOutputPath=<scratchpad>/testbin/`).
 - ImageSharp lisansı: `src/api/sixlabors.lic` lokalde var (gitignore'da), CI'da GitHub secret
   `SIXLABORS_LICENSE_KEY`. Lisans 2027-12-26'da biter (Açık konular 1).
@@ -476,6 +475,29 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       push'ta doğrulanacak.
     - CLAUDE.md: komutlar, "API testleri" kuralı (yeni uç ya da erişim kuralı testleriyle gelir), API
       çalışırken `dotnet test` ve yarıda kalan koşu tuzakları. README: klasör düzeni ve test komutu.
+23. **Admin rolü** (`feat/admin-role`, 2026-09-30; yol haritası 12. adımın ilk branch'i, kararlar
+    "Yönetici paneli: kararlar"):
+    - API: `Authorization/` (`AppRoles`, `AuthPolicies`, `AdminOptions`, `AdminRoleSync`). Açılışta
+      (`Program.cs`, ilk istekten önce; `--seed-dev-data` yolunda değil) rol yoksa oluşturulur,
+      `Admin:UserIds`'teki kullanıcılara verilir, diğerlerinden alınır; bulunamayan Id uyarı logu.
+      Policy `Admin` (`RequireRole`). `SecurityStampValidatorOptions.ValidationInterval` 30 dk → 1 dk:
+      doğrulama cookie'deki rol claim'lerini veritabanından yeniden kurar, rol değişikliği oturum
+      kapatmadan en geç bir dakikada yansır (ileride kilit için security stamp de).
+    - `UserResponse.roles` (`login` ve `me`'de veritabanından, kayıtta boş); client `UserResponse.roles`,
+      `ADMIN_ROLE`, `AuthService.isAdmin` (panel linki için; arayüz `feat/admin-ui`'de).
+    - İlk admin ucu `GET api/admin/stats` (`Controllers/Admin/AdminStatsController`,
+      `Contracts/Admin/`): kullanıcı sayısı, son 30 günde kayıt, koleksiyonlar (toplam, Public,
+      Unlisted), coin, fotoğraf, depolanan bayt (fotoğraflar + kapaklar). Sadece sayılar, içerik yok.
+    - `appsettings.json`'da boş `Admin:UserIds`; lokal admin `appsettings.Development.json`'da
+      (`halid-ali`, kullanıcının seçimi).
+    - Canlı kontrol (5090'da ayrı örnek, dev veritabanı): açılışta "Admin role granted to halid-ali",
+      `AspNetUserRoles`'ta tek admin; seed kullanıcısıyla `me` → `roles: []`, `api/admin/stats` 403,
+      girişsiz 401. Admin'in 200 alması testlerde doğrulandı (kullanıcının parolası bilinmiyor).
+    - Testler (74): `me` rolleri, senkronun verme/alma ve bilinmeyen Id'yi atlaması, yeni cookie'de
+      rolün geçerli olması, admin ucunda girişsiz 401 / kullanıcı 403 / admin 200, istatistikler.
+      Test factory'si migration'ı artık host başlamadan uyguluyor (açılış kodu veritabanına eriştiği
+      için). Mutasyon kontrolü: policy yerine düz `[Authorize]` ve senkronda rol almamak testleri kırdı.
+    - Client: `ng build`, `ng test` (47), Prettier temiz.
 
 ## Yol haritası
 
@@ -500,11 +522,18 @@ mağaza için TWA.
 - [x] 7. GitHub publish (2026-09-29/30), release `v0.1.0`. Six Labors başvurusunun repo adresiyle
       güncellenmesi kullanıcıda.
 - [x] 8a. `chore/api-tests`: `tests/api` (xUnit v3), CI'da SQL Server'a karşı (2026-09-30).
-- [ ] 12. **Yönetici paneli temeli (arayüzüyle), hosting'den önce** (2026-09-30'da öne alındı, aşağıda):
-      `feat/admin-role` (Admin rolü, ilk admin `Admin:BootstrapUserNames` config'iyle, policy, security
-      stamp, `me` → `roles`, `AuditLog`) → `feat/admin-api` (`api/admin/stats`, `users` + kilitleme,
-      herkese açık koleksiyonlar + gizleme, `audit`) → `feat/admin-ui` (lazy `/admin`, Ayarlar gibi bölüm
-      menüsü: Genel bakış, Kullanıcılar, Koleksiyonlar, Denetim kaydı). Sonunda `v0.2.0`.
+- [ ] 12. **Yönetici paneli temeli (arayüzüyle), hosting'den önce** (2026-09-30'da öne alındı, aşağıda;
+      kararlar "Yönetici paneli: kararlar"). Sonunda `v0.2.0`.
+  - [x] `feat/admin-role`: rol, `Admin:UserIds` senkronu, policy, 1 dk doğrulama, `me` → `roles`,
+        `GET api/admin/stats` (Tamamlananlar 23).
+  - [ ] `feat/sign-in-times`: `LastSeenAtUtc`, `LastSignInAtUtc`, `PreviousSignInAtUtc` + migration;
+        Ayarlar > Profil'de "Önceki giriş" (dört dil).
+  - [ ] `feat/admin-api`: `AuditLog`; kullanıcılar (liste, detay, kilitle/aç; kendini ve son admini
+        kilitleyemez, kilitte security stamp); Public/Unlisted koleksiyonlar (liste, gizle + kilit, kilidi
+        kaldır; sahibin yayınlaması `moderation_locked`); denetim kaydı listesi.
+  - [ ] `feat/admin-ui`: avatar menüsünde "Yönetim" + ayırıcı (mobil menü de), lazy `/admin` (Genel
+        bakış, Kullanıcılar, Koleksiyonlar, Denetim kaydı), `i18n/admin/<dil>.json` dört dilde, sahip
+        tarafında "Yönetici tarafından gizlendi" ve kilitli görünürlük seçenekleri.
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma
       (admin'in kullanıcı silmesi de bu servisle), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
       düzeltmesi, beni hatırla, PWA manifest.
@@ -531,21 +560,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-**Yol haritası 12. adım: yönetici paneli temeli**, `feat/admin-role` ile başlar (kullanıcı 2026-09-30'da
-seçti). Başlamadan önce kullanıcıyla verilecek kararlar (Claude'un önerileri parantez içinde):
-
-- Panelin dili: dört dil mi, sadece EN/TR mi? (Dört dil: i18n testi anahtar eşliğini zaten zorunlu kılıyor.)
-- Admin gizli veriyi görür mü? (Hayır: kullanıcının sayılarını ve kotasını görür, içerik olarak sadece
-  Public/Unlisted olanları; görünürlük kuralı `CollectionAccess`'te tek yerde kalır.)
-- İlk sürümde "koleksiyonu gizle" (Private yap + denetim kaydı) olsun mu; sahip koleksiyonu tekrar
-  yayınlayabilsin mi, yoksa `ModeratedAtUtc` kilidi mi? (Gizle olsun; kilit kararı kullanıcıda.)
-- Son giriş zamanı (`LastSignInAtUtc`, migration) tutulsun mu?
-- Menüde yeri: navbar mı, avatar menüsünde Ayarlar'ın yanında mı? (Avatar menüsü.)
-
-Teknik notlar (değerlendirmeden): rol migration'da literal (`Sql()`, `NormalizedName` `ADMIN`); komut
-satırı anahtarı IIS'te çalışmaz, ilk admin config'le; rol ve kilit değişikliğinde
-`UpdateSecurityStampAsync` + kısa `ValidationInterval` (varsayılan 30 dk gecikme); admin kendini ve son
-admini kilitleyemez; admin uçlarında yetkisiz kullanıcıya 403.
+**Yol haritası 12. adım, sıradaki branch `feat/sign-in-times`** (kararlar "Yönetici paneli: kararlar",
+branch listesi "Yol haritası"nda). Sonra `feat/admin-api`, `feat/admin-ui`, ardından `v0.2.0`.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
 2026-09-28'de watermark "biraz daha ertelensin" dendi):
@@ -650,6 +666,44 @@ Kararlar (2026-09-28, kullanıcıyla):
 - **Kaydırma çubuğunun yeri hep ayrılır** (2026-09-28, kullanıcı onayı): `scrollbar-gutter: stable`.
   `overflow-y: scroll` (hep görünen boş çubuk) ve `both-edges` (iki kenarda boşluk) elendi. Kısa
   sayfalarda sağda zemin renginde ince bir şerit kalıyor; telefonda çubuk içeriğin üstünde, etkisi yok.
+
+## Yönetici paneli: kararlar
+
+Kararlar (2026-09-30, kullanıcıyla):
+
+- **Ne olduğu:** Sadece `Admin` rolüne açık, uygulama çapında bir **moderasyon ve işletim paneli**:
+  istatistikler, kullanıcılar (kilitleme), herkese açık ve linkle paylaşılan koleksiyonlar (gizleme),
+  denetim kaydı; sonra şikayetler ve yorumlar. Tüm verilerin yönetimi (kullanıcının coin'ini düzenlemek
+  gibi) değil: moderasyon bunu gerektirmiyor, olağanüstü veri düzeltmesi veritabanından yapılır. Her
+  yeni özellik panele sadece moderasyon ihtiyacı kadar girer. Her kullanıcının kendi paneli zaten var
+  (Koleksiyonlarım, Ayarlar).
+- **Giriş noktası:** avatar menüsünde en üstte "Yönetim", altında ayırıcı çizgi, sonra herkesin gördüğü
+  öğeler; mobil menüde hesap bölümünün en üstünde aynı düzen. Link sadece admin'e görünür; navbar'da
+  yok. Adresi gizlemek güvenlik sağlamaz (repo ve JS paketi açık), güvenlik API'deki rol kontrolünde.
+- **Rol:** sadece ayardan (`Admin:UserIds`), açılışta senkron; panelden rol verilmez (panelde ele
+  geçirilen bir oturum başkasını admin yapamaz, tek admin için rol ekranı gereksiz). Kullanıcı adı değil
+  Id: boşta kalan bir ad (hiç kaydolmamış ya da hesabı silinmiş) başkası tarafından kaydedilip admin
+  olabilirdi. Komut satırı anahtarı (IIS'te çalışmaz) ve elle `INSERT` elendi. Rol migration'la değil
+  açılışta oluşturulur (senkron zaten açılışta çalışıyor, ayrı migration gereksiz; Claude'un teknik
+  seçimi, plandan sapma).
+- **Gizli içerik:** admin görmez. Kullanıcının koleksiyon/coin sayılarını ve kota kullanımını görür,
+  içerik olarak sadece Public ve Unlisted koleksiyonları. Görünürlük kuralı `CollectionAccess`'te tek
+  yerde kalır.
+- **Koleksiyonu gizle, kilitli:** admin herkese açık ya da linkle paylaşılan bir koleksiyonu Private
+  yapar ve kilitler; kilit kalkana kadar sahibi yayınlayamaz (API kodlu hata, arayüzde "Yönetici
+  tarafından gizlendi"). Kilitsiz gizleme içeriği bir tıkla geri getirmeye izin verirdi.
+- **Giriş zamanları:** `LastSeenAtUtc` (son görülme; `me` isteğinde en fazla saatte bir; admin listesinde,
+  sıralanabilir), `LastSignInAtUtc` (son giriş; admin detayında), `PreviousSignInAtUtc` (önceki giriş;
+  kullanıcının Ayarlar > Profil'inde, bankalardaki gibi; ilk oturumda "Bu ilk oturumun"). Son giriş tek
+  başına yetmiyordu: 14 günlük kayan cookie yüzünden aktif kullanıcı da haftalarca giriş yapmayabilir,
+  profilde ise "son giriş" hep "şimdi" olur.
+- **Dil:** panel de dört dilde (kullanıcının kararı). Sadece EN/TR + İngilizce yedek dil, arayüz DE/BG
+  iken aynı ekranda iki dil gösteriyordu; hesaba kayıtlı ayrı bir panel dili de konuşuldu (sütun, rotaya
+  göre dil geçişi, footer seçicisinin panelde başka anlamı). Dört dil bu belirsizliği kaldırıyor, mevcut
+  "dört dosyaya birden" kuralı ve eşlik testi aynen işliyor; bedeli yeni dillerde panel metinleri de
+  (~60–100 anahtar). Panel metinleri ayrı, lazy dosyalarda (`i18n/admin/<dil>.json`, Transloco scope):
+  normal kullanıcının indirdiği dil dosyası büyümez.
+- **Neden hosting'den önce ve arayüzlü:** "Yol haritası" bölümündeki "Yeniden sıralama" notu.
 
 ## Fotoğraflar
 

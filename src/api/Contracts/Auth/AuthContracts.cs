@@ -25,12 +25,13 @@ public sealed record LoginRequest(
 /// <param name="Language">Saved UI language, or null if the user never chose one.</param>
 /// <param name="Theme">Saved color theme, or null if the user never chose one.</param>
 /// <param name="Accent">Saved accent color, or null if the user never chose one.</param>
+/// <param name="Roles">Identity roles (AppRoles), e.g. ["Admin"]; empty for most users.</param>
 public sealed record UserResponse(
     string Id, string UserName, string Email,
     string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme,
-    AccentColor? Accent)
+    AccentColor? Accent, IReadOnlyList<string> Roles)
 {
-    public static UserResponse From(ApplicationUser u) =>
+    public static UserResponse From(ApplicationUser u, IEnumerable<string> roles) =>
         new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
-            u.PreferredTheme, u.PreferredAccent);
+            u.PreferredTheme, u.PreferredAccent, roles.Order().ToList());
 }

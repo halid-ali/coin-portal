@@ -110,10 +110,11 @@ API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-da
 ## Mimari
 
 ```
-src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/, Contracts/{Auth,Coins,
-                        Collections,Countries,Common,Settings}/, Data/ (entities, AppDbContext,
-                        Migrations/), DevData/ (dev only), Photos/ (storage + image processing),
-                        Querying/, Validation/, Localization/, App_Data/photos (gitignored)
+src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+ Admin/), Contracts/{Admin,
+                        Auth,Coins,Collections,Countries,Common,Public,Settings}/, Data/ (entities,
+                        AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage + image
+                        processing), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
+                        Validation/, Localization/, App_Data/photos (gitignored)
 src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
 src/web/src/app/        core/{auth,coins,collections,public,http,i18n,settings}/, shared/, layout/header/,
                         pages/
@@ -144,11 +145,21 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - CSRF: antiforgery, header `X-XSRF-TOKEN`; client `GET /api/auth/antiforgery` ile okunabilir
   `XSRF-TOKEN` cookie'si alır (açılışta ve her login/register/logout sonrası, token kullanıcıya bağlı).
 - Yayın hedefi: Angular derlemesi API'nin `wwwroot`'undan sunulacak, tek site, Windows hosting.
+- **Yönetici paneli = moderasyon ve işletim paneli** (tüm verilerin yönetimi değil; kararlar
+  PROJECT_STATUS "Yönetici paneli: kararlar"). Sadece `Admin` rolü. Rol **sadece ayardan** verilir:
+  `Admin:UserIds` (kullanıcı adı değil Id: boşta kalan bir adı herkes kaydedebilir), açılışta
+  `Authorization/AdminRoleSync` rolü oluşturur, listedekilere verir, diğerlerinden alır; panelden rol
+  verilmez. Hosting'de `Admin__UserIds__0=<id>`. Cookie dakikada bir doğrulanır
+  (`SecurityStampValidatorOptions`), rol ve security stamp değişiklikleri en geç bu sürede oturuma yansır.
+  **Admin gizli içerik görmez:** kullanıcılar için sayılar ve kota, içerik olarak sadece Public/Unlisted;
+  `CollectionAccess`'e admin istisnası eklenmez.
 
 ## Backend kuralları
 
-- Tüm controller'lar `api/[controller]` altında. İstisna: bir kaynağın alt kaynakları iç içe route
-  kullanır (`api/coins/{coinId}/photos`). İstek/yanıt tipleri `Contracts/` altında, entity'ler dışarı açılmaz.
+- Tüm controller'lar `api/[controller]` altında. İstisnalar: bir kaynağın alt kaynakları iç içe route
+  kullanır (`api/coins/{coinId}/photos`); admin uçları `api/admin/<kaynak>` (`Controllers/Admin/`,
+  `Contracts/Admin/`, `[Authorize(Policy = AuthPolicies.Admin)]`; admin olmayan 403, girişsiz 401).
+  İstek/yanıt tipleri `Contracts/` altında, entity'ler dışarı açılmaz.
 - **Görsel kütüphanesi sadece `IImageProcessor` arkasında** (`Photos/`, sözleşme arayüzün XML
   yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
   dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
@@ -194,6 +205,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   cookie ve antiforgery token'ı taşır. **Yeni bir uç ya da erişim kuralı testleriyle gelir** (başkasının
   kaynağı 404, girişsiz 401, görünürlük). Test projesi görsel kütüphanesine referans vermez (`TestImages`
   PNG'yi elle üretir). xUnit v3 4.x Microsoft Testing Platform ister (`global.json` → `test.runner`).
+  Admin testleri `[Collection(AdminCollection.Name)]` içinde (sırayla çalışır: `SyncAdminsAsync` diğer
+  admin'lerin rolünü alır); admin kullanıcı `factory.SignUpAdminAsync()`. Açılış kodu veritabanına
+  eriştiği için factory migration'ı host başlamadan uygular.
 
 ## Client kuralları
 
@@ -303,6 +317,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
   (`--configuration` ile ayrı konfigürasyon işe yaramaz: Debug dışı her derleme ImageSharp lisansı ister).
   `dotnet test` de API projesini derler; API çalışırken `dotnet test -p:BaseOutputPath=<scratchpad>/testbin/`.
+- API açılışta veritabanına yazar (admin rol senkronu): veritabanı erişilemezse ya da boşsa (hiç
+  migration uygulanmamış) API başlamaz. Hosting'de önce migration, sonra uygulama.
 - Test koşusu yarıda kesilirse (Ctrl+C, debugger) LocalDB'de bir `CoinPortal_Tests_*` veritabanı ve
   `%TEMP%` altında aynı adlı fotoğraf klasörü kalabilir; elle silinir (adlar çakışmaz, testleri bozmaz).
 - Biçim kuralları kökteki `.editorconfig`'te (LF, dosya sonu satır sonu, C# 4 boşluk, EF migration'ları
