@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/api/CoinPortal.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/api/CoinPortal.Api.Tests.csproj" />
+  </Folder>
 </Solution>

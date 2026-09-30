@@ -13,7 +13,7 @@ namespace CoinPortal.Api.Controllers;
 
 /// <summary>
 /// Uploaded cover of one of the signed-in user's collections (16:9 WebP, see CoverImage).
-/// Same error codes as coin photos. Without a cover the card shows the latest coin photo.
+/// Same error codes as coin photos. Without a cover the client shows its default picture.
 /// </summary>
 [ApiController]
 [Route("api/collections/{collectionId:int}/cover")]
@@ -97,7 +97,7 @@ public class CollectionCoversController(
         return new CollectionCoverImageResponse(collection.Id, coverId);
     }
 
-    /// <summary>Removes the uploaded cover; the card falls back to the latest coin photo.</summary>
+    /// <summary>Removes the uploaded cover; the client shows its default picture again.</summary>
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

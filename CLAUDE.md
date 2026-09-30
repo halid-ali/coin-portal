@@ -16,7 +16,8 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
 - Kullanıcıya verilen terminal komutları **Git Bash** sözdiziminde (`/c/repos/...`).
 - Büyük bir değişiklikten önce kısa bir plan sun, kullanıcı onaylayınca uygula. Karar kullanıcıya aitse
   (UX, kapsam, kütüphane seçimi) sor; teknik varsayılanı belli olan konularda sorma, seçip söyle.
-- Kodu değiştirdikten sonra doğrula: backend için `dotnet build`, client için `ng build` ve `ng test`.
+- Kodu değiştirdikten sonra doğrula: backend için `dotnet build` ve `dotnet test`, client için `ng build`
+  ve `ng test`.
   Doğrulanamayan bir şey varsa (ör. tarayıcıda görsel kontrol) bunu açıkça söyle.
 - Bir özellik ya da anlamlı bir adım bitince [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) güncellenir
   (tamamlananlar, yeni kararlar, açık konular, sıradaki adım, "Son güncelleme" satırı).
@@ -47,10 +48,10 @@ terminallerinde sürekli çalışır halde tutuyor.
 - **Push kullanıcı onayıyla.** Repo kullanıcının kişisel GitHub hesabında, public (karar 2026-09-29).
   Sadece `main` ve etiketler push edilir (`git push origin main`, `git push origin vX.Y.Z`); feature
   branch'leri lokal kalır. Force-push yok.
-- CI: `.github/workflows/ci.yml` (ubuntu; API: build + migration'sız model değişikliği kontrolü;
-  Web: `npm ci`, Prettier, `ng build`, `ng test`). API `main` push'unda Release derlenir (ImageSharp
-  anahtarı secret `SIXLABORS_LICENSE_KEY`), pull request'lerde Debug (Dependabot ve fork'lar secret
-  görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm önermez (onlar planlı iş, Angular
+- CI: `.github/workflows/ci.yml` (ubuntu; API: build + migration'sız model değişikliği kontrolü +
+  `tests/api` bir SQL Server 2022 servis container'ına karşı; Web: `npm ci`, Prettier, `ng build`,
+  `ng test`). API `main` push'unda Release derlenir (ImageSharp anahtarı secret `SIXLABORS_LICENSE_KEY`),
+  pull request'lerde Debug (Dependabot ve fork'lar secret görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm önermez (onlar planlı iş, Angular
   için `ng update`).
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
@@ -79,6 +80,8 @@ Repo kökünden (`/c/repos/private/coin-web-portal`):
 ```bash
 dotnet tool restore                                   # dotnet-ef local tool (fresh clone)
 dotnet build                                          # backend build
+dotnet test                                           # API tests (tests/api), own LocalDB database per run
+dotnet test --project tests/api --filter-class "*CoinsTests"   # one test class (xUnit v3 filters)
 dotnet ef migrations add <Name> --project src/api --output-dir Data/Migrations
 dotnet ef database update --project src/api
 
@@ -115,7 +118,8 @@ src/web/                Angular client (proje adı `web`, derleme çıktısı di
 src/web/src/app/        core/{auth,coins,collections,public,http,i18n,settings}/, shared/, layout/header/,
                         pages/
 src/web/src/i18n/       en.json, tr.json, de.json, bg.json (çeviriler)
-tests/                  (planlı) api/ xUnit, e2e/ Playwright. Angular unit testleri kodun yanında kalır.
+tests/api/              API testleri (CoinPortal.Api.Tests: xUnit v3 + WebApplicationFactory), Infrastructure/
+tests/e2e/              (planlı) Playwright. Angular unit testleri kodun yanında kalır.
 docs/                   PROJECT_STATUS.md (yaşayan durum), reviews/ (tarihli değerlendirmeler)
 .config/                dotnet-tools.json (dotnet-ef local tool)
 ```
@@ -182,6 +186,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `AlterColumn` olmamalı. Mevcut veriye zorunlu yabancı anahtar eklenirken EF `defaultValue: 0`
   üretir ve FK'yı bozar: elle nullable ekle → `Sql()` ile doldur → `AlterColumn` NOT NULL
   (bkz. `AddCollections`). Migration'larda uygulama sabitleri değil literal değerler kullanılır.
+- **API testleri** (`tests/api`): API bellekte (`WebApplicationFactory`, ortam `Testing`, istemci
+  `https://localhost`, yani production cookie kuralları) gerçek SQL Server'a karşı çalışır; SQLite
+  kullanılmaz (collation, `CHARINDEX`, filtreli index'ler). Koşu başına `CoinPortal_Tests_<zaman>_<id>`
+  veritabanı migration'larla kurulur, sonunda silinir (sunucu: LocalDB, CI'da `COINPORTAL_TEST_SQL`).
+  Testler seed kullanmaz, kendi kullanıcılarını açar (`factory.SignUpAsync()`); `ApiClient` SPA gibi
+  cookie ve antiforgery token'ı taşır. **Yeni bir uç ya da erişim kuralı testleriyle gelir** (başkasının
+  kaynağı 404, girişsiz 401, görünürlük). Test projesi görsel kütüphanesine referans vermez (`TestImages`
+  PNG'yi elle üretir). xUnit v3 4.x Microsoft Testing Platform ister (`global.json` → `test.runner`).
 
 ## Client kuralları
 
@@ -290,6 +302,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   durumda ne yapılacağı "Çalışan uygulamalar" bölümünde. `dotnet ef migrations add` / `database update`
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
   (`--configuration` ile ayrı konfigürasyon işe yaramaz: Debug dışı her derleme ImageSharp lisansı ister).
+  `dotnet test` de API projesini derler; API çalışırken `dotnet test -p:BaseOutputPath=<scratchpad>/testbin/`.
+- Test koşusu yarıda kesilirse (Ctrl+C, debugger) LocalDB'de bir `CoinPortal_Tests_*` veritabanı ve
+  `%TEMP%` altında aynı adlı fotoğraf klasörü kalabilir; elle silinir (adlar çakışmaz, testleri bozmaz).
 - Biçim kuralları kökteki `.editorconfig`'te (LF, dosya sonu satır sonu, C# 4 boşluk, EF migration'ları
   BOM'lu). Client'ın tamamı, harici `.html` şablonları dahil, Prettier'dan geçmiş durumda (2026-09-29);
   `prettier --check` temiz kalmalı. Prettier bir `{{ … }}` ifadesini kendi satırına alınca metnin

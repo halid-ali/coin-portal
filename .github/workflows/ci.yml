@@ -22,6 +22,21 @@ jobs:
       # ImageSharp 4 fails Release builds without a license key (see README). Pull requests
       # (Dependabot, forks) get no secrets, so they build Debug, where a missing key is only a warning.
       CONFIGURATION: ${{ github.event_name == 'pull_request' && 'Debug' || 'Release' }}
+    services:
+      # The API tests need a real SQL Server (collation, CHARINDEX, filtered indexes). The sa
+      # password belongs to this throwaway container only, so it is not a secret
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: Ci_Tests_Passw0rd
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Ci_Tests_Passw0rd -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v7
         with:
@@ -46,6 +61,12 @@ jobs:
         env:
           # Design-time only; nothing connects to this database
           ConnectionStrings__DefaultConnection: Server=localhost;Database=ci;Trusted_Connection=True
+
+      - name: Test
+        run: dotnet test --project tests/api --no-build --configuration "$CONFIGURATION"
+        env:
+          # Server only: each run creates and drops its own database
+          COINPORTAL_TEST_SQL: Server=localhost,1433;User Id=sa;Password=Ci_Tests_Passw0rd;TrustServerCertificate=True
 
   web:
     name: Web

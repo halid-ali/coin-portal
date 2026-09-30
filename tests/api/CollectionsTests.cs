@@ -1,0 +1,162 @@
+using System.Net;
+using CoinPortal.Api.Contracts.Coins;
+using CoinPortal.Api.Contracts.Collections;
+using CoinPortal.Api.Contracts.Common;
+using CoinPortal.Api.Tests.Infrastructure;
+
+namespace CoinPortal.Api.Tests;
+
+public class CollectionsTests(CoinPortalFactory factory)
+{
+    [Fact]
+    public async Task OtherUsersCollection_LooksMissing()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        var aliceCollection = await alice.FirstCollectionAsync();
+        var url = $"/api/collections/{aliceCollection.Id}";
+
+        using var get = await bob.Client.GetAsync(url);
+        using var put = await bob.Client.PutAsync(url, new CollectionUpsertRequest { Name = "Taken over" });
+        using var delete = await bob.Client.DeleteAsync(url);
+        using var shareToken = await bob.Client.PostAsync(url + "/share-token");
+        using var coins = await bob.Client.GetAsync($"/api/coins?collectionId={aliceCollection.Id}");
+
+        await get.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await put.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await delete.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await shareToken.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await coins.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        Assert.Equal(aliceCollection.Name, (await alice.FirstCollectionAsync()).Name);
+    }
+
+    [Fact]
+    public async Task List_ShowsOnlyOwnCollectionsWithCoinCounts()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        var first = await alice.FirstCollectionAsync();
+        await alice.CreateCoinAsync(first.Id);
+        await alice.CreateCoinAsync(first.Id);
+        var second = await alice.CreateCollectionAsync();
+        await bob.CreateCollectionAsync();
+
+        var collections = await alice.Client.GetJsonAsync<List<CollectionResponse>>("/api/collections");
+
+        Assert.Equal([first.Id, second.Id], collections.Select(c => c.Id));
+        Assert.Equal([2, 0], collections.Select(c => c.CoinCount));
+    }
+
+    [Theory]
+    [InlineData("liste", "LİSTE")] // Turkish dotted capital I
+    [InlineData("LIMAN", "lıman")] // Turkish dotless small i
+    [InlineData("list", "LIST")] // culture-independent casing
+    [InlineData("Liste", "  liste  ")] // trimmed
+    public async Task Create_NameTakenIgnoringCase_IsDuplicateName(string existing, string requested)
+    {
+        var alice = await factory.SignUpAsync();
+        await alice.CreateCollectionAsync(existing);
+
+        using var response = await alice.Client.PostAsync("/api/collections",
+            new CollectionUpsertRequest { Name = requested });
+
+        Assert.Contains("DuplicateName", await response.ReadValidationKeysAsync());
+    }
+
+    [Fact]
+    public async Task Rename_ToAnotherOwnCollectionsName_IsDuplicateName()
+    {
+        var alice = await factory.SignUpAsync();
+        var first = await alice.FirstCollectionAsync();
+        await alice.CreateCollectionAsync("Second");
+
+        using var response = await alice.Client.PutAsync($"/api/collections/{first.Id}",
+            new CollectionUpsertRequest { Name = "second" });
+
+        Assert.Contains("DuplicateName", await response.ReadValidationKeysAsync());
+    }
+
+    [Fact]
+    public async Task Create_NameOfAnotherUsersCollection_IsAllowed()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        await alice.CreateCollectionAsync("Shared name");
+
+        var bobs = await bob.CreateCollectionAsync("Shared name");
+
+        Assert.Equal("Shared name", bobs.Name);
+    }
+
+    [Fact]
+    public async Task Delete_LastCollection_IsRefused()
+    {
+        var alice = await factory.SignUpAsync();
+        var only = await alice.FirstCollectionAsync();
+
+        using var response = await alice.Client.DeleteAsync($"/api/collections/{only.Id}");
+
+        Assert.Equal("last_collection", await response.ReadProblemCodeAsync());
+    }
+
+    [Fact]
+    public async Task Delete_WithMoveTo_MovesTheCoins()
+    {
+        var alice = await factory.SignUpAsync();
+        var target = await alice.FirstCollectionAsync();
+        var doomed = await alice.CreateCollectionAsync();
+        var coin = await alice.CreateCoinAsync(doomed.Id);
+
+        using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?moveTo={target.Id}");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        var moved = await alice.Client.GetJsonAsync<CoinResponse>($"/api/coins/{coin.Id}");
+        Assert.Equal(target.Id, moved.CollectionId);
+    }
+
+    [Fact]
+    public async Task Delete_WithoutMoveTo_DeletesTheCoins()
+    {
+        var alice = await factory.SignUpAsync();
+        var kept = await alice.FirstCollectionAsync();
+        var keptCoin = await alice.CreateCoinAsync(kept.Id);
+        var doomed = await alice.CreateCollectionAsync();
+        var coin = await alice.CreateCoinAsync(doomed.Id);
+
+        using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        using var deletedCoin = await alice.Client.GetAsync($"/api/coins/{coin.Id}");
+        await deletedCoin.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        var remaining = await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>("/api/coins");
+        Assert.Equal(keptCoin.Id, Assert.Single(remaining.Items).Id);
+    }
+
+    [Fact]
+    public async Task Delete_MoveToItselfOrAnotherUsersCollection_IsInvalidTarget()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        await alice.FirstCollectionAsync();
+        var doomed = await alice.CreateCollectionAsync();
+        var bobs = await bob.FirstCollectionAsync();
+
+        using var toItself = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?moveTo={doomed.Id}");
+        using var toBob = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?moveTo={bobs.Id}");
+
+        Assert.Equal("invalid_target", await toItself.ReadProblemCodeAsync());
+        Assert.Equal("invalid_target", await toBob.ReadProblemCodeAsync());
+    }
+
+    [Fact]
+    public async Task SignedOut_CannotUseCollections()
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+
+        using var list = await client.GetAsync("/api/collections");
+        using var create = await client.PostAsync("/api/collections", new CollectionUpsertRequest { Name = "x" });
+
+        await list.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
+        await create.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
+    }
+}
