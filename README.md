@@ -31,7 +31,8 @@ API share one origin (no CORS, no JWT).
 ```
 src/api/        ASP.NET Core API (project CoinPortal.Api)
 src/web/        Angular client
-tests/          API and end-to-end tests (planned)
+tests/api/      API tests (xUnit v3, in-memory API against SQL Server)
+tests/e2e/      End-to-end tests (planned)
 docs/           Project status, decisions and dated reviews
 .config/        .NET local tools (dotnet-ef)
 ```
@@ -69,9 +70,14 @@ time it runs.
 
 ```bash
 dotnet build
+dotnet test                  # API tests; needs LocalDB (or set COINPORTAL_TEST_SQL)
 cd src/web && ng test --watch=false
 cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
 ```
+
+The API tests create a database of their own for each run (`CoinPortal_Tests_…`) and drop it at
+the end; the development database is not touched. To use another SQL Server, set
+`COINPORTAL_TEST_SQL` to a connection string without a database name.
 
 ## Image processing license
 

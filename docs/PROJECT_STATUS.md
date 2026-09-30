@@ -1,14 +1,15 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-30 (ImageSharp Community lisansı geldi: Release derlemesi lokalde ve CI'da
-anahtarla çalışıyor, Açık konular 1 kapandı. Proje GitHub'da public: https://github.com/halid-ali/coin-portal,
-ilk release `v0.1.0`. Yol haritasının 1.–7. adımları ve 10. adımın CI kısmı tamam; proje yönü değerlendirmesi
+Son güncelleme: 2026-09-30 (API testleri eklendi: `tests/api`, 70 test, CI'da SQL Server'a karşı;
+Açık konular 7 kapandı. Yol haritası yeniden sıralandı: yönetici paneli temeli arayüzüyle birlikte
+hosting'den önce, sıradaki adım o. Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son
+release `v0.1.0`; proje yönü değerlendirmesi
 [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
 bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/session-close` 2026-09-30'da merge
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/api-tests` 2026-09-30'da merge
   edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -19,6 +20,7 @@ bölümünde)
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
 - İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım").
+- Backend değişikliklerinden sonra `dotnet test` (API çalışırken `-p:BaseOutputPath=<scratchpad>/testbin/`).
 - ImageSharp lisansı: `src/api/sixlabors.lic` lokalde var (gitignore'da), CI'da GitHub secret
   `SIXLABORS_LICENSE_KEY`. Lisans 2027-12-26'da biter (Açık konular 1).
 
@@ -444,6 +446,36 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       ortam değişkeniyle Release uyarısız; anahtarsız Release "license file not found" hatası veriyor.
     - Yenileme hatırlatması kullanıcının Google Takvim'inde ("Critical" takvimi, 2027-12-01; bir hafta
       önce e-posta).
+22. **API testleri** (`chore/api-tests`, 2026-09-30; yol haritası 8a, kullanıcı onayı):
+    - `tests/api/CoinPortal.Api.Tests.csproj`: xUnit v3 4.0.1 + `Microsoft.AspNetCore.Mvc.Testing`,
+      `CoinPortal.slnx`'e eklendi. xUnit v3 4.x Microsoft Testing Platform ile çalışıyor; .NET 10'da VSTest
+      yolu kapalı, bu yüzden `global.json`'a `"test": { "runner": "Microsoft.Testing.Platform" }`
+      (VSTest paketleri yok). `public partial class Program` gerekmedi (.NET 10 üretiyor).
+    - Altyapı (`Infrastructure/`): `CoinPortalFactory` (assembly fixture; ortam `Testing`, yani Secure
+      cookie ve HTTPS yönlendirmesi production'daki gibi, istemci `https://localhost`), koşu başına
+      `CoinPortal_Tests_<zaman>_<id>` veritabanı (migration'larla kurulur, sonunda silinir) ve geçici
+      fotoğraf klasörü; `ApiClient` (cookie + `X-XSRF-TOKEN`, girişten/çıkıştan sonra token yenileme, SPA
+      ile aynı akış); `TestUser` (rastgele kullanıcı, koleksiyon/coin kısayolları); `TestImages` (elle PNG
+      kodlayıcı; test projesi ImageSharp'a referans vermez); `ResponseAssertions` (hata gövdesini gösteren
+      durum kontrolü, `code` ve doğrulama anahtarları).
+    - Veritabanı kararı (Claude'un teknik seçimi): gerçek SQL Server. SQLite elendi (kod collation'a,
+      `CHARINDEX`'e, filtreli index'lere dayanıyor), Testcontainers elendi (makinede Docker yok).
+    - 70 test, ~10 sn: auth (kayıtta dile göre ilk koleksiyon, 18+, e-posta/kullanıcı adı çakışması,
+      kullanıcı adı kuralı, kullanıcı adı/e-postayla giriş, yanlış parola ile bilinmeyen kullanıcının aynı
+      görünmesi, 5 hatada 423, çıkış, antiforgery'siz istek ve kullanıcıya bağlı token), koleksiyonlar
+      (başkasınınki 404, Türkçe büyük/küçük harf çakışması, `last_collection`, `moveTo` ile taşıma/silme,
+      `invalid_target`), coin'ler (başkasınınki 404, başkasının koleksiyonuna ekleme, taşıma, doğrulama,
+      enum'ların JSON'da ad olması ve sayının reddi, filtre/arama/sayfalama, `countryOrder` sıralaması),
+      görünürlük (Private/Unlisted/Public × `api/public/*`, kişisel veri sızmaması, link anahtarının
+      yaşam döngüsü, Keşfet'te `pageSize=0`), fotoğraf ve kapak (üç boyut, değiştirince/silince dosyaların
+      gitmesi, görünürlüğe göre erişim, `invalid_image`, `file_missing`, başkasının coin'i), ayarlar.
+    - Mutasyon kontrolü: `CollectionAccess`'te link anahtarı şartı, coin sahiplik filtresi ve Türkçe ad
+      karşılaştırması ayrı ayrı bozulunca ilgili testler kırıldı; kod geri alındı.
+    - CI: API işine SQL Server 2022 servis container'ı ve `dotnet test --no-build` (sunucu
+      `COINPORTAL_TEST_SQL` ile). Lokalde Debug ve Release, kökten `dotnet test` 70/70; CI'daki ilk koşu
+      push'ta doğrulanacak.
+    - CLAUDE.md: komutlar, "API testleri" kuralı (yeni uç ya da erişim kuralı testleriyle gelir), API
+      çalışırken `dotnet test` ve yarıda kalan koşu tuzakları. README: klasör düzeni ve test komutu.
 
 ## Yol haritası
 
@@ -467,24 +499,56 @@ mağaza için TWA.
 - [x] 6. `chore/ci`: GitHub Actions + Dependabot.
 - [x] 7. GitHub publish (2026-09-29/30), release `v0.1.0`. Six Labors başvurusunun repo adresiyle
       güncellenmesi kullanıcıda.
-- [ ] 8. `tests/api` (xUnit) ve `tests/e2e` (Playwright).
-- [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma,
-      DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB düzeltmesi, beni hatırla, PWA manifest.
+- [x] 8a. `chore/api-tests`: `tests/api` (xUnit v3), CI'da SQL Server'a karşı (2026-09-30).
+- [ ] 12. **Yönetici paneli temeli (arayüzüyle), hosting'den önce** (2026-09-30'da öne alındı, aşağıda):
+      `feat/admin-role` (Admin rolü, ilk admin `Admin:BootstrapUserNames` config'iyle, policy, security
+      stamp, `me` → `roles`, `AuditLog`) → `feat/admin-api` (`api/admin/stats`, `users` + kilitleme,
+      herkese açık koleksiyonlar + gizleme, `audit`) → `feat/admin-ui` (lazy `/admin`, Ayarlar gibi bölüm
+      menüsü: Genel bakış, Kullanıcılar, Koleksiyonlar, Denetim kaydı). Sonunda `v0.2.0`.
+- [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma
+      (admin'in kullanıcı silmesi de bu servisle), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
+      düzeltmesi, beni hatırla, PWA manifest.
+- [ ] 8b. `tests/e2e` (Playwright).
 - [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
       (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
 - [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
-- [ ] 12. Admin rolü + `api/admin/*` (arayüzsüz).
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
-- [ ] 15. Yorum + şikayet + moderasyon paneli + e-posta doğrulama.
+- [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
+      bölümleri eklenir (panelin kendisi 12. adımda).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
 
+**Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
+(sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
+(1) herkese açık koleksiyonlarda kullanıcı metni ve fotoğrafı yayının ilk gününden var; "koleksiyonu gizle"
+ve "kullanıcıyı kilitle" canlıda hemen gerekebilir, hosting DB panelinden elle SQL yazmak zahmetli ve
+hataya açık; (2) Swagger sadece Development'ta, arayüzsüz uçlar production'da antiforgery token'lı elle
+isteklerle kullanılamaz; (3) ilk admin atama yolu ilk kurulumda denenmiş olmalı. Panelin arayüzü yeni ve
+lazy bir alan, uçları policy arkasında: canlıya eklemek düşük riskli. 15. adımı büyük yapan panel değil,
+mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları bir erişim matrisi olduğu için
+önce API testleri (8a) yapıldı.
+
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. Yol haritasında sırada 8. adım (`tests/api` xUnit ve `tests/e2e`
-Playwright) ve 9. adım (hosting temeli) var; kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22
-yükseltmesini andı. Diğer ürün adayları aşağıda (2026-09-28'de watermark "biraz daha ertelensin" dendi):
+**Yol haritası 12. adım: yönetici paneli temeli**, `feat/admin-role` ile başlar (kullanıcı 2026-09-30'da
+seçti). Başlamadan önce kullanıcıyla verilecek kararlar (Claude'un önerileri parantez içinde):
+
+- Panelin dili: dört dil mi, sadece EN/TR mi? (Dört dil: i18n testi anahtar eşliğini zaten zorunlu kılıyor.)
+- Admin gizli veriyi görür mü? (Hayır: kullanıcının sayılarını ve kotasını görür, içerik olarak sadece
+  Public/Unlisted olanları; görünürlük kuralı `CollectionAccess`'te tek yerde kalır.)
+- İlk sürümde "koleksiyonu gizle" (Private yap + denetim kaydı) olsun mu; sahip koleksiyonu tekrar
+  yayınlayabilsin mi, yoksa `ModeratedAtUtc` kilidi mi? (Gizle olsun; kilit kararı kullanıcıda.)
+- Son giriş zamanı (`LastSignInAtUtc`, migration) tutulsun mu?
+- Menüde yeri: navbar mı, avatar menüsünde Ayarlar'ın yanında mı? (Avatar menüsü.)
+
+Teknik notlar (değerlendirmeden): rol migration'da literal (`Sql()`, `NormalizedName` `ADMIN`); komut
+satırı anahtarı IIS'te çalışmaz, ilk admin config'le; rol ve kilit değişikliğinde
+`UpdateSecurityStampAsync` + kısa `ValidationInterval` (varsayılan 30 dk gecikme); admin kendini ve son
+admini kilitleyemez; admin uçlarında yetkisiz kullanıcıya 403.
+
+Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
+2026-09-28'de watermark "biraz daha ertelensin" dendi):
 
 1. **Watermark** (Açık konular 8): kararlar bekliyor (içerik, konum, saydamlık, sadece herkese açık
    fotoğraflara mı).
@@ -650,7 +714,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 5. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
    parolalı connection string repoya girmeyecek.
 6. **Yayında SPA fallback:** `MapFallbackToFile("index.html")`.
-7. **Backend testleri yok.** Bir test projesi (xUnit + `WebApplicationFactory`) eklenmesi değerlendirilebilir.
+7. ~~**Backend testleri yok.**~~ (kapandı 2026-09-30): `tests/api`, Tamamlananlar 22. e2e testleri
+   (Playwright) yol haritasında 8b.
 8. **Fotoğraflara watermark (ileride, 2026-09-27'de konuşuldu):** Görünürlük ayarı ve herkese açık profil
    sayfasıyla birlikte yapılacak; o zamana kadar fotoğrafları sadece sahibi gördüğü için gerek yok.
    - Önerilen yol: sunucuda, **hazır bir PNG** (yazı veya logo) yarı saydam olarak köşeye basılır. Bunun
