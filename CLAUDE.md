@@ -47,10 +47,11 @@ terminallerinde sürekli çalışır halde tutuyor.
 - **Push kullanıcı onayıyla.** Repo kullanıcının kişisel GitHub hesabında, public (karar 2026-09-29).
   Sadece `main` ve etiketler push edilir (`git push origin main`, `git push origin vX.Y.Z`); feature
   branch'leri lokal kalır. Force-push yok.
-- CI: `.github/workflows/ci.yml` (ubuntu; API: Debug build + migration'sız model değişikliği kontrolü;
-  Web: `npm ci`, Prettier, `ng build`, `ng test`). Dependabot haftalık, gruplu; npm ve NuGet'te
-  major sürüm önermez (onlar planlı iş, Angular için `ng update`). Release derlemesi CI'da
-  yok (ImageSharp anahtarı).
+- CI: `.github/workflows/ci.yml` (ubuntu; API: build + migration'sız model değişikliği kontrolü;
+  Web: `npm ci`, Prettier, `ng build`, `ng test`). API `main` push'unda Release derlenir (ImageSharp
+  anahtarı secret `SIXLABORS_LICENSE_KEY`), pull request'lerde Debug (Dependabot ve fork'lar secret
+  görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm önermez (onlar planlı iş, Angular
+  için `ng update`).
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
@@ -296,8 +297,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Python kurulu değil; betikler için Node veya Bash kullan. Bash `node -e "…"` içinde template literal
   (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap. Toplu metin değişikliği
   gerekirse betiği Write ile scratchpad'e yazıp `node` ile çalıştır (heredoc'lar da bozulabiliyor).
-- **ImageSharp 4.x lisans anahtarı ister:** anahtar yoksa Debug derleme uyarı verir, **Release
-  (publish) derleme hata verir.** Karar bekliyor (PROJECT_STATUS "Açık konular").
+- **ImageSharp 4.x lisans anahtarı ister** (sadece derlemede, çalışma anında değil): anahtar yoksa
+  Debug derleme uyarı verir, **Release (publish) derleme hata verir.** Lokalde `src/api/sixlabors.lic`
+  (gitignore'da, repo kökünde değil: paket dosyayı `.csproj` klasöründen aşağı arar), CI'da ortam
+  değişkeni `SixLaborsLicenseKey` (Linux'ta adı harfi harfine). Anahtar hiçbir dosyaya yazılmaz,
+  sohbete yapıştırılmaz. Community lisansı 2027-12-26'da biter (PROJECT_STATUS "Açık konular").
 - Scratchpad'deki .NET betikleri (`dotnet run x.cs`, `#:package`) repo'nun `nuget.config`'ini görmez;
   makinenin global NuGet ayarlarındaki özel bir feed 401 verebilir. Betik klasörüne repo'daki
   `nuget.config` kopyalanır.
