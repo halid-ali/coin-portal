@@ -1,3 +1,4 @@
+using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,17 @@ builder.Services
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+// The cookie is checked against the database this often (default 30 minutes): role changes and
+// security stamp changes (e.g. a locked account) reach signed-in users within a minute
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+    options.ValidationInterval = TimeSpan.FromMinutes(1));
+
+// Admin role: granted from configuration only (Admin:UserIds), synced at startup
+builder.Services.AddOptions<AdminOptions>().Bind(builder.Configuration.GetSection(AdminOptions.SectionName));
+builder.Services.AddScoped<AdminRoleSync>();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(AuthPolicies.Admin, policy => policy.RequireRole(AppRoles.Admin));
 
 // Auth cookie settings (same-origin SPA, so a HttpOnly cookie is enough)
 builder.Services.ConfigureApplicationCookie(options =>
@@ -108,6 +120,12 @@ if (seedDevData)
 
     await DevDataSeeder.RunAsync(app);
     return;
+}
+
+// Before the first request, so the configured admins hold the role
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    await scope.ServiceProvider.GetRequiredService<AdminRoleSync>().SyncAsync();
 }
 
 // HTTPS redirection only outside development; the dev proxy talks plain HTTP

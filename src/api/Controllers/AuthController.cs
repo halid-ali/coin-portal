@@ -49,7 +49,7 @@ public class AuthController(
 
         // Sign the new user in right away
         await signInManager.SignInAsync(user, isPersistent: false);
-        return Ok(UserResponse.From(user));
+        return Ok(UserResponse.From(user, []));
     }
 
     [HttpPost("login")]
@@ -73,7 +73,7 @@ public class AuthController(
         if (!result.Succeeded)
             return InvalidCredentials();
 
-        return Ok(UserResponse.From(user));
+        return Ok(await ToResponseAsync(user));
     }
 
     [Authorize]
@@ -89,7 +89,7 @@ public class AuthController(
     public async Task<ActionResult<UserResponse>> Me()
     {
         var user = await userManager.GetUserAsync(User);
-        return user is null ? Unauthorized() : Ok(UserResponse.From(user));
+        return user is null ? Unauthorized() : Ok(await ToResponseAsync(user));
     }
 
     /// <summary>
@@ -114,6 +114,10 @@ public class AuthController(
 
         return NoContent();
     }
+
+    // Roles from the database, not the cookie: current even before the cookie is refreshed
+    private async Task<UserResponse> ToResponseAsync(ApplicationUser user) =>
+        UserResponse.From(user, await userManager.GetRolesAsync(user));
 
     // Same message for unknown user and wrong password (no account enumeration)
     private ObjectResult InvalidCredentials() =>
