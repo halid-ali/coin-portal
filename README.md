@@ -75,10 +75,14 @@ cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
 
 ## Image processing license
 
-ImageSharp 4 checks for a Six Labors license key at build time. Debug builds only print a warning;
-Release builds and `dotnet publish` fail without a key. Provide it through the `SixLaborsLicenseKey`
-MSBuild property or environment variable, or a `sixlabors.lic` file (ignored by Git). Image handling
-sits behind a single interface (`IImageProcessor`), so the library can be replaced.
+ImageSharp 4 checks for a Six Labors license key at build time (the running app does not need it).
+Debug builds only print a warning, so development works without a key; Release builds and
+`dotnet publish` fail without one. The project's own key is not in the repository. To build Release,
+get your own key at [licensing.sixlabors.com](https://licensing.sixlabors.com/) and either save the
+`sixlabors.lic` file in `src/api/` (ignored by Git; the build searches the project folder, not the
+repository root) or set the `SixLaborsLicenseKey` environment variable to its contents. CI builds
+Release on `main` with the key from a repository secret. Image handling sits behind a single
+interface (`IImageProcessor`), so the library can be replaced.
 
 ## Documentation
 

@@ -18,6 +18,10 @@ jobs:
   api:
     name: API
     runs-on: ubuntu-latest
+    env:
+      # ImageSharp 4 fails Release builds without a license key (see README). Pull requests
+      # (Dependabot, forks) get no secrets, so they build Debug, where a missing key is only a warning.
+      CONFIGURATION: ${{ github.event_name == 'pull_request' && 'Debug' || 'Release' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -30,12 +34,15 @@ jobs:
       - name: Restore local tools
         run: dotnet tool restore
 
-      # Debug on purpose: ImageSharp 4 fails Release builds without a license key (see README)
       - name: Build
-        run: dotnet build --configuration Debug
+        run: dotnet build --configuration "$CONFIGURATION"
+        env:
+          SixLaborsLicenseKey: ${{ secrets.SIXLABORS_LICENSE_KEY }}
 
       - name: Check for model changes without a migration
-        run: dotnet ef migrations has-pending-model-changes --project src/api --no-build
+        run: >-
+          dotnet ef migrations has-pending-model-changes --project src/api --no-build
+          --configuration "$CONFIGURATION"
         env:
           # Design-time only; nothing connects to this database
           ConnectionStrings__DefaultConnection: Server=localhost;Database=ci;Trusted_Connection=True

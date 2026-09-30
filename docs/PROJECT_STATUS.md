@@ -1,9 +1,10 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-30 (proje GitHub'da public: https://github.com/halid-ali/coin-portal, CI yeşil,
-ilk release `v0.1.0`, repo ayarları ve koruma kuralları kuruldu. Yol haritasının 1.–7. adımları tamam;
-proje yönü değerlendirmesi [reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md),
-sıra "Yol haritası" bölümünde. Yayın sohbeti bitti; sıradaki adım yeni sohbette seçilecek)
+Son güncelleme: 2026-09-30 (ImageSharp Community lisansı geldi: Release derlemesi lokalde ve CI'da
+anahtarla çalışıyor, Açık konular 1 kapandı. Proje GitHub'da public: https://github.com/halid-ali/coin-portal,
+ilk release `v0.1.0`. Yol haritasının 1.–7. adımları ve 10. adımın CI kısmı tamam; proje yönü değerlendirmesi
+[reviews/2026-09-29-project-direction.md](reviews/2026-09-29-project-direction.md), sıra "Yol haritası"
+bölümünde)
 
 ## Yeni sohbete başlarken
 
@@ -17,9 +18,9 @@ sıra "Yol haritası" bölümünde. Yayın sohbeti bitti; sıradaki adım yeni s
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
-- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım"). Bekleyen dış konu:
-  Six Labors'tan ImageSharp lisans cevabı; kullanıcı başvurusunu public repo adresiyle güncelleyecek
-  (Açık konular 1).
+- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım").
+- ImageSharp lisansı: `src/api/sixlabors.lic` lokalde var (gitignore'da), CI'da GitHub secret
+  `SIXLABORS_LICENSE_KEY`. Lisans 2027-12-26'da biter (Açık konular 1).
 
 Bu doküman projenin **değişen** tarafını tutar: nerede olduğumuz, neyin neden böyle kararlaştırıldığı,
 sırada ne olduğu. Değişmeyen kurallar, komutlar ve tuzaklar [CLAUDE.md](../CLAUDE.md) içinde.
@@ -427,6 +428,22 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       eki yok (Release derlemesi ImageSharp anahtarı ister, hosting yok). Kullanıcı onayıyla Claude
       oluşturdu: Git Credential Manager'daki GitHub oturumu REST API için kullanıldı (anahtar
       gösterilmedi, kaydedilmedi); betik ve notlar lokal `.notes/` klasöründe.
+21. **ImageSharp lisansı** (`chore/imagesharp-license`, 2026-09-30; yol haritası 10. adımın CI kısmı):
+    - Six Labors ücretsiz **Community** lisansı verdi (License ID `ctm_01m3hrxvqkt74ke0cdc359x79p`,
+      geçerlilik **2027-12-26**'ya kadar). Six Labors'un şartı: anahtar ya da `.lic` public repoya girmez;
+      katkı verenler kendi anahtarlarını alır.
+    - Lokal: `src/api/sixlabors.lic` (kullanıcı kaydetti; `.gitignore`'daki `sixlabors.lic` kuralı
+      kapsıyor). E-posta "proje köküne koy" diyor ama paketin MSBuild hedefi `**/sixlabors.lic`'i
+      `.csproj` klasöründen arıyor; repo kökündeki dosya bulunmaz.
+    - Anahtar sadece derlemede kontrol edilir (`SixLabors_ValidateLicense`, `CoreCompile` öncesi);
+      çalışan uygulama ve hosting sunucusu anahtara ihtiyaç duymaz, publish çıktısına `.lic` girmez.
+    - CI: API işi `main` push'unda ve elle tetiklemede **Release**, pull request'lerde Debug derler
+      (Dependabot ve fork PR'ları secret görmez). Anahtar GitHub secret `SIXLABORS_LICENSE_KEY` →
+      ortam değişkeni `SixLaborsLicenseKey` (dosya içeriği). EF model kontrolü aynı konfigürasyonla.
+    - Doğrulama (lokal, ayrı çıktı klasörüne): dosyayla Release derleme uyarısız; dosya devre dışıyken
+      ortam değişkeniyle Release uyarısız; anahtarsız Release "license file not found" hatası veriyor.
+    - Yenileme hatırlatması kullanıcının Google Takvim'inde ("Critical" takvimi, 2027-12-01; bir hafta
+      önce e-posta).
 
 ## Yol haritası
 
@@ -453,7 +470,8 @@ mağaza için TWA.
 - [ ] 8. `tests/api` (xUnit) ve `tests/e2e` (Playwright).
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma,
       DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB düzeltmesi, beni hatırla, PWA manifest.
-- [ ] 10. ImageSharp kararı → CI Release + `release.yml` (cevap gelmezse SkiaSharp).
+- [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
+      (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
 - [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 12. Admin rolü + `api/admin/*` (arayüzsüz).
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
@@ -608,7 +626,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
   (Üç boyut birlikte ~250-350 KB, yani kota ~1000 fotoğraf.)
 - **Görsel işleme kütüphanesi:** SixLabors ImageSharp 4.1.2 (tamamen managed, native bağımlılığı yok).
   Lisansı Six Labors Split License: yıllık geliri 1 milyon doların altındaki kullanıcılar için Apache 2.0.
-  **Ancak 4.x derlemede lisans anahtarı arıyor; anahtarsız Release/publish derlemesi başarısız.**
+  4.x derlemede lisans anahtarı arıyor; anahtarsız Release/publish derlemesi başarısız. Proje ücretsiz
+  Community lisansı aldı (2026-09-30, Açık konular 1).
   Kütüphane sadece `IImageProcessor` arkasında, değiştirmek bir dosya + DI kaydı (bkz. Açık konular 1).
 - **Kaydetme davranışı:** Formda fotoğraf değişiklikleri "Kaydet"e basınca uygulanır, "Vazgeç" hepsini
   geri alır (kullanıcı kararı).
@@ -617,17 +636,12 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 
 ## Açık konular
 
-1. **ImageSharp lisans anahtarı (2026-09-27):** 4.x anahtarsız Release derlemede hata veriyor, publish
-   yapılamaz. Kullanıcı Six Labors'a ücretsiz anahtar için yazdı, cevap bekleniyor. Repo artık public
-   (https://github.com/halid-ali/coin-portal, MIT); başvuru bu adresle güncellenirse açık kaynak
-   projelere verilen ücretsiz anahtar koşulu doğrudan sağlanır.
-   - Olumlu: anahtar derlemeye `SixLaborsLicenseKey` (ortam değişkeni/MSBuild property) veya
-     `sixlabors.lic` dosyası ile verilir; anahtar repoya girmemeli.
-   - Olumsuz: `SkiaSharpImageProcessor` yazılır (MIT, aktif bakımlı; native `libSkiaSharp.dll` içerir),
-     ImageSharp paketi kaldırılır, hosting kontrol listesine "native DLL çalıştırılabiliyor mu?" eklenir.
-     ImageSharp 3.1.12 (anahtarsız) önerilmiyor: Ekim 2025'ten beri güncelleme almıyor.
-   - Debug derleme (lokal geliştirme) etkilenmiyor. **İlk publish'ten önce çözülmeli**; kütüphane
-     değişikliği gerekirse main'den ayrı bir branch'te yapılır (ör. `chore/skiasharp`).
+1. ~~**ImageSharp lisans anahtarı**~~ (kapandı 2026-09-30): Six Labors ücretsiz Community lisansı verdi,
+   ImageSharp'ta kalındı (SkiaSharp'a geçiş gerekmedi). Uygulama Tamamlananlar 21'de. Kalan tek iş
+   **yenileme: lisans 2027-12-26'da biter.** Yeni anahtar https://licensing.sixlabors.com/ adresinden
+   alınır; `src/api/sixlabors.lic` ve GitHub secret `SIXLABORS_LICENSE_KEY` birlikte güncellenir.
+   Yenilenmezse `main`'deki CI (Release) ve publish kırılır; Debug geliştirme etkilenmez. Hatırlatma
+   kullanıcının takviminde (2027-12-01).
 2. ~~**Yayın izni**~~ (kapandı 2026-09-29): hobi projesi, kullanıcının kişisel GitHub hesabında public
    repo. Push yine kullanıcı onayıyla.
 3. **Hosting seçilmedi.** Seçerken aşağıdaki "Hosting seçimi kontrol listesi" kullanılacak.
@@ -681,8 +695,7 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 İlk publish'ten önce tamamlanması gerekenler (ayrıntılar Açık konular'da):
 
 - [ ] Hosting seçimi ("Hosting seçimi kontrol listesi").
-- [ ] ImageSharp lisans anahtarı ya da SkiaSharp'a geçiş (Açık konular 1); `dotnet build -c Release`
-      hatasız olmalı.
+- [x] ImageSharp lisans anahtarı (Açık konular 1, 2026-09-30); `dotnet build -c Release` hatasız.
 - [ ] Production connection string ve `PhotoStorage__RootPath` (site klasörü dışında) hosting panelinde.
 - [ ] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (`MapFallbackToFile("index.html")`).
 - [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
