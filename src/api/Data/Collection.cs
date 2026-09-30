@@ -51,7 +51,7 @@ public class Collection
     public string? ShareToken { get; set; }
 
     // Uploaded cover image (photo storage folder name, changes on every upload) and its size for
-    // the quota. Without one the card shows the latest coin photo.
+    // the quota. Without one the client shows its default picture.
     public Guid? CoverImageId { get; set; }
     public long CoverSizeBytes { get; set; }
 
