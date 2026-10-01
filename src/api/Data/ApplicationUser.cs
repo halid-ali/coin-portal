@@ -35,4 +35,9 @@ public class ApplicationUser : IdentityUser
     // Last time the app was opened while signed in (GET me, see LastSeenPrecision). The cookie
     // lasts weeks, so this tells active users apart, not LastSignInAtUtc
     public DateTime? LastSeenAtUtc { get; set; }
+
+    // Locked by an admin (until unlocked): cannot sign in (Identity LockoutEnd is set to the
+    // maximum as well) and their shared collections are hidden (CollectionAccess). Not the
+    // temporary lockout after failed sign-ins, which only sets LockoutEnd
+    public DateTime? LockedAtUtc { get; set; }
 }

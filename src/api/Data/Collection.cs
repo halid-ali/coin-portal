@@ -58,6 +58,10 @@ public class Collection
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 
+    // Hidden by an admin: made Private, and the owner cannot share it again until an admin lifts
+    // the lock (the collection stays Private then; sharing again is the owner's choice)
+    public DateTime? ModerationLockedAtUtc { get; set; }
+
     public List<Coin> Coins { get; set; } = [];
 
     /// <summary>128 random bits, URL safe (22 characters).</summary>
