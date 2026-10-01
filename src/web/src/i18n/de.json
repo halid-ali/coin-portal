@@ -361,7 +361,9 @@
       "lastName": "Nachname",
       "userName": "Benutzername",
       "email": "E-Mail-Adresse",
-      "birthDate": "Geburtsdatum"
+      "birthDate": "Geburtsdatum",
+      "previousSignIn": "Vorherige Anmeldung",
+      "noPreviousSignIn": "Keine frühere Anmeldung gespeichert"
     },
     "appearance": {
       "nav": "Darstellung"

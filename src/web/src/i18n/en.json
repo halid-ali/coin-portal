@@ -361,7 +361,9 @@
       "lastName": "Last name",
       "userName": "Username",
       "email": "Email",
-      "birthDate": "Date of birth"
+      "birthDate": "Date of birth",
+      "previousSignIn": "Previous sign-in",
+      "noPreviousSignIn": "No earlier sign-in recorded"
     },
     "appearance": {
       "nav": "Appearance"

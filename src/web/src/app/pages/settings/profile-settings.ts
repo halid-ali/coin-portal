@@ -44,6 +44,18 @@ import { LanguageService } from '../../core/i18n/language.service';
             <dt class="text-sm text-shade-500">{{ 'settings.profile.birthDate' | transloco }}</dt>
             <dd class="mt-0.5 font-medium text-shade-900">{{ birthDate() }}</dd>
           </div>
+          <div class="min-w-0">
+            <dt class="text-sm text-shade-500">
+              {{ 'settings.profile.previousSignIn' | transloco }}
+            </dt>
+            @if (previousSignIn(); as previous) {
+              <dd class="mt-0.5 font-medium text-shade-900">{{ previous }}</dd>
+            } @else {
+              <dd class="mt-0.5 text-shade-500">
+                {{ 'settings.profile.noPreviousSignIn' | transloco }}
+              </dd>
+            }
+          </div>
         </dl>
       </div>
     }
@@ -64,5 +76,17 @@ export class ProfileSettings {
       dateStyle: 'long',
       timeZone: 'UTC',
     }).format(new Date(Date.UTC(year, month - 1, day)));
+  });
+
+  /** Date and time in the UI language and the device's time zone; null when none is recorded. */
+  protected readonly previousSignIn = computed(() => {
+    const iso = this.auth.currentUser()?.previousSignInAtUtc;
+    if (!iso) {
+      return null;
+    }
+    return new Intl.DateTimeFormat(this.language.current(), {
+      dateStyle: 'long',
+      timeStyle: 'short',
+    }).format(new Date(iso));
   });
 }
