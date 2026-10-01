@@ -54,7 +54,14 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             {
                 ["ConnectionStrings:DefaultConnection"] = connectionString,
                 ["PhotoStorage:RootPath"] = PhotoRoot,
-                ["Logging:LogLevel:Default"] = "Warning",
+                ["Serilog:MinimumLevel:Default"] = "Warning",
+                // Console only, and ASP.NET Core's default key location
+                ["Logs:Path"] = "",
+                ["DataProtection:KeysPath"] = "",
+                // Every test signs up from the same (unknown) address; HostingTests checks the limits
+                ["RateLimiting:Auth:PermitLimit"] = "1000000",
+                ["RateLimiting:Public:PermitLimit"] = "1000000",
+                ["RateLimiting:Photos:PermitLimit"] = "1000000",
             }));
         // The app checks the cookie against the database once a minute; tests check every request,
         // so a lock or role change shows at once instead of after a wait
@@ -88,9 +95,13 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
     }
 
     /// <summary>A signed-out client that already holds an antiforgery token, like the SPA after start.</summary>
-    public async Task<ApiClient> CreateAnonymousClientAsync()
+    public Task<ApiClient> CreateAnonymousClientAsync() => CreateAnonymousClientAsync(this);
+
+    /// <inheritdoc cref="CreateAnonymousClientAsync()"/>
+    /// <param name="host">This factory or a host derived from it (<see cref="WithSettings"/>).</param>
+    public static async Task<ApiClient> CreateAnonymousClientAsync(WebApplicationFactory<Program> host)
     {
-        var client = new ApiClient(CreateClient(new WebApplicationFactoryClientOptions
+        var client = new ApiClient(host.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost"),
             AllowAutoRedirect = false,
@@ -98,6 +109,21 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         await client.RefreshAntiforgeryAsync();
         return client;
     }
+
+    /// <summary>
+    /// A second host on the same database with configuration overrides (and optionally a web root
+    /// folder). Its startup runs the admin sync, which revokes the role of every admin a running
+    /// test signed up: tests that use it belong to the <see cref="AdminCollection"/>.
+    /// </summary>
+    public WebApplicationFactory<Program> WithSettings(IDictionary<string, string?> settings, string? webRoot = null) =>
+        WithWebHostBuilder(builder =>
+        {
+            if (webRoot is not null)
+            {
+                builder.UseWebRoot(webRoot);
+            }
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(settings));
+        });
 
     /// <summary>Signs up a new user with a unique name; the client is signed in as that user.</summary>
     public async Task<TestUser> SignUpAsync(string? language = "en", string? userName = null)

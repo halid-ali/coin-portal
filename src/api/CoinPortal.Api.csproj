@@ -14,6 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="4.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
   </ItemGroup>
@@ -21,6 +22,8 @@
   <ItemGroup>
     <!-- Development seed data (DevDataSeeder), never published -->
     <Content Update="DevData\**" CopyToPublishDirectory="Never" />
+    <!-- Local database and admin; production settings come from the hosting environment -->
+    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,5 +32,29 @@
     <None Remove="App_Data\**" />
     <Compile Remove="App_Data\**" />
   </ItemGroup>
+
+  <!--
+    A publish also builds the Angular client into wwwroot, so one package holds the whole site
+    (SpaHosting serves it). The client gets the API's version for its footer. node_modules is
+    installed only when missing: npm ci would wipe it under a running ng serve, and CI installs it
+    in a step of its own. SkipWebClient=true publishes the API alone.
+  -->
+  <PropertyGroup>
+    <WebClientDir>$(MSBuildProjectDirectory)\..\web\</WebClientDir>
+  </PropertyGroup>
+
+  <Target Name="PublishWebClient" AfterTargets="ComputeFilesToPublish" DependsOnTargets="MinVer"
+          Condition="'$(SkipWebClient)' != 'true'">
+    <Exec Condition="!Exists('$(WebClientDir)node_modules')" WorkingDirectory="$(WebClientDir)" Command="npm ci" />
+    <Exec WorkingDirectory="$(WebClientDir)" Command="npx ng build --define &quot;APP_VERSION='$(MinVerVersion)'&quot;" />
+    <ItemGroup>
+      <WebClientFiles Include="$(WebClientDir)dist\web\browser\**" />
+      <ResolvedFileToPublish Include="@(WebClientFiles)">
+        <RelativePath>wwwroot\%(WebClientFiles.RecursiveDir)%(WebClientFiles.Filename)%(WebClientFiles.Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 
 </Project>

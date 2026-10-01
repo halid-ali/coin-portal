@@ -88,6 +88,8 @@ dotnet ef database update --project src/api
 # API (http://localhost:5080, Swagger: /swagger), content root must be the project folder
 cd src/api && dotnet run --launch-profile http
 cd src/api && dotnet run --launch-profile http -- --seed-dev-data   # dev data, then exits
+dotnet publish src/api -c Release -o <dir>            # whole site: API + Angular build in wwwroot
+dotnet publish src/api -c Release -o <dir> -p:SkipWebClient=true   # API only
 
 # Client (http://localhost:4200, /api proxied to 5080)
 cd src/web && npm install && ng serve
@@ -114,7 +116,8 @@ src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+
                         Auth,Coins,Collections,Countries,Common,Public,Settings}/, Data/ (entities,
                         AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage + image
                         processing), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
-                        Validation/, Localization/, App_Data/photos (gitignored)
+                        Validation/, Localization/, Hosting/ (Serilog, DataProtection, rate limiter,
+                        client'ın wwwroot'tan sunulması), App_Data/{photos,logs,keys} (gitignored)
 src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
 src/web/src/app/        core/{admin,auth,coins,collections,public,http,i18n,settings}/, shared/,
                         layout/{header,footer}/ + page-width.service, pages/ (+ admin/)
@@ -145,7 +148,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Native mobil gerekirse önce cookie'yi koruyan yol denenir (`docs/reviews/2026-09-29-project-direction.md`).
 - CSRF: antiforgery, header `X-XSRF-TOKEN`; client `GET /api/auth/antiforgery` ile okunabilir
   `XSRF-TOKEN` cookie'si alır (açılışta ve her login/register/logout sonrası, token kullanıcıya bağlı).
-- Yayın hedefi: Angular derlemesi API'nin `wwwroot`'undan sunulacak, tek site, Windows hosting.
+- Yayın hedefi: tek site, Windows hosting. `dotnet publish` Angular'ı da derleyip paketin `wwwroot`'una
+  koyar (`.csproj` `PublishWebClient`); API onu `Hosting/SpaHosting` ile sunar: client adreslerine
+  `index.html` (fallback), `/api/…` altında bilinmeyen adres 404, hash'li dosyalar `immutable`, diğerleri
+  `no-cache`. Lokalde `wwwroot` yok, client'ı `ng serve` sunar.
 - **Yönetici paneli = moderasyon ve işletim paneli** (tüm verilerin yönetimi değil; kararlar
   PROJECT_STATUS "Yönetici paneli: kararlar"). Sadece `Admin` rolü. Rol **sadece ayardan** verilir:
   `Admin:UserIds` (kullanıcı adı değil Id: boşta kalan bir adı herkes kaydedebilir), açılışta
@@ -207,6 +213,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
   Görünen ama yasak işlem → **403** (ör. kendi kilitli koleksiyonunu yayınlamak, `moderation_locked`).
+- **Rate limit:** girişsiz (`[AllowAnonymous]`) okuma uçları ve kimlik uçları bir politika alır:
+  `[EnableRateLimiting(RateLimitPolicies.Public | Photos | Auth)]` (`Hosting/AppRateLimiting`; IP
+  başına, sınırlar `RateLimiting` ayarından, girişli kullanıcı `Public`/`Photos`'a takılmaz). Aşım 429 +
+  `Retry-After` + kod `rate_limited`.
+- **Loglar** (Serilog, `Hosting/AppLogging`): seviyeler `Serilog` ayar bölümünde (`Logging` bölümü
+  yok), dosyalar `Logs:Path`'e. İstek logu adresi sorgusuyla yazar; paylaşım anahtarı maskelenir
+  (`MaskShareKeys`). URL'e yeni bir gizli değer (token, anahtar) girerse maskeye eklenir. Loga parola,
+  cookie, token ya da istek gövdesi yazılmaz.
+- Site klasörü dışında tutulacak yollar ayardan: `PhotoStorage:RootPath`, `Logs:Path`,
+  `DataProtection:KeysPath` (anahtarlar Windows'ta DPAPI ile şifreli, `DataProtection:Dpapi`); hepsinin
+  varsayılanı `App_Data/` altında.
 - Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
@@ -228,7 +245,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   eriştiği için factory migration'ı host başlamadan uygular. Testlerde cookie her istekte doğrulanır
   (`ValidationInterval` sıfır; kilit ve rol hemen yansır), bu yüzden girişli yanıtlar cookie yeniler ve
   `no-cache` olur: önbellek başlığını girişsiz istemciyle test et. API'nin açmadığı alanlar için
-  `factory.WithDbAsync(...)`.
+  `factory.WithDbAsync(...)`. Ana test host'unda rate limit'ler çok yüksek ve log dosyası yok; başka
+  ayar ya da `wwwroot` gereken testler ikinci bir host açar (`factory.WithSettings(ayarlar, webRoot)`,
+  bkz. `HostingTests`). İkinci host'un açılışı admin senkronunu çalıştırır, o yüzden bu testler de
+  `[Collection(AdminCollection.Name)]` içinde.
 
 ## Client kuralları
 
@@ -363,6 +383,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   küçük bir bedel.
 - API açılışta veritabanına yazar (admin rol senkronu): veritabanı erişilemezse ya da boşsa (hiç
   migration uygulanmamış) API başlamaz. Hosting'de önce migration, sonra uygulama.
+- Dev veritabanına karşı ikinci bir API (5090, publish paketi, Production ortamı) çalıştırılırken
+  `Admin__UserIds__0=<kendi Id'n>` verilir: `appsettings.Development.json` sadece Development'ta
+  okunur, boş liste açılış senkronunda kullanıcının admin rolünü alır.
+- Publish paketi Production ortamında düz HTTP'de denenince antiforgery 500 verir (cookie'ler
+  `SecurePolicy.Always`, HTTPS ister). Fallback, önbellek başlıkları, loglar ve rate limit (429 sayımı
+  500'leri de sayar) yine denetlenebilir; giriş gerektiren akışlar Development'ta ya da HTTPS'te denenir.
 - Test koşusu yarıda kesilirse (Ctrl+C, debugger) LocalDB'de bir `CoinPortal_Tests_*` veritabanı ve
   `%TEMP%` altında aynı adlı fotoğraf klasörü kalabilir; elle silinir (adlar çakışmaz, testleri bozmaz).
 - Biçim kuralları kökteki `.editorconfig`'te (LF, dosya sonu satır sonu, C# 4 boşluk, EF migration'ları

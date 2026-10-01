@@ -1,13 +1,14 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (`v0.2.0` yayınlandı: yönetici paneli, API testleri, giriş zamanları; yol
-haritası 12. adım tamam, sırada 9. adım hosting temeli. Proje GitHub'da public:
-https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-01 (9. adım hosting temeli başladı: 9a `chore/hosting-infra` bitti (wwwroot +
+SPA fallback, publish'te client, Serilog, DataProtection anahtarları, rate limiter) ve main'e merge
+edildi (push edilmedi); sırada 9b. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
+haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-v0.2.0` 2026-10-01'de merge
-  edildi, son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra` 2026-10-01'de merge edildi, henüz
+  push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -586,6 +587,39 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     (22) ve giriş zamanları (24). CHANGELOG git-cliff ile; şablonda iki sürüm bölümü birbirine yapışıyordu
     (bölüm sonunda boş satır yoktu, tek sürümde görünmüyordu), `cliff.toml` düzeltildi. Etiket merge
     commit'inde, GitHub Release açıldı (giriş, öne çıkanlar, CHANGELOG linki; notlar lokal `.notes/`).
+28. **Hosting altyapısı** (`chore/hosting-infra`, 2026-10-01; yol haritası 9a). Kod `src/api/Hosting/`:
+    - **Client'ı API sunar:** `SpaHosting`: `wwwroot`'ta `index.html` varsa statik dosyalar + client
+      adreslerine (`/collections/5`, `/s/…`) `index.html` (fallback). `/api/…` altındaki bilinmeyen
+      adresler her zaman 404 (client sayfası değil). Önbellek: adında hash olan dosyalar
+      (`main-ABCD1234.js`) 1 yıl `immutable`, diğerleri (`index.html`, favicon) `no-cache` (yeni sürüm
+      bir sonraki ziyarette gelir). Lokalde `wwwroot` yok, davranış eskisi gibi.
+    - **Publish client'ı da derler:** `.csproj` hedefi `PublishWebClient`: `dotnet publish` `ng build
+      --define APP_VERSION=<MinVer sürümü>` çalıştırır, çıktıyı paketin `wwwroot`'una koyar.
+      `node_modules` yoksa `npm ci` (varsa dokunmaz: çalışan `ng serve`'ün altından silmesin).
+      `-p:SkipWebClient=true` sadece API. `appsettings.Development.json` artık pakete girmiyor.
+    - **Loglama: Serilog** (`Serilog.AspNetCore` 10, Apache-2.0). Seviyeler `Serilog` bölümünden
+      (`Logging` bölümü kalktı), konsol + `Logs:Path` klasörüne günlük dosya (`coinportal-YYYYMMDD.log`,
+      30 gün, dosya başına 100 MB). İstek başına bir satır (adres sorgusuyla; fallback'in yeniden yazdığı
+      `/index.html` değil, istenen adres); başarılı fotoğraf/kapak GET'leri Debug (yazılmaz).
+      Paylaşım anahtarı loglara girmez (`/s/***`, `shared/***`, `?s=***`; `AppLogging.MaskShareKeys`).
+      Açılıştaki veritabanı hatası Critical olarak loglanır (IIS'te "500.30" durumunun tek izi).
+      Hosting'de `Logs__Path` site klasörü dışı; loglar panelin dosya yöneticisi / FTP ile okunur.
+    - **DataProtection:** anahtarlar `DataProtection:KeysPath`'e (varsayılan `App_Data/keys`), Windows'ta
+      DPAPI ile şifreli (`Dpapi`: `CurrentUser` varsayılan, uygulama havuzu profil yüklemiyorsa
+      `LocalMachine`); uygulama adı sabit (`CoinPortal`). Lokalde anahtar yeri değiştiği için API ilk
+      yeniden başlatmada bir kez oturum düşürür.
+    - **Rate limiter** (yerleşik, IP başına, IPv6'da /64; sabit 1 dk pencere, bellekte): `auth` 10
+      (login + kayıt), `public` 120 (`PublicController`), `photos` 600 (fotoğraf ve kapak GET). Girişli
+      kullanıcı `public`/`photos`'a takılmaz. Aşımda 429 + `Retry-After` + kod `rate_limited`, IP ile
+      uyarı logu. Client: `httpErrorMessage` 429'u `errors.rateLimited` ile gösterir (4 dil).
+    - Testler: API 109 (+15: login/kayıt sınırı ve kodu, girişsiz/girişli okuma sınırı, client
+      adresleri `index.html` + `no-cache`, hash'li dosya `immutable`, `/api/…` 404, client derlemesi
+      yokken 404, log maskeleme). İkinci host `factory.WithSettings(...)` (admin koleksiyonunda);
+      ana test host'unda sınırlar çok yüksek. Client 75 test (+1).
+    - Canlı kontrol: `dotnet publish -c Release` paketi Production ortamında 5090'da: fallback ve
+      önbellek başlıkları, 11. login 429, log dosyası, maskelenmiş adresler, anahtar dosyası
+      `DpapiXmlDecryptor`. Düz HTTP'de antiforgery 500 verdi (Production cookie'si HTTPS ister,
+      beklenen; CLAUDE.md tuzaklarında).
 
 ## Yol haritası
 
@@ -620,10 +654,23 @@ mağaza için TWA.
         koleksiyonlar (liste, gizle + kilit, kilidi kaldır); denetim kaydı (Tamamlananlar 25).
   - [x] `feat/admin-ui`: panel arayüzü, geniş sayfa, sahip tarafı ve giriş mesajı (Tamamlananlar 26).
   - [x] `v0.2.0` yayını (2026-10-01, Tamamlananlar 27).
-- [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma
-      (admin'in kullanıcı silmesi de bu servisle; `AuditLog`'daki ad anlık görüntüleri silinen kullanıcı
-      için anonimleştirilir), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
-      düzeltmesi, beni hatırla, PWA manifest.
+- [ ] 9. Hosting temeli (2026-10-01'de alt adımlara bölündü; sonunda `v0.3.0`). Turnstile 15. adıma,
+      forwarded headers hosting seçimine kaldı (sitenin önüne CDN konursa).
+  - [x] 9a. `chore/hosting-infra`: wwwroot + SPA fallback + önbellek, publish'te client, Serilog,
+        DataProtection, rate limiter (Tamamlananlar 28).
+  - [ ] 9b. `fix/photo-upload-limits`: orijinal dosyadaki 10 MB kontrolü kalkar (48–50 MP telefon
+        fotoğrafları kırpmaya ulaşamıyordu; sunucu sınırı kırpılmış çıktıya), tür hatası cropper'ın
+        `loadImageFailed`'ine; Android'de HEIC için anlaşılır mesaj.
+  - [ ] 9c. `feat/remember-me`: "Beni hatırla" varsayılan işaretli, kayıttan sonraki oturum kalıcı
+        (kullanıcı kararı 2026-10-01).
+  - [ ] 9d. `feat/pwa-manifest`: manifest, mevcut logodan 192/512 + maskable ikonlar, apple-touch-icon,
+        açık/koyu theme-color (service worker 11. adımda).
+  - [ ] 9e. `feat/account-deletion`: hesap silme (parolayla onay, hemen ve geri alınamaz; kullanıcı
+        kararı) + dışa aktarma (ZIP: JSON + tam boy fotoğraflar; kullanıcı kararı), Ayarlar > Hesap;
+        admin'in kullanıcı silmesi aynı servisle (admin silinemez, denetim kaydı), `AuditLog`'daki ad
+        anlık görüntüleri anonimleştirilir.
+  - [ ] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları (4 dil, e-postayla iletişim),
+        footer ve kayıt formunda link; operatör bilgileri ve Impressum kullanıcıya sorulacak.
 - [ ] 8b. `tests/e2e` (Playwright).
 - [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
       (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
@@ -647,7 +694,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. Yol haritasında sırada **9. adım** (`feat/hosting-foundation`).
+9. adımın alt adımları sırayla: 9a bitti (main'de, push edilmedi), sırada **9b**
+(`fix/photo-upload-limits`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
@@ -887,7 +935,7 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    Push'ta etiketler ayrıca gönderilir (`git push origin vX.Y.Z`).
 5. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
    parolalı connection string repoya girmeyecek.
-6. **Yayında SPA fallback:** `MapFallbackToFile("index.html")`.
+6. ~~**Yayında SPA fallback**~~ (kapandı 2026-10-01): `SpaHosting`, Tamamlananlar 28.
 7. ~~**Backend testleri yok.**~~ (kapandı 2026-09-30): `tests/api`, Tamamlananlar 22. e2e testleri
    (Playwright) yol haritasında 8b.
 8. **Fotoğraflara watermark (ileride, 2026-09-27'de konuşuldu):** Görünürlük ayarı ve herkese açık profil
@@ -915,9 +963,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (şu an 25 Euro ihraççısı, `Countries` tablosu; tarihî ülkeler de gerekebilir), yılın genelleşmesi
     (şu an 1999 ve sonrası, `CK_Coins_Year`; antikalarda tahmini yıl/dönem), para birimi. Euro'ya özgü
     kurallar (ulusal/ortak yüz, 2 € hatıra) sadece Euro türünde geçerli olmalı.
-11. **İstek sınırlama (rate limiting) yok:** Girişsiz uçlar (Keşfet, profil, paylaşılan koleksiyon,
-    fotoğraflar) ve giriş denemeleri için hosting öncesi ASP.NET Core rate limiter değerlendirilmeli.
-    Gizli link anahtarı 128 bit olduğu için tahminle bulunamaz; amaç yükü sınırlamak.
+11. ~~**İstek sınırlama (rate limiting) yok**~~ (kapandı 2026-10-01): yerleşik rate limiter, Tamamlananlar
+    28. Sınırlar bellekte (uygulama yeniden başlayınca sıfırlanır) ve IP başına: sitenin önüne CDN/proxy
+    konursa `UseForwardedHeaders` + `KnownProxies` gerekir, yoksa herkes proxy'nin IP'siyle tek kovaya
+    düşer.
 12. **Çeviriler (2026-09-28):**
     - Almanca ve Bulgarca metinleri anadili konuşan biri henüz görmedi; yayından önce önerilir.
       Bulgarcada en emin olunmayanlar: hitap şekli (вие), buton kipi (emir), tablo kısaltmaları
@@ -935,8 +984,11 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 
 - [ ] Hosting seçimi ("Hosting seçimi kontrol listesi").
 - [x] ImageSharp lisans anahtarı (Açık konular 1, 2026-09-30); `dotnet build -c Release` hatasız.
-- [ ] Production connection string ve `PhotoStorage__RootPath` (site klasörü dışında) hosting panelinde.
-- [ ] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (`MapFallbackToFile("index.html")`).
+- [ ] Production connection string ve site klasörü dışındaki yollar hosting panelinde:
+      `PhotoStorage__RootPath`, `Logs__Path`, `DataProtection__KeysPath` (uygulama havuzu profil
+      yüklemiyorsa `DataProtection__Dpapi=LocalMachine`).
+- [x] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (2026-10-01, Tamamlananlar 28).
+- [x] Rate limiter, loglama, DataProtection anahtar yolu (2026-10-01, Tamamlananlar 28).
 - [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).
@@ -952,7 +1004,12 @@ Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olm
   `PhotoStorage__RootPath`)
 - Uygulama havuzu boşta kalınca ne zaman kapanıyor (idle timeout)? "Always on" / önceden yükleme var mı?
   (İlk istekte soğuk başlama gecikmesi.)
-- Uygulama loglarına (stdout log, olay günlüğü) erişilebiliyor mu?
+- Uygulamanın yazdığı log dosyalarına (site klasörü dışında, `Logs__Path`) dosya yöneticisi / FTP ile
+  erişilebiliyor mu?
+- Uygulama havuzunda "Load User Profile" açık mı? (DataProtection anahtarlarının DPAPI şifrelemesi:
+  açıksa `CurrentUser`, değilse `DataProtection__Dpapi=LocalMachine`.)
+- Sitenin önünde CDN/proxy var mı ya da konacak mı? (Varsa rate limiter ve loglar için
+  `KnownProxies`.)
 - `web.config` ile istek boyutu sınırı (`maxAllowedContentLength`) ayarlanabiliyor mu?
 
 **Fotoğraflar ve disk**
