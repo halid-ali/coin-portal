@@ -238,7 +238,7 @@
   "photo": {
     "viewLarge": "{{side}} büyük göster",
     "choose": "Fotoğraf seç",
-    "fileHint": "JPG veya PNG, en fazla {{mb}} MB",
+    "fileHint": "JPG veya PNG",
     "willUpload": "Kaydedince yüklenecek",
     "willDelete": "Kaydedince silinecek",
     "willRemove": "Kaydedince kaldırılacak",
@@ -257,6 +257,7 @@
     "title": "Fotoğrafı kırp",
     "hint": "Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin; yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.",
     "openFailed": "Fotoğraf açılamadı. Başka bir dosya dene.",
+    "heicFailed": "Bu tarayıcı HEIC/HEIF biçimindeki fotoğrafları açamıyor. Fotoğrafı JPG olarak kaydedip tekrar dene.",
     "zoom": "Yakınlaştır",
     "rotate": "90° döndür",
     "rotateLabel": "90 derece döndür",
@@ -329,7 +330,7 @@
     "title": "Kapak fotoğrafı",
     "choose": "Kapak seç",
     "upload": "Kapak yükle",
-    "hint": "İsteğe bağlı, JPG veya PNG (en fazla {{mb}} MB). Yüklemezsen kartta varsayılan koleksiyon görseli gösterilir.",
+    "hint": "İsteğe bağlı, JPG veya PNG. Yüklemezsen kartta varsayılan koleksiyon görseli gösterilir.",
     "cropTitle": "Kapak fotoğrafını kırp",
     "cropHint": "Kartlarda görünecek alanı seç. Çerçeveyi sürükleyip köşelerinden boyutlandırabilirsin; yakınlaştırınca fotoğrafı çerçevenin dışından tutup kaydırabilirsin."
   },

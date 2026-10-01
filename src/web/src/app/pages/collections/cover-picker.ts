@@ -12,7 +12,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { COVER_LIMITS, Collection } from '../../core/collections/collection.models';
 import { coverUrl } from '../../core/collections/collection.service';
-import { PHOTO_LIMITS } from '../../core/coins/coin.models';
 import { validatePhotoFile } from '../../core/coins/photo-errors';
 import { ImageChange } from '../../shared/image-change';
 import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialog';
@@ -108,7 +107,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
       }
     </div>
     <p class="form-hint">
-      {{ 'cover.hint' | transloco: { mb: maxMb } }}
+      {{ 'cover.hint' | transloco }}
     </p>
     @if (error()) {
       <p class="form-error" role="alert">{{ error() }}</p>
@@ -135,7 +134,6 @@ export class CoverPicker {
 
   protected readonly aspectRatio = COVER_LIMITS.aspectRatio;
   protected readonly minWidth = COVER_LIMITS.minWidth;
-  protected readonly maxMb = PHOTO_LIMITS.maxUploadBytes / (1024 * 1024);
   protected readonly chosenFile = signal<File | null>(null);
   protected readonly error = signal<string | null>(null);
   private readonly pendingUrl = signal<string | null>(null);

@@ -1,14 +1,14 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (9. adım hosting temeli başladı: 9a `chore/hosting-infra` bitti (wwwroot +
-SPA fallback, publish'te client, Serilog, DataProtection anahtarları, rate limiter) ve main'e merge
-edildi (push edilmedi); sırada 9b. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
+Son güncelleme: 2026-10-01 (9. adım hosting temeli: 9a `chore/hosting-infra` (wwwroot + SPA fallback,
+publish'te client, Serilog, DataProtection anahtarları, rate limiter) ve 9b `fix/photo-upload-limits`
+(büyük telefon fotoğrafları, HEIC mesajı) bitti, main'de (push edilmedi); sırada 9c. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
 haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra` 2026-10-01'de merge edildi, henüz
-  push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra` ve `fix/photo-upload-limits`
+  2026-10-01'de merge edildi, henüz push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -615,11 +615,26 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Testler: API 109 (+15: login/kayıt sınırı ve kodu, girişsiz/girişli okuma sınırı, client
       adresleri `index.html` + `no-cache`, hash'li dosya `immutable`, `/api/…` 404, client derlemesi
       yokken 404, log maskeleme). İkinci host `factory.WithSettings(...)` (admin koleksiyonunda);
-      ana test host'unda sınırlar çok yüksek. Client 75 test (+1).
+      ana test host'unda sınırlar çok yüksek. Client 74 test (+1).
     - Canlı kontrol: `dotnet publish -c Release` paketi Production ortamında 5090'da: fallback ve
       önbellek başlıkları, 11. login 429, log dosyası, maskelenmiş adresler, anahtar dosyası
       `DpapiXmlDecryptor`. Düz HTTP'de antiforgery 500 verdi (Production cookie'si HTTPS ister,
       beklenen; CLAUDE.md tuzaklarında).
+29. **Büyük telefon fotoğrafları ve HEIC** (`fix/photo-upload-limits`, 2026-10-01; yol haritası 9b):
+    - Seçilen dosyaya boyut sınırı yok: 10 MB sınırı (API) kırpılmış JPEG'e uygulanıyor, orijinale değil.
+      Önceden 12–25 MB'lık 48–50 MP telefon fotoğrafları kırpma açılmadan reddediliyordu.
+    - Tür: sadece resim olmayan dosyalar (`application/pdf` gibi) reddedilir; tarayıcının açabildiği her
+      resim (WebP dahil) kırpılıp JPEG gider, karar cropper'da. Türü boş gelen dosyalar da denenir.
+      Seçim penceresi yine JPG/PNG ister (`accept`): iOS HEIC'i bu yüzden JPEG'e çevirir, HEIC eklenmez.
+    - HEIC/HEIF açılamazsa (Chrome, Android) kırpma penceresinde "Bu tarayıcı HEIC/HEIF … açamıyor, JPG
+      olarak kaydedip tekrar dene" (`crop.heicFailed`, tür ya da uzantıdan, `isHeic`); Safari HEIC'i
+      açabildiği için önceden reddedilmez. Diğer dosyalarda eski genel mesaj.
+    - İpuçlarından "en fazla 10 MB" kalktı (`photo.fileHint`, `cover.hint`, 4 dil).
+    - Testler: client 77 (+3: doğrulama, `isHeic`, kırpma penceresinin iki mesajı; HEIC koşulu bozulunca
+      test kırıldı). Headless Edge (4200, `ayse.yilmaz`, kaydetmeden): 8000x6000, 26,4 MB JPEG kırpma
+      penceresinde açıldı, sonuç 1600x1600, 687 KB JPEG; sahte `.HEIC` dosyasında HEIC mesajı.
+      Gerçek telefonda denenmedi (lokal sunucuya telefondan erişim yok): hosting'den sonra Android ve
+      iPhone'da bir kez denenecek (Açık konular 13).
 
 ## Yol haritası
 
@@ -658,9 +673,8 @@ mağaza için TWA.
       forwarded headers hosting seçimine kaldı (sitenin önüne CDN konursa).
   - [x] 9a. `chore/hosting-infra`: wwwroot + SPA fallback + önbellek, publish'te client, Serilog,
         DataProtection, rate limiter (Tamamlananlar 28).
-  - [ ] 9b. `fix/photo-upload-limits`: orijinal dosyadaki 10 MB kontrolü kalkar (48–50 MP telefon
-        fotoğrafları kırpmaya ulaşamıyordu; sunucu sınırı kırpılmış çıktıya), tür hatası cropper'ın
-        `loadImageFailed`'ine; Android'de HEIC için anlaşılır mesaj.
+  - [x] 9b. `fix/photo-upload-limits`: büyük telefon fotoğrafları, tür kararı cropper'da, HEIC mesajı
+        (Tamamlananlar 29).
   - [ ] 9c. `feat/remember-me`: "Beni hatırla" varsayılan işaretli, kayıttan sonraki oturum kalıcı
         (kullanıcı kararı 2026-10-01).
   - [ ] 9d. `feat/pwa-manifest`: manifest, mevcut logodan 192/512 + maskable ikonlar, apple-touch-icon,
@@ -694,8 +708,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-9. adımın alt adımları sırayla: 9a bitti (main'de, push edilmedi), sırada **9b**
-(`fix/photo-upload-limits`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+9. adımın alt adımları sırayla: 9a ve 9b bitti (main'de, push edilmedi), sırada **9c**
+(`feat/remember-me`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
@@ -977,6 +991,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
       öyle gösterilir; client doğrulaması aynı kuralları uyguladığı için pratikte görünmez.
     - Yeni bir dil eklemek: `SupportedLanguages` + `languages.ts` + `src/i18n/<dil>.json` +
       `Collection.DefaultNameFor`; test dosya eşliğini kontrol eder. Tablo başlıklarını ölç.
+
+13. **Telefonda fotoğraf denemesi (hosting'den sonra):** Android (Chrome) ve iPhone (Safari) ile kameradan
+    doğrudan fotoğraf ekleme; büyük fotoğrafın kırpma penceresinde açılması (bellek), Android'de HEIC
+    mesajı. Masaüstü headless Edge'de denendi (Tamamlananlar 29).
 
 ## Yayın öncesi yapılacaklar
 

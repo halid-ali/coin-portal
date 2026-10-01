@@ -238,7 +238,7 @@
   "photo": {
     "viewLarge": "Show {{side}} larger",
     "choose": "Choose photo",
-    "fileHint": "JPG or PNG, up to {{mb}} MB",
+    "fileHint": "JPG or PNG",
     "willUpload": "Uploaded when you save",
     "willDelete": "Deleted when you save",
     "willRemove": "Removed when you save",
@@ -257,6 +257,7 @@
     "title": "Crop photo",
     "hint": "Center the coin in the circle. Drag the circle and resize it from its corners; after zooming in, drag the photo from outside the circle to move it.",
     "openFailed": "The photo couldn't be opened. Try another file.",
+    "heicFailed": "This browser can't open HEIC/HEIF photos. Save the photo as JPG and try again.",
     "zoom": "Zoom",
     "rotate": "Rotate 90°",
     "rotateLabel": "Rotate 90 degrees",
@@ -329,7 +330,7 @@
     "title": "Cover photo",
     "choose": "Choose cover",
     "upload": "Upload cover",
-    "hint": "Optional, JPG or PNG (up to {{mb}} MB). Without one, the card shows the default collection picture.",
+    "hint": "Optional, JPG or PNG. Without one, the card shows the default collection picture.",
     "cropTitle": "Crop cover photo",
     "cropHint": "Choose the area shown on the cards. Drag the frame and resize it from its corners; after zooming in, drag the photo from outside the frame to move it."
   },

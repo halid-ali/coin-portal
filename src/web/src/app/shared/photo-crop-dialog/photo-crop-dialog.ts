@@ -11,6 +11,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ImageCropperComponent, ImageTransform } from 'ngx-image-cropper';
 
 import { PHOTO_LIMITS } from '../../core/coins/coin.models';
+import { isHeic } from '../../core/coins/photo-errors';
 
 let nextId = 0;
 
@@ -46,7 +47,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
         >
           @if (failed()) {
             <p class="p-6 text-center text-sm text-white">
-              {{ 'crop.openFailed' | transloco }}
+              {{ (isHeic(file()) ? 'crop.heicFailed' : 'crop.openFailed') | transloco }}
             </p>
           } @else {
             <image-cropper
@@ -164,6 +165,7 @@ export class PhotoCropDialog {
 
   protected readonly titleId = `crop-title-${++nextId}`;
   protected readonly maxPixels = PHOTO_LIMITS.maxPixels;
+  protected readonly isHeic = isHeic;
   protected readonly ready = signal(false);
   protected readonly failed = signal(false);
   protected readonly cropping = signal(false);

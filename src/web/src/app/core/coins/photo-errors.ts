@@ -24,13 +24,21 @@ export function photoErrorMessage(err: HttpErrorResponse): string {
   return err.status === 413 ? codeMessage('file_too_large') : translate('photo.errors.saveFailed');
 }
 
-/** Checks a chosen file before it is opened in the cropper; null when it is fine. */
+/**
+ * Checks a chosen file before it is opened in the cropper; null when it is fine. Only files that
+ * are not images at all are turned away: whatever the browser can open is cropped and sent as
+ * JPEG, so the cropper decides (the file picker still offers JPG and PNG). No size check either:
+ * the API's limit applies to the cropped result.
+ */
 export function validatePhotoFile(file: File): string | null {
-  if (!(PHOTO_LIMITS.acceptedTypes as readonly string[]).includes(file.type)) {
-    return translate('photo.errors.wrongType');
-  }
-  if (file.size > PHOTO_LIMITS.maxUploadBytes) {
-    return codeMessage('file_too_large');
-  }
-  return null;
+  // Some pickers give no type at all; the cropper tries those
+  return file.type && !file.type.startsWith('image/') ? translate('photo.errors.wrongType') : null;
+}
+
+/**
+ * HEIC/HEIF (iPhone and some Android cameras): Safari opens them, Chrome does not. iOS converts
+ * them to JPEG when the picker asks for JPG/PNG, so this is mostly Android and desktop Chrome.
+ */
+export function isHeic(file: File): boolean {
+  return /^image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 }

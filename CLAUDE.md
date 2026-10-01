@@ -309,6 +309,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış
   metin ya da vazgeçilirse `null`. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
+- Seçilen fotoğraf dosyasına boyut sınırı uygulanmaz (48–50 MP telefon fotoğrafları 10 MB'ı aşar);
+  API'nin sınırları kırpılmış JPEG'e (en fazla 1600 px) uygulanır. Tür kararı cropper'da: sadece resim
+  olmayan dosya önceden reddedilir, HEIC açılamazsa kırpma penceresi `crop.heicFailed` gösterir.
+  `accept` JPG/PNG kalır (iOS HEIC'i bu yüzden JPEG'e çevirir).
 - Coin formunda fotoğraf değişiklikleri (`PhotoSlot`, `PhotoChange`) **Kaydet'te** uygulanır: önce coin,
   sonra yüzler sırayla. Fotoğraf hatasında coin kayıtlı kalır, adres düzenleme adresine çevrilir.
 - Bekleyen görsel değişikliği tipi `ImageChange` (`shared/image-change.ts`); kapak da coin fotoğrafı gibi
