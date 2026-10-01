@@ -25,13 +25,15 @@ public sealed record LoginRequest(
 /// <param name="Language">Saved UI language, or null if the user never chose one.</param>
 /// <param name="Theme">Saved color theme, or null if the user never chose one.</param>
 /// <param name="Accent">Saved accent color, or null if the user never chose one.</param>
+/// <param name="PreviousSignInAtUtc">The sign-in before the current session's, for the profile;
+/// null if none is recorded (new account, or none since the field was added).</param>
 /// <param name="Roles">Identity roles (AppRoles), e.g. ["Admin"]; empty for most users.</param>
 public sealed record UserResponse(
     string Id, string UserName, string Email,
     string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme,
-    AccentColor? Accent, IReadOnlyList<string> Roles)
+    AccentColor? Accent, DateTime? PreviousSignInAtUtc, IReadOnlyList<string> Roles)
 {
     public static UserResponse From(ApplicationUser u, IEnumerable<string> roles) =>
         new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
-            u.PreferredTheme, u.PreferredAccent, roles.Order().ToList());
+            u.PreferredTheme, u.PreferredAccent, u.PreviousSignInAtUtc, roles.Order().ToList());
 }

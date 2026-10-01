@@ -22,4 +22,17 @@ public class ApplicationUser : IdentityUser
 
     // Accent color chosen by the user; null means no choice was saved (see AccentColor)
     public AccentColor? PreferredAccent { get; set; }
+
+    // How often LastSeenAtUtc is written at most: it shows activity, not every request
+    public static readonly TimeSpan LastSeenPrecision = TimeSpan.FromHours(1);
+
+    // Sign-in with a password or by registering; null until the first one after this field existed
+    public DateTime? LastSignInAtUtc { get; set; }
+
+    // The sign-in before the last one, shown to the user (an unknown one hints at a stolen password)
+    public DateTime? PreviousSignInAtUtc { get; set; }
+
+    // Last time the app was opened while signed in (GET me, see LastSeenPrecision). The cookie
+    // lasts weeks, so this tells active users apart, not LastSignInAtUtc
+    public DateTime? LastSeenAtUtc { get; set; }
 }
