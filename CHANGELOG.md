@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-01
+
+### Added
+
+- **api:** Serve the client, log to files, persist keys and rate limit requests
+- **auth:** Keep sign-ins by default and after sign-up
+- **client:** Make the app installable with a manifest and logo icons
+- Let users export and delete their account, and admins delete users
+- Add the privacy policy and contact pages, and require reading the policy at sign-up
+
+### Fixed
+
+- **client:** Accept large phone photos and explain unsupported HEIC
+
 ## [0.2.0] - 2026-10-01
 
 ### Added
