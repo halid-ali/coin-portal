@@ -143,6 +143,8 @@ public class AdminCollectionQuery
 }
 
 /// <param name="OwnerLocked">The owner is locked, so the collection is not visible to others now.</param>
+/// <param name="OwnerIsAdmin">The owner is an admin too: content moderation applies to admins as well
+/// (account actions do not), and the panel shows it before hiding.</param>
 /// <param name="ShareToken">While Unlisted, so the panel can open /s/{ShareToken}.</param>
 /// <param name="ModerationLockedAtUtc">When an admin hid it; null if not hidden.</param>
 public sealed record AdminCollectionResponse(
@@ -152,6 +154,7 @@ public sealed record AdminCollectionResponse(
     string OwnerId,
     string OwnerUserName,
     bool OwnerLocked,
+    bool OwnerIsAdmin,
     CollectionVisibility Visibility,
     string? ShareToken,
     int CoinCount,
