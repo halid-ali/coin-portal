@@ -58,6 +58,17 @@ export const routes: Routes = [
     data: { mode: 'public' },
     loadComponent: () => import('./pages/collection/collection').then((m) => m.Collection),
   },
+  // Legal pages, public (footer, sign-up form)
+  {
+    path: 'privacy',
+    title: 'titles.privacy',
+    loadComponent: () => import('./pages/legal/privacy').then((m) => m.Privacy),
+  },
+  {
+    path: 'contact',
+    title: 'titles.contact',
+    loadComponent: () => import('./pages/legal/contact').then((m) => m.Contact),
+  },
   {
     path: 's/:token',
     title: 'titles.sharedCollection',

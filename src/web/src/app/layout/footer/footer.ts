@@ -9,7 +9,8 @@ import { LanguagePreference } from '../../core/settings/language-preference';
 import { LanguageSelect } from '../../shared/language-select/language-select';
 
 /**
- * Site footer: logo on the left, copyright in the middle, language on the right; the content
+ * Site footer: logo on the left, copyright and the privacy/contact links in the middle, language on
+ * the right; the content
  * lines up with the navbar (same max width and padding). Sticks to the bottom from sm up; on
  * phones it stays at the end of the page, so it does not take screen space (same as the navbar).
  */
@@ -41,6 +42,14 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
         @if (version) {
           <span class="text-shade-400">· v{{ version }}</span>
         }
+        ·
+        <a routerLink="/privacy" class="hover:text-shade-800 hover:underline">{{
+          'legal.privacyLink' | transloco
+        }}</a>
+        ·
+        <a routerLink="/contact" class="hover:text-shade-800 hover:underline">{{
+          'legal.contactLink' | transloco
+        }}</a>
       </p>
 
       <app-language-select

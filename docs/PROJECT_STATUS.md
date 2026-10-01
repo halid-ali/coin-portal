@@ -1,16 +1,15 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (9. adım hosting temeli: 9a `chore/hosting-infra` (wwwroot + SPA fallback,
-publish'te client, Serilog, DataProtection anahtarları, rate limiter), 9b `fix/photo-upload-limits`
-(büyük telefon fotoğrafları, HEIC mesajı), 9c `feat/remember-me`, 9d `feat/pwa-manifest` ve 9e
-`feat/account-deletion` (hesap silme + dışa aktarma) bitti, main'de (push edilmedi); sırada 9f. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
-haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-01 (9. adım hosting temeli tamam: 9a altyapı, 9b büyük fotoğraflar, 9c kalıcı
+oturum, 9d PWA manifest, 9e hesap silme + dışa aktarma, 9f gizlilik + iletişim; hepsi main'de, push
+edilmedi. Sırada `v0.3.0` yayını ve push. Proje GitHub'da public:
+https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
 - Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra`, `fix/photo-upload-limits`,
-  `feat/remember-me`, `feat/pwa-manifest` ve `feat/account-deletion` 2026-10-01'de merge edildi, henüz
-  push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+  `feat/remember-me`, `feat/pwa-manifest`, `feat/account-deletion` ve `feat/privacy-contact`
+  2026-10-01'de merge edildi, henüz push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -708,6 +707,25 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       başka bir geçici kullanıcıyı adını yazarak sildi, denetim kaydında "Kullanıcı silindi · Silinmiş
       kullanıcı · E2E denemesi"; 360 px'te Bulgarca/Almanca taşma yok. Dev veritabanında bu kayıt kaldı;
       `ayse.yilmaz` admin rolü kullanıcının API'si yeniden başlayınca senkronla geri alınır.
+33. **Gizlilik politikası ve iletişim sayfası** (`feat/privacy-contact`, 2026-10-01; yol haritası 9f, kararlar
+    "Gizlilik ve iletişim: kararlar"):
+    - `/privacy` ve `/contact` (`pages/legal/`, girişsiz, lazy), footer'da "Gizlilik · İletişim" linkleri.
+      Politika 10 bölüm, dört dilde (`privacy.*`; bölüm yapısı `privacy.ts` `SECTIONS`, metin çeviri
+      dosyalarında): sorumlu, işlenen veriler, amaç ve hukuki dayanak (GDPR 6/1-b ve 6/1-f), kim görür,
+      cookie'ler (sadece zorunlu üçü; onay yok) ve localStorage, barındırma, saklama süresi, haklar
+      (Ayarlar > Hesap'a yönlendirir), yaş sınırı, değişiklikler; tarih `PRIVACY_UPDATED`.
+    - İletişim: işleten, e-posta (`mailto`), GitHub reposu (kaynak kodu ve hata bildirimi). Form yok
+      (site e-posta göndermiyor). İşletmeci adı ve e-posta `core/legal/operator.ts` `OPERATOR`'da, şimdilik
+      boş: sayfalar "yayından önce eklenecek" gösterir (Yayın öncesi yapılacaklar).
+    - Kayıt formunda zorunlu kutu "Bu sitenin gizlilik politikasını okudum." (link yeni sekmede);
+      API'de `RegisterRequest.AcceptPrivacy` + `[MustBeTrue]` (`Validation/`), işaretsiz ya da hiç
+      gönderilmeyen alan 400 `AcceptPrivacy`. Onay zamanı saklanmıyor (hukuki dayanak sözleşme;
+      kutu bilgilendirmenin okunduğunu gösterir).
+    - Testler: API 122 (+1: kutu false ve alan yok → 400), client 88 (+3: politikanın bütün bölümleri
+      çevrili ve yer tutucu, iletişim linkleri, kayıt kutusu: etiket tek cümle, işaretsiz istek
+      gitmiyor, işaretliyle `acceptPrivacy: true`). Headless Edge (4200, girişsiz): dört dilde üç sayfada
+      taşma yok, başlıklar doğru, görünen çeviri anahtarı yok; iletişim kartında telefonda etiket ile
+      değer birlikte (çift başına `div`).
 
 ## Yol haritası
 
@@ -754,8 +772,9 @@ mağaza için TWA.
         açık/koyu theme-color, favicon (Tamamlananlar 31; service worker 11. adımda).
   - [x] 9e. `feat/account-deletion`: hesap silme + dışa aktarma, admin'in kullanıcı silmesi, denetim
         kaydında anonimleştirme (Tamamlananlar 32).
-  - [ ] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları (4 dil, e-postayla iletişim),
-        footer ve kayıt formunda link; operatör bilgileri ve Impressum kullanıcıya sorulacak.
+  - [x] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları, footer linkleri, kayıtta zorunlu kutu
+        (Tamamlananlar 33). İşletmeci adı ve e-posta yayın öncesi doldurulacak.
+  - [ ] `v0.3.0` yayını ve push.
 - [ ] 8b. `tests/e2e` (Playwright).
 - [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
       (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
@@ -779,9 +798,9 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-9. adımın alt adımları sırayla: 9a–9e bitti (main'de, push edilmedi), sırada **9f**
-(`feat/privacy-contact`): gizlilik + iletişim sayfaları; operatör bilgileri ve Impressum kullanıcıya
-sorulacak. Gizlilik metni hesap silme, dışa aktarma, loglar (IP, 30 gün) ve cookie'leri anlatacak. Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+9. adımın alt adımları tamam (9a–9f, main'de, push edilmedi). Sırada **`v0.3.0`** yayını (CLAUDE.md
+"Sürüm ve yayın"; 9. adımın değişiklikleri birlikte) ve push. Sonra yol haritasında 8b (e2e) ya da 10
+(`release.yml`; 9a'daki publish hedefiyle client artık pakette). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
@@ -959,6 +978,19 @@ Kararlar (2026-09-30, kullanıcıyla):
 - **Satırdaki "Gizle"** ikincil stilde (kırmızı yazı), her satırda kırmızı dolgu listeyi bağırgan
   yapıyordu; kırmızı dolgu onay penceresinde.
 
+## Gizlilik ve iletişim: kararlar
+
+Kararlar (2026-10-01, kullanıcıyla):
+
+- **İşletmeci Almanya'da**, GDPR geçerli. Sayfalarda ad soyad ve e-posta görünür; posta adresi yok.
+  **Impressum** (§5 DDG) tamamen özel, ticari olmayan sitelerde gerekip gerekmediği tartışmalı; karar
+  yayın öncesine kaldı (Açık konular 14). Gerekirse iletişim sayfasına adres satırı eklenir.
+- **E-posta şimdilik yer tutucu** (alan adı alınınca `contact@…` gibi); ad da sabitte, yayın öncesi
+  doldurulur.
+- **Kayıtta işaretlenmesi zorunlu kutu** (bilgi metni + link yerine; kullanıcı daha resmi olanı seçti).
+- Metinler hukuki danışmanlık değildir; Claude yazdı, kullanıcı yayından önce okuyacak. İletişim formu
+  yok (site e-posta göndermiyor); GitHub reposu hata bildirimi için anılır.
+
 ## Hesap silme: kararlar
 
 Kararlar (2026-10-01, kullanıcıyla):
@@ -1085,6 +1117,11 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     doğrudan fotoğraf ekleme; büyük fotoğrafın kırpma penceresinde açılması (bellek), Android'de HEIC
     mesajı. Masaüstü headless Edge'de denendi (Tamamlananlar 29).
 
+14. **Impressum (Almanya, §5 DDG):** gizlilik ve iletişim sayfaları ad + e-postayla yapıldı (posta adresi
+    yok, kullanıcı kararı 2026-10-01). Kayıtlı kullanıcılı, herkese açık bir sitede Impressum genelde
+    önerilir; tamamen özel hobi sitelerinde gerekliliği tartışmalı. Yayından önce karar verilecek;
+    gerekirse iletişim sayfası "Impressum" adıyla adresi de gösterir (`contact.*` + `OPERATOR`).
+
 ## Yayın öncesi yapılacaklar
 
 İlk publish'ten önce tamamlanması gerekenler (ayrıntılar Açık konular'da):
@@ -1097,7 +1134,13 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [x] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (2026-10-01, Tamamlananlar 28).
 - [x] Rate limiter, loglama, DataProtection anahtar yolu (2026-10-01, Tamamlananlar 28).
 - [x] Hesap silme ve veri dışa aktarma (2026-10-01, Tamamlananlar 32).
-- [ ] Gizlilik ve iletişim sayfası (9f).
+- [x] Gizlilik ve iletişim sayfası (2026-10-01, Tamamlananlar 33).
+- [ ] İşletmeci adı ve iletişim e-postası: `src/web/src/app/core/legal/operator.ts` `OPERATOR`.
+- [ ] Impressum kararı (Açık konular 14).
+- [ ] Hosting seçilince: sağlayıcıyla veri işleme sözleşmesi (AVV / Art. 28 GDPR, çoğu sağlayıcı panelde
+      sunar); gizlilik metnindeki barındırma, sağlayıcının erişim logları ve yedek süresi cümleleri
+      sağlayıcıya göre kontrol edilir (`privacy.hosting`, `privacy.data.i4`, `privacy.retention`;
+      değişirse `PRIVACY_UPDATED`).
 - [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).
