@@ -68,9 +68,13 @@ public class AuthController(
         var result = await signInManager.PasswordSignInAsync(
             user, request.Password, request.RememberMe, lockoutOnFailure: true);
 
+        // Without a code: the temporary lockout after failed attempts
         if (result.IsLockedOut)
-            return Problem(title: "Account temporarily locked. Try again later.",
-                           statusCode: StatusCodes.Status423Locked);
+            return user.LockedAtUtc is null
+                ? Problem(title: "Account temporarily locked. Try again later.",
+                          statusCode: StatusCodes.Status423Locked)
+                : this.CodedProblem("account_locked", "This account has been locked by an administrator.",
+                                    StatusCodes.Status423Locked);
 
         if (!result.Succeeded)
             return InvalidCredentials();

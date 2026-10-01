@@ -21,7 +21,7 @@ namespace CoinPortal.Api.Controllers;
 public class PublicController(AppDbContext db) : ControllerBase
 {
     private IQueryable<Collection> PublicCollections =>
-        db.Collections.AsNoTracking().Where(c => c.Visibility == CollectionVisibility.Public);
+        db.Collections.AsNoTracking().Where(CollectionAccess.IsPublic<Collection>(c => c));
 
     /// <summary>Users with at least one public collection, by user name.</summary>
     [HttpGet("collectors")]
@@ -33,8 +33,7 @@ public class PublicController(AppDbContext db) : ControllerBase
             .Select(u => new CollectorResponse(
                 u.UserName!,
                 PublicCollections.Count(c => c.OwnerId == u.Id),
-                db.Coins.Count(coin => coin.OwnerId == u.Id
-                    && coin.Collection.Visibility == CollectionVisibility.Public)))
+                PublicCollections.Where(c => c.OwnerId == u.Id).Sum(c => c.Coins.Count)))
             .ToListAsync(ct);
 
     /// <summary>Profile page: the user's public collections. 404 if there are none.</summary>
@@ -104,7 +103,7 @@ public class PublicController(AppDbContext db) : ControllerBase
     {
         var coins = db.Coins.AsNoTracking()
             .Include(c => c.Photos).Include(c => c.Owner).Include(c => c.Collection)
-            .Where(c => c.Collection.Visibility == CollectionVisibility.Public);
+            .Where(CollectionAccess.IsPublic<Coin>(c => c.Collection));
         if (!string.IsNullOrWhiteSpace(query.Owner))
         {
             var owner = query.Owner.Trim();
@@ -115,9 +114,9 @@ public class PublicController(AppDbContext db) : ControllerBase
 
     // Tokens are fixed-length base64url; anything else cannot match
     private IQueryable<Collection> SharedCollections(string token) =>
-        db.Collections.AsNoTracking().Where(c =>
-            c.Visibility == CollectionVisibility.Unlisted && c.ShareToken != null && c.ShareToken == token
-            && token.Length == Collection.ShareTokenLength);
+        token.Length == Collection.ShareTokenLength
+            ? db.Collections.AsNoTracking().Where(CollectionAccess.IsShared(token))
+            : db.Collections.Where(_ => false);
 
     private IQueryable<Coin> CoinsOf(int collectionId) =>
         db.Coins.AsNoTracking().Include(c => c.Photos).Where(c => c.CollectionId == collectionId);
