@@ -1,4 +1,5 @@
 using CoinPortal.Api.Data;
+using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Validation;
 
 namespace CoinPortal.Api.Contracts.Settings;
@@ -12,6 +13,9 @@ public sealed record UserSettingsResponse(string? Language, ThemePreference? The
 /// Replaces the user's settings (PUT); every field is sent. Null keeps a setting "not chosen",
 /// so changing one setting does not turn the other into an explicit choice.
 /// </summary>
+/// <summary>Deleting one's own account (DELETE api/settings/account) asks for the password again.</summary>
+public sealed record DeleteAccountRequest([Required] string Password);
+
 public sealed record UserSettingsRequest(
     [SupportedLanguage] string? Language,
     ThemePreference? Theme,

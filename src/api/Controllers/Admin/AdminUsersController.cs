@@ -1,3 +1,4 @@
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Contracts.Coins;
@@ -15,11 +16,12 @@ namespace CoinPortal.Api.Controllers.Admin;
 /// <summary>
 /// Users for the panel: list, details (account data and counts, no content) and the admin lock.
 /// A locked user cannot sign in and their shared collections are hidden until unlocked.
-/// Admins cannot be locked here; they are removed from the configuration (Admin:UserIds).
+/// Admins cannot be locked or deleted here; they are removed from the configuration (Admin:UserIds).
 /// </summary>
 [Route("api/admin/users")]
 public class AdminUsersController(
-    AppDbContext db, UserManager<ApplicationUser> userManager, PhotoQuota photoQuota) : AdminControllerBase
+    AppDbContext db, UserManager<ApplicationUser> userManager, PhotoQuota photoQuota,
+    AccountDeletion deletion) : AdminControllerBase
 {
     [HttpGet]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -112,6 +114,34 @@ public class AdminUsersController(
         user.AccessFailedCount = 0;
         Audit(db, AuditAction.UserUnlocked, user, note: request?.Note);
         ThrowIfFailed(await userManager.UpdateAsync(user));
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Deletes the user with all their collections, coins and photos, like their own deletion in
+    /// Settings. The audit entry has no name: the user's names leave the log with them.
+    /// </summary>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(string id,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AdminDeleteUserRequest? request,
+        CancellationToken ct)
+    {
+        var user = await userManager.FindByIdAsync(id);
+        if (user is null)
+        {
+            return NotFound();
+        }
+        if (await userManager.IsInRoleAsync(user, AppRoles.Admin))
+        {
+            return this.CodedProblem("cannot_delete_admin",
+                "Administrators cannot be deleted; remove them from the configuration instead.");
+        }
+
+        await deletion.DeleteAsync(user, beforeSave: () =>
+            Audit(db, AuditAction.UserDeleted, user, note: request?.Note).TargetUserName = null, ct);
         return NoContent();
     }
 

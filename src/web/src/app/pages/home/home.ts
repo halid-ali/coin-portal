@@ -1,14 +1,19 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { ACCOUNT_DELETED_STATE } from '../../core/settings/settings.service';
 
 @Component({
   selector: 'app-home',
   imports: [RouterLink, TranslocoPipe],
   template: `
     <section class="mx-auto max-w-2xl py-8 text-center">
+      @if (accountDeleted) {
+        <p role="status" class="alert-success mb-8">{{ 'home.accountDeleted' | transloco }}</p>
+      }
+
       <h1 class="text-3xl font-bold text-shade-900 sm:text-4xl">
         {{ 'home.headline' | transloco }}
       </h1>
@@ -40,4 +45,8 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class Home {
   protected readonly auth = inject(AuthService);
+
+  /** Set by Settings > Account after deleting the account; a reload does not repeat it. */
+  protected readonly accountDeleted =
+    inject(Router).currentNavigation()?.extras.state?.['notice'] === ACCOUNT_DELETED_STATE.notice;
 }

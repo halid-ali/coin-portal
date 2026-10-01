@@ -9,6 +9,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
   { path: 'profile', labelKey: 'settings.profile.nav', icon: 'profile' },
   { path: 'appearance', labelKey: 'settings.appearance.nav', icon: 'appearance' },
+  { path: 'account', labelKey: 'settings.account.nav', icon: 'account' },
 ];
 
 /**
@@ -23,7 +24,8 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
       <h1 class="mb-6 text-2xl font-semibold text-shade-900">{{ 'settings.title' | transloco }}</h1>
 
       <div class="grid gap-6 md:grid-cols-[13rem_1fr]">
-        <nav [attr.aria-label]="'settings.sections' | transloco">
+        <!-- min-w-0: the tab row scrolls inside instead of widening the page (phones, long languages) -->
+        <nav class="min-w-0" [attr.aria-label]="'settings.sections' | transloco">
           <!-- The padding keeps the active/focus ring inside the scroll box, which clips it -->
           <ul class="-m-1 flex gap-1 overflow-x-auto p-1 md:flex-col">
             @for (section of sections; track section.path) {
@@ -60,6 +62,12 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
                         <circle cx="7.5" cy="11" r="1" />
                         <circle cx="10" cy="7" r="1" />
                         <circle cx="14.5" cy="7" r="1" />
+                      }
+                      @case ('account') {
+                        <!-- shield with a key hole: the account itself -->
+                        <path d="M12 3 5 6v5c0 4.5 3 8.2 7 10 4-1.8 7-5.5 7-10V6z" />
+                        <circle cx="12" cy="11" r="1.6" />
+                        <path d="M12 12.6V15" />
                       }
                     }
                   </svg>

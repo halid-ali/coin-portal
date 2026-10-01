@@ -89,10 +89,12 @@ export interface AdminCollection {
   moderationLockedAtUtc: string | null;
 }
 
-export type AuditAction = 'UserLocked' | 'UserUnlocked' | 'CollectionHidden' | 'CollectionUnlocked';
+export type AuditAction =
+  'UserLocked' | 'UserUnlocked' | 'UserDeleted' | 'CollectionHidden' | 'CollectionUnlocked';
 export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'UserLocked',
   'UserUnlocked',
+  'UserDeleted',
   'CollectionHidden',
   'CollectionUnlocked',
 ];
@@ -105,11 +107,12 @@ export interface AdminAuditQuery {
   pageSize?: number;
 }
 
+/** User and collection names are null once the user they belonged to was deleted. */
 export interface AdminAuditEntry {
   id: number;
   createdAtUtc: string;
   actorId: string;
-  actorUserName: string;
+  actorUserName: string | null;
   action: AuditAction;
   targetUserId: string | null;
   targetUserName: string | null;

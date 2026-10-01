@@ -3,8 +3,10 @@ using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Contracts.Public;
+using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Tests;
 
@@ -189,9 +191,82 @@ public class AdminUsersTests(CoinPortalFactory factory)
 
         using var list = await alice.Client.GetAsync("/api/admin/users");
         using var lockBob = await alice.Client.PutAsync($"/api/admin/users/{bob.User.Id}/lock", new AdminLockRequest(null));
+        using var deleteBob = await alice.Client.DeleteAsync($"/api/admin/users/{bob.User.Id}", new AdminDeleteUserRequest(null));
 
         await list.ShouldHaveStatusAsync(HttpStatusCode.Forbidden);
         await lockBob.ShouldHaveStatusAsync(HttpStatusCode.Forbidden);
+        await deleteBob.ShouldHaveStatusAsync(HttpStatusCode.Forbidden);
+        Assert.Equal(1, await factory.WithDbAsync(db => db.Users.CountAsync(u => u.Id == bob.User.Id)));
+    }
+
+    [Fact]
+    public async Task Delete_RemovesTheUser_AndTheirNamesFromTheAuditLog()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var bob = await factory.SignUpAsync();
+        var collection = await bob.SetVisibilityAsync(await bob.FirstCollectionAsync(), CollectionVisibility.Public);
+        using (await admin.Client.PutAsync($"/api/admin/users/{bob.User.Id}/lock", new AdminLockRequest("spam"))) { }
+        using (await admin.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest(null))) { }
+
+        using var response = await admin.Client.DeleteAsync($"/api/admin/users/{bob.User.Id}",
+            new AdminDeleteUserRequest("Spam account"));
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        using (var detail = await admin.Client.GetAsync($"/api/admin/users/{bob.User.Id}"))
+        {
+            await detail.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        }
+        Assert.Equal(0, await factory.WithDbAsync(db => db.Collections.CountAsync(c => c.OwnerId == bob.User.Id)));
+
+        var entries = (await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+            $"/api/admin/audit?userId={bob.User.Id}")).Items;
+        Assert.Equal([AuditAction.UserDeleted, AuditAction.CollectionHidden, AuditAction.UserLocked],
+            entries.Select(e => e.Action));
+        Assert.All(entries, e =>
+        {
+            Assert.Null(e.TargetUserName);
+            Assert.Null(e.TargetCollectionName);
+            Assert.Equal(admin.UserName, e.ActorUserName);
+        });
+        Assert.Equal("Spam account", entries[0].Note);
+        Assert.Equal(collection.Id, entries[1].TargetCollectionId);
+    }
+
+    [Fact]
+    public async Task Delete_Admins_AndUnknownUsers_AreRefused()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var otherAdmin = await factory.SignUpAdminAsync();
+
+        using var self = await admin.Client.DeleteAsync($"/api/admin/users/{admin.User.Id}", new AdminDeleteUserRequest(null));
+        using var other = await admin.Client.DeleteAsync($"/api/admin/users/{otherAdmin.User.Id}", new AdminDeleteUserRequest(null));
+        using var unknown = await admin.Client.DeleteAsync($"/api/admin/users/{Guid.NewGuid()}", new AdminDeleteUserRequest(null));
+
+        Assert.Equal("cannot_delete_admin", await self.ReadProblemCodeAsync());
+        Assert.Equal("cannot_delete_admin", await other.ReadProblemCodeAsync());
+        await unknown.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task OwnAccount_AdminsCannotDeleteIt_FormerAdminsCan_AndLeaveTheLogAsActors()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var bob = await factory.SignUpAsync();
+        using (await admin.Client.PutAsync($"/api/admin/users/{bob.User.Id}/lock", new AdminLockRequest(null))) { }
+
+        using (var refused = await admin.Client.DeleteAsync("/api/settings/account", new DeleteAccountRequest(TestUser.Password)))
+        {
+            Assert.Equal("admin_account", await refused.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        }
+
+        // Removed from the configuration: an ordinary user now
+        await factory.SyncAdminsAsync();
+        using var deleted = await admin.Client.DeleteAsync("/api/settings/account", new DeleteAccountRequest(TestUser.Password));
+
+        await deleted.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        var entry = await factory.WithDbAsync(db => db.AuditLog.SingleAsync(e => e.ActorId == admin.User.Id));
+        Assert.Null(entry.ActorUserName);
+        Assert.Equal(bob.UserName, entry.TargetUserName);
     }
 
     private static Task<PagedResponse<AdminUserResponse>> ListAsync(TestUser admin, string query) =>

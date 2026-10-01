@@ -116,7 +116,8 @@ src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+
                         Auth,Coins,Collections,Countries,Common,Public,Settings}/, Data/ (entities,
                         AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage + image
                         processing), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
-                        Validation/, Localization/, Hosting/ (Serilog, DataProtection, rate limiter,
+                        Validation/, Localization/, Accounts/ (hesap silme, veri dışa aktarma),
+                        Hosting/ (Serilog, DataProtection, rate limiter,
                         client'ın wwwroot'tan sunulması), App_Data/{photos,logs,keys} (gitignored)
 src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
 src/web/src/app/        core/{admin,auth,coins,collections,public,http,i18n,settings}/, shared/,
@@ -172,6 +173,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   uygulanır, hesap işlemleri admin olmayanlara:** admin'in koleksiyonu gizlenebilir (panelde sahibinin
   yanında "Admin" rozeti, `ownerIsAdmin`), admin hesabı kilitlenemez. Admin kendi koleksiyonunun
   kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
+  Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
+  kendi hesaplarını Ayarlar'dan silemez (`admin_account`), önce ayardan çıkarılırlar.
 
 ## Backend kuralları
 
@@ -223,6 +226,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yok), dosyalar `Logs:Path`'e. İstek logu adresi sorgusuyla yazar; paylaşım anahtarı maskelenir
   (`MaskShareKeys`). URL'e yeni bir gizli değer (token, anahtar) girerse maskeye eklenir. Loga parola,
   cookie, token ya da istek gövdesi yazılmaz.
+- **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi ve
+  admin'in silmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)
+  eklenince ikisi de güncellenir:** kullanıcı satırından cascade ile silinmeli (olmuyorsa
+  `AccountDeletion` transaction'ında elle) ve dışa aktarmada yer almalı; testleri `AccountTests`'te.
+  Denetim kaydı gibi FK'sız ad anlık görüntüleri silmede boşaltılır.
 - Site klasörü dışında tutulacak yollar ayardan: `PhotoStorage:RootPath`, `Logs:Path`,
   `DataProtection:KeysPath` (anahtarlar Windows'ta DPAPI ile şifreli, `DataProtection:Dpapi`); hepsinin
   varsayılanı `App_Data/` altında.
@@ -309,7 +317,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `color-mix` ile, koyu tema ayarı da `styles.css`'te). Yeni ortak stil gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
   `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış
-  metin ya da vazgeçilirse `null`. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
+  metin ya da vazgeçilirse `null`. Geri alınamaz işlemde `typeToConfirm: { label, value }`: değer
+  birebir yazılmadan onay butonu açılmaz. jsdom'da `showModal`/`close` yok: testlerde
+  `stubModalDialogs()` (`shared/testing/dialogs.ts`). Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
 - Seçilen fotoğraf dosyasına boyut sınırı uygulanmaz (48–50 MP telefon fotoğrafları 10 MB'ı aşar);
   API'nin sınırları kırpılmış JPEG'e (en fazla 1600 px) uygulanır. Tür kararı cropper'da: sadece resim

@@ -20,11 +20,11 @@ public abstract class AdminControllerBase : ControllerBase
     /// Adds an audit log entry for the signed-in admin; it is saved with the action's own changes.
     /// The target user is the collection's owner when only a collection is given (Owner loaded).
     /// </summary>
-    protected void Audit(AppDbContext db, AuditAction action, ApplicationUser? user = null,
+    protected AuditLogEntry Audit(AppDbContext db, AuditAction action, ApplicationUser? user = null,
         Collection? collection = null, string? note = null)
     {
         var owner = user ?? collection?.Owner;
-        db.AuditLog.Add(new AuditLogEntry
+        var entry = new AuditLogEntry
         {
             CreatedAtUtc = DateTime.UtcNow,
             ActorId = User.FindFirstValue(ClaimTypes.NameIdentifier)!,
@@ -35,6 +35,8 @@ public abstract class AdminControllerBase : ControllerBase
             TargetCollectionId = collection?.Id,
             TargetCollectionName = collection?.Name,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
-        });
+        };
+        db.AuditLog.Add(entry);
+        return entry;
     }
 }
