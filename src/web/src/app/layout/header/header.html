@@ -4,7 +4,7 @@
   class="border-b border-shade-200/80 bg-shade-0/85 backdrop-blur supports-backdrop-filter:bg-shade-0/70"
 >
   <nav
-    class="mx-auto flex h-16 max-w-5xl items-center gap-6 px-4"
+    class="page-container flex h-16 items-center gap-6"
     [attr.aria-label]="'nav.main' | transloco"
   >
     <a
@@ -85,11 +85,25 @@
                 </p>
                 <p class="truncate text-xs text-shade-500">{{ user.email }}</p>
               </div>
+              <!-- Admins only, first and apart from what everyone has -->
+              @if (auth.isAdmin()) {
+                <a
+                  routerLink="/admin"
+                  role="menuitem"
+                  (click)="closeMenus()"
+                  class="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100"
+                >
+                  <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'admin' }" />
+                  {{ 'nav.admin' | transloco }}
+                </a>
+                <div role="separator" class="my-1 border-t border-shade-100"></div>
+              }
               <a
                 routerLink="/settings"
                 role="menuitem"
                 (click)="closeMenus()"
-                class="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100"
+                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100"
+                [class.mt-1]="!auth.isAdmin()"
               >
                 <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'settings' }" />
                 {{ 'nav.settings' | transloco }}
@@ -181,7 +195,23 @@
             </li>
           }
         </ul>
-        <!-- Account items apart from the navigation, with the same divider as under the avatar -->
+        <!-- Account items apart from the navigation, with the same divider as under the avatar;
+         the admin link first and apart again, as in the avatar menu -->
+        @if (auth.isAdmin()) {
+          <ul class="mt-2 space-y-1 border-t border-shade-100 pt-2">
+            <li>
+              <a
+                routerLink="/admin"
+                routerLinkActive="!bg-brand-50 !text-brand-800"
+                (click)="closeMenus()"
+                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
+              >
+                <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'admin' }" />
+                {{ 'nav.admin' | transloco }}
+              </a>
+            </li>
+          </ul>
+        }
         <ul class="mt-2 space-y-1 border-t border-shade-100 pt-2">
           <li>
             <a
@@ -265,6 +295,11 @@
         <path
           d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
         />
+      }
+      @case ('admin') {
+        <!-- shield with a check -->
+        <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3z" />
+        <path d="m9 12 2 2 4-4" />
       }
       @case ('logout') {
         <path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9" />

@@ -1,0 +1,230 @@
+<div class="space-y-4">
+  <!-- Filters: search, status; on narrow screens also the sort (the table headers sort on wide ones) -->
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-0 flex-1 basis-56">
+      <label for="admin-user-search" class="sr-only">{{ 'admin.users.search' | transloco }}</label>
+      <input
+        id="admin-user-search"
+        type="search"
+        class="form-input"
+        autocomplete="off"
+        [placeholder]="'admin.users.search' | transloco"
+        [formControl]="searchControl"
+      />
+    </div>
+    <div class="max-w-full min-w-0">
+      <label for="admin-user-status" class="sr-only">{{ 'admin.users.status' | transloco }}</label>
+      <select
+        id="admin-user-status"
+        class="form-input w-auto max-w-full min-w-0"
+        (change)="setStatus(statusSelect.value)"
+        #statusSelect
+      >
+        <option value="" [selected]="!statusValue()">
+          {{ 'admin.users.allStatuses' | transloco }}
+        </option>
+        @for (s of statuses; track s) {
+          <option [value]="s" [selected]="s === statusValue()">
+            {{ 'admin.status.' + s | transloco }}
+          </option>
+        }
+      </select>
+    </div>
+    <div class="max-w-full min-w-0 xl:hidden">
+      <label for="admin-user-sort" class="sr-only">{{ 'admin.sort' | transloco }}</label>
+      <select
+        id="admin-user-sort"
+        class="form-input w-auto max-w-full min-w-0"
+        (change)="setSortOption(sortSelect.value)"
+        #sortSelect
+      >
+        @for (s of sorts; track s.value) {
+          <option
+            [value]="s.value"
+            [selected]="sortState().sort === s.value && sortState().dir === s.first"
+          >
+            {{ 'admin.users.sorts.' + s.value | transloco }}
+          </option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <p class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
+  } @else if (result(); as r) {
+    <p class="text-sm text-shade-500">{{ 'admin.users.count' | plural: r.totalCount }}</p>
+
+    @if (r.items.length === 0) {
+      <p class="card text-sm text-shade-600">{{ 'admin.users.empty' | transloco }}</p>
+    } @else {
+      <!-- Narrow screens: cards, each a link to the user -->
+      <ul class="space-y-3 xl:hidden" [class.opacity-60]="loading()">
+        @for (u of r.items; track u.id) {
+          <li class="card relative p-4 hover:border-brand-300">
+            <div class="flex items-start justify-between gap-3">
+              <div class="max-w-full min-w-0">
+                <a
+                  [routerLink]="[u.id]"
+                  [state]="{ listQuery: listQueryParams() }"
+                  class="font-medium break-all text-shade-900 after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-500"
+                >
+                  {{ u.userName }}
+                </a>
+                <p class="truncate text-sm text-shade-600">{{ u.email }}</p>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                @if (u.isAdmin) {
+                  <span
+                    class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800"
+                    >{{ 'admin.users.adminBadge' | transloco }}</span
+                  >
+                }
+                <app-admin-status-badge [status]="u.status" />
+              </div>
+            </div>
+            <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
+              <div class="max-w-full min-w-0">
+                <dt class="text-xs text-shade-500">
+                  {{ 'admin.users.column.createdAt' | transloco }}
+                </dt>
+                <dd class="truncate text-shade-800">{{ date(u.createdAtUtc) }}</dd>
+              </div>
+              <div class="max-w-full min-w-0">
+                <dt class="text-xs text-shade-500">
+                  {{ 'admin.users.column.lastSeen' | transloco }}
+                </dt>
+                <dd class="truncate text-shade-800">
+                  {{ u.lastSeenAtUtc ? relative(u.lastSeenAtUtc) : ('admin.never' | transloco) }}
+                </dd>
+              </div>
+              <div class="max-w-full min-w-0">
+                <dt class="text-xs text-shade-500">{{ 'admin.users.column.coins' | transloco }}</dt>
+                <dd class="truncate text-shade-800 tabular-nums">{{ count(u.coinCount) }}</dd>
+              </div>
+              <div class="max-w-full min-w-0">
+                <dt class="text-xs text-shade-500">
+                  {{ 'admin.users.column.storage' | transloco }}
+                </dt>
+                <dd class="truncate text-shade-800 tabular-nums">{{ bytes(u.storageBytes) }}</dd>
+              </div>
+            </dl>
+          </li>
+        }
+      </ul>
+
+      <!-- Wide screens (xl, the admin pages are wider): table. Fixed layout, so column widths do
+       not follow the page content; the user column (name, email below) takes the rest.
+       Measured like the coin table (headless, all four languages, the widest of header with its
+       sort button and the longest possible content, + 24 px padding + 4 px): joined
+       "Регистрация" + icon; last seen "Последно видян" + icon; status the "Vorübergehend
+       gesperrt" badge; coins "Münzen"; storage "Speicher" + icon. A new language means
+       measuring again. -->
+      <div class="card hidden overflow-x-auto p-0 xl:block" [class.opacity-60]="loading()">
+        <table class="w-full table-fixed text-left text-sm">
+          <colgroup>
+            <col />
+            <col class="w-[148px]" />
+            <col class="w-[179px]" />
+            <col class="w-[178px]" />
+            <col class="w-[80px]" />
+            <col class="w-[117px]" />
+          </colgroup>
+          <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
+            <tr>
+              <th
+                appSortHeader
+                class="px-3 py-2"
+                [label]="'admin.users.column.user' | transloco"
+                [direction]="sortDirection('UserName')"
+                [firstDirection]="firstDirection('UserName')"
+                [clearable]="false"
+                (toggle)="sortBy('UserName')"
+              ></th>
+              <th
+                appSortHeader
+                class="px-3 py-2"
+                [label]="'admin.users.column.createdAt' | transloco"
+                [direction]="sortDirection('CreatedAt')"
+                [firstDirection]="firstDirection('CreatedAt')"
+                [clearable]="false"
+                (toggle)="sortBy('CreatedAt')"
+              ></th>
+              <th
+                appSortHeader
+                class="px-3 py-2"
+                [label]="'admin.users.column.lastSeen' | transloco"
+                [direction]="sortDirection('LastSeen')"
+                [firstDirection]="firstDirection('LastSeen')"
+                [clearable]="false"
+                (toggle)="sortBy('LastSeen')"
+              ></th>
+              <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
+                {{ 'admin.users.column.status' | transloco }}
+              </th>
+              <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
+                {{ 'admin.users.column.coins' | transloco }}
+              </th>
+              <th
+                appSortHeader
+                class="px-3 py-2"
+                [label]="'admin.users.column.storage' | transloco"
+                [direction]="sortDirection('Storage')"
+                [firstDirection]="firstDirection('Storage')"
+                [clearable]="false"
+                (toggle)="sortBy('Storage')"
+              ></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-shade-100">
+            @for (u of r.items; track u.id) {
+              <tr class="hover:bg-brand-50/50">
+                <td class="px-3 py-2.5">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <a
+                      [routerLink]="[u.id]"
+                      [state]="{ listQuery: listQueryParams() }"
+                      class="link truncate font-medium"
+                      >{{ u.userName }}</a
+                    >
+                    @if (u.isAdmin) {
+                      <span
+                        class="shrink-0 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800"
+                        >{{ 'admin.users.adminBadge' | transloco }}</span
+                      >
+                    }
+                  </div>
+                  <p class="truncate text-xs text-shade-500" [title]="u.email">{{ u.email }}</p>
+                </td>
+                <td class="truncate px-3 py-2.5" [title]="dateTime(u.createdAtUtc)">
+                  {{ date(u.createdAtUtc) }}
+                </td>
+                <td
+                  class="truncate px-3 py-2.5"
+                  [title]="u.lastSeenAtUtc ? dateTime(u.lastSeenAtUtc) : ''"
+                >
+                  {{ u.lastSeenAtUtc ? relative(u.lastSeenAtUtc) : ('admin.never' | transloco) }}
+                </td>
+                <td class="px-3 py-2.5"><app-admin-status-badge [status]="u.status" /></td>
+                <td class="truncate px-3 py-2.5 tabular-nums">{{ count(u.coinCount) }}</td>
+                <td class="truncate px-3 py-2.5 tabular-nums">{{ bytes(u.storageBytes) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-pagination
+        placement="bottom"
+        [page]="r.page"
+        [totalPages]="r.totalPages"
+        [totalCount]="r.totalCount"
+        [pageSize]="pageSizeValue()"
+        [options]="pageSizes"
+        [disabled]="loading()"
+        (pageChange)="goToPage($event)"
+        (pageSizeChange)="setPageSize($event)"
+      />
+    }
+  }
+</div>

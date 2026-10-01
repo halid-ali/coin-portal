@@ -79,6 +79,19 @@
 
 @layer base {
   /*
+   * Page width (PageWidthService): header, content and footer share it, so their edges line up.
+   * Pages for reading stay narrow; a route with data { pageWidth: 'wide' } (the admin panel)
+   * sets data-page-width on <html> and gets more room for its tables.
+   */
+  :root {
+    --page-max-width: 64rem;
+  }
+
+  :root[data-page-width='wide'] {
+    --page-max-width: 80rem;
+  }
+
+  /*
    * Accent color (AccentService): the palette behind the brand scale and the primary button.
    * Amber is the default; the others apply through data-accent on <html>. The fill and its text
    * color are the same in both themes: white text on the darker fills, dark text on the light ones.
@@ -271,6 +284,57 @@
 
 /* Small set of reusable component classes, keeps the templates readable */
 @layer components {
+  /*
+   * Icon circle of a statistic (admin overview). A fixed hue per meaning (--stat), not the
+   * accent color; background, icon and ring are derived from it, so the contrast is the same in
+   * both themes. Hue classes: stat-icon-<name> below.
+   */
+  .stat-icon {
+    @apply grid shrink-0 place-items-center rounded-full;
+    background-color: color-mix(in oklab, var(--stat) 12%, transparent);
+    color: color-mix(in oklab, var(--stat) 80%, black);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--stat) 25%, transparent);
+  }
+
+  :root.dark .stat-icon {
+    background-color: color-mix(in oklab, var(--stat) 18%, transparent);
+    color: color-mix(in oklab, var(--stat) 65%, white);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--stat) 35%, transparent);
+  }
+
+  .stat-icon-violet {
+    --stat: var(--color-violet-500);
+  }
+  .stat-icon-emerald {
+    --stat: var(--color-emerald-500);
+  }
+  .stat-icon-blue {
+    --stat: var(--color-blue-500);
+  }
+  .stat-icon-red {
+    --stat: var(--color-red-500);
+  }
+  .stat-icon-orange {
+    --stat: var(--color-orange-500);
+  }
+  .stat-icon-sky {
+    --stat: var(--color-sky-500);
+  }
+  .stat-icon-amber {
+    --stat: var(--color-amber-500);
+  }
+  .stat-icon-pink {
+    --stat: var(--color-pink-500);
+  }
+  .stat-icon-indigo {
+    --stat: var(--color-indigo-500);
+  }
+
+  /* The page column of header, main and footer (width: --page-max-width) */
+  .page-container {
+    @apply mx-auto w-full max-w-(--page-max-width) px-4;
+  }
+
   .card {
     @apply rounded-xl border border-shade-200 bg-shade-0 p-6 shadow-sm;
   }

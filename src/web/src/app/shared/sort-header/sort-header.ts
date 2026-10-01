@@ -58,6 +58,10 @@ export class SortHeader {
   readonly label = input.required<string>();
   /** Null when the table is sorted by another column. */
   readonly direction = input<SortDirection | null>(null);
+  /** What the first click on an inactive column does (only the tooltip; the parent sorts). */
+  readonly firstDirection = input<SortDirection>('Asc');
+  /** Descending goes back to the default order (true) or flips to ascending (false). */
+  readonly clearable = input(true);
   readonly toggle = output<void>();
 
   protected readonly ariaSort = computed(() => {
@@ -74,7 +78,13 @@ export class SortHeader {
 
   /** Tooltip (translation key) describing what the next click does. */
   protected readonly hint = computed(() => {
-    const dir = this.direction();
-    return dir === 'Asc' ? 'sort.descending' : dir === 'Desc' ? 'sort.clear' : 'sort.ascending';
+    switch (this.direction()) {
+      case 'Asc':
+        return 'sort.descending';
+      case 'Desc':
+        return this.clearable() ? 'sort.clear' : 'sort.ascending';
+      default:
+        return this.firstDirection() === 'Asc' ? 'sort.ascending' : 'sort.descending';
+    }
   });
 }

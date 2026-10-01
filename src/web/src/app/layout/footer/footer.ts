@@ -22,7 +22,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
   },
   template: `
     <div
-      class="mx-auto grid max-w-5xl grid-cols-2 items-center gap-x-6 gap-y-2 px-4 py-3 sm:grid-cols-[1fr_auto_1fr]"
+      class="page-container grid grid-cols-2 items-center gap-x-6 gap-y-2 py-3 sm:grid-cols-[1fr_auto_1fr]"
     >
       <a routerLink="/" class="flex items-center gap-2 justify-self-start font-bold text-shade-900">
         <span

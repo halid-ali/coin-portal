@@ -1,0 +1,144 @@
+{
+  "title": "Yönetim",
+  "sections": "Yönetim bölümleri",
+  "nav": {
+    "overview": "Genel bakış",
+    "users": "Kullanıcılar",
+    "collections": "Koleksiyonlar",
+    "audit": "Denetim kaydı"
+  },
+  "loadFailed": "Veriler yüklenemedi. Lütfen tekrar dene.",
+  "actionFailed": "İşlem yapılamadı. Lütfen tekrar dene.",
+  "never": "Hiç",
+  "sort": "Sırala",
+  "overview": {
+    "users": "Kullanıcılar",
+    "activeUsers": "Son 30 günde aktif",
+    "newUsers": "Son 30 günde kayıt",
+    "lockedUsers": "Kilitli",
+    "collections": "Koleksiyonlar",
+    "publicCollections": "Herkese açık",
+    "unlistedCollections": "Sadece linkle",
+    "hiddenCollections": "Gizlenmiş",
+    "content": "İçerik",
+    "coins": "Coin",
+    "photos": "Fotoğraf",
+    "storage": "Depolama"
+  },
+  "status": {
+    "Active": "Aktif",
+    "LockedOut": "Geçici kilitli",
+    "Locked": "Kilitli"
+  },
+  "users": {
+    "search": "Kullanıcı adı veya e-posta ara",
+    "status": "Durum",
+    "allStatuses": "Tüm durumlar",
+    "count": {
+      "one": "{{count}} kullanıcı",
+      "other": "{{count}} kullanıcı"
+    },
+    "empty": "Bu aramaya uyan kullanıcı yok.",
+    "adminBadge": "Admin",
+    "column": {
+      "user": "Kullanıcı",
+      "createdAt": "Kayıt",
+      "lastSeen": "Son görülme",
+      "status": "Durum",
+      "coins": "Coin",
+      "storage": "Disk"
+    },
+    "sorts": {
+      "CreatedAt": "En yeni kayıt",
+      "UserName": "Kullanıcı adı (A → Z)",
+      "LastSeen": "En son görülen",
+      "Storage": "En çok disk"
+    }
+  },
+  "user": {
+    "back": "Kullanıcılara dön",
+    "notFound": "Kullanıcı bulunamadı.",
+    "account": "Hesap",
+    "name": "Ad soyad",
+    "email": "E-posta",
+    "createdAt": "Kayıt",
+    "lastSignIn": "Son giriş",
+    "lastSeen": "Son görülme",
+    "lockedAt": "Kilitlendi",
+    "lockedOutUntil": "Geçici kilidin bitişi",
+    "content": "İçerik",
+    "collections": "Koleksiyonlar",
+    "collectionsDetail": "{{public}} herkese açık, {{unlisted}} linkle",
+    "coins": "Coin",
+    "photos": "Fotoğraf",
+    "storage": "Disk kullanımı",
+    "storageOfQuota": "{{used}} / {{quota}}",
+    "publicProfile": "Herkese açık profil",
+    "lock": "Kilitle",
+    "unlock": "Kilidi aç",
+    "lockTitle": "Kullanıcıyı kilitle",
+    "lockMessage": "@{{userName}} giriş yapamaz, açık oturumu en geç bir dakikada kapanır ve paylaştığı koleksiyonlar kilit sürdükçe gizlenir.",
+    "unlockTitle": "Kilidi aç",
+    "unlockMessage": "@{{userName}} tekrar giriş yapabilir; paylaştığı koleksiyonlar yeniden görünür.",
+    "adminNote": "Admin'ler panelden kilitlenemez; ayardan çıkarılırlar.",
+    "history": "Geçmiş",
+    "noHistory": "Bu kullanıcıyla ilgili kayıt yok."
+  },
+  "collections": {
+    "search": "Koleksiyon veya kullanıcı adı ara",
+    "filter": "Gösterilen",
+    "all": "Tümü",
+    "public": "Herkese açık",
+    "unlisted": "Sadece linkle",
+    "hidden": "Gizlenmiş",
+    "count": {
+      "one": "{{count}} koleksiyon",
+      "other": "{{count}} koleksiyon"
+    },
+    "empty": "Bu aramaya uyan koleksiyon yok.",
+    "ownerLocked": "Sahibi kilitli",
+    "open": "Koleksiyonu yeni sekmede aç",
+    "hide": "Gizle",
+    "unhide": "Kilidi kaldır",
+    "hideTitle": "Koleksiyonu gizle",
+    "hideMessage": "\"{{name}}\" özel yapılır, paylaşım linki silinir ve kilit kalkana kadar sahibi tekrar paylaşamaz.",
+    "unhideTitle": "Kilidi kaldır",
+    "unhideMessage": "\"{{name}}\" özel kalır; sahibi isterse tekrar paylaşabilir.",
+    "column": {
+      "collection": "Koleksiyon",
+      "state": "Durum",
+      "coins": "Coin",
+      "updatedAt": "Son değişiklik",
+      "action": "İşlem"
+    },
+    "sorts": {
+      "UpdatedAt": "Son değişiklik",
+      "Name": "Ad (A → Z)",
+      "CoinCount": "En çok coin"
+    }
+  },
+  "audit": {
+    "action": "İşlem",
+    "allActions": "Tüm işlemler",
+    "count": {
+      "one": "{{count}} kayıt",
+      "other": "{{count}} kayıt"
+    },
+    "empty": "Kayıt yok.",
+    "actions": {
+      "UserLocked": "Kullanıcı kilitlendi",
+      "UserUnlocked": "Kullanıcının kilidi açıldı",
+      "CollectionHidden": "Koleksiyon gizlendi",
+      "CollectionUnlocked": "Koleksiyonun kilidi kaldırıldı"
+    },
+    "column": {
+      "time": "Zaman",
+      "actor": "Admin",
+      "action": "İşlem"
+    }
+  },
+  "note": {
+    "label": "Not (isteğe bağlı)",
+    "hint": "Sadece denetim kaydında görünür, kullanıcıya gösterilmez."
+  }
+}

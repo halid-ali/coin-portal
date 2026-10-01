@@ -17,15 +17,27 @@ export class ConfirmDialogService {
   private readonly document = inject(DOCUMENT);
 
   confirm(options: ConfirmOptions): Promise<boolean> {
+    return this.open(options).then((result) => result.confirmed);
+  }
+
+  /** Like confirm(), with the note field; resolves to its trimmed text, or null when cancelled. */
+  confirmWithNote(
+    options: ConfirmOptions & Required<Pick<ConfirmOptions, 'note'>>,
+  ): Promise<string | null> {
+    return this.open(options).then((result) => (result.confirmed ? result.note.trim() : null));
+  }
+
+  private open(options: ConfirmOptions): Promise<{ confirmed: boolean; note: string }> {
     return new Promise((resolve) => {
       const ref = createComponent(ConfirmDialog, { environmentInjector: this.injector });
       ref.setInput('options', options);
 
-      const subscription = ref.instance.closed.subscribe((result) => {
+      const subscription = ref.instance.closed.subscribe((confirmed) => {
         subscription.unsubscribe();
+        const note = ref.instance.noteText();
         this.appRef.detachView(ref.hostView);
         ref.destroy();
-        resolve(result);
+        resolve({ confirmed, note });
       });
 
       this.appRef.attachView(ref.hostView);
