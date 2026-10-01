@@ -1,15 +1,13 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (9. adım hosting temeli tamam: 9a altyapı, 9b büyük fotoğraflar, 9c kalıcı
-oturum, 9d PWA manifest, 9e hesap silme + dışa aktarma, 9f gizlilik + iletişim; hepsi main'de, push
-edilmedi. Sırada `v0.3.0` yayını ve push. Proje GitHub'da public:
-https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-01 (`v0.3.0` yayınlandı: yol haritası 9. adım hosting temeli, yani altyapı,
+büyük fotoğraflar, kalıcı oturum, PWA manifest, hesap silme + dışa aktarma, gizlilik + iletişim. Proje
+GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra`, `fix/photo-upload-limits`,
-  `feat/remember-me`, `feat/pwa-manifest`, `feat/account-deletion` ve `feat/privacy-contact`
-  2026-10-01'de merge edildi, henüz push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-v0.3.0` 2026-10-01'de merge
+  edildi, son etiket ve release `v0.3.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -20,6 +18,8 @@ https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası"
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
 - İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım").
 - Lokal admin: `src/api/appsettings.Development.json` → `Admin:UserIds` (API açılışta rolü verir).
+- 4200'deki `ng serve` 2026-09-29'dan beri sahipsiz bir süreçten çalışıyor olabilir (Tamamlananlar 31);
+  `Port 4200 is already in use` görülürse önce o süreç kapatılır.
 - Backend değişikliklerinden sonra `dotnet test` (API çalışırken `-p:BaseOutputPath=<scratchpad>/testbin/`).
 - ImageSharp lisansı: `src/api/sixlabors.lic` lokalde var (gitignore'da), CI'da GitHub secret
   `SIXLABORS_LICENSE_KEY`. Lisans 2027-12-26'da biter (Açık konular 1).
@@ -726,6 +726,9 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       gitmiyor, işaretliyle `acceptPrivacy: true`). Headless Edge (4200, girişsiz): dört dilde üç sayfada
       taşma yok, başlıklar doğru, görünen çeviri anahtarı yok; iletişim kartında telefonda etiket ile
       değer birlikte (çift başına `div`).
+34. **`v0.3.0`** (`chore/release-v0.3.0`, 2026-10-01): yol haritası 9. adım (Tamamlananlar 28–33).
+    CHANGELOG git-cliff ile, etiket merge commit'inde, GitHub Release açıldı (giriş, öne çıkanlar,
+    CHANGELOG linki; notlar lokal `.notes/release-v0.3.0.md`).
 
 ## Yol haritası
 
@@ -760,7 +763,7 @@ mağaza için TWA.
         koleksiyonlar (liste, gizle + kilit, kilidi kaldır); denetim kaydı (Tamamlananlar 25).
   - [x] `feat/admin-ui`: panel arayüzü, geniş sayfa, sahip tarafı ve giriş mesajı (Tamamlananlar 26).
   - [x] `v0.2.0` yayını (2026-10-01, Tamamlananlar 27).
-- [ ] 9. Hosting temeli (2026-10-01'de alt adımlara bölündü; sonunda `v0.3.0`). Turnstile 15. adıma,
+- [x] 9. Hosting temeli (2026-10-01'de alt adımlara bölündü; sonunda `v0.3.0`, Tamamlananlar 34). Turnstile 15. adıma,
       forwarded headers hosting seçimine kaldı (sitenin önüne CDN konursa).
   - [x] 9a. `chore/hosting-infra`: wwwroot + SPA fallback + önbellek, publish'te client, Serilog,
         DataProtection, rate limiter (Tamamlananlar 28).
@@ -774,7 +777,7 @@ mağaza için TWA.
         kaydında anonimleştirme (Tamamlananlar 32).
   - [x] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları, footer linkleri, kayıtta zorunlu kutu
         (Tamamlananlar 33). İşletmeci adı ve e-posta yayın öncesi doldurulacak.
-  - [ ] `v0.3.0` yayını ve push.
+  - [x] `v0.3.0` yayını ve push (2026-10-01, Tamamlananlar 34).
 - [ ] 8b. `tests/e2e` (Playwright).
 - [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
       (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
@@ -798,9 +801,10 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-9. adımın alt adımları tamam (9a–9f, main'de, push edilmedi). Sırada **`v0.3.0`** yayını (CLAUDE.md
-"Sürüm ve yayın"; 9. adımın değişiklikleri birlikte) ve push. Sonra yol haritasında 8b (e2e) ya da 10
-(`release.yml`; 9a'daki publish hedefiyle client artık pakette). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+Yeni sohbette kullanıcıyla seçilecek. Yol haritasında adaylar: **10** `release.yml` (etiketten
+`dotnet publish` paketi; 9a'daki publish hedefiyle client artık pakette), **8b** e2e (Playwright), **11**
+hosting seçimi ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Yayın öncesi kullanıcıda
+bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum kararı (Açık konular 14). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
