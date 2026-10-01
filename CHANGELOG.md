@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-10-01
+
+### Added
+
+- **api:** Grant the Admin role from configuration
+- **api:** Add site statistics for admins
+- **client:** Expose the user's roles
+- **api:** Record sign-in and last-seen times
+- **client:** Show the previous sign-in in the profile
+- **api:** Add the moderation fields and the audit log
+- **api:** Hide shared content of locked users and moderated collections
+- **api:** Add admin endpoints for users, collections and the audit log
+- **client:** Mirror the moderation lock of collections
+- **api:** Mark admin-owned collections in the admin list
+- **client:** Show moderation locks to owners and on sign-in
+- **client:** Add the admin panel
+
 ## [0.1.0] - 2026-09-29
 
 ### Added
