@@ -68,6 +68,26 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task AdminsCollections_AreMarked_AndCanBeHiddenToo()
+    {
+        // Content moderation applies to everyone; only account locks spare admins
+        var admin = await factory.SignUpAdminAsync();
+        var otherAdmin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var adminsCollection = await otherAdmin.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var alicesCollection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+
+        var ofAdmin = Assert.Single((await ListAsync(admin, $"search={otherAdmin.UserName}")).Items);
+        var ofAlice = Assert.Single((await ListAsync(admin, $"search={alice.UserName}")).Items);
+        using var hide = await admin.Client.PutAsync($"/api/admin/collections/{adminsCollection.Id}/lock",
+            new AdminLockRequest(null));
+
+        Assert.Equal((adminsCollection.Id, true), (ofAdmin.Id, ofAdmin.OwnerIsAdmin));
+        Assert.Equal((alicesCollection.Id, false), (ofAlice.Id, ofAlice.OwnerIsAdmin));
+        await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
     public async Task Hide_EndsTheShareLink()
     {
         var admin = await factory.SignUpAdminAsync();
