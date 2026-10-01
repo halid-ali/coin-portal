@@ -361,7 +361,9 @@
       "lastName": "Фамилия",
       "userName": "Потребителско име",
       "email": "Имейл",
-      "birthDate": "Дата на раждане"
+      "birthDate": "Дата на раждане",
+      "previousSignIn": "Предишен вход",
+      "noPreviousSignIn": "Няма записан предишен вход"
     },
     "appearance": {
       "nav": "Външен вид"

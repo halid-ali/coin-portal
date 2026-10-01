@@ -16,6 +16,8 @@ export interface UserResponse {
   theme: ThemeMode | null;
   /** Saved accent color; null until the user chooses one in the settings. */
   accent: AccentColor | null;
+  /** The sign-in before the current session's (ISO, UTC); null if none is recorded. */
+  previousSignInAtUtc: string | null;
   /** Identity roles, e.g. ['Admin']; empty for most users. */
   roles: string[];
 }

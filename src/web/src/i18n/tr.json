@@ -361,7 +361,9 @@
       "lastName": "Soyisim",
       "userName": "Kullanıcı adı",
       "email": "E-posta",
-      "birthDate": "Doğum tarihi"
+      "birthDate": "Doğum tarihi",
+      "previousSignIn": "Önceki giriş",
+      "noPreviousSignIn": "Kayıtlı önceki giriş yok"
     },
     "appearance": {
       "nav": "Görünüm"

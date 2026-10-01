@@ -1,18 +1,18 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-09-30 (Yönetici paneli kararları alındı ("Yönetici paneli: kararlar"), ilk branch
-`feat/admin-role` tamam: Admin rolü ayardan, `GET api/admin/stats`. Öncesinde API testleri eklendi
-(`tests/api`, CI'da SQL Server'a karşı). Proje GitHub'da public: https://github.com/halid-ali/coin-portal,
-son release `v0.1.0`; yol haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-01 (`feat/sign-in-times` tamam: son giriş, önceki giriş ve son görülme
+tutuluyor, profilde "Önceki giriş". Yönetici panelinde sırada `feat/admin-api`; kararlar "Yönetici
+paneli: kararlar". Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son release `v0.1.0`;
+yol haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/admin-role` 2026-09-30'da merge
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/sign-in-times` 2026-10-01'de merge
   edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Veritabanı en son migration'da (`AddUserPreferredAccent`); dev seed 2026-09-27'de çalıştırıldı
+- Veritabanı en son migration'da (`AddUserSignInTimes`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
@@ -498,6 +498,25 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Test factory'si migration'ı artık host başlamadan uyguluyor (açılış kodu veritabanına eriştiği
       için). Mutasyon kontrolü: policy yerine düz `[Authorize]` ve senkronda rol almamak testleri kırdı.
     - Client: `ng build`, `ng test` (47), Prettier temiz.
+24. **Giriş zamanları** (`feat/sign-in-times`, 2026-10-01; yol haritası 12. adımın ikinci branch'i, kararlar
+    "Yönetici paneli: kararlar"):
+    - API: `ApplicationUser.LastSignInAtUtc`, `PreviousSignInAtUtc`, `LastSeenAtUtc` (nullable;
+      migration `AddUserSignInTimes`, sadece üç `AddColumn`; mevcut hesaplarda boş). Kayıt ve başarılı
+      girişte tek `UPDATE` ile son giriş öncekine kayar, son giriş ve son görülme şimdi olur
+      (`ExecuteUpdate`: sağ taraflar eski satırı okur; UserManager kullanılmadığı için Identity'nin
+      concurrency stamp'i değişmez). `me` son görülmeyi en fazla saatte bir yazar
+      (`ApplicationUser.LastSeenPrecision`). Başarısız giriş hiçbir şeyi değiştirmez.
+    - `UserResponse.previousSignInAtUtc` (UTC, `Z` ile). Son giriş ve son görülme dışarı açılmıyor;
+      admin uçları `feat/admin-api`'de.
+    - Client: Ayarlar > Profil'de altıncı satır "Önceki giriş": aktif dilde uzun tarih + saat, cihazın
+      saat diliminde; yoksa soluk renkte "Kayıtlı önceki giriş yok". Dört dilde iki anahtar
+      (`settings.profile.previousSignIn`, `noPreviousSignIn`). İlk bileşen testi
+      (`profile-settings.spec.ts`, `AuthService` taslağıyla).
+    - Testler: API 79 (+5: kayıt ilk giriş, girişte kayma, başarısız girişte değişiklik yok, saatte bir
+      son görülme, JSON'da UTC); test factory'sine `WithDbAsync` (API'nin açmadığı alanlar için doğrudan
+      veritabanı). Mutasyon: kaymayı ve saat sınırını kaldırınca ilgili 3 test kırıldı. Client 49 test,
+      `ng build`, Prettier temiz. Migration dev veritabanına uygulandı.
+    - Görsel kontrol yapılmadı (giriş gerekiyor); bileşen testi metni ve tarih biçimini doğruluyor.
 
 ## Yol haritası
 
@@ -526,8 +545,8 @@ mağaza için TWA.
       kararlar "Yönetici paneli: kararlar"). Sonunda `v0.2.0`.
   - [x] `feat/admin-role`: rol, `Admin:UserIds` senkronu, policy, 1 dk doğrulama, `me` → `roles`,
         `GET api/admin/stats` (Tamamlananlar 23).
-  - [ ] `feat/sign-in-times`: `LastSeenAtUtc`, `LastSignInAtUtc`, `PreviousSignInAtUtc` + migration;
-        Ayarlar > Profil'de "Önceki giriş" (dört dil).
+  - [x] `feat/sign-in-times`: `LastSeenAtUtc`, `LastSignInAtUtc`, `PreviousSignInAtUtc` + migration;
+        Ayarlar > Profil'de "Önceki giriş" (Tamamlananlar 24).
   - [ ] `feat/admin-api`: `AuditLog`; kullanıcılar (liste, detay, kilitle/aç; kendini ve son admini
         kilitleyemez, kilitte security stamp); Public/Unlisted koleksiyonlar (liste, gizle + kilit, kilidi
         kaldır; sahibin yayınlaması `moderation_locked`); denetim kaydı listesi.
@@ -560,8 +579,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-**Yol haritası 12. adım, sıradaki branch `feat/sign-in-times`** (kararlar "Yönetici paneli: kararlar",
-branch listesi "Yol haritası"nda). Sonra `feat/admin-api`, `feat/admin-ui`, ardından `v0.2.0`.
+**Yol haritası 12. adım, sıradaki branch `feat/admin-api`** (kararlar "Yönetici paneli: kararlar",
+branch listesi "Yol haritası"nda). Sonra `feat/admin-ui`, ardından `v0.2.0`.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
 2026-09-28'de watermark "biraz daha ertelensin" dendi):
@@ -694,9 +713,11 @@ Kararlar (2026-09-30, kullanıcıyla):
   tarafından gizlendi"). Kilitsiz gizleme içeriği bir tıkla geri getirmeye izin verirdi.
 - **Giriş zamanları:** `LastSeenAtUtc` (son görülme; `me` isteğinde en fazla saatte bir; admin listesinde,
   sıralanabilir), `LastSignInAtUtc` (son giriş; admin detayında), `PreviousSignInAtUtc` (önceki giriş;
-  kullanıcının Ayarlar > Profil'inde, bankalardaki gibi; ilk oturumda "Bu ilk oturumun"). Son giriş tek
+  kullanıcının Ayarlar > Profil'inde, bankalardaki gibi; yoksa "Kayıtlı önceki giriş yok"). Son giriş tek
   başına yetmiyordu: 14 günlük kayan cookie yüzünden aktif kullanıcı da haftalarca giriş yapmayabilir,
-  profilde ise "son giriş" hep "şimdi" olur.
+  profilde ise "son giriş" hep "şimdi" olur. Boş değer için önce "Bu ilk oturumun" düşünülmüştü; bu
+  özellikten önce açılmış hesapların ilk girişinde de önceki giriş boş olduğu için yanlış olurdu, metin
+  nötr (Claude'un düzeltmesi, 2026-10-01).
 - **Dil:** panel de dört dilde (kullanıcının kararı). Sadece EN/TR + İngilizce yedek dil, arayüz DE/BG
   iken aynı ekranda iki dil gösteriyordu; hesaba kayıtlı ayrı bir panel dili de konuşuldu (sütun, rotaya
   göre dil geçişi, footer seçicisinin panelde başka anlamı). Dört dil bu belirsizliği kaldırıyor, mevcut

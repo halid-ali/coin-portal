@@ -119,6 +119,16 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         return await admin.SignInAgainAsync();
     }
 
+    /// <summary>
+    /// Direct database access for what the API does not expose (yet), e.g. stored timestamps.
+    /// Its own scope: nothing is shared with the requests.
+    /// </summary>
+    public async Task<T> WithDbAsync<T>(Func<AppDbContext, Task<T>> action)
+    {
+        await using var scope = Services.CreateAsyncScope();
+        return await action(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+    }
+
     /// <summary>Runs the startup sync with this list instead of the configuration.</summary>
     public async Task SyncAdminsAsync(params string[] userIds)
     {
