@@ -13,6 +13,12 @@ export type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'coinportal.theme';
 
 /**
+ * Browser and installed-app title bar (<meta name="theme-color">): the header's surface, shade-0
+ * (white / slate-900). Same values in index.html, which sets it before Angular starts.
+ */
+export const THEME_COLORS: Readonly<Record<Theme, string>> = { light: '#ffffff', dark: '#0f172a' };
+
+/**
  * The active color theme. Which one is used, in order: the account's saved choice (applied by
  * the app initializer and AuthService), this browser's last choice, System. Every switch is also
  * remembered on this browser, so it survives signing out. The theme is shown by the `dark` class
@@ -42,8 +48,11 @@ export class ThemeService {
       query.addEventListener('change', (e) => this.systemDark.set(e.matches));
     }
     effect(() => {
-      const dark = this.current() === 'dark';
-      this.document.documentElement.classList.toggle('dark', dark);
+      const theme = this.current();
+      this.document.documentElement.classList.toggle('dark', theme === 'dark');
+      this.document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', THEME_COLORS[theme]);
     });
   }
 
