@@ -21,8 +21,24 @@ public class PhotosTests(CoinPortalFactory factory)
 
         await thumb.ShouldHaveStatusAsync(HttpStatusCode.OK);
         Assert.Equal("image/webp", thumb.Content.Headers.ContentType?.MediaType);
-        Assert.Contains("immutable", thumb.Headers.CacheControl?.ToString());
         Assert.Equal(["full.webp", "preview.webp", "thumb.webp"], StoredFiles(alice, photo.Id));
+    }
+
+    [Fact]
+    public async Task Photos_AreCachedForGood()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
+        // Signed out: in tests every signed-in request renews the cookie (zero validation interval),
+        // and a response that sets a cookie is marked no-cache
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        using var thumb = await visitor.GetAsync($"/api/coins/{coin.Id}/photos/National/Thumb?v={photo.Id}");
+
+        await thumb.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Contains("immutable", thumb.Headers.CacheControl?.ToString());
     }
 
     [Fact]

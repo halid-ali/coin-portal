@@ -3,6 +3,7 @@ using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -55,6 +56,10 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["PhotoStorage:RootPath"] = PhotoRoot,
                 ["Logging:LogLevel:Default"] = "Warning",
             }));
+        // The app checks the cookie against the database once a minute; tests check every request,
+        // so a lock or role change shows at once instead of after a wait
+        builder.ConfigureTestServices(services => services.Configure<SecurityStampValidatorOptions>(
+            options => options.ValidationInterval = TimeSpan.Zero));
     }
 
     public async ValueTask InitializeAsync()
@@ -95,10 +100,15 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
     }
 
     /// <summary>Signs up a new user with a unique name; the client is signed in as that user.</summary>
-    public async Task<TestUser> SignUpAsync(string? language = "en")
+    public async Task<TestUser> SignUpAsync(string? language = "en", string? userName = null)
     {
         var client = await CreateAnonymousClientAsync();
-        var user = await client.RegisterAsync(TestUser.NewRegisterRequest(language));
+        var request = TestUser.NewRegisterRequest(language);
+        if (userName is not null)
+        {
+            request = request with { UserName = userName, Email = $"{userName}@example.test" };
+        }
+        var user = await client.RegisterAsync(request);
         return new TestUser(client, user);
     }
 

@@ -13,7 +13,7 @@ namespace CoinPortal.Api.Controllers;
 /// <summary>
 /// The signed-in user's collections. Other users' collections are reported as 404.
 /// Errors that the client words itself carry a code: DuplicateName (validation key),
-/// last_collection and invalid_target (ProblemDetails "code").
+/// last_collection, invalid_target, not_unlisted and moderation_locked (ProblemDetails "code").
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -70,6 +70,7 @@ public class CollectionsController(
 
     [HttpPut("{id:int}")]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CollectionResponse>> Update(
         int id, CollectionUpsertRequest request, CancellationToken ct)
@@ -78,6 +79,14 @@ public class CollectionsController(
         if (collection is null)
         {
             return NotFound();
+        }
+
+        // Hidden by an admin: name and description may change, sharing may not
+        if (collection.ModerationLockedAtUtc is not null
+            && request.Visibility is { } visibility && visibility != CollectionVisibility.Private)
+        {
+            return this.CodedProblem("moderation_locked", "An administrator has hidden this collection.",
+                StatusCodes.Status403Forbidden);
         }
 
         if (!await TryApplyAsync(collection, request, DateTime.UtcNow, ct) || !await TrySaveAsync(ct))
@@ -204,6 +213,7 @@ public class CollectionsController(
             c.Name,
             c.Description,
             c.Visibility,
+            c.ModerationLockedAtUtc != null,
             c.ShareToken,
             c.Coins.Count,
             c.CoverImageId,

@@ -28,6 +28,8 @@ export interface CollectionSummary {
 }
 
 export interface Collection extends CollectionSummary {
+  /** Hidden by an admin: Private, and the visibility cannot change until the lock is lifted. */
+  moderationLocked: boolean;
   /** Secret of the share link (/s/<token>) while Unlisted. */
   shareToken: string | null;
   createdAtUtc: string;

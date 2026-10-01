@@ -153,13 +153,23 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`SecurityStampValidatorOptions`), rol ve security stamp değişiklikleri en geç bu sürede oturuma yansır.
   **Admin gizli içerik görmez:** kullanıcılar için sayılar ve kota, içerik olarak sadece Public/Unlisted;
   `CollectionAccess`'e admin istisnası eklenmez.
+- **Moderasyon:** admin kilidi (`ApplicationUser.LockedAtUtc` + Identity `LockoutEnd` en büyük değer +
+  yeni security stamp) girişi engeller, açık oturumu düşürür ve kullanıcının paylaşılan koleksiyonlarını
+  kilit sürdükçe gizler (veri değişmez). 5 hatalı girişin geçici kilidi sadece `LockoutEnd`'dir, içeriği
+  etkilemez. Admin'ler panelden kilitlenemez (`cannot_lock_admin`). Koleksiyon gizleme
+  (`Collection.ModerationLockedAtUtc`): Private yapar, linki siler, kilit kalkana kadar sahip görünürlüğü
+  değiştiremez (403 `moderation_locked`); kilit kalkınca Private kalır. Her admin işlemi `AuditLog`'a
+  (FK'sız, ad anlık görüntüsüyle) aynı `SaveChanges` içinde yazılır.
 
 ## Backend kuralları
 
 - Tüm controller'lar `api/[controller]` altında. İstisnalar: bir kaynağın alt kaynakları iç içe route
   kullanır (`api/coins/{coinId}/photos`); admin uçları `api/admin/<kaynak>` (`Controllers/Admin/`,
-  `Contracts/Admin/`, `[Authorize(Policy = AuthPolicies.Admin)]`; admin olmayan 403, girişsiz 401).
-  İstek/yanıt tipleri `Contracts/` altında, entity'ler dışarı açılmaz.
+  `Contracts/Admin/`; **her admin controller `AdminControllerBase`'den türer**, Admin policy'si ve
+  `Audit(...)` oradan gelir; admin olmayan 403, girişsiz 401). İstek/yanıt tipleri `Contracts/`
+  altında, entity'ler dışarı açılmaz. Sayfalı genel listeler `Querying/Paging.ToPagedAsync` (sıralı
+  sorgu + sayfadan sonra projeksiyon); EF'in üzerinde filtreleyip sıralayabilmesi için ara projeksiyon
+  record constructor değil member-init sınıf olur (bkz. `AdminUsersController.UserRow`).
 - **Görsel kütüphanesi sadece `IImageProcessor` arkasında** (`Photos/`, sözleşme arayüzün XML
   yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
   dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
@@ -167,8 +177,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte.
 - Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar.
   Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir.
-- **Kim neyi görebilir tek yerde:** `Querying/CollectionAccess.CanView` (sahip, herkese açık, ya da
-  Unlisted + doğru `s=` anahtarı). Fotoğraf ve kapak GET'leri bunu kullanır (`[AllowAnonymous]`).
+- **Kim neyi görebilir tek yerde:** `Querying/CollectionAccess` — `CanView` (sahip, herkese açık, ya da
+  Unlisted + doğru `s=` anahtarı; sahibi admin kilitliyse sadece sahip), `IsPublic` ve `IsShared`
+  (PublicController). Fotoğraf ve kapak GET'leri `CanView` kullanır (`[AllowAnonymous]`).
   Girişsiz okuma uçları `PublicController` (`api/public/...`) altında; yanıtlarda kullanıcı adı dışında
   kişisel veri olmaz, görünmeyen her şey 404. Coin listesi filtre/sıralama/sayfalama `CoinListing`
   ile paylaşılır. Keşfet'te `pageSize=0` (tümü) yasak (girişsiz, tüm veriyi tarar).
@@ -189,6 +200,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Kullanıcının yazdığı adların tekillik kontrolü kodda Türkçe + kültürden bağımsız büyük/küçük harf
   duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
+  Görünen ama yasak işlem → **403** (ör. kendi kilitli koleksiyonunu yayınlamak, `moderation_locked`).
 - Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
@@ -207,7 +219,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   PNG'yi elle üretir). xUnit v3 4.x Microsoft Testing Platform ister (`global.json` → `test.runner`).
   Admin testleri `[Collection(AdminCollection.Name)]` içinde (sırayla çalışır: `SyncAdminsAsync` diğer
   admin'lerin rolünü alır); admin kullanıcı `factory.SignUpAdminAsync()`. Açılış kodu veritabanına
-  eriştiği için factory migration'ı host başlamadan uygular.
+  eriştiği için factory migration'ı host başlamadan uygular. Testlerde cookie her istekte doğrulanır
+  (`ValidationInterval` sıfır; kilit ve rol hemen yansır), bu yüzden girişli yanıtlar cookie yeniler ve
+  `no-cache` olur: önbellek başlığını girişsiz istemciyle test et. API'nin açmadığı alanlar için
+  `factory.WithDbAsync(...)`.
 
 ## Client kuralları
 
@@ -317,6 +332,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
   (`--configuration` ile ayrı konfigürasyon işe yaramaz: Debug dışı her derleme ImageSharp lisansı ister).
   `dotnet test` de API projesini derler; API çalışırken `dotnet test -p:BaseOutputPath=<scratchpad>/testbin/`.
+- Cookie doğrulaması (dakikada bir) cookie'yi yeniler; ASP.NET Core cookie yazan yanıtı `no-cache`
+  yapar. Yani kullanıcı başına dakikada bir yanıt (çoğu zaman bir fotoğraf) önbelleğe alınmaz; bilinen,
+  küçük bir bedel.
 - API açılışta veritabanına yazar (admin rol senkronu): veritabanı erişilemezse ya da boşsa (hiç
   migration uygulanmamış) API başlamaz. Hosting'de önce migration, sonra uygulama.
 - Test koşusu yarıda kesilirse (Ctrl+C, debugger) LocalDB'de bir `CoinPortal_Tests_*` veritabanı ve

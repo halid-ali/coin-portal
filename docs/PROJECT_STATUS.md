@@ -1,18 +1,18 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (`feat/sign-in-times` tamam: son giriş, önceki giriş ve son görülme
-tutuluyor, profilde "Önceki giriş". Yönetici panelinde sırada `feat/admin-api`; kararlar "Yönetici
-paneli: kararlar". Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son release `v0.1.0`;
-yol haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-01 (`feat/admin-api` tamam: denetim kaydı, kullanıcı kilitleme, koleksiyon
+gizleme, admin listeleri. Yönetici panelinde sırada `feat/admin-ui`; kararlar "Yönetici paneli: kararlar".
+Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son release `v0.1.0`; yol haritası ve
+sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/sign-in-times` 2026-10-01'de merge
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/admin-api` 2026-10-01'de merge
   edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Veritabanı en son migration'da (`AddUserSignInTimes`); dev seed 2026-09-27'de çalıştırıldı
+- Veritabanı en son migration'da (`AddModeration`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
@@ -517,6 +517,37 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       veritabanı). Mutasyon: kaymayı ve saat sınırını kaldırınca ilgili 3 test kırıldı. Client 49 test,
       `ng build`, Prettier temiz. Migration dev veritabanına uygulandı.
     - Görsel kontrol yapılmadı (giriş gerekiyor); bileşen testi metni ve tarih biçimini doğruluyor.
+25. **Admin API'si** (`feat/admin-api`, 2026-10-01; yol haritası 12. adımın üçüncü branch'i, kararlar
+    "Yönetici paneli: kararlar"):
+    - Veri (migration `AddModeration`, iki nullable sütun + tablo): `ApplicationUser.LockedAtUtc`,
+      `Collection.ModerationLockedAtUtc`, `AuditLog` (`AuditLogEntry`; FK yok, Id'lerin yanında
+      adların o anki hali; işlem `AuditAction` int + check constraint, JSON'da ad).
+    - Uçlar (`Controllers/Admin/`, hepsi `AdminControllerBase`'den: policy ve `Audit()` orada):
+      `GET api/admin/users` (arama, durum filtresi Active/LockedOut/Locked, sıralama kayıt/ad/son
+      görülme/disk, sayfalama), `GET api/admin/users/{id}`, `PUT|DELETE api/admin/users/{id}/lock`;
+      `GET api/admin/collections` (Public, Unlisted ve gizlenmiş; arama ad/sahip, görünürlük, kilit,
+      sıralama, Unlisted için link anahtarı), `PUT|DELETE api/admin/collections/{id}/lock`;
+      `GET api/admin/audit` (işlem, kullanıcı, koleksiyon filtresi). Kilit istekleri isteğe bağlı
+      `{ note }` gövdesi alır; tekrarlanan kilit no-op (ikinci kayıt yok). İstatistiklere aktif kullanıcı
+      (30 gün), kilitli kullanıcı ve gizlenmiş koleksiyon sayıları eklendi.
+    - Kilit: `LockedAtUtc` + `LockoutEnd` en büyük değer + security stamp (kayıt ve denetim satırı
+      UserManager'ın tek `SaveChanges`'inde). Kilit açma geçici kilidi de kaldırır. Girişte admin kilidi
+      423 + `account_locked`, geçici kilit kodsuz 423.
+    - `CollectionAccess`: `CanView` sahibi kilitli koleksiyonu sadece sahibine gösterir; yeni
+      `IsPublic` / `IsShared` PublicController'daki kopyaların yerine (kural tek yerde).
+      `CollectionsController.Update`: kilitliyken görünürlük değişikliği 403 `moderation_locked`;
+      `CollectionResponse.moderationLocked` (client modelinde de).
+    - `Querying/Paging.ToPagedAsync` (sıralı sorgu, projeksiyon sayfadan sonra).
+    - Testler: API 93 (+14: liste/arama/sıralama/sayfalama, detay ve 404, kilitle → oturum düşer + giriş
+      `account_locked` + aç → tekrar giriş, kilitli kullanıcının paylaşılan içeriği ve fotoğrafı gizli
+      ve geri geliyor, admin kilitlenemez, geçici kilidi açma, koleksiyon gizleme/kilit/link iptali/sahibin
+      403'ü ve kilit kalkınca tekrar yayınlama, Private koleksiyon admin'e 404, denetim kaydı içeriği ve
+      silinen koleksiyonun adının kalması, admin olmayan 403). Testlerde cookie doğrulama aralığı sıfır;
+      bu yüzden girişli yanıtlar `no-cache` (cookie yenileniyor), fotoğraf önbellek testi girişsiz
+      istemciye taşındı. Mutasyon: `CanView`'deki kilit şartı, sahibin 403'ü, kilitte security stamp,
+      ortak tabandaki policy ayrı ayrı bozulunca ilgili testler kırıldı.
+    - Canlı kontrol (5090, dev veritabanı, migration uygulandı): sağlık, koleksiyoncular, seed girişi,
+      `moderationLocked`, admin uçları normal kullanıcıya 403. Client: `ng build`, 49 test, Prettier temiz.
 
 ## Yol haritası
 
@@ -547,14 +578,15 @@ mağaza için TWA.
         `GET api/admin/stats` (Tamamlananlar 23).
   - [x] `feat/sign-in-times`: `LastSeenAtUtc`, `LastSignInAtUtc`, `PreviousSignInAtUtc` + migration;
         Ayarlar > Profil'de "Önceki giriş" (Tamamlananlar 24).
-  - [ ] `feat/admin-api`: `AuditLog`; kullanıcılar (liste, detay, kilitle/aç; kendini ve son admini
-        kilitleyemez, kilitte security stamp); Public/Unlisted koleksiyonlar (liste, gizle + kilit, kilidi
-        kaldır; sahibin yayınlaması `moderation_locked`); denetim kaydı listesi.
+  - [x] `feat/admin-api`: `AuditLog`; kullanıcılar (liste, detay, kilitle/aç); Public/Unlisted
+        koleksiyonlar (liste, gizle + kilit, kilidi kaldır); denetim kaydı (Tamamlananlar 25).
   - [ ] `feat/admin-ui`: avatar menüsünde "Yönetim" + ayırıcı (mobil menü de), lazy `/admin` (Genel
         bakış, Kullanıcılar, Koleksiyonlar, Denetim kaydı), `i18n/admin/<dil>.json` dört dilde, sahip
-        tarafında "Yönetici tarafından gizlendi" ve kilitli görünürlük seçenekleri.
+        tarafında "Yönetici tarafından gizlendi" ve kilitli görünürlük seçenekleri, girişte
+        `account_locked` (423) için "Hesabın yönetici tarafından kilitlendi" mesajı.
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma
-      (admin'in kullanıcı silmesi de bu servisle), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
+      (admin'in kullanıcı silmesi de bu servisle; `AuditLog`'daki ad anlık görüntüleri silinen kullanıcı
+      için anonimleştirilir), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
       düzeltmesi, beni hatırla, PWA manifest.
 - [ ] 8b. `tests/e2e` (Playwright).
 - [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
@@ -579,8 +611,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-**Yol haritası 12. adım, sıradaki branch `feat/admin-api`** (kararlar "Yönetici paneli: kararlar",
-branch listesi "Yol haritası"nda). Sonra `feat/admin-ui`, ardından `v0.2.0`.
+**Yol haritası 12. adım, sıradaki branch `feat/admin-ui`** (kararlar "Yönetici paneli: kararlar",
+branch listesi "Yol haritası"nda), ardından `v0.2.0`.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
 2026-09-28'de watermark "biraz daha ertelensin" dendi):
@@ -724,6 +756,17 @@ Kararlar (2026-09-30, kullanıcıyla):
   "dört dosyaya birden" kuralı ve eşlik testi aynen işliyor; bedeli yeni dillerde panel metinleri de
   (~60–100 anahtar). Panel metinleri ayrı, lazy dosyalarda (`i18n/admin/<dil>.json`, Transloco scope):
   normal kullanıcının indirdiği dil dosyası büyümez.
+- **Kilitli kullanıcının içeriği** (2026-10-01): admin kilidi sürdükçe kullanıcının paylaşılan
+  koleksiyonları herkesten gizlenir, kilit açılınca geri gelir (veri değişmez; kural `CollectionAccess`'te).
+  Kilit sadece girişi engelleseydi, spam yapan birinin içeriği ayrıca tek tek gizlenmek zorundaydı. 5
+  hatalı girişin geçici kilidi içeriği etkilemez.
+- **Not (gerekçe):** kilitleme ve gizlemede isteğe bağlı, en fazla 500 karakter, **sadece denetim
+  kaydında**. Kullanıcıya gösterilmesi (çevrilmeyen serbest metin) bildirim adımına (14) kaldı.
+- **Admin'in gördüğü kullanıcı bilgisi:** listede kullanıcı adı ve e-posta (iletişim için), detayda ek
+  olarak ad soyad; doğum tarihi, dil, tema gösterilmez.
+- **Admin'ler panelden kilitlenemez** (Claude'un sadeleştirmesi, kullanıcı onayladı): "kendini ve son
+  admini kilitleyemez" kuralının yerine; admin'ler zaten ayardan belirleniyor, durdurmak için ayardan
+  çıkarılır.
 - **Neden hosting'den önce ve arayüzlü:** "Yol haritası" bölümündeki "Yeniden sıralama" notu.
 
 ## Fotoğraflar

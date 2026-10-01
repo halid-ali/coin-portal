@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Collection> Collections => Set<Collection>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<CoinPhoto> CoinPhotos => Set<CoinPhoto>();
+    public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -138,6 +139,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 t.HasCheckConstraint("CK_CoinPhotos_Side", $"[Side] IN ({sides})");
                 t.HasCheckConstraint("CK_CoinPhotos_SizeBytes", "[SizeBytes] > 0");
             });
+        });
+
+        builder.Entity<AuditLogEntry>(b =>
+        {
+            b.ToTable("AuditLog");
+
+            // Identity user ids are at most 450 characters
+            b.Property(e => e.ActorId).HasMaxLength(450).IsRequired();
+            b.Property(e => e.ActorUserName).HasMaxLength(AuditLogEntry.UserNameMaxLength).IsRequired();
+            b.Property(e => e.TargetUserId).HasMaxLength(450);
+            b.Property(e => e.TargetUserName).HasMaxLength(AuditLogEntry.UserNameMaxLength);
+            b.Property(e => e.TargetCollectionName).HasMaxLength(Collection.NameMaxLength);
+            b.Property(e => e.Note).HasMaxLength(AuditLogEntry.NoteMaxLength);
+
+            // Newest first, and a user's history in the panel
+            b.HasIndex(e => e.CreatedAtUtc);
+            b.HasIndex(e => e.TargetUserId);
+
+            var actions = string.Join(", ", Enum.GetValues<AuditAction>().Cast<int>());
+            b.ToTable(t => t.HasCheckConstraint("CK_AuditLog_Action", $"[Action] IN ({actions})"));
         });
     }
 }
