@@ -1,7 +1,7 @@
 import { Translation } from '@jsverse/transloco';
 
 import { LANGUAGES, Language } from './languages';
-import { TRANSLATIONS } from './testing';
+import { ADMIN_TRANSLATIONS, TRANSLATIONS } from './testing';
 
 type Leaves = Map<string, string>;
 
@@ -31,13 +31,18 @@ function pluralKeys(node: Translation, prefix = '', out: string[] = []): string[
 
 const params = (text: string) => [...text.matchAll(/{{\s*(\w+)\s*}}/g)].map((m) => m[1]).sort();
 
-// Turkish is the source language; every other file must match it exactly
-const source = leaves(TRANSLATIONS.tr);
 const others = LANGUAGES.map((l) => l.code).filter((code) => code !== 'tr');
 
-describe('translation files', () => {
+// The app's files and the admin panel's scope; in each, Turkish is the source language and
+// every other file must match it exactly
+describe.each([
+  ['translation files', TRANSLATIONS],
+  ['admin translation files', ADMIN_TRANSLATIONS],
+] as const)('%s', (_name, files) => {
+  const source = leaves(files.tr);
+
   it.each(others)('%s has exactly the keys of tr', (lang) => {
-    const keys = [...leaves(TRANSLATIONS[lang]).keys()].sort();
+    const keys = [...leaves(files[lang]).keys()].sort();
     // Plural forms may differ per language, so compare the entries above them
     const strip = (k: string) => k.replace(/\.(zero|one|two|few|many|other)$/, '');
     expect([...new Set(keys.map(strip))]).toEqual([
@@ -48,7 +53,7 @@ describe('translation files', () => {
   it.each(LANGUAGES.map((l) => l.code))(
     '%s texts are non-empty and keep the parameters',
     (lang) => {
-      for (const [key, text] of leaves(TRANSLATIONS[lang])) {
+      for (const [key, text] of leaves(files[lang])) {
         expect(text.trim(), key).not.toBe('');
         const base = key.replace(/\.(zero|one|two|few|many)$/, '.other');
         expect(params(text), `${lang}: ${key}`).toEqual(params(source.get(base) ?? text));
@@ -58,8 +63,8 @@ describe('translation files', () => {
 
   it.each(LANGUAGES.map((l) => l.code))('%s has every plural form the language needs', (lang) => {
     const categories = new Intl.PluralRules(lang).resolvedOptions().pluralCategories;
-    for (const key of pluralKeys(TRANSLATIONS[lang as Language])) {
-      const node = key.split('.').reduce((o, k) => o[k] as Translation, TRANSLATIONS[lang]);
+    for (const key of pluralKeys(files[lang as Language])) {
+      const node = key.split('.').reduce((o, k) => o[k] as Translation, files[lang]);
       for (const category of categories) {
         expect(node[category], `${lang}: ${key}.${category}`).toBeTypeOf('string');
       }

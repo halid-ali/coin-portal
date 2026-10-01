@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard } from './core/auth/auth.guards';
+import { provideAdminTranslations } from './core/admin/admin-translations';
+import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guards';
+import { PageWidthData } from './layout/page-width.service';
 
 // Titles are translation keys, see TranslatedTitleStrategy (no title: just the app name)
 export const routes: Routes = [
@@ -85,6 +87,16 @@ export const routes: Routes = [
     title: 'titles.settings',
     loadComponent: () => import('./pages/settings/settings').then((m) => m.Settings),
     loadChildren: () => import('./pages/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    title: 'titles.admin',
+    // Tables need more room than the reading width (PageWidthService)
+    data: { pageWidth: 'wide' } satisfies PageWidthData,
+    providers: [provideAdminTranslations()],
+    loadComponent: () => import('./pages/admin/admin').then((m) => m.Admin),
+    loadChildren: () => import('./pages/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
   // Addresses from before multiple collections (bookmarks)
   { path: 'collection', pathMatch: 'full', redirectTo: 'collections' },

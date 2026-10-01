@@ -25,6 +25,8 @@ export interface CollectionSummary {
   coinCount: number;
   /** Uploaded cover; without one the card shows the default picture (CollectionPlaceholder). */
   coverImageId: string | null;
+  /** Owner's view only: hidden by an admin (see Collection). */
+  moderationLocked?: boolean;
 }
 
 export interface Collection extends CollectionSummary {

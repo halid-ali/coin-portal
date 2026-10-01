@@ -1,3 +1,4 @@
+using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
@@ -13,6 +14,8 @@ namespace CoinPortal.Api.Controllers.Admin;
 /// Shared collections (public, unlisted) for moderation, and the ones an admin has hidden.
 /// Hiding makes a collection Private (its share link stops working) and locks it, so the owner
 /// cannot share it again until the lock is lifted. Other private collections are a 404 here.
+/// Content moderation applies to admins' collections too (only account locks spare admins); an
+/// admin owner can lift the lock on their own collection, which the audit log shows.
 /// </summary>
 [Route("api/admin/collections")]
 public class AdminCollectionsController(AppDbContext db) : AdminControllerBase
@@ -50,6 +53,8 @@ public class AdminCollectionsController(AppDbContext db) : AdminControllerBase
                 : collections.OrderBy(c => c.Coins.Count),
             _ => desc ? collections.OrderByDescending(c => c.UpdatedAtUtc) : collections.OrderBy(c => c.UpdatedAtUtc),
         };
+        var adminRoleId = await db.Roles.Where(r => r.Name == AppRoles.Admin).Select(r => r.Id)
+            .FirstOrDefaultAsync(ct);
         return await ordered.ThenBy(c => c.Id).ToPagedAsync(query.Page, query.PageSize,
             c => new AdminCollectionResponse(
                 c.Id,
@@ -58,6 +63,7 @@ public class AdminCollectionsController(AppDbContext db) : AdminControllerBase
                 c.OwnerId,
                 c.Owner.UserName!,
                 c.Owner.LockedAtUtc != null,
+                db.UserRoles.Any(r => r.UserId == c.OwnerId && r.RoleId == adminRoleId),
                 c.Visibility,
                 c.ShareToken,
                 c.Coins.Count,

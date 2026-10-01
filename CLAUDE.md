@@ -116,9 +116,9 @@ src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+
                         processing), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
                         Validation/, Localization/, App_Data/photos (gitignored)
 src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
-src/web/src/app/        core/{auth,coins,collections,public,http,i18n,settings}/, shared/, layout/header/,
-                        pages/
-src/web/src/i18n/       en.json, tr.json, de.json, bg.json (çeviriler)
+src/web/src/app/        core/{admin,auth,coins,collections,public,http,i18n,settings}/, shared/,
+                        layout/{header,footer}/ + page-width.service, pages/ (+ admin/)
+src/web/src/i18n/       en.json, tr.json, de.json, bg.json (çeviriler); admin/<dil>.json (panelin scope'u)
 tests/api/              API testleri (CoinPortal.Api.Tests: xUnit v3 + WebApplicationFactory), Infrastructure/
 tests/e2e/              (planlı) Playwright. Angular unit testleri kodun yanında kalır.
 docs/                   PROJECT_STATUS.md (yaşayan durum), reviews/ (tarihli değerlendirmeler)
@@ -132,6 +132,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
   `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`).
   Eski `/collection…` adresleri yönlendirilir.
+  Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`; `adminGuard`).
   Girişsiz: `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
   koleksiyon), `/s/:token` (sadece linkle). Koleksiyon sayfası tek bileşen, route data `mode`
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
@@ -159,7 +160,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   etkilemez. Admin'ler panelden kilitlenemez (`cannot_lock_admin`). Koleksiyon gizleme
   (`Collection.ModerationLockedAtUtc`): Private yapar, linki siler, kilit kalkana kadar sahip görünürlüğü
   değiştiremez (403 `moderation_locked`); kilit kalkınca Private kalır. Her admin işlemi `AuditLog`'a
-  (FK'sız, ad anlık görüntüsüyle) aynı `SaveChanges` içinde yazılır.
+  (FK'sız, ad anlık görüntüsüyle) aynı `SaveChanges` içinde yazılır. **İçerik moderasyonu herkese
+  uygulanır, hesap işlemleri admin olmayanlara:** admin'in koleksiyonu gizlenebilir (panelde sahibinin
+  yanında "Admin" rozeti, `ownerIsAdmin`), admin hesabı kilitlenemez. Admin kendi koleksiyonunun
+  kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
 
 ## Backend kuralları
 
@@ -192,8 +196,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Dil listesi iki yerde, birlikte değişir: `Localization/SupportedLanguages` ve client
   `core/i18n/languages.ts`. Kullanıcının dili `ApplicationUser.PreferredLanguage` (null = seçmedi),
   `me` yanıtında `language`, değişiklik `PUT api/settings`, kayıtta `RegisterRequest.Language`.
-  **Yeni dil eklerken kontrol edilecekler:** yeni `i18n/<dil>.json` dosyasında tüm anahtarlar
-  (test eşliği kontrol eder), `Collection.DefaultNameFor`, dil seçicideki bayrak (`shared/flag`) ve
+  **Yeni dil eklerken kontrol edilecekler:** yeni `i18n/<dil>.json` ve `i18n/admin/<dil>.json`
+  dosyalarında tüm anahtarlar (test eşliği kontrol eder), admin tablolarının sütun genişlikleri
+  (`admin-users.html`, `admin-collections.html`, `admin-audit.ts`; ölçülen metinler yorumlarda),
+  `Collection.DefaultNameFor`, dil seçicideki bayrak (`shared/flag`) ve
   coin tablosunun sütun genişlikleri: yeni dildeki sütun başlıkları ve **ülke adları** mevcut en uzundan
   (şu an "Нидерландия") uzunsa `collection.html` `<colgroup>` genişlikleri headless ölçümle büyütülür
   (ölçüm yöntemi colgroup'un üstündeki yorumda).
@@ -234,14 +240,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `withComponentInputBinding()` ile input'lara bağlı, varsayılanlar URL'e yazılmaz; yükleme
   `toObservable(query)` + `switchMap`.
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
-  `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan. Mobilde tablo
+  `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
+  listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;
+  `core/admin/admin-list.ts`). Mobilde tablo
   yok, aynı seçenekler "Sırala" select'inde. Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
   (`COIN_SORT_COLUMNS`, API `CoinSort`); diğer sütun başlıkları düz. Telefonda filtreler "Filtrele"
   butonunun arkasında katlanır (arama kutusu hariç).
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
-  metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart listesi.
+  metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
+  listesi (admin panelinde `xl`: sayfa geniş, solda bölüm menüsü var).
   Başlıklar kısa sütun etiketleriyle (`coin.column.*`). Başlık dışındaki sütunlar sabit piksel
   genişliğinde, dört dilin en genişine göre ölçülmüş (dil değişince değişmez): başlık (+ sıralama
   ikonu) ya da içerik, hangisi genişse + 24 px dolgu + 4 px pay; Ülke en uzun ülke adına göre.
@@ -272,10 +281,13 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   modelde (`me` → `accent`, `AccentService`, `AccentPreference.change()`). Logo her zaman altın kalır.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
-  `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu).
-  Yeni ortak stil gerekirse buraya eklenir.
+  `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu),
+  `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
+  dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
+  `color-mix` ile, koyu tema ayarı da `styles.css`'te). Yeni ortak stil gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
-  `window.confirm` kullanılmaz. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
+  `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış
+  metin ya da vazgeçilirse `null`. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
 - Coin formunda fotoğraf değişiklikleri (`PhotoSlot`, `PhotoChange`) **Kaydet'te** uygulanır: önce coin,
   sonra yüzler sırayla. Fotoğraf hatasında coin kayıtlı kalır, adres düzenleme adresine çevrilir.
@@ -294,9 +306,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `PhotoViewer` (yüz değiştirme: butonlar, ok tuşları döngülü, fare tekerleği döngüsüz ve hamle başına
   bir adım, `WheelGesture`). Fotoğrafı olmayan coin'in yerine `CoinPlaceholder` (`shared/coin-placeholder`).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
-- Sayfa iskeleti `app.html`: header, `main` (`max-w-5xl px-4`), footer. Header ve footer `sm` ve üstünde
-  yapışkan (üstte / altta), telefonda değil (ekranı kaplamasın). İçerikleri de `max-w-5xl px-4`, kenarlar
-  hizalı.
+- Sayfa iskeleti `app.html`: header, `main`, footer; üçü de `page-container` (genişlik
+  `--page-max-width`, kenarlar hizalı). Okuma genişliği 64rem; bir rota `data: { pageWidth: 'wide' }`
+  ile 80rem ister (admin paneli): `layout/page-width.service.ts` `<html data-page-width="wide">` koyar,
+  header/footer sayfa adı bilmez. Header ve footer `sm` ve üstünde yapışkan (üstte / altta), telefonda
+  değil (ekranı kaplamasın).
+- **Admin paneli (client):** `pages/admin/` (`admin.ts` `SECTIONS` + `admin.routes.ts`, Ayarlar deseni),
+  listeler `AdminListBase`'ten (URL'deki arama/sayfa, gecikmeli arama, biçimlendirme), API
+  `core/admin/admin.service.ts`, tarih/göreli zaman/bayt `core/admin/admin-format.ts` (dile göre `Intl`).
+  Giriş noktası avatar menüsünde en üstte "Yönetim" + ayırıcı (mobil menüde de), `AuthService.isAdmin`.
+  Satırdaki yıkıcı butonlar ikincil stilde (`btn-secondary` + `text-danger-700`), kırmızı dolgu onay
+  penceresinde.
 - Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan, aktif dilde üretilir (`CountryService`).
 - **i18n (Transloco, `@jsverse/transloco`):**
   - Template'te `{{ 'anahtar' | transloco }}`, sayıya bağlı metinde `{{ 'anahtar' | plural: n }}`
@@ -313,8 +333,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
     klavyeyle kullanılır; native `<select>` resim gösteremez, emoji bayraklar Windows'ta harf çıkar),
     bayraklar `shared/flag` (inline SVG).
   - Dil dosyaları dinamik `import()` ile ayrı chunk (sadece aktif dil iner, adlar hash'li).
+  - Admin paneli metinleri ayrı scope: `src/i18n/admin/<dil>.json`, anahtarlar `admin.*`, `/admin`
+    rotasında `provideAdminTranslations()` ile sadece panel açılınca iner. Panelde yeni metin dört admin
+    dosyasına eklenir (eşlik testi iki dosya kümesini de kontrol eder); panelin dışında görünen metinler
+    (menüdeki "Yönetim", rozetler, giriş mesajı) ana dosyalarda.
   - Route `title`'ları çeviri anahtarıdır (`TranslatedTitleStrategy`: "<metin> · Coin Portal").
-  - Testlerde `provideTestTransloco()` + `await useTestLanguage('tr')` (`core/i18n/testing.ts`).
+  - Testlerde `provideTestTransloco()` + `await useTestLanguage('tr')` (`core/i18n/testing.ts`). Admin
+    bileşen testlerinde `provideAdminTranslations()` de verilir; scope kendi dinamik import'uyla yüklendiği
+    için `whenStable` beklemez, metin `vi.waitFor` ile beklenir (bkz. `admin-users.spec.ts`).
   - Ayarlar sayfası: soldaki bölüm menüsü `pages/settings/settings.ts` `SECTIONS`, her bölüm
     `settings.routes.ts` içinde bir alt rota.
 - Prettier: `printWidth: 100`, `singleQuote`.
@@ -377,6 +403,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - `ng serve` `src/index.html` değişikliklerini almaz (eski başlığı sunmaya devam eder); index.html
   değişince `ng serve` yeniden başlatılır.
 - `<select class="w-auto">` en uzun seçeneğe göre genişler; uzun dillerde (Bulgarca) mobilde sayfayı
-  yatay taşırır. Select'e ve flex/grid atalarına `min-w-0` ver.
+  yatay taşırır. Select'e ve flex/grid atalarına `min-w-0` ver; `flex-wrap` içindeyse `max-w-full` de.
+- Kendi içinde kayan bir satır (`overflow-x-auto`, ör. bölüm sekmeleri) bir grid öğesinin içindeyse grid
+  öğesine `min-w-0` verilir; yoksa satırın genişliği tüm sayfayı genişletir (admin paneli telefonda).
+- Bir bileşene dışarıdan gölge/halka verilirken (ör. kartta rozete `shadow-sm`) gölge host'a düşer; içteki
+  eleman yuvarlaksa host da yuvarlak olmalı (`VisibilityBadge` host'u `rounded-full`), yoksa açık temada
+  köşelerde dikdörtgen gölge görünür.
 - Satır sonları LF (`.gitattributes`). Makinenin global `.npmrc`'sinde özel bir feed tanımlı olabilir;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.

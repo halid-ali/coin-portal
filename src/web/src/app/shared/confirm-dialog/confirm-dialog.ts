@@ -1,4 +1,12 @@
-import { Component, ElementRef, afterNextRender, input, output, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterNextRender,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 /** Texts in the active language (translate them before calling confirm()). */
@@ -9,6 +17,14 @@ export interface ConfirmOptions {
   cancelText?: string;
   /** Red confirm button and warning icon for destructive actions. */
   danger?: boolean;
+  /** An optional text field, e.g. a reason (ConfirmDialogService.confirmWithNote). */
+  note?: ConfirmNote;
+}
+
+export interface ConfirmNote {
+  label: string;
+  hint?: string;
+  maxLength: number;
 }
 
 let nextId = 0;
@@ -59,6 +75,27 @@ let nextId = 0;
           </div>
         </div>
 
+        @if (options().note; as note) {
+          <div class="mt-4">
+            <label [for]="noteId" class="form-label">{{ note.label }}</label>
+            <textarea
+              [id]="noteId"
+              class="form-input"
+              rows="3"
+              [maxLength]="note.maxLength"
+              [value]="noteText()"
+              (input)="noteText.set(noteInput.value)"
+              #noteInput
+            ></textarea>
+            <p class="form-hint flex justify-between gap-3">
+              <span>{{ note.hint }}</span>
+              <span class="shrink-0 tabular-nums"
+                >{{ noteText().length }}/{{ note.maxLength }}</span
+              >
+            </p>
+          </div>
+        }
+
         <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <!-- Cancel gets the initial focus, the safe choice for destructive actions -->
           <button type="button" class="btn-secondary" autofocus (click)="close(false)">
@@ -83,6 +120,9 @@ export class ConfirmDialog {
 
   protected readonly titleId = `confirm-title-${++nextId}`;
   protected readonly messageId = `confirm-message-${nextId}`;
+  protected readonly noteId = `confirm-note-${nextId}`;
+  /** Text of the optional note field, read by the service after closing. */
+  readonly noteText = signal('');
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private result = false;

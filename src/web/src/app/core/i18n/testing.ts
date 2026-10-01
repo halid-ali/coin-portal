@@ -3,6 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { Translation, TranslocoLoader, provideTransloco } from '@jsverse/transloco';
 import { of } from 'rxjs';
 
+import adminBg from '../../../i18n/admin/bg.json';
+import adminDe from '../../../i18n/admin/de.json';
+import adminEn from '../../../i18n/admin/en.json';
+import adminTr from '../../../i18n/admin/tr.json';
 import bg from '../../../i18n/bg.json';
 import de from '../../../i18n/de.json';
 import en from '../../../i18n/en.json';
@@ -14,6 +18,14 @@ import { LANGUAGES, Language } from './languages';
 
 /** The real translation files, keyed by language. */
 export const TRANSLATIONS: Record<Language, Translation> = { en, tr, de, bg };
+
+/** The admin panel's translation scope (src/i18n/admin). */
+export const ADMIN_TRANSLATIONS: Record<Language, Translation> = {
+  en: adminEn,
+  tr: adminTr,
+  de: adminDe,
+  bg: adminBg,
+};
 
 @Injectable()
 class InlineLoader implements TranslocoLoader {

@@ -1,13 +1,13 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (`feat/admin-api` tamam: denetim kaydı, kullanıcı kilitleme, koleksiyon
-gizleme, admin listeleri. Yönetici panelinde sırada `feat/admin-ui`; kararlar "Yönetici paneli: kararlar".
+Son güncelleme: 2026-10-01 (`feat/admin-ui` tamam: yönetici paneli `/admin` arayüzüyle bitti, yol
+haritası 12. adımda sırada `v0.2.0` yayını; kararlar "Yönetici paneli: kararlar".
 Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son release `v0.1.0`; yol haritası ve
 sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/admin-api` 2026-10-01'de merge
+- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/admin-ui` 2026-10-01'de merge
   edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -548,6 +548,41 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       ortak tabandaki policy ayrı ayrı bozulunca ilgili testler kırıldı.
     - Canlı kontrol (5090, dev veritabanı, migration uygulandı): sağlık, koleksiyoncular, seed girişi,
       `moderationLocked`, admin uçları normal kullanıcıya 403. Client: `ng build`, 49 test, Prettier temiz.
+26. **Yönetici paneli arayüzü** (`feat/admin-ui`, 2026-10-01; yol haritası 12. adımın dördüncü branch'i,
+    kararlar "Yönetici paneli: kararlar"):
+    - `/admin` (lazy, `adminGuard`: girişsiz → giriş, admin olmayan → ana sayfa): Genel bakış (11
+      kart, ikonlu; kilitli/herkese açık/linkle/gizlenmiş kartları filtreli listeye gider), Kullanıcılar
+      (arama, durum filtresi, sıralama, sayfalama; ad + e-posta tek hücrede), kullanıcı detayı (hesap,
+      içerik sayıları, kilitle/aç, bu kullanıcıyla ilgili denetim kayıtları; geri linki listenin son
+      halini navigation state ile taşır), Koleksiyonlar (görünürlük/gizlenmiş filtresi, ad yeni sekmede
+      herkese açık ya da linkli sayfayı açar, Gizle/Kilidi kaldır, "Sahibi kilitli", sahibi admin ise
+      rozet), Denetim kaydı (işlem filtresi; işlem, hedef ve not tek sütunda). Liste durumu URL'de,
+      `AdminListBase` ortak. Kilitleme ve gizlemede not alanlı onay penceresi
+      (`ConfirmDialogService.confirmWithNote`). Telefonda kartlar ve sıralama seçim kutusu.
+    - Geniş sayfa: `page-container` + `--page-max-width` (64rem / 80rem), `PageWidthService`; header,
+      main ve footer hizalı. Tablolar `xl`'de, sütunlar dört dilde headless ölçüldü (kullanıcı sütununa
+      ~310 px): Kayıt 148, Son görülme 179, Durum 178, Coin 80, Disk 117; koleksiyon Durum 175, Coin 113,
+      Son değişiklik 155, İşlem 130; denetim Zaman 175, Admin 171.
+    - Avatar menüsünde ve mobil menüde en üstte "Yönetim" + ayırıcı (sadece admin).
+    - Sahip tarafı: `VisibilityBadge` "Gizlendi" (kalkan ikonu, kırmızı), kartta ve koleksiyon
+      başlığında; koleksiyon penceresinde görünürlük seçenekleri yerine açıklama;
+      `collections.errors.moderation_locked`. Giriş: `account_locked` → "Hesabın yönetici tarafından
+      kilitlendi."
+    - Çeviriler: ana dosyalara 7 anahtar; panel scope'u `src/i18n/admin/{en,tr,de,bg}.json` (~130
+      anahtar, lazy chunk), eşlik testi iki kümeyi de kapsar.
+    - `SortHeader`: `firstDirection`, `clearable` (admin listelerinde yön çevirme).
+    - API (bu branch'te): admin koleksiyon listesine `ownerIsAdmin` (+ test).
+    - Düzeltilen: kartta rozet gölgesinin açık temada köşelerde dikdörtgen görünmesi (host
+      `rounded-full`; eski hata, kullanıcı fark etti), panelde telefonda yatay taşma (grid öğesi
+      `min-w-0`, Bulgarca uzun seçenekli select `max-w-full`).
+    - Doğrulama: client 73 test (+ admin çeviri eşliği, biçimlendirme, sıralama yardımcıları,
+      `adminGuard`, kullanıcı listesi bileşeni gerçek scope yüklemesiyle), API 94 test; headless Edge
+      (5090'da `ayse.yilmaz` geçici admin, 4300'de ayrı `ng serve`): 4 dil × 5 sayfa × 320–1440 px
+      yatay taşma yok, iki tema, telefon, onay penceresi, sahip penceresi, giriş mesajı, genel bakış
+      ikonlarının altı tema rengi/tema kombinasyonunda aynı kaldığı ölçüldü. Kullanıcı canlıda baktı,
+      geri bildirimleri (rozet köşesi, ikonlar, ikon renkleri, admin'in admin içeriği) uygulandı.
+    - Dev veritabanında testlerden kalanlar: denetim kaydında "UI test" notlu girişler; `ayse.yilmaz`
+      admin rolü (kullanıcının API'si yeniden başlayınca senkron geri alır).
 
 ## Yol haritası
 
@@ -580,10 +615,8 @@ mağaza için TWA.
         Ayarlar > Profil'de "Önceki giriş" (Tamamlananlar 24).
   - [x] `feat/admin-api`: `AuditLog`; kullanıcılar (liste, detay, kilitle/aç); Public/Unlisted
         koleksiyonlar (liste, gizle + kilit, kilidi kaldır); denetim kaydı (Tamamlananlar 25).
-  - [ ] `feat/admin-ui`: avatar menüsünde "Yönetim" + ayırıcı (mobil menü de), lazy `/admin` (Genel
-        bakış, Kullanıcılar, Koleksiyonlar, Denetim kaydı), `i18n/admin/<dil>.json` dört dilde, sahip
-        tarafında "Yönetici tarafından gizlendi" ve kilitli görünürlük seçenekleri, girişte
-        `account_locked` (423) için "Hesabın yönetici tarafından kilitlendi" mesajı.
+  - [x] `feat/admin-ui`: panel arayüzü, geniş sayfa, sahip tarafı ve giriş mesajı (Tamamlananlar 26).
+  - [ ] `v0.2.0` yayını.
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma
       (admin'in kullanıcı silmesi de bu servisle; `AuditLog`'daki ad anlık görüntüleri silinen kullanıcı
       için anonimleştirilir), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
@@ -611,8 +644,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-**Yol haritası 12. adım, sıradaki branch `feat/admin-ui`** (kararlar "Yönetici paneli: kararlar",
-branch listesi "Yol haritası"nda), ardından `v0.2.0`.
+**`v0.2.0` yayını** (yönetici paneli bitti; akış CLAUDE.md "Sürüm ve yayın"), ardından yol haritası
+9. adım (`feat/hosting-foundation`). Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
 2026-09-28'de watermark "biraz daha ertelensin" dendi):
@@ -768,6 +801,26 @@ Kararlar (2026-09-30, kullanıcıyla):
   admini kilitleyemez" kuralının yerine; admin'ler zaten ayardan belirleniyor, durdurmak için ayardan
   çıkarılır.
 - **Neden hosting'den önce ve arayüzlü:** "Yol haritası" bölümündeki "Yeniden sıralama" notu.
+- **İçerik moderasyonu herkese, hesap işlemleri admin olmayanlara** (2026-10-01, kullanıcıyla): bir
+  admin başka bir admin'in koleksiyonunu gizleyebilir; admin hesabı kilitlenemez (Discourse gibi
+  sistemlerdeki yaklaşım: içerik kuralları herkes için, görevliye hesap işlemi yetkiyi almayı gerektirir).
+  Panelde admin'in koleksiyonunda sahibinin yanında "Admin" rozeti (`ownerIsAdmin`), başka bir admin'in
+  içeriğine dokunulduğu görülsün. Admin kendi koleksiyonunun kilidini kaldırabilir; bunu engellemek tek
+  admin varken kilidi kaldırılamaz yapardı, denetim kaydı yeterli. Alternatif (admin içeriği de
+  gizlenemez) elendi: uygunsuz içeriğe karşı tek yol ayardan çıkarıp yeniden başlatmak olurdu.
+- **Geniş sayfa** (2026-10-01, kullanıcıyla; B seçeneği): soldaki menüyle 1024 px'lik kutuda kullanıcı
+  tablosu dört dilde sığmıyordu (sabit sütunlar 702 px istiyordu, kullanıcı sütununa ~58 px kalıyordu).
+  Kullanıcı "panel uygulamanın dar düzenini izlemesin" dedi; tam genişlik yerine 1280 px sınır seçildi
+  (büyük monitörde satırlar okunamayacak kadar uzamasın), menü solda kaldı, tablolar `xl`'den, altında
+  kartlar. Header ve footer da genişler, kenarlar hizalı kalır; düzen sayfa adı bilmez (rota
+  `data: { pageWidth: 'wide' }` → `<html data-page-width>` → CSS değişkeni). "Menü üstte" ve "sınırsız
+  genişlik" seçenekleri karşılaştırıldı.
+- **Genel bakış kartları** (kullanıcı geri bildirimi): her kartta sağda anlamını simgeleyen ikon; renkler
+  anlama göre sabit, tema renginden bağımsız ve iki temada okunaklı (kullanıcı: "renk teması ikonları
+  değiştirmesin"). Rozeti olan anlamlarda rozetle aynı renk (herkese açık yeşil, linkle gök mavisi,
+  kilitli/gizlenmiş kırmızı), coin altın (logo gibi).
+- **Satırdaki "Gizle"** ikincil stilde (kırmızı yazı), her satırda kırmızı dolgu listeyi bağırgan
+  yapıyordu; kırmızı dolgu onay penceresinde.
 
 ## Fotoğraflar
 

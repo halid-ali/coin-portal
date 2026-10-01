@@ -1,0 +1,144 @@
+{
+  "title": "Admin",
+  "sections": "Admin sections",
+  "nav": {
+    "overview": "Overview",
+    "users": "Users",
+    "collections": "Collections",
+    "audit": "Audit log"
+  },
+  "loadFailed": "The data could not be loaded. Please try again.",
+  "actionFailed": "The action failed. Please try again.",
+  "never": "Never",
+  "sort": "Sort",
+  "overview": {
+    "users": "Users",
+    "activeUsers": "Active in the last 30 days",
+    "newUsers": "Joined in the last 30 days",
+    "lockedUsers": "Locked",
+    "collections": "Collections",
+    "publicCollections": "Public",
+    "unlistedCollections": "Link only",
+    "hiddenCollections": "Hidden",
+    "content": "Content",
+    "coins": "Coins",
+    "photos": "Photos",
+    "storage": "Storage"
+  },
+  "status": {
+    "Active": "Active",
+    "LockedOut": "Temporarily locked",
+    "Locked": "Locked"
+  },
+  "users": {
+    "search": "Search username or email",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "count": {
+      "one": "{{count}} user",
+      "other": "{{count}} users"
+    },
+    "empty": "No users match this search.",
+    "adminBadge": "Admin",
+    "column": {
+      "user": "User",
+      "createdAt": "Joined",
+      "lastSeen": "Last seen",
+      "status": "Status",
+      "coins": "Coins",
+      "storage": "Storage"
+    },
+    "sorts": {
+      "CreatedAt": "Newest accounts",
+      "UserName": "Username (A → Z)",
+      "LastSeen": "Recently seen",
+      "Storage": "Most storage"
+    }
+  },
+  "user": {
+    "back": "Back to users",
+    "notFound": "User not found.",
+    "account": "Account",
+    "name": "Name",
+    "email": "Email",
+    "createdAt": "Joined",
+    "lastSignIn": "Last sign-in",
+    "lastSeen": "Last seen",
+    "lockedAt": "Locked",
+    "lockedOutUntil": "Temporary lock ends",
+    "content": "Content",
+    "collections": "Collections",
+    "collectionsDetail": "{{public}} public, {{unlisted}} link only",
+    "coins": "Coins",
+    "photos": "Photos",
+    "storage": "Storage used",
+    "storageOfQuota": "{{used}} / {{quota}}",
+    "publicProfile": "Public profile",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "lockTitle": "Lock user",
+    "lockMessage": "@{{userName}} cannot sign in, their open session ends within a minute, and their shared collections are hidden while the lock lasts.",
+    "unlockTitle": "Unlock",
+    "unlockMessage": "@{{userName}} can sign in again; their shared collections become visible again.",
+    "adminNote": "Admins cannot be locked here; they are removed from the configuration.",
+    "history": "History",
+    "noHistory": "No entries about this user."
+  },
+  "collections": {
+    "search": "Search collection or username",
+    "filter": "Showing",
+    "all": "All",
+    "public": "Public",
+    "unlisted": "Link only",
+    "hidden": "Hidden",
+    "count": {
+      "one": "{{count}} collection",
+      "other": "{{count}} collections"
+    },
+    "empty": "No collections match this search.",
+    "ownerLocked": "Owner locked",
+    "open": "Open the collection in a new tab",
+    "hide": "Hide",
+    "unhide": "Unlock",
+    "hideTitle": "Hide collection",
+    "hideMessage": "\"{{name}}\" is made private, its share link is removed, and the owner cannot share it again until the lock is lifted.",
+    "unhideTitle": "Lift lock",
+    "unhideMessage": "\"{{name}}\" stays private; the owner can share it again if they want.",
+    "column": {
+      "collection": "Collection",
+      "state": "Status",
+      "coins": "Coins",
+      "updatedAt": "Last change",
+      "action": "Action"
+    },
+    "sorts": {
+      "UpdatedAt": "Recently changed",
+      "Name": "Name (A → Z)",
+      "CoinCount": "Most coins"
+    }
+  },
+  "audit": {
+    "action": "Action",
+    "allActions": "All actions",
+    "count": {
+      "one": "{{count}} entry",
+      "other": "{{count}} entries"
+    },
+    "empty": "No entries.",
+    "actions": {
+      "UserLocked": "User locked",
+      "UserUnlocked": "User unlocked",
+      "CollectionHidden": "Collection hidden",
+      "CollectionUnlocked": "Collection lock lifted"
+    },
+    "column": {
+      "time": "Time",
+      "actor": "Admin",
+      "action": "Action"
+    }
+  },
+  "note": {
+    "label": "Note (optional)",
+    "hint": "Only shown in the audit log, never to the user."
+  }
+}

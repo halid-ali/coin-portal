@@ -13,6 +13,20 @@ export const authGuard: CanActivateFn = (_route, state) => {
     : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
+/**
+ * The admin panel: admins only. Signed-out visitors go to /login, other users to the home page.
+ * Only spares a useless page: the API checks the role on every admin request.
+ */
+export const adminGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) {
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+  }
+  return auth.isAdmin() ? true : router.createUrlTree(['/']);
+};
+
 /** Keeps signed-in users away from the login and register pages. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);

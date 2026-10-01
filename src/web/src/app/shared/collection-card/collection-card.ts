@@ -36,6 +36,7 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
           <app-visibility-badge
             class="absolute top-2 left-2 shadow-sm"
             [visibility]="collection().visibility"
+            [moderationLocked]="!!collection().moderationLocked"
           />
         }
       </div>

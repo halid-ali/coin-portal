@@ -57,7 +57,10 @@ export class Login {
       case 401:
         return translate('login.invalidCredentials');
       case 423:
-        return translate('login.lockedOut');
+        // With a code: locked by an admin; without: the temporary lockout after failed attempts
+        return (err.error as { code?: string } | null)?.code === 'account_locked'
+          ? translate('login.accountLocked')
+          : translate('login.lockedOut');
       case 400:
         return translate('errors.requestRejected');
       default:

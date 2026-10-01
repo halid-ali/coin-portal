@@ -1,0 +1,144 @@
+{
+  "title": "Verwaltung",
+  "sections": "Bereiche der Verwaltung",
+  "nav": {
+    "overview": "Übersicht",
+    "users": "Benutzer",
+    "collections": "Sammlungen",
+    "audit": "Protokoll"
+  },
+  "loadFailed": "Die Daten konnten nicht geladen werden. Bitte versuche es erneut.",
+  "actionFailed": "Die Aktion ist fehlgeschlagen. Bitte versuche es erneut.",
+  "never": "Nie",
+  "sort": "Sortieren",
+  "overview": {
+    "users": "Benutzer",
+    "activeUsers": "Aktiv in den letzten 30 Tagen",
+    "newUsers": "Neu in den letzten 30 Tagen",
+    "lockedUsers": "Gesperrt",
+    "collections": "Sammlungen",
+    "publicCollections": "Öffentlich",
+    "unlistedCollections": "Nur mit Link",
+    "hiddenCollections": "Ausgeblendet",
+    "content": "Inhalte",
+    "coins": "Münzen",
+    "photos": "Fotos",
+    "storage": "Speicher"
+  },
+  "status": {
+    "Active": "Aktiv",
+    "LockedOut": "Vorübergehend gesperrt",
+    "Locked": "Gesperrt"
+  },
+  "users": {
+    "search": "Benutzername oder E-Mail suchen",
+    "status": "Status",
+    "allStatuses": "Alle Status",
+    "count": {
+      "one": "{{count}} Benutzer",
+      "other": "{{count}} Benutzer"
+    },
+    "empty": "Keine Benutzer passen zu dieser Suche.",
+    "adminBadge": "Admin",
+    "column": {
+      "user": "Benutzer",
+      "createdAt": "Registriert",
+      "lastSeen": "Zuletzt gesehen",
+      "status": "Status",
+      "coins": "Münzen",
+      "storage": "Speicher"
+    },
+    "sorts": {
+      "CreatedAt": "Neueste Konten",
+      "UserName": "Benutzername (A → Z)",
+      "LastSeen": "Zuletzt gesehen",
+      "Storage": "Größte Speichernutzung"
+    }
+  },
+  "user": {
+    "back": "Zurück zu den Benutzern",
+    "notFound": "Benutzer nicht gefunden.",
+    "account": "Konto",
+    "name": "Name",
+    "email": "E-Mail-Adresse",
+    "createdAt": "Registriert",
+    "lastSignIn": "Letzte Anmeldung",
+    "lastSeen": "Zuletzt gesehen",
+    "lockedAt": "Gesperrt",
+    "lockedOutUntil": "Vorübergehende Sperre endet",
+    "content": "Inhalte",
+    "collections": "Sammlungen",
+    "collectionsDetail": "{{public}} öffentlich, {{unlisted}} nur mit Link",
+    "coins": "Münzen",
+    "photos": "Fotos",
+    "storage": "Belegter Speicher",
+    "storageOfQuota": "{{used}} / {{quota}}",
+    "publicProfile": "Öffentliches Profil",
+    "lock": "Sperren",
+    "unlock": "Entsperren",
+    "lockTitle": "Benutzer sperren",
+    "lockMessage": "@{{userName}} kann sich nicht anmelden, die offene Sitzung endet innerhalb einer Minute, und geteilte Sammlungen werden ausgeblendet, solange die Sperre besteht.",
+    "unlockTitle": "Entsperren",
+    "unlockMessage": "@{{userName}} kann sich wieder anmelden; geteilte Sammlungen sind wieder sichtbar.",
+    "adminNote": "Admins können hier nicht gesperrt werden; sie werden aus der Konfiguration entfernt.",
+    "history": "Verlauf",
+    "noHistory": "Keine Einträge zu diesem Benutzer."
+  },
+  "collections": {
+    "search": "Sammlung oder Benutzername suchen",
+    "filter": "Anzeige",
+    "all": "Alle",
+    "public": "Öffentlich",
+    "unlisted": "Nur mit Link",
+    "hidden": "Ausgeblendet",
+    "count": {
+      "one": "{{count}} Sammlung",
+      "other": "{{count}} Sammlungen"
+    },
+    "empty": "Keine Sammlungen passen zu dieser Suche.",
+    "ownerLocked": "Besitzer gesperrt",
+    "open": "Sammlung in neuem Tab öffnen",
+    "hide": "Ausblenden",
+    "unhide": "Entsperren",
+    "hideTitle": "Sammlung ausblenden",
+    "hideMessage": "„{{name}}“ wird privat, der Freigabelink wird entfernt, und der Besitzer kann sie erst nach Aufhebung der Sperre wieder teilen.",
+    "unhideTitle": "Sperre aufheben",
+    "unhideMessage": "„{{name}}“ bleibt privat; der Besitzer kann sie bei Bedarf wieder teilen.",
+    "column": {
+      "collection": "Sammlung",
+      "state": "Status",
+      "coins": "Münzen",
+      "updatedAt": "Geändert",
+      "action": "Aktion"
+    },
+    "sorts": {
+      "UpdatedAt": "Zuletzt geändert",
+      "Name": "Name (A → Z)",
+      "CoinCount": "Meiste Münzen"
+    }
+  },
+  "audit": {
+    "action": "Aktion",
+    "allActions": "Alle Aktionen",
+    "count": {
+      "one": "{{count}} Eintrag",
+      "other": "{{count}} Einträge"
+    },
+    "empty": "Keine Einträge.",
+    "actions": {
+      "UserLocked": "Benutzer gesperrt",
+      "UserUnlocked": "Benutzer entsperrt",
+      "CollectionHidden": "Sammlung ausgeblendet",
+      "CollectionUnlocked": "Sperre der Sammlung aufgehoben"
+    },
+    "column": {
+      "time": "Zeit",
+      "actor": "Admin",
+      "action": "Aktion"
+    }
+  },
+  "note": {
+    "label": "Notiz (optional)",
+    "hint": "Erscheint nur im Protokoll, nie für den Benutzer."
+  }
+}

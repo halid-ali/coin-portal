@@ -55,13 +55,15 @@
     "sharedCollection": "Geteilte Sammlung",
     "newCoin": "Münze hinzufügen",
     "editCoin": "Münze bearbeiten",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "admin": "Verwaltung"
   },
   "nav": {
     "main": "Hauptmenü",
     "collections": "Meine Sammlungen",
     "explore": "Entdecken",
     "settings": "Einstellungen",
+    "admin": "Verwaltung",
     "login": "Anmelden",
     "register": "Registrieren",
     "logout": "Abmelden",
@@ -87,7 +89,8 @@
     "noAccount": "Noch kein Konto?",
     "registerLink": "Registrieren",
     "invalidCredentials": "Benutzername/E-Mail-Adresse oder Passwort ist falsch.",
-    "lockedOut": "Zu viele Fehlversuche. Dein Konto ist vorübergehend gesperrt; bitte versuche es in 10 Minuten erneut."
+    "lockedOut": "Zu viele Fehlversuche. Dein Konto ist vorübergehend gesperrt; bitte versuche es in 10 Minuten erneut.",
+    "accountLocked": "Dein Konto wurde von einem Administrator gesperrt."
   },
   "register": {
     "title": "Registrieren",
@@ -278,6 +281,7 @@
       "last_collection": "Deine einzige Sammlung kann nicht gelöscht werden. Erstelle zuerst eine neue.",
       "invalid_target": "Die Sammlung, in die die Münzen verschoben werden sollen, ist ungültig.",
       "not_unlisted": "Der Link kann nur bei Sammlungen erneuert werden, die „Nur mit Link“ geteilt sind.",
+      "moderation_locked": "Ein Administrator hat diese Sammlung ausgeblendet; sie kann vorerst nicht geteilt werden.",
       "notFound": "Sammlung nicht gefunden. Sie wurde vielleicht gelöscht.",
       "duplicateName": "Du hast bereits eine Sammlung mit diesem Namen."
     }
@@ -294,6 +298,10 @@
     "Public": {
       "label": "Öffentlich",
       "description": "Alle können sie sehen, auch ohne Anmeldung. Sie erscheint auf deinem Profil und unter „Entdecken“."
+    },
+    "locked": {
+      "label": "Ausgeblendet",
+      "description": "Von einem Administrator ausgeblendet; kann erst nach Aufhebung der Sperre wieder geteilt werden."
     }
   },
   "collectionForm": {
@@ -313,7 +321,8 @@
     "noteLinkWillStop": "Beim Speichern funktioniert der aktuelle private Link nicht mehr.",
     "noteLinkWillBeCreated": "Beim Speichern wird ein privater Link zum Teilen erstellt.",
     "noteWillBePublic": "Beim Speichern wird die Sammlung öffentlich.",
-    "coverFailed": "Die Sammlung wurde gespeichert, aber das Titelbild konnte nicht gespeichert werden:"
+    "coverFailed": "Die Sammlung wurde gespeichert, aber das Titelbild konnte nicht gespeichert werden:",
+    "moderationLocked": "Ein Administrator hat diese Sammlung ausgeblendet. Sie bleibt privat, bis die Sperre aufgehoben wird; Name und Beschreibung kannst du weiterhin ändern."
   },
   "cover": {
     "title": "Titelbild",
