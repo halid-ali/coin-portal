@@ -804,7 +804,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 Yeni sohbette kullanıcıyla seçilecek. Yol haritasında adaylar: **10** `release.yml` (etiketten
 `dotnet publish` paketi; 9a'daki publish hedefiyle client artık pakette), **8b** e2e (Playwright), **11**
 hosting seçimi ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Yayın öncesi kullanıcıda
-bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum kararı (Açık konular 14). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum kararı (Açık konular 14). **Önce Açık
+konular 15'e bak** (`piscina` güvenlik uyarısı: Angular 21 yaması çıktıysa küçük bir `fix/` branch'i). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
@@ -1125,6 +1126,17 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     yok, kullanıcı kararı 2026-10-01). Kayıtlı kullanıcılı, herkese açık bir sitede Impressum genelde
     önerilir; tamamen özel hobi sitelerinde gerekliliği tartışmalı. Yayından önce karar verilecek;
     gerekirse iletişim sayfası "Impressum" adıyla adresi de gösterir (`contact.*` + `OPERATOR`).
+
+15. **`piscina` güvenlik uyarısı** (GHSA-67c8-pqhq-4rmx, critical, 2026-10-01): `piscina` < 5.3.2.
+    `@angular/build` 21.2.24 onu sabit 5.2.0 olarak getiriyor; düzeltilmiş sürümü sadece Angular 22
+    kullanıyor. `piscina` sadece derlemede (`ng build`/`ng serve`, geliştirici makinesi ve CI) çalışır,
+    yayınlanan sitede yok; gerçek risk düşük. Dependabot'un güvenlik PR'ı #9 `@angular/build`'i tek
+    başına 22'ye çıkardığı için `npm ci` kırıldı; kullanıcı kararıyla (B seçeneği) açıklamalı yorumla
+    kapatıldı ve Angular 21 yaması bekleniyor. **Kontrol:** `npm view @angular/build@21 dependencies.piscina`
+    (son 21.x) 5.3.2 ya da üstüyse `fix/` branch'inde Angular 21 paketleri (`ng update @angular/core@21
+    @angular/cli@21`) yükseltilir, `ng build` + `ng test`. Elenen: npm `overrides` ile 5.3.2'yi zorlamak
+    (A; çalışırdı ama Angular'ın resmi bağımlılığından sapma) ve Angular 22'yi şimdi yapmak (C; planlı,
+    büyük iş). Angular 22 yükseltmesi (Sıradaki adım 5) de bunu çözer.
 
 ## Yayın öncesi yapılacaklar
 
