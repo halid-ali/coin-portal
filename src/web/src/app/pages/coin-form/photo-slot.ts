@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { CoinPhoto, PHOTO_LIMITS } from '../../core/coins/coin.models';
+import { CoinPhoto } from '../../core/coins/coin.models';
 import { photoUrl } from '../../core/coins/coin.service';
 import { validatePhotoFile } from '../../core/coins/photo-errors';
 import { ImageChange } from '../../shared/image-change';
@@ -71,7 +71,7 @@ let nextId = 0;
           <span class="text-sm font-medium">{{
             (change()?.type === 'remove' ? 'photo.willDelete' : 'photo.choose') | transloco
           }}</span>
-          <span class="text-xs">{{ 'photo.fileHint' | transloco: { mb: maxMb } }}</span>
+          <span class="text-xs">{{ 'photo.fileHint' | transloco }}</span>
         </button>
       }
 
@@ -148,7 +148,6 @@ export class PhotoSlot {
   /** Fullscreen view of the saved photo. */
   readonly view = output<void>();
 
-  protected readonly maxMb = PHOTO_LIMITS.maxUploadBytes / (1024 * 1024);
   protected readonly chosenFile = signal<File | null>(null);
   protected readonly error = signal<string | null>(null);
   private readonly pendingUrl = signal<string | null>(null);

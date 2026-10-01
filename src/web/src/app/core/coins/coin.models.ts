@@ -92,13 +92,15 @@ export interface CoinPhoto {
 /** Stored renditions: 150 px, 600 px, up to 1600 px (square WebP). */
 export type PhotoSize = 'thumb' | 'preview' | 'full';
 
-/** Same limits as the API (PhotoStorage options). */
+/**
+ * Same limits as the API (PhotoStorage options). They apply to what is uploaded: the cropped
+ * JPEG (at most maxPixels wide), not the file the user picks, which can be a 50 MP phone photo.
+ */
 export const PHOTO_LIMITS = {
   maxUploadBytes: 10 * 1024 * 1024,
   minPixels: 150,
   /** Longest edge sent to the API; the server never stores more. */
   maxPixels: 1600,
-  acceptedTypes: ['image/jpeg', 'image/png'],
 } as const;
 
 export interface CoinUpsertRequest {

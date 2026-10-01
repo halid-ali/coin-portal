@@ -238,7 +238,7 @@
   "photo": {
     "viewLarge": "{{side}} vergrößern",
     "choose": "Foto auswählen",
-    "fileHint": "JPG oder PNG, bis {{mb}} MB",
+    "fileHint": "JPG oder PNG",
     "willUpload": "Wird beim Speichern hochgeladen",
     "willDelete": "Wird beim Speichern gelöscht",
     "willRemove": "Wird beim Speichern entfernt",
@@ -257,6 +257,7 @@
     "title": "Foto zuschneiden",
     "hint": "Richte die Münze mittig im Kreis aus. Du kannst den Kreis verschieben und an den Ecken seine Größe ändern; nach dem Vergrößern kannst du das Foto außerhalb des Kreises greifen und verschieben.",
     "openFailed": "Das Foto konnte nicht geöffnet werden. Versuche es mit einer anderen Datei.",
+    "heicFailed": "Dieser Browser kann keine HEIC/HEIF-Fotos öffnen. Speichere das Foto als JPG und versuche es erneut.",
     "zoom": "Zoom",
     "rotate": "Um 90° drehen",
     "rotateLabel": "Um 90 Grad drehen",
@@ -329,7 +330,7 @@
     "title": "Titelbild",
     "choose": "Titelbild auswählen",
     "upload": "Titelbild hochladen",
-    "hint": "Optional, JPG oder PNG (bis {{mb}} MB). Ohne Titelbild zeigt die Karte das Standardbild der Sammlung.",
+    "hint": "Optional, JPG oder PNG. Ohne Titelbild zeigt die Karte das Standardbild der Sammlung.",
     "cropTitle": "Titelbild zuschneiden",
     "cropHint": "Wähle den Ausschnitt, der auf den Karten zu sehen ist. Du kannst den Rahmen verschieben und an den Ecken seine Größe ändern; nach dem Vergrößern kannst du das Foto außerhalb des Rahmens greifen und verschieben."
   },
