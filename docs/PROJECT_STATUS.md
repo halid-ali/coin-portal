@@ -1,14 +1,15 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-01 (9. adım hosting temeli: 9a `chore/hosting-infra` (wwwroot + SPA fallback,
-publish'te client, Serilog, DataProtection anahtarları, rate limiter) ve 9b `fix/photo-upload-limits`
-(büyük telefon fotoğrafları, HEIC mesajı) bitti, main'de (push edilmedi); sırada 9c. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
+publish'te client, Serilog, DataProtection anahtarları, rate limiter), 9b `fix/photo-upload-limits`
+(büyük telefon fotoğrafları, HEIC mesajı) ve 9c `feat/remember-me` bitti, main'de (push edilmedi);
+sırada 9d. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
 haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra` ve `fix/photo-upload-limits`
-  2026-10-01'de merge edildi, henüz push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra`, `fix/photo-upload-limits` ve
+  `feat/remember-me` 2026-10-01'de merge edildi, henüz push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -635,6 +636,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       penceresinde açıldı, sonuç 1600x1600, 687 KB JPEG; sahte `.HEIC` dosyasında HEIC mesajı.
       Gerçek telefonda denenmedi (lokal sunucuya telefondan erişim yok): hosting'den sonra Android ve
       iPhone'da bir kez denenecek (Açık konular 13).
+30. **Kalıcı oturum varsayılan** (`feat/remember-me`, 2026-10-01; yol haritası 9c, kullanıcı kararı):
+    login'de "Beni hatırla" varsayılan işaretli, kayıt kalıcı oturum açar (14 gün, kullandıkça uzar).
+    Önceden ikisi de tarayıcı oturumu cookie'siydi; ana ekrana eklenen uygulama kapanınca giriş düşüyordu.
+    Ortak bilgisayarda kullanıcı işareti kaldırır. API'de `LoginRequest.RememberMe` varsayılanı `false`
+    kaldı (client her zaman gönderir). Testler: API 112 (+3: kayıt cookie'si kalıcı, login'de iki
+    durum; kayıt testi `isPersistent: false`'a çevrilince kırıldı), client 78 (+1: kutu işaretli gelir
+    ve istekte `rememberMe: true`).
 
 ## Yol haritası
 
@@ -675,8 +683,8 @@ mağaza için TWA.
         DataProtection, rate limiter (Tamamlananlar 28).
   - [x] 9b. `fix/photo-upload-limits`: büyük telefon fotoğrafları, tür kararı cropper'da, HEIC mesajı
         (Tamamlananlar 29).
-  - [ ] 9c. `feat/remember-me`: "Beni hatırla" varsayılan işaretli, kayıttan sonraki oturum kalıcı
-        (kullanıcı kararı 2026-10-01).
+  - [x] 9c. `feat/remember-me`: "Beni hatırla" varsayılan işaretli, kayıttan sonraki oturum kalıcı
+        (kullanıcı kararı 2026-10-01; Tamamlananlar 30).
   - [ ] 9d. `feat/pwa-manifest`: manifest, mevcut logodan 192/512 + maskable ikonlar, apple-touch-icon,
         açık/koyu theme-color (service worker 11. adımda).
   - [ ] 9e. `feat/account-deletion`: hesap silme (parolayla onay, hemen ve geri alınamaz; kullanıcı
@@ -708,8 +716,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-9. adımın alt adımları sırayla: 9a ve 9b bitti (main'de, push edilmedi), sırada **9c**
-(`feat/remember-me`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+9. adımın alt adımları sırayla: 9a, 9b ve 9c bitti (main'de, push edilmedi), sırada **9d**
+(`feat/pwa-manifest`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;

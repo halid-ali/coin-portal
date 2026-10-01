@@ -51,8 +51,9 @@ public class AuthController(
         });
         await db.SaveChangesAsync();
 
-        // Sign the new user in right away
-        await signInManager.SignInAsync(user, isPersistent: false);
+        // Sign the new user in right away, kept like a sign-in with "remember me" (its default):
+        // signing up is almost always done on one's own device
+        await signInManager.SignInAsync(user, isPersistent: true);
         await RecordSignInAsync(user);
         return Ok(UserResponse.From(user, []));
     }
