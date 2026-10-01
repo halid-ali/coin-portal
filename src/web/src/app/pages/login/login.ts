@@ -27,7 +27,9 @@ export class Login {
   protected readonly form = inject(NonNullableFormBuilder).group({
     userNameOrEmail: ['', [Validators.required]],
     password: ['', [Validators.required]],
-    rememberMe: [false],
+    // Checked by default: most sign-ins are on the user's own device, and the home screen app
+    // would otherwise lose the session whenever it is closed. Unchecked on a shared computer
+    rememberMe: [true],
   });
 
   protected submit(): void {

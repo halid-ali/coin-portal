@@ -80,6 +80,38 @@ public class AuthTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task Register_SignInIsPersistent()
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+
+        using var response = await client.PostAsync("/api/auth/register", TestUser.NewRegisterRequest());
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.True(AuthCookieExpires(response));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Login_RememberMe_DecidesWhetherTheCookieOutlivesTheBrowser(bool rememberMe)
+    {
+        var alice = await factory.SignUpAsync();
+        using var client = await factory.CreateAnonymousClientAsync();
+
+        using var response = await client.PostAsync("/api/auth/login",
+            new LoginRequest(alice.UserName, TestUser.Password, rememberMe));
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Equal(rememberMe, AuthCookieExpires(response));
+    }
+
+    // A persistent cookie carries an expiry date; a session cookie ends with the browser
+    private static bool AuthCookieExpires(HttpResponseMessage response) =>
+        response.Headers.GetValues("Set-Cookie")
+            .Single(c => c.StartsWith("coinportal.auth="))
+            .Contains("expires=", StringComparison.OrdinalIgnoreCase);
+
+    [Fact]
     public async Task Login_WorksWithUserNameOrEmail()
     {
         var alice = await factory.SignUpAsync();
