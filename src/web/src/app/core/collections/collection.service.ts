@@ -92,6 +92,7 @@ export function collectionErrorMessage(err: HttpErrorResponse): string {
     case 'last_collection':
     case 'invalid_target':
     case 'not_unlisted':
+    case 'moderation_locked':
       return translate(`collections.errors.${code}`);
   }
   if (err.status === 404) {

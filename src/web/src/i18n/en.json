@@ -55,13 +55,15 @@
     "sharedCollection": "Shared collection",
     "newCoin": "Add coin",
     "editCoin": "Edit coin",
-    "settings": "Settings"
+    "settings": "Settings",
+    "admin": "Admin"
   },
   "nav": {
     "main": "Main menu",
     "collections": "My collections",
     "explore": "Explore",
     "settings": "Settings",
+    "admin": "Admin",
     "login": "Sign in",
     "register": "Sign up",
     "logout": "Sign out",
@@ -87,7 +89,8 @@
     "noAccount": "Don't have an account?",
     "registerLink": "Sign up",
     "invalidCredentials": "Wrong username/email or password.",
-    "lockedOut": "Too many failed attempts. Your account is temporarily locked; please try again in 10 minutes."
+    "lockedOut": "Too many failed attempts. Your account is temporarily locked; please try again in 10 minutes.",
+    "accountLocked": "Your account has been locked by an administrator."
   },
   "register": {
     "title": "Sign up",
@@ -278,6 +281,7 @@
       "last_collection": "You can't delete your only collection. Create a new one first.",
       "invalid_target": "The collection to move the coins to isn't valid.",
       "not_unlisted": "The link can only be renewed for collections shared \"Link only\".",
+      "moderation_locked": "An administrator has hidden this collection; it cannot be shared for now.",
       "notFound": "Collection not found. It may have been deleted.",
       "duplicateName": "You already have a collection with this name."
     }
@@ -294,6 +298,10 @@
     "Public": {
       "label": "Public",
       "description": "Everyone can see it, even without signing in. It appears on your profile and in Explore."
+    },
+    "locked": {
+      "label": "Hidden",
+      "description": "Hidden by an administrator; it cannot be shared until the lock is lifted."
     }
   },
   "collectionForm": {
@@ -313,7 +321,8 @@
     "noteLinkWillStop": "When you save, the current private link will stop working.",
     "noteLinkWillBeCreated": "When you save, a private share link will be created.",
     "noteWillBePublic": "When you save, the collection will become public.",
-    "coverFailed": "The collection was saved, but the cover couldn't be saved:"
+    "coverFailed": "The collection was saved, but the cover couldn't be saved:",
+    "moderationLocked": "An administrator has hidden this collection. It stays private until the lock is lifted; you can still change its name and description."
   },
   "cover": {
     "title": "Cover photo",

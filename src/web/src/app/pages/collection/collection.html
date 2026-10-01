@@ -67,7 +67,10 @@
               </h1>
               @if (header(); as h) {
                 @if (mode() === 'owner') {
-                  <app-visibility-badge [visibility]="h.visibility" />
+                  <app-visibility-badge
+                    [visibility]="h.visibility"
+                    [moderationLocked]="!!h.moderationLocked"
+                  />
                 }
               }
             </div>

@@ -55,13 +55,15 @@
     "sharedCollection": "Paylaşılan koleksiyon",
     "newCoin": "Coin ekle",
     "editCoin": "Coini düzenle",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "admin": "Yönetim"
   },
   "nav": {
     "main": "Ana menü",
     "collections": "Koleksiyonlarım",
     "explore": "Keşfet",
     "settings": "Ayarlar",
+    "admin": "Yönetim",
     "login": "Giriş yap",
     "register": "Kayıt ol",
     "logout": "Çıkış yap",
@@ -87,7 +89,8 @@
     "noAccount": "Hesabın yok mu?",
     "registerLink": "Kayıt ol",
     "invalidCredentials": "Kullanıcı adı/e-posta veya parola hatalı.",
-    "lockedOut": "Çok fazla hatalı deneme yapıldı. Hesabın geçici olarak kilitlendi, lütfen 10 dakika sonra tekrar dene."
+    "lockedOut": "Çok fazla hatalı deneme yapıldı. Hesabın geçici olarak kilitlendi, lütfen 10 dakika sonra tekrar dene.",
+    "accountLocked": "Hesabın yönetici tarafından kilitlendi."
   },
   "register": {
     "title": "Kayıt ol",
@@ -278,6 +281,7 @@
       "last_collection": "Tek koleksiyonun silinemez. Önce yeni bir koleksiyon oluştur.",
       "invalid_target": "Coin'lerin taşınacağı koleksiyon geçerli değil.",
       "not_unlisted": "Link sadece \"Sadece linkle\" paylaşılan koleksiyonlarda yenilenebilir.",
+      "moderation_locked": "Bu koleksiyon yönetici tarafından gizlendi; şimdilik paylaşılamaz.",
       "notFound": "Koleksiyon bulunamadı. Silinmiş olabilir.",
       "duplicateName": "Bu adla bir koleksiyonun zaten var."
     }
@@ -294,6 +298,10 @@
     "Public": {
       "label": "Herkese açık",
       "description": "Herkes görür, giriş yapmadan da. Profilinde ve Keşfet'te görünür."
+    },
+    "locked": {
+      "label": "Gizlendi",
+      "description": "Yönetici tarafından gizlendi; kilit kalkana kadar paylaşılamaz."
     }
   },
   "collectionForm": {
@@ -313,7 +321,8 @@
     "noteLinkWillStop": "Kaydedince mevcut gizli link çalışmaz hale gelir.",
     "noteLinkWillBeCreated": "Kaydedince gizli bir paylaşım linki oluşturulur.",
     "noteWillBePublic": "Kaydedince koleksiyon herkese açık olur.",
-    "coverFailed": "Koleksiyon kaydedildi, ancak kapak kaydedilemedi:"
+    "coverFailed": "Koleksiyon kaydedildi, ancak kapak kaydedilemedi:",
+    "moderationLocked": "Bu koleksiyon yönetici tarafından gizlendi. Kilit kalkana kadar özel kalır; adını ve açıklamasını değiştirebilirsin."
   },
   "cover": {
     "title": "Kapak fotoğrafı",

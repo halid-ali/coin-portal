@@ -108,80 +108,93 @@ let nextId = 0;
           }
         </div>
 
-        <fieldset>
-          <legend class="form-label">{{ 'collectionForm.visibility' | transloco }}</legend>
-          <div class="space-y-2">
-            @for (option of visibilityOptions; track option) {
-              <label
-                class="flex cursor-pointer items-start gap-3 rounded-lg border border-shade-200 p-3 transition-colors
-                            hover:bg-shade-50 has-checked:border-brand-400 has-checked:bg-brand-50"
-              >
-                <input
-                  type="radio"
-                  formControlName="visibility"
-                  [value]="option"
-                  class="mt-1 accent-brand-500"
-                />
-                <span class="text-sm">
-                  <span class="flex items-center gap-2 font-medium text-shade-900">
-                    <app-visibility-badge [visibility]="option" />
-                  </span>
-                  <span class="mt-1 block text-shade-600">{{
-                    'visibility.' + option + '.description' | transloco
-                  }}</span>
-                </span>
-              </label>
-            }
+        @if (collection()?.moderationLocked) {
+          <!-- Hidden by an admin: stays private, so no choice (the API refuses another one) -->
+          <div>
+            <p class="form-label">{{ 'collectionForm.visibility' | transloco }}</p>
+            <div
+              class="rounded-lg border border-danger-200 bg-danger-50 p-3 text-sm text-danger-800"
+            >
+              <app-visibility-badge visibility="Private" [moderationLocked]="true" />
+              <p class="mt-2">{{ 'collectionForm.moderationLocked' | transloco }}</p>
+            </div>
           </div>
-
-          @if (pendingVisibilityNote(); as note) {
-            <p class="form-hint">{{ note | transloco }}</p>
-          } @else if (link(); as url) {
-            <div class="mt-3 rounded-lg bg-shade-50 p-3">
-              <p class="text-xs font-medium text-shade-600">
-                {{
-                  (saved()?.visibility === 'Unlisted'
-                    ? 'collectionForm.unlistedLink'
-                    : 'collectionForm.publicLink'
-                  ) | transloco
-                }}
-              </p>
-              <div class="mt-1.5 flex gap-2">
-                <input
-                  type="text"
-                  readonly
-                  [value]="url"
-                  class="form-input min-w-0 flex-1 py-1.5 text-sm"
-                  [attr.aria-label]="'collectionForm.shareLink' | transloco"
-                  (focus)="$any($event.target).select()"
-                />
-                <button
-                  type="button"
-                  class="btn-secondary shrink-0 px-3 py-1.5 text-sm"
-                  (click)="copy(url)"
+        } @else {
+          <fieldset>
+            <legend class="form-label">{{ 'collectionForm.visibility' | transloco }}</legend>
+            <div class="space-y-2">
+              @for (option of visibilityOptions; track option) {
+                <label
+                  class="flex cursor-pointer items-start gap-3 rounded-lg border border-shade-200 p-3 transition-colors
+                            hover:bg-shade-50 has-checked:border-brand-400 has-checked:bg-brand-50"
                 >
-                  {{ (copied() ? 'common.copied' : 'common.copy') | transloco }}
-                </button>
-              </div>
-              @if (saved()?.visibility === 'Unlisted') {
-                <button
-                  type="button"
-                  class="link mt-2 text-sm"
-                  [disabled]="regenerating()"
-                  (click)="regenerate()"
-                >
-                  {{
-                    (regenerating() ? 'collectionForm.regenerating' : 'collectionForm.regenerate')
-                      | transloco
-                  }}
-                </button>
-                <span class="text-xs text-shade-500">
-                  {{ 'collectionForm.regenerateNote' | transloco }}</span
-                >
+                  <input
+                    type="radio"
+                    formControlName="visibility"
+                    [value]="option"
+                    class="mt-1 accent-brand-500"
+                  />
+                  <span class="text-sm">
+                    <span class="flex items-center gap-2 font-medium text-shade-900">
+                      <app-visibility-badge [visibility]="option" />
+                    </span>
+                    <span class="mt-1 block text-shade-600">{{
+                      'visibility.' + option + '.description' | transloco
+                    }}</span>
+                  </span>
+                </label>
               }
             </div>
-          }
-        </fieldset>
+
+            @if (pendingVisibilityNote(); as note) {
+              <p class="form-hint">{{ note | transloco }}</p>
+            } @else if (link(); as url) {
+              <div class="mt-3 rounded-lg bg-shade-50 p-3">
+                <p class="text-xs font-medium text-shade-600">
+                  {{
+                    (saved()?.visibility === 'Unlisted'
+                      ? 'collectionForm.unlistedLink'
+                      : 'collectionForm.publicLink'
+                    ) | transloco
+                  }}
+                </p>
+                <div class="mt-1.5 flex gap-2">
+                  <input
+                    type="text"
+                    readonly
+                    [value]="url"
+                    class="form-input min-w-0 flex-1 py-1.5 text-sm"
+                    [attr.aria-label]="'collectionForm.shareLink' | transloco"
+                    (focus)="$any($event.target).select()"
+                  />
+                  <button
+                    type="button"
+                    class="btn-secondary shrink-0 px-3 py-1.5 text-sm"
+                    (click)="copy(url)"
+                  >
+                    {{ (copied() ? 'common.copied' : 'common.copy') | transloco }}
+                  </button>
+                </div>
+                @if (saved()?.visibility === 'Unlisted') {
+                  <button
+                    type="button"
+                    class="link mt-2 text-sm"
+                    [disabled]="regenerating()"
+                    (click)="regenerate()"
+                  >
+                    {{
+                      (regenerating() ? 'collectionForm.regenerating' : 'collectionForm.regenerate')
+                        | transloco
+                    }}
+                  </button>
+                  <span class="text-xs text-shade-500">
+                    {{ 'collectionForm.regenerateNote' | transloco }}</span
+                  >
+                }
+              </div>
+            }
+          </fieldset>
+        }
 
         <app-cover-picker [collection]="saved()" [disabled]="saving()" [(change)]="coverChange" />
 
