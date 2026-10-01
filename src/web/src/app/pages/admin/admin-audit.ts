@@ -55,7 +55,12 @@ import { AdminListBase } from './admin-list-base';
               <li class="card p-4 text-sm">
                 <ng-container *ngTemplateOutlet="what; context: { $implicit: e }" />
                 <p class="mt-1 text-xs text-shade-500">
-                  {{ dateTime(e.createdAtUtc) }} · &#64;{{ e.actorUserName }}
+                  {{ dateTime(e.createdAtUtc) }} ·
+                  {{
+                    e.actorUserName
+                      ? '@' + e.actorUserName
+                      : ('admin.audit.deletedUser' | transloco)
+                  }}
                 </p>
               </li>
             }
@@ -90,8 +95,12 @@ import { AdminListBase } from './admin-list-base';
                     <td class="truncate px-3 py-2.5 tabular-nums">
                       {{ dateTime(e.createdAtUtc) }}
                     </td>
-                    <td class="truncate px-3 py-2.5" [title]="e.actorUserName">
-                      &#64;{{ e.actorUserName }}
+                    <td class="truncate px-3 py-2.5" [title]="e.actorUserName ?? ''">
+                      {{
+                        e.actorUserName
+                          ? '@' + e.actorUserName
+                          : ('admin.audit.deletedUser' | transloco)
+                      }}
                     </td>
                     <td class="px-3 py-2.5">
                       <ng-container *ngTemplateOutlet="what; context: { $implicit: e }" />
@@ -121,13 +130,17 @@ import { AdminListBase } from './admin-list-base';
     <ng-template #what let-e>
       <p class="font-medium text-shade-900">{{ 'admin.audit.actions.' + e.action | transloco }}</p>
       <p class="min-w-0 wrap-break-word text-shade-600">
-        @if (e.targetUserId) {
+        @if (e.targetUserName) {
           <a [routerLink]="['/admin/users', e.targetUserId]" class="link"
             >&#64;{{ e.targetUserName }}</a
           >
+        } @else if (e.targetUserId) {
+          <span>{{ 'admin.audit.deletedUser' | transloco }}</span>
         }
         @if (e.targetCollectionName) {
           <span> · {{ e.targetCollectionName }}</span>
+        } @else if (e.targetCollectionId) {
+          <span> · {{ 'admin.audit.deletedCollection' | transloco }}</span>
         }
       </p>
       @if (e.note) {

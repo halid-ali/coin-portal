@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.RateLimiting;
@@ -19,6 +20,9 @@ public static class RateLimitPolicies
 
     /// <summary>Signed-out photo and cover downloads; higher, a page of thumbnails is many requests.</summary>
     public const string Photos = "photos";
+
+    /// <summary>The data export (a ZIP of up to 300 MB): per signed-in user, not per address.</summary>
+    public const string Export = "export";
 }
 
 /// <summary>Requests one client may send in a window.</summary>
@@ -42,6 +46,8 @@ public sealed class RateLimitOptions
     public RateLimitRule Public { get; set; } = new() { PermitLimit = 120 };
 
     public RateLimitRule Photos { get; set; } = new() { PermitLimit = 600 };
+
+    public RateLimitRule Export { get; set; } = new() { PermitLimit = 3, WindowSeconds = 600 };
 }
 
 public static class AppRateLimiting
@@ -56,6 +62,7 @@ public static class AppRateLimiting
             options.AddPolicy(RateLimitPolicies.Auth, http => PerClient(http, o => o.Auth, signedInExempt: false));
             options.AddPolicy(RateLimitPolicies.Public, http => PerClient(http, o => o.Public, signedInExempt: true));
             options.AddPolicy(RateLimitPolicies.Photos, http => PerClient(http, o => o.Photos, signedInExempt: true));
+            options.AddPolicy(RateLimitPolicies.Export, PerUser);
             options.OnRejected = OnRejectedAsync;
         });
     }
@@ -72,6 +79,19 @@ public static class AppRateLimiting
 
         var limit = rule(http.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value);
         return RateLimitPartition.GetFixedWindowLimiter(ClientKey(http), _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = limit.PermitLimit,
+            Window = TimeSpan.FromSeconds(limit.WindowSeconds),
+            QueueLimit = 0,
+        });
+    }
+
+    // Only on endpoints that require a signed-in user
+    private static RateLimitPartition<string> PerUser(HttpContext http)
+    {
+        var limit = http.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value.Export;
+        var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientKey(http);
+        return RateLimitPartition.GetFixedWindowLimiter(userId, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = limit.PermitLimit,
             Window = TimeSpan.FromSeconds(limit.WindowSeconds),

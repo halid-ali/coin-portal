@@ -73,6 +73,7 @@
     "language": "Dil"
   },
   "home": {
+    "accountDeleted": "Hesabın ve tüm verilerin silindi.",
     "headline": "Euro coin koleksiyonun, her yerde yanında",
     "welcome": "Hoş geldin, {{name}}!",
     "goToCollections": "Koleksiyonlarıma git",
@@ -378,6 +379,28 @@
     },
     "appearance": {
       "nav": "Görünüm"
+    },
+    "account": {
+      "nav": "Hesap",
+      "export": {
+        "title": "Verilerini indir",
+        "description": "Hesap bilgilerin, koleksiyonların, coin'lerin ve fotoğrafların tek bir ZIP dosyasında: veriler JSON biçiminde, fotoğraflar en büyük boyutlarıyla.",
+        "button": "Verilerimi indir",
+        "hint": "Fotoğrafın çoksa dosya büyük olabilir ve hazırlanması biraz sürebilir. 10 dakikada en fazla 3 kez indirilebilir."
+      },
+      "delete": {
+        "title": "Hesabı sil",
+        "description": "Hesabın, tüm koleksiyonların, coin'lerin, fotoğrafların ve paylaşım linklerin kalıcı olarak silinir. Bu işlem geri alınamaz.",
+        "button": "Hesabımı sil",
+        "adminNote": "Yönetici hesapları buradan silinemez. Hesabını silmek için önce yönetici listesinden (Admin:UserIds) çıkarılman gerekir.",
+        "dialogTitle": "Hesabını kalıcı olarak sil",
+        "dialogMessage": "Hesabın ve içindeki her şey hemen silinir: koleksiyonlar, coin'ler, fotoğraflar ve paylaşım linkleri. Geri alınamaz.",
+        "exportFirst": "Silmeden önce verilerini indirmek isteyebilirsin:",
+        "password": "Onaylamak için parolan",
+        "confirm": "Hesabımı sil",
+        "deleting": "Siliniyor…",
+        "wrongPassword": "Parola yanlış."
+      }
     },
     "language": {
       "title": "Dil",

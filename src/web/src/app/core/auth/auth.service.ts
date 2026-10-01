@@ -71,6 +71,12 @@ export class AuthService {
     );
   }
 
+  /** Signed out by deleting the account (SettingsService.deleteAccount): like logout, without the request. */
+  afterAccountDeleted(): Observable<void> {
+    this.user.set(null);
+    return this.refreshXsrfToken();
+  }
+
   /** Keeps the current user in step after a change elsewhere (e.g. the settings page). */
   patchUser(changes: Partial<UserResponse>): void {
     this.user.update((user) => user && { ...user, ...changes });

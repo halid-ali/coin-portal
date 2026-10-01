@@ -80,7 +80,11 @@
     "lockMessage": "@{{userName}} cannot sign in, their open session ends within a minute, and their shared collections are hidden while the lock lasts.",
     "unlockTitle": "Unlock",
     "unlockMessage": "@{{userName}} can sign in again; their shared collections become visible again.",
-    "adminNote": "Admins cannot be locked here; they are removed from the configuration.",
+    "delete": "Delete user",
+    "deleteTitle": "Delete the user for good",
+    "deleteMessage": "@{{userName}}'s account is deleted right away with all their collections, coins, photos and share links. This cannot be undone. The audit log will show them as \"Deleted user\".",
+    "deleteTypeName": "Type the user name to confirm:",
+    "adminNote": "Admins cannot be locked or deleted in the panel; they are removed from the configuration.",
     "history": "History",
     "noHistory": "No entries about this user."
   },
@@ -128,6 +132,7 @@
     "actions": {
       "UserLocked": "User locked",
       "UserUnlocked": "User unlocked",
+      "UserDeleted": "User deleted",
       "CollectionHidden": "Collection hidden",
       "CollectionUnlocked": "Collection lock lifted"
     },
@@ -135,7 +140,9 @@
       "time": "Time",
       "actor": "Admin",
       "action": "Action"
-    }
+    },
+    "deletedUser": "Deleted user",
+    "deletedCollection": "deleted collection"
   },
   "note": {
     "label": "Note (optional)",

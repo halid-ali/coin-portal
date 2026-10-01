@@ -147,7 +147,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
             // Identity user ids are at most 450 characters
             b.Property(e => e.ActorId).HasMaxLength(450).IsRequired();
-            b.Property(e => e.ActorUserName).HasMaxLength(AuditLogEntry.UserNameMaxLength).IsRequired();
+            b.Property(e => e.ActorUserName).HasMaxLength(AuditLogEntry.UserNameMaxLength);
             b.Property(e => e.TargetUserId).HasMaxLength(450);
             b.Property(e => e.TargetUserName).HasMaxLength(AuditLogEntry.UserNameMaxLength);
             b.Property(e => e.TargetCollectionName).HasMaxLength(Collection.NameMaxLength);

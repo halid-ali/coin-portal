@@ -78,6 +78,9 @@ public sealed class ApiClient(HttpClient http) : IDisposable
 
     public Task<HttpResponseMessage> DeleteAsync(string url) => SendAsync(HttpMethod.Delete, url);
 
+    public Task<HttpResponseMessage> DeleteAsync(string url, object body) =>
+        SendAsync(HttpMethod.Delete, url, JsonContent.Create(body, options: Json));
+
     /// <summary>Multipart upload in the field "file", like the photo and cover forms.</summary>
     public Task<HttpResponseMessage> PutFileAsync(string url, byte[] bytes, string fileName = "photo.png",
         string contentType = "image/png")

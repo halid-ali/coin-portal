@@ -67,6 +67,28 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         }
     }
 
+    [Fact]
+    public async Task Export_IsLimitedPerUser()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["RateLimiting:Export:PermitLimit"] = "1",
+        });
+        using var alice = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        await alice.RegisterAsync(TestUser.NewRegisterRequest());
+        using var bob = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        await bob.RegisterAsync(TestUser.NewRegisterRequest());
+
+        using var first = await alice.GetAsync("/api/settings/export");
+        using var second = await alice.GetAsync("/api/settings/export");
+        // Same address, another user: a count of their own
+        using var other = await bob.GetAsync("/api/settings/export");
+
+        await first.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Equal("rate_limited", await second.ReadProblemCodeAsync(HttpStatusCode.TooManyRequests));
+        await other.ShouldHaveStatusAsync(HttpStatusCode.OK);
+    }
+
     [Theory]
     [InlineData("/")]
     [InlineData("/collections/5")]

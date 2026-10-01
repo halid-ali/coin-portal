@@ -73,6 +73,7 @@
     "language": "Language"
   },
   "home": {
+    "accountDeleted": "Your account and all your data have been deleted.",
     "headline": "Your euro coin collection, wherever you go",
     "welcome": "Welcome, {{name}}!",
     "goToCollections": "Go to my collections",
@@ -378,6 +379,28 @@
     },
     "appearance": {
       "nav": "Appearance"
+    },
+    "account": {
+      "nav": "Account",
+      "export": {
+        "title": "Download your data",
+        "description": "Your account details, collections, coins and photos in a single ZIP file: the data as JSON, the photos in their largest size.",
+        "button": "Download my data",
+        "hint": "With many photos the file can be large and take a moment to prepare. You can download it up to 3 times in 10 minutes."
+      },
+      "delete": {
+        "title": "Delete account",
+        "description": "Your account and all your collections, coins, photos and share links are deleted for good. This cannot be undone.",
+        "button": "Delete my account",
+        "adminNote": "Administrator accounts cannot be deleted here. To delete yours, you first have to be removed from the administrators (Admin:UserIds).",
+        "dialogTitle": "Delete your account for good",
+        "dialogMessage": "Your account and everything in it are deleted right away: collections, coins, photos and share links. This cannot be undone.",
+        "exportFirst": "You may want to download your data first:",
+        "password": "Your password, to confirm",
+        "confirm": "Delete my account",
+        "deleting": "Deleting…",
+        "wrongPassword": "The password is not correct."
+      }
     },
     "language": {
       "title": "Language",

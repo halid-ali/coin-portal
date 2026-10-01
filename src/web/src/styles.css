@@ -372,6 +372,10 @@
     @apply rounded-lg border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700;
   }
 
+  .alert-success {
+    @apply rounded-lg border border-success-200 bg-success-50 px-4 py-3 text-sm text-success-800;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-on-primary
       hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none

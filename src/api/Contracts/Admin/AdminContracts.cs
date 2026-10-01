@@ -105,6 +105,9 @@ public sealed record AdminUserDetailResponse(
 /// <param name="Note">The reason, kept in the audit log only.</param>
 public sealed record AdminLockRequest([StringLength(AuditLogEntry.NoteMaxLength)] string? Note);
 
+/// <param name="Note">The admin's reason, only kept in the audit log.</param>
+public sealed record AdminDeleteUserRequest([StringLength(AuditLogEntry.NoteMaxLength)] string? Note);
+
 public enum AdminCollectionSort
 {
     UpdatedAt,
@@ -183,11 +186,15 @@ public class AdminAuditQuery
     public int PageSize { get; set; } = 50;
 }
 
+/// <summary>
+/// One audit entry. The user and collection names are null when the user they belonged to has
+/// been deleted (the client shows "deleted user"); the ids stay.
+/// </summary>
 public sealed record AdminAuditEntryResponse(
     long Id,
     DateTime CreatedAtUtc,
     string ActorId,
-    string ActorUserName,
+    string? ActorUserName,
     AuditAction Action,
     string? TargetUserId,
     string? TargetUserName,

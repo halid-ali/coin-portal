@@ -80,7 +80,11 @@
     "lockMessage": "@{{userName}} kann sich nicht anmelden, die offene Sitzung endet innerhalb einer Minute, und geteilte Sammlungen werden ausgeblendet, solange die Sperre besteht.",
     "unlockTitle": "Entsperren",
     "unlockMessage": "@{{userName}} kann sich wieder anmelden; geteilte Sammlungen sind wieder sichtbar.",
-    "adminNote": "Admins können hier nicht gesperrt werden; sie werden aus der Konfiguration entfernt.",
+    "delete": "Benutzer löschen",
+    "deleteTitle": "Benutzer endgültig löschen",
+    "deleteMessage": "Das Konto von @{{userName}} wird sofort mit allen Sammlungen, Münzen, Fotos und geteilten Links gelöscht. Das kann nicht rückgängig gemacht werden. Im Protokoll erscheint der Benutzer als „Gelöschter Benutzer“.",
+    "deleteTypeName": "Gib zur Bestätigung den Benutzernamen ein:",
+    "adminNote": "Admins können im Panel nicht gesperrt oder gelöscht werden; sie werden aus der Konfiguration entfernt.",
     "history": "Verlauf",
     "noHistory": "Keine Einträge zu diesem Benutzer."
   },
@@ -128,6 +132,7 @@
     "actions": {
       "UserLocked": "Benutzer gesperrt",
       "UserUnlocked": "Benutzer entsperrt",
+      "UserDeleted": "Benutzer gelöscht",
       "CollectionHidden": "Sammlung ausgeblendet",
       "CollectionUnlocked": "Sperre der Sammlung aufgehoben"
     },
@@ -135,7 +140,9 @@
       "time": "Zeit",
       "actor": "Admin",
       "action": "Aktion"
-    }
+    },
+    "deletedUser": "Gelöschter Benutzer",
+    "deletedCollection": "gelöschte Sammlung"
   },
   "note": {
     "label": "Notiz (optional)",

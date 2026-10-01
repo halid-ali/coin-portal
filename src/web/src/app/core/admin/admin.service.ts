@@ -61,6 +61,11 @@ export class AdminService {
     });
   }
 
+  /** Deletes the user with everything they own (not admins: 400 cannot_delete_admin). */
+  deleteUser(id: string, note: string): Observable<void> {
+    return this.http.delete<void>(`${API}/users/${encodeURIComponent(id)}`, { body: { note } });
+  }
+
   /** Hides the collection: private, share link removed, locked against sharing. */
   lockCollection(id: number, note: string): Observable<void> {
     return this.http.put<void>(`${API}/collections/${id}/lock`, { note });

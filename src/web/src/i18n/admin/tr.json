@@ -80,7 +80,11 @@
     "lockMessage": "@{{userName}} giriş yapamaz, açık oturumu en geç bir dakikada kapanır ve paylaştığı koleksiyonlar kilit sürdükçe gizlenir.",
     "unlockTitle": "Kilidi aç",
     "unlockMessage": "@{{userName}} tekrar giriş yapabilir; paylaştığı koleksiyonlar yeniden görünür.",
-    "adminNote": "Admin'ler panelden kilitlenemez; ayardan çıkarılırlar.",
+    "delete": "Kullanıcıyı sil",
+    "deleteTitle": "Kullanıcıyı kalıcı olarak sil",
+    "deleteMessage": "@{{userName}} hesabı, tüm koleksiyonları, coin'leri, fotoğrafları ve paylaşım linkleriyle hemen silinir. Geri alınamaz. Denetim kaydında adı \"Silinmiş kullanıcı\" olarak görünür.",
+    "deleteTypeName": "Onaylamak için kullanıcı adını yaz:",
+    "adminNote": "Admin'ler panelden kilitlenemez ve silinemez; ayardan çıkarılırlar.",
     "history": "Geçmiş",
     "noHistory": "Bu kullanıcıyla ilgili kayıt yok."
   },
@@ -128,6 +132,7 @@
     "actions": {
       "UserLocked": "Kullanıcı kilitlendi",
       "UserUnlocked": "Kullanıcının kilidi açıldı",
+      "UserDeleted": "Kullanıcı silindi",
       "CollectionHidden": "Koleksiyon gizlendi",
       "CollectionUnlocked": "Koleksiyonun kilidi kaldırıldı"
     },
@@ -135,7 +140,9 @@
       "time": "Zaman",
       "actor": "Admin",
       "action": "İşlem"
-    }
+    },
+    "deletedUser": "Silinmiş kullanıcı",
+    "deletedCollection": "silinmiş koleksiyon"
   },
   "note": {
     "label": "Not (isteğe bağlı)",

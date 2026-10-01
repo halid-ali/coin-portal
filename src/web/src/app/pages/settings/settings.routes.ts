@@ -11,6 +11,10 @@ export const SETTINGS_ROUTES: Routes = [
     path: 'appearance',
     loadComponent: () => import('./appearance-settings').then((m) => m.AppearanceSettings),
   },
+  {
+    path: 'account',
+    loadComponent: () => import('./account-settings').then((m) => m.AccountSettings),
+  },
   // Language was a section of its own before Appearance
   { path: 'language', redirectTo: 'appearance' },
 ];

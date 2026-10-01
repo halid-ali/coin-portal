@@ -2,19 +2,19 @@
 
 Son güncelleme: 2026-10-01 (9. adım hosting temeli: 9a `chore/hosting-infra` (wwwroot + SPA fallback,
 publish'te client, Serilog, DataProtection anahtarları, rate limiter), 9b `fix/photo-upload-limits`
-(büyük telefon fotoğrafları, HEIC mesajı), 9c `feat/remember-me` ve 9d `feat/pwa-manifest` bitti,
-main'de (push edilmedi); sırada 9e. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
+(büyük telefon fotoğrafları, HEIC mesajı), 9c `feat/remember-me`, 9d `feat/pwa-manifest` ve 9e
+`feat/account-deletion` (hesap silme + dışa aktarma) bitti, main'de (push edilmedi); sırada 9f. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
 haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
 - Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra`, `fix/photo-upload-limits`,
-  `feat/remember-me` ve `feat/pwa-manifest` 2026-10-01'de merge edildi, henüz push edilmedi; son
-  etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+  `feat/remember-me`, `feat/pwa-manifest` ve `feat/account-deletion` 2026-10-01'de merge edildi, henüz
+  push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Veritabanı en son migration'da (`AddModeration`); dev seed 2026-09-27'de çalıştırıldı
+- Veritabanı en son migration'da (`AccountDeletion`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
@@ -666,6 +666,48 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Not: 4200'deki `ng serve` 2026-09-29'dan beri sahipsiz bir Git Bash sürecinden çalışıyor (onu
       başlatan terminal kapanmış); kullanıcı şimdilik bıraktı. Yeniden başlatmak gerekirse önce o
       süreç kapatılır (`Port 4200 is already in use`).
+32. **Hesap silme ve veri dışa aktarma** (`feat/account-deletion`, 2026-10-01; yol haritası 9e, kararlar
+    "Yönetici paneli: kararlar" ve "Hesap silme: kararlar"):
+    - **Ayarlar > Hesap** (yeni bölüm, kalkan ikonu): "Verilerimi indir" düz link (`GET api/settings/export`,
+      tarayıcının indirme yöneticisi; büyük dosya sayfa belleğine girmez) ve kırmızı çerçeveli "Hesabı
+      sil" kartı. Admin'e buton yerine açıklama.
+    - **Dışa aktarma** (`Accounts/AccountExport`): ZIP, geçici dosyada üretilir (`DeleteOnClose`):
+      `account.json` (profil, tercihler, giriş zamanları; parola özeti ve damgalar yok),
+      `collections.json` (koleksiyonlar ve tüm coin alanları, görsel yolları), `photos/{coinId}-{yüz}.webp`
+      (en büyük boyut) ve `covers/{koleksiyonId}.webp`; ad `coinportal-<kullanıcı>-<tarih>.zip`. Rate
+      limit kullanıcı başına (`export`: 10 dakikada 3), IP başına değil. JSON'lar UTF-8 ve okunur
+      (`UnsafeRelaxedJsonEscaping`): varsayılan kodlayıcı ASCII dışını `ç` gibi yazıyordu
+      (kullanıcı fark etti; dosya HTML'e gömülmediği için kaçışa gerek yok, test ham metni kontrol eder).
+    - **Hesap silme** (`DELETE api/settings/account`, gövde `{ password }`): parola
+      `CheckPasswordSignInAsync` ile (yanlışlar login gibi kilide sayılır; `auth` rate limit), kod
+      `wrong_password` (400) / `admin_account` (403) / 423. Silme `Accounts/AccountDeletion`: tek
+      transaction'da denetim kaydındaki adlar boşaltılır ve kullanıcı satırı silinir (koleksiyon, coin,
+      fotoğraf satırları ve Identity tabloları veritabanı cascade'iyle), sonra fotoğraf klasörü
+      (`DeleteOwnerAsync`), sonra çıkış. Diğer cihazlardaki oturumlar en geç 1 dakikada düşer.
+      Pencere (`DeleteAccountDialog`) yanlış parolada açık kalır, önce indirmeyi önerir; başarıdan sonra
+      ana sayfada bir kerelik "Hesabın ve tüm verilerin silindi" (navigation state, `alert-success`).
+    - **Admin silmesi** (`DELETE api/admin/users/{id}`, not isteğe bağlı): aynı servis; admin'ler
+      silinemez (`cannot_delete_admin`). Kullanıcı detayında "Kullanıcıyı sil" (ikincil, kırmızı yazı);
+      onay penceresinde kullanıcı adı birebir yazılmadan buton açılmaz (`ConfirmDialog` `typeToConfirm`,
+      yeniden kullanılabilir). Sonra kullanıcı listesine dönülür.
+    - **Denetim kaydı:** yeni işlem `UserDeleted` (5); silinen kullanıcının adı hem hedef
+      (`TargetUserName`, `TargetCollectionName`) hem admin olarak (`ActorUserName`, artık nullable) boşaltılır,
+      kayıtlar ve Id'ler kalır; panel "Silinmiş kullanıcı" / "silinmiş koleksiyon" gösterir, link yok.
+      `UserDeleted` kaydı adsız yazılır. Adminin serbest notuna dokunulmaz. Migration `AccountDeletion`
+      (check constraint + nullable sütun).
+    - Ayarlar'ın sekme satırı telefonda üç sekmeyle (Bulgarca) sayfayı 4 px taşırıyordu: `nav`'a `min-w-0`.
+    - Testler: API 121 (+8: dışa aktarmanın içeriği ve başkasının verisinin olmaması, girişsiz 401, yanlış
+      parola, silmenin veritabanı + dosya + oturum + paylaşılan koleksiyon etkisi ve başkasının verisine
+      dokunmaması, admin silmesi ve anonimleştirme, admin/bilinmeyen kullanıcı, admin kendi hesabını
+      silemez ama ayardan çıkınca siler ve admin olarak adı da silinir, dışa aktarma sınırı kullanıcı
+      başına; anonimleştirme ve admin kontrolü bozulunca testler kırıldı). Client 85 (+6: yazarak onay,
+      indirme linki, yanlış parola, silme → çıkış + bir kerelik mesaj, admin'e açıklama, denetim
+      kaydında silinmiş adlar). jsdom için `shared/testing/dialogs.ts` (`stubModalDialogs`).
+    - Canlı (5090 + 4300, headless Edge, geçici kullanıcılar): fotoğraflı kullanıcı indirdi (ZIP içeriği
+      doğru), yanlış parola mesajı, silme → ana sayfa mesajı, `me` 401; `ayse.yilmaz` (geçici admin)
+      başka bir geçici kullanıcıyı adını yazarak sildi, denetim kaydında "Kullanıcı silindi · Silinmiş
+      kullanıcı · E2E denemesi"; 360 px'te Bulgarca/Almanca taşma yok. Dev veritabanında bu kayıt kaldı;
+      `ayse.yilmaz` admin rolü kullanıcının API'si yeniden başlayınca senkronla geri alınır.
 
 ## Yol haritası
 
@@ -710,10 +752,8 @@ mağaza için TWA.
         (kullanıcı kararı 2026-10-01; Tamamlananlar 30).
   - [x] 9d. `feat/pwa-manifest`: manifest, mevcut logodan 192/512 + maskable ikonlar, apple-touch-icon,
         açık/koyu theme-color, favicon (Tamamlananlar 31; service worker 11. adımda).
-  - [ ] 9e. `feat/account-deletion`: hesap silme (parolayla onay, hemen ve geri alınamaz; kullanıcı
-        kararı) + dışa aktarma (ZIP: JSON + tam boy fotoğraflar; kullanıcı kararı), Ayarlar > Hesap;
-        admin'in kullanıcı silmesi aynı servisle (admin silinemez, denetim kaydı), `AuditLog`'daki ad
-        anlık görüntüleri anonimleştirilir.
+  - [x] 9e. `feat/account-deletion`: hesap silme + dışa aktarma, admin'in kullanıcı silmesi, denetim
+        kaydında anonimleştirme (Tamamlananlar 32).
   - [ ] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları (4 dil, e-postayla iletişim),
         footer ve kayıt formunda link; operatör bilgileri ve Impressum kullanıcıya sorulacak.
 - [ ] 8b. `tests/e2e` (Playwright).
@@ -739,8 +779,9 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-9. adımın alt adımları sırayla: 9a–9d bitti (main'de, push edilmedi), sırada **9e**
-(`feat/account-deletion`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+9. adımın alt adımları sırayla: 9a–9e bitti (main'de, push edilmedi), sırada **9f**
+(`feat/privacy-contact`): gizlilik + iletişim sayfaları; operatör bilgileri ve Impressum kullanıcıya
+sorulacak. Gizlilik metni hesap silme, dışa aktarma, loglar (IP, 30 gün) ve cookie'leri anlatacak. Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
@@ -918,6 +959,23 @@ Kararlar (2026-09-30, kullanıcıyla):
 - **Satırdaki "Gizle"** ikincil stilde (kırmızı yazı), her satırda kırmızı dolgu listeyi bağırgan
   yapıyordu; kırmızı dolgu onay penceresinde.
 
+## Hesap silme: kararlar
+
+Kararlar (2026-10-01, kullanıcıyla):
+
+- **Parolayla onay, hemen ve geri alınamaz.** Bekleme süresi (askıda hesap) elendi: zamanlanmış iş ister,
+  paylaşımlı hosting'de ek karmaşa. Pencere önce dışa aktarmayı önerir.
+- **Dışa aktarma ZIP: JSON + fotoğraflar** (en büyük boyut). Sadece JSON elendi: GDPR taşınabilirliği
+  kullanıcının yüklediği her şeyi kapsar.
+- **Admin kendi hesabını silemez**, önce `Admin:UserIds`'ten çıkarılır (kilitlemedeki kuralla aynı; son
+  admin'in kendini silmesini de önler).
+- **Silmeden sonra** ana sayfada bir kerelik bilgi mesajı.
+- **Admin bir kullanıcıyı silerken** kullanıcı adını birebir yazar (koleksiyon silmedeki gibi); not isteğe
+  bağlı. Admin'ler panelden silinemez.
+- **Denetim kaydı:** kayıtlar kalır, silinen kullanıcının adları (hedef, koleksiyon, admin olarak) silinir
+  (9. adım planındaki karar). Adminin serbest notu olduğu gibi kalır (içinde ad geçebilir; kullanıcı
+  biliyor).
+
 ## Fotoğraflar
 
 ### Kararlar (2026-09-27)
@@ -1038,6 +1096,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
       yüklemiyorsa `DataProtection__Dpapi=LocalMachine`).
 - [x] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (2026-10-01, Tamamlananlar 28).
 - [x] Rate limiter, loglama, DataProtection anahtar yolu (2026-10-01, Tamamlananlar 28).
+- [x] Hesap silme ve veri dışa aktarma (2026-10-01, Tamamlananlar 32).
+- [ ] Gizlilik ve iletişim sayfası (9f).
 - [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).

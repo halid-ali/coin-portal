@@ -73,6 +73,7 @@
     "language": "Sprache"
   },
   "home": {
+    "accountDeleted": "Dein Konto und alle deine Daten wurden gelöscht.",
     "headline": "Deine Euro-Münzsammlung – immer dabei",
     "welcome": "Willkommen, {{name}}!",
     "goToCollections": "Zu meinen Sammlungen",
@@ -378,6 +379,28 @@
     },
     "appearance": {
       "nav": "Darstellung"
+    },
+    "account": {
+      "nav": "Konto",
+      "export": {
+        "title": "Deine Daten herunterladen",
+        "description": "Deine Kontodaten, Sammlungen, Münzen und Fotos in einer ZIP-Datei: die Daten als JSON, die Fotos in ihrer größten Auflösung.",
+        "button": "Meine Daten herunterladen",
+        "hint": "Mit vielen Fotos kann die Datei groß sein und die Vorbereitung einen Moment dauern. Du kannst sie höchstens 3-mal in 10 Minuten herunterladen."
+      },
+      "delete": {
+        "title": "Konto löschen",
+        "description": "Dein Konto und alle deine Sammlungen, Münzen, Fotos und geteilten Links werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
+        "button": "Mein Konto löschen",
+        "adminNote": "Administratorkonten können hier nicht gelöscht werden. Um dein Konto zu löschen, musst du zuerst aus den Administratoren (Admin:UserIds) entfernt werden.",
+        "dialogTitle": "Konto endgültig löschen",
+        "dialogMessage": "Dein Konto und alles darin wird sofort gelöscht: Sammlungen, Münzen, Fotos und geteilte Links. Das kann nicht rückgängig gemacht werden.",
+        "exportFirst": "Vielleicht möchtest du vorher deine Daten herunterladen:",
+        "password": "Dein Passwort zur Bestätigung",
+        "confirm": "Mein Konto löschen",
+        "deleting": "Wird gelöscht…",
+        "wrongPassword": "Das Passwort ist falsch."
+      }
     },
     "language": {
       "title": "Sprache",

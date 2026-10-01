@@ -1,3 +1,4 @@
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Data;
 using Microsoft.AspNetCore.Identity;
@@ -110,6 +111,10 @@ builder.Services.AddOptions<PhotoOptions>()
 builder.Services.AddSingleton<IPhotoStorage, FileSystemPhotoStorage>();
 builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
 builder.Services.AddScoped<PhotoQuota>();
+
+// Account export (ZIP) and deletion, for the user (Settings) and admins
+builder.Services.AddScoped<AccountExport>();
+builder.Services.AddScoped<AccountDeletion>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

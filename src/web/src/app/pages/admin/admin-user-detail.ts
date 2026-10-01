@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { EMPTY, Observable, catchError, firstValueFrom, forkJoin, switchMap } from 'rxjs';
 
@@ -61,14 +61,31 @@ import { AdminStatusBadge } from './admin-status-badge';
               <p class="max-w-xs text-sm text-shade-500">
                 {{ 'admin.user.adminNote' | transloco }}
               </p>
-            } @else if (u.status === 'Active') {
-              <button type="button" class="btn-danger" [disabled]="busy()" (click)="lock(u)">
-                {{ 'admin.user.lock' | transloco }}
-              </button>
             } @else {
-              <button type="button" class="btn-secondary" [disabled]="busy()" (click)="unlock(u)">
-                {{ 'admin.user.unlock' | transloco }}
-              </button>
+              <div class="flex flex-wrap gap-2">
+                @if (u.status === 'Active') {
+                  <button type="button" class="btn-danger" [disabled]="busy()" (click)="lock(u)">
+                    {{ 'admin.user.lock' | transloco }}
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    [disabled]="busy()"
+                    (click)="unlock(u)"
+                  >
+                    {{ 'admin.user.unlock' | transloco }}
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="btn-secondary text-danger-700"
+                  [disabled]="busy()"
+                  (click)="remove(u)"
+                >
+                  {{ 'admin.user.delete' | transloco }}
+                </button>
+              </div>
             }
           </div>
           @if (actionError()) {
@@ -171,7 +188,12 @@ import { AdminStatusBadge } from './admin-status-badge';
                     }
                   </p>
                   <p class="text-xs text-shade-500">
-                    {{ dateTime(e.createdAtUtc) }} · &#64;{{ e.actorUserName }}
+                    {{ dateTime(e.createdAtUtc) }} ·
+                    {{
+                      e.actorUserName
+                        ? '@' + e.actorUserName
+                        : ('admin.audit.deletedUser' | transloco)
+                    }}
                   </p>
                   @if (e.note) {
                     <p class="mt-1 wrap-break-word text-shade-700 italic">{{ e.note }}</p>
@@ -189,6 +211,7 @@ export class AdminUserDetailPage {
   private readonly admin = inject(AdminService);
   private readonly confirm = inject(ConfirmDialogService);
   private readonly language = inject(LanguageService);
+  private readonly router = inject(Router);
 
   /** Route parameter. */
   readonly id = input.required<string>();
@@ -249,6 +272,31 @@ export class AdminUserDetailPage {
     });
     if (note !== null) {
       await this.run(() => this.admin.unlockUser(user.id, note));
+    }
+  }
+
+  /** For good: the user's name must be typed, like deleting a collection. */
+  protected async remove(user: AdminUserDetail): Promise<void> {
+    const note = await this.confirm.confirmWithNote({
+      title: translate('admin.user.deleteTitle'),
+      message: translate('admin.user.deleteMessage', { userName: user.userName }),
+      confirmText: translate('admin.user.delete'),
+      danger: true,
+      typeToConfirm: { label: translate('admin.user.deleteTypeName'), value: user.userName },
+      note: this.noteField(),
+    });
+    if (note === null) {
+      return;
+    }
+    this.busy.set(true);
+    this.actionError.set(false);
+    try {
+      await firstValueFrom(this.admin.deleteUser(user.id, note), { defaultValue: undefined });
+      await this.router.navigate(['/admin/users'], { queryParams: this.backQuery });
+    } catch {
+      this.actionError.set(true);
+    } finally {
+      this.busy.set(false);
     }
   }
 
