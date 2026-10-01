@@ -6,6 +6,7 @@ namespace CoinPortal.Api.Contracts.Auth;
 
 /// <param name="Language">UI language at sign-up; saved as the user's preference and used for
 /// the name of the first collection. Optional (older clients), English then.</param>
+/// <param name="AcceptPrivacy">The sign-up form's "I have read the privacy policy" box; required.</param>
 public sealed record RegisterRequest(
     [Required, StringLength(100)] string FirstName,
     [Required, StringLength(100)] string LastName,
@@ -15,7 +16,8 @@ public sealed record RegisterRequest(
     [Required, EmailAddress, StringLength(256)] string Email,
     [Required, MinimumAge(18)] DateOnly? BirthDate,
     [Required, StringLength(100, MinimumLength = 8)] string Password,
-    [SupportedLanguage] string? Language = null);
+    [SupportedLanguage] string? Language = null,
+    [MustBeTrue(ErrorMessage = "The privacy policy must be accepted.")] bool AcceptPrivacy = false);
 
 public sealed record LoginRequest(
     [Required] string UserNameOrEmail,

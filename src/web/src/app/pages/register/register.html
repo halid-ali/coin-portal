@@ -121,6 +121,31 @@
       </div>
     </div>
 
+    <div>
+      <label class="flex items-start gap-2 text-sm text-shade-700">
+        <input
+          type="checkbox"
+          formControlName="acceptPrivacy"
+          class="mt-0.5 size-4 shrink-0 rounded border-shade-300 text-brand-600 focus:ring-brand-500"
+        />
+        <span>
+          {{ 'register.privacyBefore' | transloco
+          }}<a routerLink="/privacy" target="_blank" class="link">{{
+            'register.privacyLink' | transloco
+          }}</a
+          >{{ 'register.privacyAfter' | transloco }}
+        </span>
+      </label>
+      @if (form.controls.acceptPrivacy.invalid && form.controls.acceptPrivacy.touched) {
+        <p class="form-error">
+          {{
+            form.controls.acceptPrivacy.errors?.['server'] ??
+              ('register.privacyRequired' | transloco)
+          }}
+        </p>
+      }
+    </div>
+
     <button type="submit" class="btn-primary w-full" [disabled]="submitting()">
       {{ (submitting() ? 'register.submitting' : 'register.submit') | transloco }}
     </button>

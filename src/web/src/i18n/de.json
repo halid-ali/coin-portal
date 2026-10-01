@@ -47,6 +47,8 @@
     "invalid": "Ungültiger Wert."
   },
   "titles": {
+    "privacy": "Datenschutzerklärung",
+    "contact": "Kontakt",
     "login": "Anmelden",
     "register": "Registrieren",
     "collections": "Meine Sammlungen",
@@ -95,6 +97,10 @@
     "accountLocked": "Dein Konto wurde von einem Administrator gesperrt."
   },
   "register": {
+    "privacyBefore": "Ich habe die ",
+    "privacyLink": "Datenschutzerklärung",
+    "privacyAfter": " gelesen.",
+    "privacyRequired": "Bitte bestätige, dass du die Datenschutzerklärung gelesen hast.",
     "title": "Registrieren",
     "firstName": "Vorname",
     "lastName": "Nachname",
@@ -438,5 +444,74 @@
     },
     "toDark": "Zum dunklen Farbschema wechseln",
     "toLight": "Zum hellen Farbschema wechseln"
+  },
+  "legal": {
+    "privacyLink": "Datenschutz",
+    "contactLink": "Kontakt",
+    "notSet": "wird vor der Veröffentlichung ergänzt"
+  },
+  "privacy": {
+    "title": "Datenschutzerklärung",
+    "updated": "Stand: {{date}}",
+    "intro": "Coin Portal ist ein nicht kommerzielles Hobbyprojekt. Diese Seite erklärt, welche personenbezogenen Daten wir warum verarbeiten, wer sie sehen kann und welche Rechte du hast. Es gilt die Datenschutz-Grundverordnung (DSGVO).",
+    "controller": {
+      "title": "Verantwortlicher",
+      "p1": "Verantwortlich für deine Daten ist {{name}}. Kontakt: {{email}}."
+    },
+    "data": {
+      "title": "Welche Daten wir verarbeiten",
+      "i1": "Kontodaten: Vor- und Nachname, Benutzername, E-Mail-Adresse, Geburtsdatum und dein Passwort. Das Passwort wird nur als nicht umkehrbarer Hash gespeichert.",
+      "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
+      "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
+      "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch die Server des Hosting-Anbieters können Zugriffsprotokolle mit IP-Adressen führen."
+    },
+    "purposes": {
+      "title": "Zwecke und Rechtsgrundlagen",
+      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren.",
+      "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
+      "p1": "Deine Daten werden nicht verkauft, nicht für Werbung oder Profilbildung genutzt und zu keinem anderen Zweck verarbeitet."
+    },
+    "visibility": {
+      "title": "Wer sie sehen kann",
+      "p1": "Sammlungen sind standardmäßig privat; nur du siehst sie. Wenn du eine Sammlung öffentlich oder per Link teilst, sind diese Sammlung, ihre Münzen und Fotos zusammen mit deinem Benutzernamen sichtbar. Dein Name, deine E-Mail-Adresse und dein Geburtsdatum werden anderen nie angezeigt.",
+      "p2": "Zur Moderation sehen die Administratoren der Website deinen Benutzernamen, deine E-Mail-Adresse, deinen Vor- und Nachnamen, die Anzahl deiner Sammlungen und Münzen sowie die Inhalte, die du teilst; deine privaten Sammlungen sehen sie nicht. Aktionen der Administratoren werden in einem Protokoll festgehalten."
+    },
+    "cookies": {
+      "title": "Cookies und Browserspeicher",
+      "p1": "Die Website verwendet nur Cookies, die für ihren Betrieb erforderlich sind, und fragt deshalb nicht nach einer Einwilligung:",
+      "i1": "coinportal.auth hält dich angemeldet. Mit „Angemeldet bleiben“ gilt es 14 Tage und verlängert sich, solange du die Website nutzt; sonst endet es, wenn du den Browser schließt.",
+      "i2": "coinportal.af und XSRF-TOKEN verhindern, dass Formulare von anderen Websites aus abgeschickt werden (Sicherheit).",
+      "p2": "Deine Wahl von Sprache, Farbschema und Akzentfarbe wird im lokalen Speicher des Browsers (localStorage) abgelegt. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies, und die Seiten laden nichts (Schriften, Skripte) von anderen Websites."
+    },
+    "hosting": {
+      "title": "Hosting",
+      "p1": "Die Website läuft auf den Servern eines Hosting-Anbieters, auf denen die Daten gespeichert werden. Der Anbieter verarbeitet die Daten nur in unserem Auftrag und nach unseren Weisungen. Deine Daten werden an niemanden sonst weitergegeben."
+    },
+    "retention": {
+      "title": "Speicherdauer",
+      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht, und dein Name wird aus dem Protokoll der Administratoren entfernt. Technische Protokolle werden nach 30 Tagen gelöscht. In den Sicherungen des Hosting-Anbieters können Daten noch eine Zeit lang verbleiben, bis die Sicherungen ersetzt werden."
+    },
+    "rights": {
+      "title": "Deine Rechte",
+      "p1": "Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und Datenübertragbarkeit. Unter Einstellungen > Konto kannst du alle deine Daten als ZIP-Datei herunterladen und dein Konto selbst löschen. Für alles andere schreib an die oben genannte E-Mail-Adresse.",
+      "p2": "Wenn du meinst, dass deine Daten rechtswidrig verarbeitet werden, kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren."
+    },
+    "age": {
+      "title": "Mindestalter",
+      "p1": "Bei Coin Portal können sich nur Personen ab 18 Jahren registrieren."
+    },
+    "changes": {
+      "title": "Änderungen",
+      "p1": "Wenn sich diese Erklärung ändert, wird die aktuelle Fassung mit neuem Datum auf dieser Seite veröffentlicht."
+    }
+  },
+  "contact": {
+    "title": "Kontakt",
+    "intro": "Coin Portal ist eine nicht kommerzielle Website, die eine Privatperson als Hobby entwickelt und betreibt.",
+    "operator": "Betreiber",
+    "email": "E-Mail",
+    "emailHint": "Für Fragen, Fehlermeldungen, Hinweise auf unangemessene Inhalte und Anfragen zu deinen Daten.",
+    "source": "Quellcode",
+    "sourceHint": "Das Projekt ist Open Source; Fehler kannst du auch dort melden."
   }
 }

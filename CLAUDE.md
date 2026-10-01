@@ -334,6 +334,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   headless Edge) `public/icons/` ve `public/favicon.ico` yazar; logo değişince yeniden çalıştırılır.
   Manifest `public/manifest.webmanifest`. Tarayıcı çubuğu rengi (`theme-color`) header'ın yüzeyi:
   `ThemeService` `THEME_COLORS` ve `index.html`'deki açılış betiği birlikte değişir.
+- **Gizlilik politikası** (`pages/legal/privacy.ts`, metin `privacy.*`) sitenin işlediği her kişisel
+  veriyi, cookie'yi ve dış servisi anlatır: **yenisi eklenince (alan, cookie, localStorage anahtarı, log,
+  üçüncü taraf betik/font) metin dört dilde güncellenir ve `PRIVACY_UPDATED`
+  (`core/legal/operator.ts`) değişir.** İşletmeci adı ve e-posta aynı dosyada `OPERATOR`. Kayıtta
+  "politikayı okudum" kutusu zorunlu (API `RegisterRequest.AcceptPrivacy`, `[MustBeTrue]`).
 - Üst menü (navbar) öğeleri `layout/header/header.ts` içindeki `NAV_ITEMS` listesinde (`public: true`
   girişsiz de görünür); masaüstü ve mobil menü aynı listeyi kullanır.
 - Paylaşılan (Unlisted) koleksiyonda fotoğraf URL'lerine anahtar eklenir: `photoUrl(…, shareToken)`,

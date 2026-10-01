@@ -47,6 +47,8 @@
     "invalid": "Geçersiz değer."
   },
   "titles": {
+    "privacy": "Gizlilik politikası",
+    "contact": "İletişim",
     "login": "Giriş yap",
     "register": "Kayıt ol",
     "collections": "Koleksiyonlarım",
@@ -95,6 +97,10 @@
     "accountLocked": "Hesabın yönetici tarafından kilitlendi."
   },
   "register": {
+    "privacyBefore": "Bu sitenin ",
+    "privacyLink": "gizlilik politikasını",
+    "privacyAfter": " okudum.",
+    "privacyRequired": "Kayıt olmak için gizlilik politikasını okuduğunu onaylamalısın.",
     "title": "Kayıt ol",
     "firstName": "İsim",
     "lastName": "Soyisim",
@@ -438,5 +444,74 @@
     },
     "toDark": "Koyu temaya geç",
     "toLight": "Açık temaya geç"
+  },
+  "legal": {
+    "privacyLink": "Gizlilik",
+    "contactLink": "İletişim",
+    "notSet": "yayından önce eklenecek"
+  },
+  "privacy": {
+    "title": "Gizlilik politikası",
+    "updated": "Son güncelleme: {{date}}",
+    "intro": "Coin Portal ticari olmayan bir hobi projesidir. Bu sayfa hangi kişisel verilerini neden işlediğimizi, kimlerin görebildiğini ve haklarını anlatır. Avrupa Birliği Genel Veri Koruma Tüzüğü (GDPR) geçerlidir.",
+    "controller": {
+      "title": "Sorumlu",
+      "p1": "Verilerinden sorumlu kişi (veri sorumlusu): {{name}}. İletişim: {{email}}."
+    },
+    "data": {
+      "title": "Hangi verileri işliyoruz",
+      "i1": "Hesap bilgileri: adın, soyadın, kullanıcı adın, e-posta adresin, doğum tarihin ve parolan. Parola sadece geri çevrilemeyen bir özet (hash) olarak saklanır.",
+      "i2": "Tercihler ve zamanlar: dil, tema ve renk seçimlerin; kayıt olduğun, giriş yaptığın ve siteyi son kullandığın zamanlar.",
+      "i3": "İçeriğin: koleksiyonların, coin bilgilerin ve yüklediğin fotoğraflar. Fotoğraflardaki konum dahil tüm ek bilgiler (EXIF) yüklemede silinir.",
+      "i4": "Teknik kayıtlar: sunucu her isteğin adresini, zamanını ve sonucunu kaydeder ve 30 gün saklar. IP adresin sadece bir istek sınırı aşıldığında kaydedilir. Barındırma sağlayıcısının sunucuları da IP adresi içeren erişim kayıtları tutabilir."
+    },
+    "purposes": {
+      "title": "Neden işliyoruz (hukuki dayanak)",
+      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır.",
+      "i2": "Siteyi güvende tutmak için: teknik kayıtlar, istek sınırları, hatalı girişlerden sonraki geçici kilit ve kötüye kullanıma karşı moderasyon (GDPR md. 6/1-f, meşru menfaat).",
+      "p1": "Verilerin satılmaz, reklam ya da profil çıkarma için kullanılmaz ve başka hiçbir amaçla işlenmez."
+    },
+    "visibility": {
+      "title": "Kimler görebilir",
+      "p1": "Koleksiyonlar varsayılan olarak özeldir; sadece sen görürsün. Bir koleksiyonu herkese açık ya da linkle paylaşırsan o koleksiyon, coin'leri ve fotoğraflarıyla birlikte kullanıcı adın görünür. Adın, soyadın, e-posta adresin ve doğum tarihin hiçbir zaman başkalarına gösterilmez.",
+      "p2": "Site yöneticileri moderasyon için kullanıcı adını, e-posta adresini, adını ve soyadını, koleksiyon ve coin sayılarını ve paylaştığın içeriği görebilir; özel koleksiyonlarını göremez. Yöneticilerin işlemleri bir denetim kaydında tutulur."
+    },
+    "cookies": {
+      "title": "Cookie'ler ve tarayıcı deposu",
+      "p1": "Site sadece çalışması için gereken cookie'leri kullanır; bu yüzden onay istemez:",
+      "i1": "coinportal.auth girişini tutar. \"Beni hatırla\" seçiliyse 14 gün geçerlidir ve siteyi kullandıkça uzar; değilse tarayıcı kapanınca biter.",
+      "i2": "coinportal.af ve XSRF-TOKEN, formların başka sitelerden gönderilmesini önler (güvenlik).",
+      "p2": "Dil, tema ve renk seçimlerin tarayıcının yerel deposunda (localStorage) tutulur. Analitik, reklam ya da izleme cookie'si yoktur; sayfalar başka sitelerden hiçbir şey (yazı tipi, betik) yüklemez."
+    },
+    "hosting": {
+      "title": "Barındırma",
+      "p1": "Site bir barındırma sağlayıcısının sunucularında çalışır ve veriler orada saklanır. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler. Verilerin başka kimseyle paylaşılmaz."
+    },
+    "retention": {
+      "title": "Ne kadar saklıyoruz",
+      "p1": "Verilerin hesabın var olduğu sürece saklanır. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir; adın yöneticilerin denetim kaydından da kaldırılır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısının yedeklerinde veriler, yedekler yenilenene kadar bir süre daha kalabilir."
+    },
+    "rights": {
+      "title": "Hakların",
+      "p1": "Verilerine erişme, düzeltilmesini ya da silinmesini isteme, işlenmesini kısıtlama ya da itiraz etme ve taşınabilirlik hakların vardır. Tüm verilerini Ayarlar > Hesap'tan ZIP dosyası olarak indirebilir ve hesabını orada kendin silebilirsin. Diğer her şey için yukarıdaki e-posta adresine yazabilirsin.",
+      "p2": "Verilerinin hukuka aykırı işlendiğini düşünüyorsan bir veri koruma denetim makamına şikâyette bulunabilirsin."
+    },
+    "age": {
+      "title": "Yaş sınırı",
+      "p1": "Coin Portal'a sadece 18 yaşını doldurmuş kişiler kayıt olabilir."
+    },
+    "changes": {
+      "title": "Değişiklikler",
+      "p1": "Bu politika değişirse güncel hali yeni tarihiyle bu sayfada yayınlanır."
+    }
+  },
+  "contact": {
+    "title": "İletişim",
+    "intro": "Coin Portal, bir kişinin hobi olarak geliştirdiği ve işlettiği, ticari olmayan bir sitedir.",
+    "operator": "İşleten",
+    "email": "E-posta",
+    "emailHint": "Soruların, hata bildirimlerin, uygunsuz içerik bildirimlerin ve verilerinle ilgili taleplerin için.",
+    "source": "Kaynak kodu",
+    "sourceHint": "Proje açık kaynaklı; hataları orada da bildirebilirsin."
   }
 }

@@ -25,7 +25,7 @@ public sealed record TestUser(ApiClient Client, UserResponse User)
         // 13 characters, within the 3-20 limit
         var userName = "u" + Guid.NewGuid().ToString("N")[..12];
         return new RegisterRequest("Test", "User", userName, $"{userName}@example.test",
-            new DateOnly(1990, 1, 1), Password, language);
+            new DateOnly(1990, 1, 1), Password, language, AcceptPrivacy: true);
     }
 
     /// <summary>The collection every user gets at sign-up.</summary>
