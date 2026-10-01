@@ -61,6 +61,22 @@ describe('ThemeService', () => {
     expect(create().preference()).toBe('Dark');
   });
 
+  it('colors the title bar like the header', () => {
+    const meta = document.head.appendChild(document.createElement('meta'));
+    meta.name = 'theme-color';
+    try {
+      fakeSystem(false);
+      const theme = create();
+      expect(meta.content).toBe('#ffffff');
+
+      theme.use('Dark');
+      TestBed.tick();
+      expect(meta.content).toBe('#0f172a');
+    } finally {
+      meta.remove();
+    }
+  });
+
   it('ignores unknown stored values', () => {
     localStorage.setItem('coinportal.theme', 'Sepia');
     fakeSystem(false);

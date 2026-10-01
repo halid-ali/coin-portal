@@ -2,14 +2,15 @@
 
 Son güncelleme: 2026-10-01 (9. adım hosting temeli: 9a `chore/hosting-infra` (wwwroot + SPA fallback,
 publish'te client, Serilog, DataProtection anahtarları, rate limiter), 9b `fix/photo-upload-limits`
-(büyük telefon fotoğrafları, HEIC mesajı) ve 9c `feat/remember-me` bitti, main'de (push edilmedi);
-sırada 9d. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
+(büyük telefon fotoğrafları, HEIC mesajı), 9c `feat/remember-me` ve 9d `feat/pwa-manifest` bitti,
+main'de (push edilmedi); sırada 9e. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol
 haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra`, `fix/photo-upload-limits` ve
-  `feat/remember-me` 2026-10-01'de merge edildi, henüz push edilmedi; son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` temiz; açık feature branch yok (`chore/hosting-infra`, `fix/photo-upload-limits`,
+  `feat/remember-me` ve `feat/pwa-manifest` 2026-10-01'de merge edildi, henüz push edilmedi; son
+  etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -643,6 +644,28 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     kaldı (client her zaman gönderir). Testler: API 112 (+3: kayıt cookie'si kalıcı, login'de iki
     durum; kayıt testi `isPersistent: false`'a çevrilince kırıldı), client 78 (+1: kutu işaretli gelir
     ve istekte `rememberMe: true`).
+31. **PWA manifest ve ikonlar** (`feat/pwa-manifest`, 2026-10-01; yol haritası 9d):
+    - `public/manifest.webmanifest`: ad "Coin Portal", `standalone`, başlangıç `/`, zemin slate-50; ikonlar
+      192/512 "any" (şeffaf, coin) ve "maskable" (amber-50 zemin, coin güvenli alanda).
+    - İkonlar header logosundan (amber geçişli daire + "€"): `src/web/scripts/make-icons.mjs` headless
+      Edge'de canvas'a çizer, `public/icons/*.png` ve `public/favicon.ico` (16/32/48 PNG içeren ICO)
+      yazar; çıktı her çalıştırmada aynı. Logo değişince yeniden çalıştırılır. Eski favicon Angular
+      CLI'nin varsayılanıydı (sekmede Angular logosu görünüyordu).
+    - `index.html`: manifest, `apple-touch-icon` (180 px, opak zemin), `apple-mobile-web-app-title`,
+      `theme-color` (header rengi: açık #ffffff, koyu #0f172a). Açılış betiği koyu temada rengi
+      değiştirir, sonra `ThemeService` hesaptaki temaya göre günceller (tek etiket; `media`'lı iki
+      etiket hesapta seçilen temayı izleyemezdi).
+    - Service worker yok (11. adımda, HTTPS'ten sonra); Chrome/Edge manifest'le kurulum sunar. Mağaza
+      ekran görüntüleri (`screenshots`) eklenmedi, kurulum penceresi sade.
+    - Testler: client 79 (+1, `theme-color` temayla değişir), API 113 (+1, `.webmanifest`
+      `application/manifest+json` ve `no-cache` ile sunulur; statik dosyalar bilinmeyen uzantıya 404
+      verir). Headless Edge (4300'de ayrı `ng serve`): manifest Edge'in ayrıştırıcısında hatasız, tüm
+      ikonlar yükleniyor ve doğru boyutta, `theme-color` açık/koyu doğru. Kurulabilirlik denetimi
+      headless'ta çalışmıyor (`Page.getInstallabilityErrors`); kullanıcı kendi Edge'inde
+      `localhost:4200`'de "Uygulamayı yükle" butonunu gördü.
+    - Not: 4200'deki `ng serve` 2026-09-29'dan beri sahipsiz bir Git Bash sürecinden çalışıyor (onu
+      başlatan terminal kapanmış); kullanıcı şimdilik bıraktı. Yeniden başlatmak gerekirse önce o
+      süreç kapatılır (`Port 4200 is already in use`).
 
 ## Yol haritası
 
@@ -685,8 +708,8 @@ mağaza için TWA.
         (Tamamlananlar 29).
   - [x] 9c. `feat/remember-me`: "Beni hatırla" varsayılan işaretli, kayıttan sonraki oturum kalıcı
         (kullanıcı kararı 2026-10-01; Tamamlananlar 30).
-  - [ ] 9d. `feat/pwa-manifest`: manifest, mevcut logodan 192/512 + maskable ikonlar, apple-touch-icon,
-        açık/koyu theme-color (service worker 11. adımda).
+  - [x] 9d. `feat/pwa-manifest`: manifest, mevcut logodan 192/512 + maskable ikonlar, apple-touch-icon,
+        açık/koyu theme-color, favicon (Tamamlananlar 31; service worker 11. adımda).
   - [ ] 9e. `feat/account-deletion`: hesap silme (parolayla onay, hemen ve geri alınamaz; kullanıcı
         kararı) + dışa aktarma (ZIP: JSON + tam boy fotoğraflar; kullanıcı kararı), Ayarlar > Hesap;
         admin'in kullanıcı silmesi aynı servisle (admin silinemez, denetim kaydı), `AuditLog`'daki ad
@@ -716,8 +739,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-9. adımın alt adımları sırayla: 9a, 9b ve 9c bitti (main'de, push edilmedi), sırada **9d**
-(`feat/pwa-manifest`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+9. adımın alt adımları sırayla: 9a–9d bitti (main'de, push edilmedi), sırada **9e**
+(`feat/account-deletion`). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;

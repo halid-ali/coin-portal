@@ -320,6 +320,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Bekleyen görsel değişikliği tipi `ImageChange` (`shared/image-change.ts`); kapak da coin fotoğrafı gibi
   Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
   oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
+- Uygulama ikonları ve favicon header logosundan üretilir: `node scripts/make-icons.mjs` (`src/web`,
+  headless Edge) `public/icons/` ve `public/favicon.ico` yazar; logo değişince yeniden çalıştırılır.
+  Manifest `public/manifest.webmanifest`. Tarayıcı çubuğu rengi (`theme-color`) header'ın yüzeyi:
+  `ThemeService` `THEME_COLORS` ve `index.html`'deki açılış betiği birlikte değişir.
 - Üst menü (navbar) öğeleri `layout/header/header.ts` içindeki `NAV_ITEMS` listesinde (`public: true`
   girişsiz de görünür); masaüstü ve mobil menü aynı listeyi kullanır.
 - Paylaşılan (Unlisted) koleksiyonda fotoğraf URL'lerine anahtar eklenir: `photoUrl(…, shareToken)`,
@@ -432,8 +436,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
 - `sticky` bir eleman ebeveyninin dışına çıkamaz: bileşen host'u (`<app-header>`) içerikle aynı
   yükseklikteyse içteki elemana verilen `sticky` işe yaramaz; `sticky` host'a verilir (`host: { class }`).
-- `ng serve` `src/index.html` değişikliklerini almaz (eski başlığı sunmaya devam eder); index.html
-  değişince `ng serve` yeniden başlatılır.
+- `ng serve`'ün `src/index.html` değişikliklerini almadığı bir kez görüldü (2026-09, eski başlık);
+  2026-10-01'de manifest ve `theme-color` etiketleri yeniden başlatmadan geldi. Şüphede
+  `curl -s localhost:4200/ | grep …` ile sunulan index.html kontrol edilir, gerekirse `ng serve`
+  yeniden başlatılır.
 - `<select class="w-auto">` en uzun seçeneğe göre genişler; uzun dillerde (Bulgarca) mobilde sayfayı
   yatay taşırır. Select'e ve flex/grid atalarına `min-w-0` ver; `flex-wrap` içindeyse `max-w-full` de.
 - Kendi içinde kayan bir satır (`overflow-x-auto`, ör. bölüm sekmeleri) bir grid öğesinin içindeyse grid

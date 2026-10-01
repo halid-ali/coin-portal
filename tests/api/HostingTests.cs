@@ -85,6 +85,20 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     }
 
     [Fact]
+    public async Task WebAppManifest_IsServedWithItsType()
+    {
+        await using var host = HostWithClient();
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+
+        // Static files answer 404 for extensions they do not know; browsers want this type
+        using var response = await client.GetAsync("/manifest.webmanifest");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Equal("application/manifest+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.True(response.Headers.CacheControl?.NoCache);
+    }
+
+    [Fact]
     public async Task HashedFiles_AreCachedForGood()
     {
         await using var host = HostWithClient();
@@ -127,6 +141,7 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         Directory.CreateDirectory(webRoot);
         File.WriteAllText(Path.Combine(webRoot, "index.html"), IndexHtml);
         File.WriteAllText(Path.Combine(webRoot, HashedScript), "console.log('test');");
+        File.WriteAllText(Path.Combine(webRoot, "manifest.webmanifest"), """{ "name": "Coin Portal" }""");
         return factory.WithSettings(new Dictionary<string, string?>(), webRoot);
     }
 

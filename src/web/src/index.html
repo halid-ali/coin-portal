@@ -10,6 +10,12 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Installable app (home screen, desktop); icons from scripts/make-icons.mjs -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Coin Portal" />
+    <!-- Title bar color, the header's: light here, dark set below and by ThemeService -->
+    <meta name="theme-color" content="#ffffff" />
     <script>
       // Dark theme before the first paint, so pages do not flash white. Same storage key and rules
       // as ThemeService, which takes over (and applies the account's theme) once Angular starts.
@@ -20,6 +26,7 @@
           (mode !== 'Light' && matchMedia('(prefers-color-scheme: dark)').matches)
         ) {
           document.documentElement.classList.add('dark');
+          document.querySelector('meta[name="theme-color"]').content = '#0f172a';
         }
       } catch (e) {}
       // Accent color too (AccentService); Amber, the default, has no attribute
