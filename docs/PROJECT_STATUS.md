@@ -1,14 +1,13 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (`feat/admin-ui` tamam: yönetici paneli `/admin` arayüzüyle bitti, yol
-haritası 12. adımda sırada `v0.2.0` yayını; kararlar "Yönetici paneli: kararlar".
-Proje GitHub'da public: https://github.com/halid-ali/coin-portal, son release `v0.1.0`; yol haritası ve
-sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-01 (`v0.2.0` yayınlandı: yönetici paneli, API testleri, giriş zamanları; yol
+haritası 12. adım tamam, sırada 9. adım hosting temeli. Proje GitHub'da public:
+https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`feat/admin-ui` 2026-10-01'de merge
-  edildi, son etiket ve release `v0.1.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-v0.2.0` 2026-10-01'de merge
+  edildi, son etiket ve release `v0.2.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -583,6 +582,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       geri bildirimleri (rozet köşesi, ikonlar, ikon renkleri, admin'in admin içeriği) uygulandı.
     - Dev veritabanında testlerden kalanlar: denetim kaydında "UI test" notlu girişler; `ayse.yilmaz`
       admin rolü (kullanıcının API'si yeniden başlayınca senkron geri alır).
+27. **`v0.2.0`** (`chore/release-v0.2.0`, 2026-10-01): yönetici paneli (Tamamlananlar 23–26), API testleri
+    (22) ve giriş zamanları (24). CHANGELOG git-cliff ile; şablonda iki sürüm bölümü birbirine yapışıyordu
+    (bölüm sonunda boş satır yoktu, tek sürümde görünmüyordu), `cliff.toml` düzeltildi. Etiket merge
+    commit'inde, GitHub Release açıldı (giriş, öne çıkanlar, CHANGELOG linki; notlar lokal `.notes/`).
 
 ## Yol haritası
 
@@ -607,7 +610,7 @@ mağaza için TWA.
 - [x] 7. GitHub publish (2026-09-29/30), release `v0.1.0`. Six Labors başvurusunun repo adresiyle
       güncellenmesi kullanıcıda.
 - [x] 8a. `chore/api-tests`: `tests/api` (xUnit v3), CI'da SQL Server'a karşı (2026-09-30).
-- [ ] 12. **Yönetici paneli temeli (arayüzüyle), hosting'den önce** (2026-09-30'da öne alındı, aşağıda;
+- [x] 12. **Yönetici paneli temeli (arayüzüyle), hosting'den önce** (2026-09-30'da öne alındı, aşağıda;
       kararlar "Yönetici paneli: kararlar"). Sonunda `v0.2.0`.
   - [x] `feat/admin-role`: rol, `Admin:UserIds` senkronu, policy, 1 dk doğrulama, `me` → `roles`,
         `GET api/admin/stats` (Tamamlananlar 23).
@@ -616,7 +619,7 @@ mağaza için TWA.
   - [x] `feat/admin-api`: `AuditLog`; kullanıcılar (liste, detay, kilitle/aç); Public/Unlisted
         koleksiyonlar (liste, gizle + kilit, kilidi kaldır); denetim kaydı (Tamamlananlar 25).
   - [x] `feat/admin-ui`: panel arayüzü, geniş sayfa, sahip tarafı ve giriş mesajı (Tamamlananlar 26).
-  - [ ] `v0.2.0` yayını.
+  - [x] `v0.2.0` yayını (2026-10-01, Tamamlananlar 27).
 - [ ] 9. `feat/hosting-foundation`: rate limiter, loglama, gizlilik + iletişim, hesap silme + dışa aktarma
       (admin'in kullanıcı silmesi de bu servisle; `AuditLog`'daki ad anlık görüntüleri silinen kullanıcı
       için anonimleştirilir), DataProtection, wwwroot + SPA fallback, fotoğraf 10 MB
@@ -644,8 +647,8 @@ mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları
 
 ## Sıradaki adım
 
-**`v0.2.0` yayını** (yönetici paneli bitti; akış CLAUDE.md "Sürüm ve yayın"), ardından yol haritası
-9. adım (`feat/hosting-foundation`). Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
+Yeni sohbette kullanıcıyla seçilecek. Yol haritasında sırada **9. adım** (`feat/hosting-foundation`).
+Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
 2026-09-28'de watermark "biraz daha ertelensin" dendi):
