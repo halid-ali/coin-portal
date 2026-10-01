@@ -28,7 +28,8 @@
   "errors": {
     "network": "Can't reach the server. Check your connection.",
     "unexpected": "Something went wrong. Please try again.",
-    "requestRejected": "The request could not be verified. Reload the page and try again."
+    "requestRejected": "The request could not be verified. Reload the page and try again.",
+    "rateLimited": "Too many requests in a short time. Wait a moment and try again."
   },
   "validation": {
     "required": "This field is required.",

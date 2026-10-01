@@ -89,5 +89,13 @@ export function applyServerErrors(
 
 /** Generic message for a failed request that has no more specific one. */
 export function httpErrorMessage(error: HttpErrorResponse): string {
-  return translate(error.status === 0 ? 'errors.network' : 'errors.unexpected');
+  switch (error.status) {
+    case 0:
+      return translate('errors.network');
+    case 429:
+      // The API's rate limits (sign-in, sign-up, signed-out reads)
+      return translate('errors.rateLimited');
+    default:
+      return translate('errors.unexpected');
+  }
 }

@@ -1,8 +1,10 @@
 using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +18,7 @@ public class AuthController(
     SignInManager<ApplicationUser> signInManager) : ControllerBase
 {
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<ActionResult<UserResponse>> Register(RegisterRequest request)
     {
         var user = new ApplicationUser
@@ -55,6 +58,7 @@ public class AuthController(
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<ActionResult<UserResponse>> Login(LoginRequest request)
     {
         var key = request.UserNameOrEmail.Trim();

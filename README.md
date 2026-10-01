@@ -23,8 +23,9 @@ into collections, add photos of both sides, and share collections publicly or th
 - **Frontend:** Angular 21 (standalone components, signals, zoneless), Tailwind CSS 4, Transloco,
   Vitest
 
-The Angular build is meant to be served from the API's `wwwroot` as a single site, so the SPA and the
-API share one origin (no CORS, no JWT).
+The API serves the Angular build from its `wwwroot` as a single site, so the SPA and the API share one
+origin (no CORS, no JWT). `dotnet publish src/api -c Release -o <dir>` builds the client too and puts
+it into the package's `wwwroot`; in development `ng serve` serves the client instead.
 
 ## Repository layout
 

@@ -6,11 +6,17 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 using CoinPortal.Api.DevData;
 using CoinPortal.Api.Photos;
+using CoinPortal.Api.Hosting;
 
 // Our own switch is removed so the configuration command-line parser never sees it
 var seedDevData = args.Contains(DevDataSeeder.CommandLineSwitch);
 var builder = WebApplication.CreateBuilder(
     args.Where(a => a != DevDataSeeder.CommandLineSwitch).ToArray());
+
+// Logging (Serilog), data protection keys, rate limits: Hosting/
+builder.Services.AddAppLogging();
+builder.Services.AddAppDataProtection();
+builder.Services.AddAppRateLimiting();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -93,7 +99,7 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Enums as names ("Euro2") in both directions; reject raw numbers like 999
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
-});;
+});
 
 // Coin photos: storage folder and limits from the "PhotoStorage" section.
 // The image library is only behind IImageProcessor; swap the implementation here.
@@ -123,9 +129,16 @@ if (seedDevData)
 }
 
 // Before the first request, so the configured admins hold the role
-await using (var scope = app.Services.CreateAsyncScope())
+// (the first database access: a failure here is logged before the app stops)
+try
 {
+    await using var scope = app.Services.CreateAsyncScope();
     await scope.ServiceProvider.GetRequiredService<AdminRoleSync>().SyncAsync();
+}
+catch (Exception ex)
+{
+    app.Logger.LogCritical(ex, "Startup failed");
+    throw;
 }
 
 // HTTPS redirection only outside development; the dev proxy talks plain HTTP
@@ -155,9 +168,16 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// The Angular client (wwwroot) before the request log: its files are not worth a line each
+app.UseSpaStaticFiles();
+app.UseAppRequestLogging();
+
 app.UseAuthentication();
+// After authentication: signed-in users are exempt from some limits
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapSpaFallback();
 
 app.Run();

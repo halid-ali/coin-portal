@@ -2,9 +2,11 @@ using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
 using CoinPortal.Api.Querying;
+using CoinPortal.Api.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -125,6 +127,7 @@ public class CollectionCoversController(
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Photos)]
     [ProducesResponseType<FileStreamResult>(StatusCodes.Status200OK, "image/webp")]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

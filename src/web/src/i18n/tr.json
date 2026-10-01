@@ -28,7 +28,8 @@
   "errors": {
     "network": "Sunucuya ulaşılamıyor. Bağlantını kontrol et.",
     "unexpected": "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",
-    "requestRejected": "İstek doğrulanamadı. Sayfayı yenileyip tekrar dene."
+    "requestRejected": "İstek doğrulanamadı. Sayfayı yenileyip tekrar dene.",
+    "rateLimited": "Kısa sürede çok fazla istek gönderildi. Biraz bekleyip tekrar dene."
   },
   "validation": {
     "required": "Bu alan zorunludur.",

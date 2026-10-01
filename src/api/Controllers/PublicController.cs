@@ -4,8 +4,10 @@ using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Contracts.Public;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Querying;
+using CoinPortal.Api.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Controllers;
@@ -18,6 +20,7 @@ namespace CoinPortal.Api.Controllers;
 [ApiController]
 [Route("api/public")]
 [AllowAnonymous]
+[EnableRateLimiting(RateLimitPolicies.Public)]
 public class PublicController(AppDbContext db) : ControllerBase
 {
     private IQueryable<Collection> PublicCollections =>
