@@ -320,6 +320,54 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         Assert.Equal("https://localhost/api/health?x=1", response.Headers.Location?.ToString());
     }
 
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/" + HashedScript)]
+    [InlineData("/api/countries")]
+    public async Task TextResponses_AreCompressed(string path)
+    {
+        await using var host = HostWithClient();
+        // A plain client: the test server's handler does not decompress, so the encoding shows
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+        });
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.AcceptEncoding.ParseAdd("br, gzip");
+
+        using var response = await client.SendAsync(request);
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Equal("br", Assert.Single(response.Content.Headers.ContentEncoding));
+    }
+
+    [Fact]
+    public async Task Startup_WithAnUnwritablePhotoFolder_Fails()
+    {
+        // A file where the folder should be: nothing can be created below it
+        Directory.CreateDirectory(webRoot);
+        var file = Path.Combine(webRoot, "not-a-folder");
+        await File.WriteAllTextAsync(file, "x");
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["PhotoStorage:RootPath"] = Path.Combine(file, "photos"),
+        });
+
+        Assert.ThrowsAny<IOException>(() => host.CreateClient());
+    }
+
+    [Fact]
+    public async Task Startup_WithAnInvalidLimit_Fails()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["RateLimiting:Public:WindowSeconds"] = "0",
+        });
+
+        var error = Assert.ThrowsAny<Exception>(() => host.CreateClient());
+        Assert.Contains("RateLimiting", error.ToString());
+    }
+
     private static string Single(HttpResponseMessage response, string header) =>
         Assert.Single(response.Headers.TryGetValues(header, out var values) ? values : []);
 

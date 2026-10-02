@@ -61,7 +61,11 @@ public static class AppRateLimiting
 {
     public static IServiceCollection AddAppRateLimiting(this IServiceCollection services)
     {
-        services.AddOptions<RateLimitOptions>().BindConfiguration(RateLimitOptions.SectionName);
+        services.AddOptions<RateLimitOptions>().BindConfiguration(RateLimitOptions.SectionName)
+            .Validate(o => new[] { o.Auth, o.Public, o.Photos, o.Export, o.Writes }
+                .All(r => r.PermitLimit > 0 && r.WindowSeconds > 0),
+                "Every RateLimiting rule needs a PermitLimit and WindowSeconds above 0.")
+            .ValidateOnStart();
 
         return services.AddRateLimiter(options =>
         {

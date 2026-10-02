@@ -25,4 +25,10 @@ public interface IPhotoStorage
 
     /// <summary>Removes every image of an owner (account deletion, dev data reset); as DeleteAsync.</summary>
     Task DeleteOwnerAsync(string ownerId);
+
+    /// <summary>
+    /// Startup check: writes and removes a test entry, so a wrong setting stops the app instead of
+    /// failing the first upload. Returns where the images are (for the log); throws if unusable.
+    /// </summary>
+    Task<string> CheckWritableAsync();
 }

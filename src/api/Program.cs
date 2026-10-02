@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using CoinPortal.Api.DevData;
 using CoinPortal.Api.Photos;
 using CoinPortal.Api.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
 
 // Our own switch is removed so the configuration command-line parser never sees it
 var seedDevData = args.Contains(DevDataSeeder.CommandLineSwitch);
@@ -20,9 +21,23 @@ builder.Services.AddAppDataProtection();
 builder.Services.AddAppRateLimiting();
 builder.Services.AddAppSecurityHeaders();
 
+// Brotli or gzip for text (the client bundle, JSON); images are compressed already. Shared hosting
+// may or may not compress dynamic responses, so the app does it itself
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        ["application/problem+json", "application/manifest+json", "image/svg+xml"]);
+});
+
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        // Shared hosting: a dropped connection or a failover is retried instead of failing the
+        // request; transactions run through CreateExecutionStrategy()
+        sql => sql.EnableRetryOnFailure(maxRetryCount: 3)));
 
 // Identity (users + roles) backed by EF Core
 builder.Services
@@ -144,6 +159,8 @@ try
 {
     await using var scope = app.Services.CreateAsyncScope();
     await scope.ServiceProvider.GetRequiredService<AdminRoleSync>().SyncAsync();
+    // Folders the app writes to and data protection: a wrong setting stops the app here
+    await StartupChecks.RunAsync(app);
 }
 catch (Exception ex)
 {
@@ -181,6 +198,8 @@ if (app.Environment.IsDevelopment())
             "(req) => { const c = document.cookie.split(`; `).find(x => x.startsWith(`XSRF-TOKEN=`)); if (c) { req.headers[`X-XSRF-TOKEN`] = decodeURIComponent(c.substring(11)); } return req; }");
     });
 }
+
+app.UseResponseCompression();
 
 // The Angular client (wwwroot) before the request log: its files are not worth a line each
 app.UseSpaStaticFiles();
