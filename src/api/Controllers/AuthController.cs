@@ -32,25 +32,31 @@ public class AuthController(
             PreferredLanguage = request.Language
         };
 
-        var result = await userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded)
+        // The user and their first collection together or not at all: a failure in between would
+        // leave an account without a collection (and a sign-up that "failed" but took the name)
+        await using (var transaction = await db.Database.BeginTransactionAsync())
         {
-            // Map Identity errors (duplicate email/username, weak password) to a 400 response
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(error.Code, error.Description);
-            return ValidationProblem(ModelState);
-        }
+            var result = await userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+            {
+                // Map Identity errors (duplicate email/username, weak password) to a 400 response
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(error.Code, error.Description);
+                return ValidationProblem(ModelState);
+            }
 
-        // Every user starts with one collection, so coins can be added right away
-        var now = DateTime.UtcNow;
-        db.Collections.Add(new Collection
-        {
-            OwnerId = user.Id,
-            Name = Collection.DefaultNameFor(request.Language),
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now
-        });
-        await db.SaveChangesAsync();
+            // Every user starts with one collection, so coins can be added right away
+            var now = DateTime.UtcNow;
+            db.Collections.Add(new Collection
+            {
+                OwnerId = user.Id,
+                Name = Collection.DefaultNameFor(request.Language),
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
+            });
+            await db.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
 
         // Sign the new user in right away, kept like a sign-in with "remember me" (its default):
         // signing up is almost always done on one's own device

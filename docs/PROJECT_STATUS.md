@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13, #16 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -772,6 +772,15 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     doğrudan "Kilitle" ve ayrıca "Geçici kilidi kaldır"; sahibi kilitli koleksiyonların ve kilitli
     kullanıcının profil linkleri düz metin (sayfa herkese 404). Testler: API 130 (+1; eski controller'larla
     kırıldı), client 88.
+40. **Koleksiyon silme ve kayıtta veri bütünlüğü** (`fix/collection-delete-safety`, 2026-10-02; #16):
+    silme penceresi sayfanın eski coin sayısıyla karar veriyordu; API taşıma hedefi verilmezse coin'leri
+    fotoğraflarıyla siliyordu (başka sekmede eklenen coin'ler sessizce gidebilirdi). Artık coin'leriyle
+    silmek açık seçim (`deleteCoins=true`), ikisi de yoksa ve koleksiyonda coin varsa 409 `has_coins`
+    (dört dilde mesaj); pencere güncel listeyle açılır, liste yüklenemezse sayfada hata. "Son koleksiyon"
+    ve taşıma hedefi kontrolleri kullanıcının koleksiyon satırlarını kilitleyen (`UPDLOCK, HOLDLOCK`)
+    transaction'ın içinde: aynı anda iki silme kullanıcıyı koleksiyonsuz bırakamaz (testte kilit
+    kaldırılınca her seferinde yakalandı). Kayıt: kullanıcı ve ilk koleksiyon tek transaction, cookie
+    commit'ten sonra (araya hata sokan bir test yok). Testler: API 132 (+2), client 89 (+1).
 
 ## Yol haritası
 
@@ -857,7 +866,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı (Tamamlananlar 39).
   - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
   - [x] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi (Tamamlananlar 38; süpürme #27'de).
-  - [ ] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü.
+  - [x] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü (Tamamlananlar 40).
   - [ ] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur.
   - [ ] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (kullanıcı kararı; Impressum ile birlikte).
   - [ ] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması.

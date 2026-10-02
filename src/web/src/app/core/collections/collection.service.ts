@@ -49,8 +49,17 @@ export class CollectionService {
   }
 
   /** With moveTo the coins move there first; without it they are deleted with the collection. */
-  delete(id: number, moveTo?: number): Observable<void> {
-    const params = moveTo === undefined ? undefined : new HttpParams().set('moveTo', moveTo);
+  /**
+   * Deletes a collection: its coins move to `moveTo`, or go with it only when `deleteCoins` says
+   * so (the API answers 409 has_coins for a collection with coins and neither).
+   */
+  delete(id: number, options: { moveTo?: number; deleteCoins?: boolean } = {}): Observable<void> {
+    let params = new HttpParams();
+    if (options.moveTo !== undefined) {
+      params = params.set('moveTo', options.moveTo);
+    } else if (options.deleteCoins) {
+      params = params.set('deleteCoins', true);
+    }
     return this.http.delete<void>(`${BASE_URL}/${id}`, { params });
   }
 }
@@ -90,6 +99,7 @@ export function collectionErrorMessage(err: HttpErrorResponse): string {
   const code = (err.error as { code?: string } | null)?.code;
   switch (code) {
     case 'last_collection':
+    case 'has_coins':
     case 'invalid_target':
     case 'not_unlisted':
     case 'moderation_locked':

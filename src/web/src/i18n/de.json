@@ -289,6 +289,7 @@
     "createFirst": "Erste Sammlung erstellen",
     "errors": {
       "last_collection": "Deine einzige Sammlung kann nicht gelöscht werden. Erstelle zuerst eine neue.",
+      "has_coins": "Inzwischen wurden dieser Sammlung Münzen hinzugefügt. Schließe den Dialog, öffne ihn erneut und wähle, was mit den Münzen geschehen soll.",
       "invalid_target": "Die Sammlung, in die die Münzen verschoben werden sollen, ist ungültig.",
       "not_unlisted": "Der Link kann nur bei Sammlungen erneuert werden, die „Nur mit Link“ geteilt sind.",
       "moderation_locked": "Ein Administrator hat diese Sammlung ausgeblendet; sie kann vorerst nicht geteilt werden.",

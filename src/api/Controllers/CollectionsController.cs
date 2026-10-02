@@ -13,7 +13,7 @@ namespace CoinPortal.Api.Controllers;
 /// <summary>
 /// The signed-in user's collections. Other users' collections are reported as 404.
 /// Errors that the client words itself carry a code: DuplicateName (validation key),
-/// last_collection, invalid_target, not_unlisted and moderation_locked (ProblemDetails "code").
+/// last_collection, has_coins, invalid_target, not_unlisted and moderation_locked (ProblemDetails "code").
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -99,25 +99,25 @@ public class CollectionsController(
 
     /// <summary>
     /// Deletes a collection. With <paramref name="moveTo"/> its coins move to that collection of
-    /// the same user first; without it the coins and their photos are deleted too. The name
-    /// confirmation is the client's job. The last collection of a user cannot be deleted.
+    /// the same user first; with <paramref name="deleteCoins"/> the coins and their photos are
+    /// deleted too. A collection with coins and neither is refused (409 has_coins): a page opened
+    /// before coins were added cannot delete them by accident. The name confirmation is the
+    /// client's job. The last collection of a user cannot be deleted.
     /// </summary>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id, [FromQuery] int? moveTo, CancellationToken ct)
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(int id, [FromQuery] int? moveTo, [FromQuery] bool deleteCoins,
+        CancellationToken ct)
     {
         var userId = CurrentUserId;
         var collection = await FindOwnedAsync(id, ct);
         if (collection is null)
         {
             return NotFound();
-        }
-
-        if (await db.Collections.CountAsync(c => c.OwnerId == userId, ct) <= 1)
-        {
-            return this.CodedProblem("last_collection", "The only collection cannot be deleted.");
         }
         // Moving the coins of a hidden collection elsewhere would publish them again; deleting
         // them with the collection is allowed
@@ -126,16 +126,30 @@ public class CollectionsController(
             return this.CodedProblem("moderation_locked", "An administrator has hidden this collection.",
                 StatusCodes.Status403Forbidden);
         }
-        if (moveTo is { } targetId
-            && (targetId == id || !await db.Collections.AnyAsync(c => c.Id == targetId && c.OwnerId == userId, ct)))
-        {
-            return this.CodedProblem("invalid_target", "Choose another collection of yours to move the coins to.");
-        }
 
         List<Guid> photoIds = [];
         await using (var transaction = await db.Database.BeginTransactionAsync(ct))
         {
+            // The user's collections stay locked until the commit: two deletions at the same time
+            // cannot both pass the "not the last one" check, and the move target cannot vanish
+            var ownIds = await db.Database
+                .SqlQuery<int>($"SELECT Id AS Value FROM Collections WITH (UPDLOCK, HOLDLOCK) WHERE OwnerId = {userId}")
+                .ToListAsync(ct);
+            if (ownIds.Count <= 1)
+            {
+                return this.CodedProblem("last_collection", "The only collection cannot be deleted.");
+            }
+            if (moveTo is { } targetId && (targetId == id || !ownIds.Contains(targetId)))
+            {
+                return this.CodedProblem("invalid_target", "Choose another collection of yours to move the coins to.");
+            }
+
             var coins = db.Coins.Where(c => c.CollectionId == id);
+            if (moveTo is null && !deleteCoins && await coins.AnyAsync(ct))
+            {
+                return this.CodedProblem("has_coins", "The collection has coins: move them or delete them too.",
+                    StatusCodes.Status409Conflict);
+            }
             if (moveTo is { } target)
             {
                 await coins.ExecuteUpdateAsync(s => s.SetProperty(c => c.CollectionId, target), ct);

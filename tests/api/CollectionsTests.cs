@@ -115,7 +115,48 @@ public class CollectionsTests(CoinPortalFactory factory)
     }
 
     [Fact]
-    public async Task Delete_WithoutMoveTo_DeletesTheCoins()
+    public async Task Delete_WithCoins_NeedsAChoice()
+    {
+        var alice = await factory.SignUpAsync();
+        await alice.FirstCollectionAsync();
+        var full = await alice.CreateCollectionAsync();
+        var coin = await alice.CreateCoinAsync(full.Id);
+        var empty = await alice.CreateCollectionAsync();
+
+        // A page opened before the coin was added must not delete it by accident
+        using var refused = await alice.Client.DeleteAsync($"/api/collections/{full.Id}");
+        using var emptyOne = await alice.Client.DeleteAsync($"/api/collections/{empty.Id}");
+
+        Assert.Equal("has_coins", await refused.ReadProblemCodeAsync(HttpStatusCode.Conflict));
+        using var kept = await alice.Client.GetAsync($"/api/coins/{coin.Id}");
+        await kept.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        await emptyOne.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task Delete_AtTheSameTime_NeverRemovesTheLastCollection()
+    {
+        for (var round = 0; round < 5; round++)
+        {
+            var alice = await factory.SignUpAsync();
+            var first = await alice.FirstCollectionAsync();
+            var second = await alice.CreateCollectionAsync();
+
+            var responses = await Task.WhenAll(
+                alice.Client.DeleteAsync($"/api/collections/{first.Id}"),
+                alice.Client.DeleteAsync($"/api/collections/{second.Id}"));
+
+            Assert.Single(responses, r => r.StatusCode == HttpStatusCode.NoContent);
+            Assert.Single(await alice.Client.GetJsonAsync<List<CollectionResponse>>("/api/collections"));
+            foreach (var response in responses)
+            {
+                response.Dispose();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Delete_WithDeleteCoins_DeletesTheCoins()
     {
         var alice = await factory.SignUpAsync();
         var kept = await alice.FirstCollectionAsync();
@@ -123,7 +164,7 @@ public class CollectionsTests(CoinPortalFactory factory)
         var doomed = await alice.CreateCollectionAsync();
         var coin = await alice.CreateCoinAsync(doomed.Id);
 
-        using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}");
+        using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?deleteCoins=true");
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         using var deletedCoin = await alice.Client.GetAsync($"/api/coins/{coin.Id}");
