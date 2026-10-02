@@ -162,6 +162,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   benzeyen (noktalı) adresleri atlar, eksik bir `.js` 404 kalsın diye; `/u/…` (noktalı kullanıcı adları)
   kendi fallback'ini alır. **Son parçasında nokta olabilen yeni bir client rotası** da `SpaHosting`'e
   eklenir ve `HostingTests`'teki listeye girer.
+- Güvenlik başlıkları `Hosting/SecurityHeaders`: her yanıtta `nosniff`, `X-Frame-Options: DENY` +
+  CSP `frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`;
+  Development dışında HSTS (`Hsts:MaxAgeDays`, varsayılan 30, localhost hariç); `/api` altında kendi
+  `Cache-Control`'ü olmayan yanıtlar `no-store` (görseller `private, immutable` kalır). Tam CSP yok
+  (PROJECT_STATUS Açık konular 17).
 - **Yönetici paneli = moderasyon ve işletim paneli** (tüm verilerin yönetimi değil; kararlar
   PROJECT_STATUS "Yönetici paneli: kararlar"). Sadece `Admin` rolü. Rol **sadece ayardan** verilir:
   `Admin:UserIds` (kullanıcı adı değil Id: boşta kalan bir adı herkes kaydedebilir), açılışta

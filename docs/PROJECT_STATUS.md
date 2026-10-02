@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13, #16 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13, #16, #11 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -781,6 +781,15 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     transaction'ın içinde: aynı anda iki silme kullanıcıyı koleksiyonsuz bırakamaz (testte kilit
     kaldırılınca her seferinde yakalandı). Kayıt: kullanıcı ve ilk koleksiyon tek transaction, cookie
     commit'ten sonra (araya hata sokan bir test yok). Testler: API 132 (+2), client 89 (+1).
+41. **Güvenlik başlıkları** (`feat/security-headers`, 2026-10-02; #11): `Hosting/SecurityHeaders` her yanıta
+    `nosniff`, `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` (başka sitenin çerçevesine
+    gömülemez), `Referrer-Policy: strict-origin-when-cross-origin` (dışarıya sadece origin; paylaşım
+    anahtarı yolda), `Permissions-Policy` (kamera, mikrofon, konum, ödeme kapalı; dosya seçicideki
+    kamera etkilenmez) ekler. Development dışında HSTS 30 gün (`Hsts:MaxAgeDays`; site oturunca 365),
+    localhost hariç. `/api` altındaki JSON yanıtları `no-store` (önüne bir proxy/CDN konsa da kişisel veri
+    önbelleğe girmez); görseller kendi `private, immutable` başlığını korur. HTTP→HTTPS yönlendirmesi
+    test edildi (port verilince 307). Tam CSP ertelendi (Açık konular 17). Testler: API 135 (+3;
+    middleware kapatılınca 2 test kırıldı). Tarayıcıda denenmedi.
 
 ## Yol haritası
 
@@ -861,7 +870,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
 
 - **P0, ilk yayından (hosting, `v1.0.0`) önce:**
   - [x] [#10](https://github.com/halid-ali/coin-portal/issues/10) S `fix/spa-fallback-dotted-paths`: noktalı adreslerde (`/u/ayse.yilmaz`) SPA fallback 404 veriyor (Tamamlananlar 36).
-  - [ ] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store`.
+  - [x] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store` (Tamamlananlar 41).
   - [x] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi (Tamamlananlar 37; kilit kuralı aynen, Açık konular 16).
   - [x] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı (Tamamlananlar 39).
   - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
@@ -1244,6 +1253,12 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     hobi sitesi için kural aynen kaldı. Kötüye kullanım görülürse ya da Turnstile gelince (yol haritası
     15) yeniden ele alınır: giriş formunda belli sayıda hatadan sonra Turnstile.
 
+17. **Tam Content-Security-Policy** (2026-10-02, #11'den kalan): şimdilik CSP sadece
+    `frame-ancestors 'none'`. Tamamı için `index.html`'deki satır içi tema betiğinin hash'i
+    (`script-src 'self' 'sha256-…'`) ve Angular'ın satır içi stilleri (`style-src 'self' 'unsafe-inline'`)
+    gerekir; önce `Content-Security-Policy-Report-Only` ile, gerçek tarayıcıda (yayın paketi + HTTPS)
+    denenerek açılır. Satır içi betik değişince hash de değişir (CLAUDE.md'ye kural olarak girer).
+
 ## Yayın öncesi yapılacaklar
 
 İlk publish'ten önce tamamlanması gerekenler (ayrıntılar Açık konular'da):
@@ -1264,6 +1279,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
       sağlayıcıya göre kontrol edilir (`privacy.hosting`, `privacy.data.i4`, `privacy.retention`;
       değişirse `PRIVACY_UPDATED`).
 - [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
+- [ ] Yayından sonra HTTPS kontrolü: `curl -I http://<site>/api/health` → 307/308 ve `https://` yanıtında
+      `Strict-Transport-Security`. Yönlendirme yoksa portu ver (`ASPNETCORE_HTTPS_PORT=443`). Site ve
+      sertifika oturunca `Hsts__MaxAgeDays=365`.
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).
 
