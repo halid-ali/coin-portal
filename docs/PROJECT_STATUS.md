@@ -1,13 +1,12 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işlerinin hepsi bitti: #10–#21; kapsamlı incelemeden
-çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
-public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-02 (`v0.4.0` yayınlandı: 2026-10-02 incelemesinin bütün P0 işleri, #10–#21; kalan
+işler "Aksiyon planı"nda. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-v0.3.0` 2026-10-01'de merge
-  edildi, son etiket ve release `v0.3.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-v0.4.0` 2026-10-02'de merge
+  edildi, son etiket ve release `v0.4.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -872,6 +871,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     kalktı, `engines.node >=22.19`. Lokal doğrulama: publish paketi (`wwwroot/index.html`,
     `3rdpartylicenses.txt`, sürüm kontrolleri), `migrate.sql` (12 migration, idempotent), TRX raporu.
     Workflow'un kendisi GitHub'da ilk etikette denenir; `ci.yml` değişikliği bu push'ta koşar.
+49. **`v0.4.0`** (`chore/release-v0.4.0`, 2026-10-02): 2026-10-02 incelemesinin P0 işleri (Tamamlananlar
+    36–48, #10–#21). CHANGELOG git-cliff 2.14.2 ile, etiket merge commit'inde. `release.yml`'in ilk gerçek
+    koşusu bu etiketle: paket taslak Release'e eklendi, notlar (`.notes/release-v0.4.0.md`) lokal betikle
+    yayınlandı. #17'nin gizlilik değişiklikleri `chore:` commit'i olduğu için CHANGELOG'da yok, notlarda var.
 
 ## Yol haritası
 
@@ -985,10 +988,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işlerinin hepsi bitti** (#10–#21, 2026-10-02). Adaylar:
+Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işlerinin hepsi bitti** (#10–#21, `v0.4.0`). Adaylar:
 
-- **Ara sürüm `v0.4.0`:** P0 düzeltmeleri bir sürümde toplanır; `release.yml`'in ilk gerçek koşusu (taslak
-  Release + paket), notlar kullanıcı onayıyla.
 - **11. Hosting seçimi** ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Kullanıcıda bekleyen:
   işletmeci adı ve e-posta (`OPERATOR`), Impressum ve DSA kararı (Açık konular 14), gizlilik politikası ve
   kullanım şartlarının okunması.
