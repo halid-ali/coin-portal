@@ -17,6 +17,8 @@
     "newUsers": "Son 30 günde kayıt",
     "lockedUsers": "Kilitli",
     "collections": "Koleksiyonlar",
+    "allCollections": "Tüm koleksiyonlar",
+    "allCollectionsHint": "özel olanlar dahil",
     "publicCollections": "Herkese açık",
     "unlistedCollections": "Sadece linkle",
     "hiddenCollections": "Gizlenmiş",
@@ -100,6 +102,10 @@
     "count": {
       "one": "{{count}} koleksiyon",
       "other": "{{count}} koleksiyon"
+    },
+    "privateNotListed": {
+      "one": "{{count}} özel koleksiyon listelenmez; panel özel içerik göstermez.",
+      "other": "{{count}} özel koleksiyon listelenmez; panel özel içerik göstermez."
     },
     "empty": "Bu aramaya uyan koleksiyon yok.",
     "ownerLocked": "Sahibi kilitli",

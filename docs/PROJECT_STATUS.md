@@ -814,6 +814,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     sıkıştırma, yazılamayan klasör ve geçersiz sınırla açılmama; açılış kontrolü kapatılınca kırıldı).
     Canlı (5090, dev veritabanı): açılışta üç klasör satırı, `/api/countries` Brotli + güvenlik başlıkları.
     Yeniden deneme yolu testle tetiklenmedi (geçici SQL hatası üretilemiyor).
+44. **Panelde koleksiyon sayıları** (`fix/admin-collection-counts`, 2026-10-02; kullanıcı fark etti): Genel
+    bakışta "Koleksiyonlar 16", Koleksiyonlar listesinde 5 görünüyordu. Hata değil: kart özel olanlar dahil
+    hepsini sayıyor, liste sadece paylaşılanları ve gizlenenleri gösteriyor (admin gizli içerik görmez). Kart
+    artık "Tüm koleksiyonlar · özel olanlar dahil", listenin sayısının yanında "11 özel koleksiyon
+    listelenmez; panel özel içerik göstermez" (sayı istatistik ucundan, API değişmedi). Dört dilde. Testler:
+    client 91 (+1, ilk `AdminCollections` bileşen testi). Tarayıcıda görsel kontrol yapılmadı.
 
 ## Yol haritası
 
