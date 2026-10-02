@@ -866,7 +866,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     (yorumda sürüm), SQL Server `2022-CU27-ubuntu-22.04`, iş zaman aşımları, API test sonuçları TRX
     artefaktı, `main`'de yayın paketi denemesi; client araçları `npm exec --no --` ile (`npx` eksik paketi
     registry'den indirirdi; publish hedefi de böyle). Publish paketi Angular'ın `3rdpartylicenses.txt`'ini
-    `wwwroot`'a koyar, İletişim sayfası linkler (`ng serve`'de yok). Yeni `THIRD-PARTY-NOTICES.md`, README'de
+    `wwwroot`'a koyar, İletişim sayfası linkler; link sadece production derlemesinde görünür (`isDevMode()`:
+    `ng serve` dosyayı üretmiyor, kullanıcı "Cannot GET" gördü). Yeni `THIRD-PARTY-NOTICES.md`, README'de
     yayın ve lisans notu. git-cliff `2.14.2`'ye sabit. `package.json`: eskimiş `packageManager` (npm 10)
     kalktı, `engines.node >=22.19`. Lokal doğrulama: publish paketi (`wwwroot/index.html`,
     `3rdpartylicenses.txt`, sürüm kontrolleri), `migrate.sql` (12 migration, idempotent), TRX raporu.

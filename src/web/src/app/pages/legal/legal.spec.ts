@@ -48,5 +48,7 @@ describe('Legal pages', () => {
     const source = page.querySelector<HTMLAnchorElement>('a[target=_blank]')!;
     expect(source.href).toBe('https://github.com/halid-ali/coin-portal');
     expect(source.rel).toBe('noopener');
+    // Tests run in development mode, like ng serve: no licenses file, so no link to it
+    expect(page.querySelector('a[href="/3rdpartylicenses.txt"]')).toBeNull();
   });
 });

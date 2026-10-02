@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, isDevMode } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -48,10 +48,11 @@ import { OPERATOR, SOURCE_URL } from '../../core/legal/operator';
               >{{ sourceUrl }}</a
             >
             <p class="form-hint">{{ 'contact.sourceHint' | transloco }}</p>
-            <!-- Written by the Angular build; served by the published site (not by ng serve) -->
-            <a href="/3rdpartylicenses.txt" target="_blank" rel="noopener" class="link text-sm">{{
-              'contact.licenses' | transloco
-            }}</a>
+            @if (showLicenses) {
+              <a href="/3rdpartylicenses.txt" target="_blank" rel="noopener" class="link text-sm">{{
+                'contact.licenses' | transloco
+              }}</a>
+            }
           </dd>
         </div>
       </dl>
@@ -65,4 +66,9 @@ import { OPERATOR, SOURCE_URL } from '../../core/legal/operator';
 export class Contact {
   protected readonly operator = OPERATOR;
   protected readonly sourceUrl = SOURCE_URL;
+  /**
+   * The production build writes 3rdpartylicenses.txt (extractLicenses) and the published site serves
+   * it; ng serve runs the development build, which has no such file, so there is no link to it.
+   */
+  protected readonly showLicenses = !isDevMode();
 }
