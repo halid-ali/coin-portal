@@ -52,11 +52,14 @@ terminallerinde sürekli çalışır halde tutuyor.
 - **Push kullanıcı onayıyla.** Repo kullanıcının kişisel GitHub hesabında, public (karar 2026-09-29).
   Sadece `main` ve etiketler push edilir (`git push origin main`, `git push origin vX.Y.Z`); feature
   branch'leri lokal kalır. Force-push yok.
-- CI: `.github/workflows/ci.yml` (ubuntu; API: build + migration'sız model değişikliği kontrolü +
-  `tests/api` bir SQL Server 2022 servis container'ına karşı; Web: `npm ci`, Prettier, `ng build`,
-  `ng test`). API `main` push'unda Release derlenir (ImageSharp anahtarı secret `SIXLABORS_LICENSE_KEY`),
-  pull request'lerde Debug (Dependabot ve fork'lar secret görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm önermez (onlar planlı iş, Angular
-  için `ng update`).
+- CI: `.github/workflows/ci.yml` (ubuntu; action'lar commit SHA'sına sabit, yorumda sürüm; SQL Server
+  imajı bir CU etiketine, Dependabot izlemez, elle güncellenir). API: build, migration'sız model değişikliği
+  kontrolü, `tests/api` bir SQL Server 2022 servis container'ına karşı (sonuçlar TRX artefaktı), `main`'de
+  ayrıca yayın paketi (`dotnet publish`, içinde client var mı). Web: `npm ci`, Prettier, `ng build`,
+  `ng test`; araçlar `npm exec --no --` ile (projenin kendi araçları; `npx` eksik paketi indirir). API `main`
+  push'unda Release derlenir (ImageSharp anahtarı secret `SIXLABORS_LICENSE_KEY`), pull request'lerde
+  Debug (Dependabot ve fork'lar secret görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm
+  önermez (onlar planlı iş, Angular için `ng update`).
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
@@ -67,12 +70,17 @@ terminallerinde sürekli çalışır halde tutuyor.
   (`core/app-version.ts`, footer'da görünür; verilmezse görünmez). `package.json` sürümü 0.0.0 kalır.
 - CHANGELOG.md git-cliff ile commit'lerden üretilir (`cliff.toml`, Keep a Changelog): `feat` → Added,
   `fix` → Fixed, `refactor`/`perf` → Changed; diğerleri ve merge commit'leri gizli. Elle yazılmaz.
-- Yayın akışı (kullanıcı onayıyla): main'de `npx git-cliff --bumped-version` önerisine bakılır (1.0.0'a
+- Yayın akışı (kullanıcı onayıyla; git-cliff sürümü sabit, yükseltmesi bilinçli): main'de
+  `npx git-cliff@2.14.2 --bumped-version` önerisine bakılır (1.0.0'a
   kadar breaking → minor, feat → minor, fix → patch; karar kullanıcıyla) → `chore/release-vX.Y.Z`
-  branch'inde `npx git-cliff --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
+  branch'inde `npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
   merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
-- Etiket push edildikten sonra GitHub'da bir Release açılır (kullanıcı onayıyla): kısa giriş, öne
-  çıkanlar ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil.
+- Etiket push edilince `.github/workflows/release.yml` yayın paketini üretir: `coinportal-vX.Y.Z.zip`
+  (`site/` = API + client, idempotent `migrate.sql`, `LICENSE`, `THIRD-PARTY-NOTICES.md`) ve `.sha256`;
+  paketin sürümünü ve içindeki client'ı kontrol eder, etiketin GitHub Release'ine ekler (Release yoksa
+  taslak açar). Sonra Release'in notları yazılıp yayınlanır (kullanıcı onayıyla): kısa giriş, öne çıkanlar
+  ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil. Paket `workflow_dispatch` ile bir
+  etiket için yeniden üretilebilir.
 - GitHub rulesets: `main`'de silme ve force-push, `v*` etiketlerinde silme, güncelleme ve force-push yasak.
   **Push edilmiş bir etiket düzeltilemez**; yanlışsa yeni bir patch sürümü atılır. Etiketi push etmeden
   önce doğru commit'te olduğunu kontrol et.
@@ -102,8 +110,8 @@ cd src/web && ng test --watch=false               # Vitest + jsdom
 cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
 
 # Changelog and version (repo root)
-npx git-cliff --bumped-version                        # suggested next version
-npx git-cliff --tag vX.Y.Z -o CHANGELOG.md            # regenerate for a release
+npx git-cliff@2.14.2 --bumped-version                 # suggested next version
+npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md     # regenerate for a release
 ```
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
@@ -505,3 +513,6 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   köşelerde dikdörtgen gölge görünür.
 - Satır sonları LF (`.gitattributes`). Makinenin global `.npmrc`'sinde özel bir feed tanımlı olabilir;
   paket kurulumunda sorun çıkarsa registry'nin public npm olduğunu kontrol et.
+- `src/web/package.json` `allowScripts`, kurulum betiği çalıştırmasına izin verilen paketleri **sürümüyle**
+  listeler. Bir bağımlılık yükseltmesi (Dependabot dahil) bu paketlerden birinin sürümünü değiştirirse liste
+  de güncellenir; yükseltmeden sonra `npm ci` çıktısında atlanan ya da onay bekleyen betik uyarısına bakılır.

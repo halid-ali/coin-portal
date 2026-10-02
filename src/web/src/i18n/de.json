@@ -564,6 +564,7 @@
     "email": "E-Mail",
     "emailHint": "Für Fragen, Fehlermeldungen, Hinweise auf unangemessene Inhalte und Anfragen zu deinen Daten.",
     "source": "Quellcode",
-    "sourceHint": "Das Projekt ist Open Source; Fehler kannst du auch dort melden."
+    "sourceHint": "Das Projekt ist Open Source; Fehler kannst du auch dort melden.",
+    "licenses": "Lizenzen der verwendeten Open-Source-Software"
   }
 }

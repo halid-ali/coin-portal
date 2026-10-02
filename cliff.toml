@@ -1,5 +1,5 @@
 # git-cliff configuration: CHANGELOG.md from Conventional Commits (https://git-cliff.org)
-# Generate: npx git-cliff --tag vX.Y.Z -o CHANGELOG.md
+# Generate: npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md (pinned: a new version is a deliberate update)
 
 [changelog]
 header = """

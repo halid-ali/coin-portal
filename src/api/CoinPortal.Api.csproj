@@ -37,7 +37,10 @@
     A publish also builds the Angular client into wwwroot, so one package holds the whole site
     (SpaHosting serves it). The client gets the API's version for its footer. node_modules is
     installed only when missing: npm ci would wipe it under a running ng serve, and CI installs it
-    in a step of its own. SkipWebClient=true publishes the API alone.
+    in a step of its own. The local Angular CLI runs through npm exec with no download: npx would
+    fetch an unrelated package named ng from the registry if node_modules lacked it. The licenses
+    of the client's packages (Angular writes 3rdpartylicenses.txt) are published with it.
+    SkipWebClient=true publishes the API alone.
   -->
   <PropertyGroup>
     <WebClientDir>$(MSBuildProjectDirectory)\..\web\</WebClientDir>
@@ -45,12 +48,17 @@
 
   <Target Name="PublishWebClient" AfterTargets="ComputeFilesToPublish" DependsOnTargets="MinVer"
           Condition="'$(SkipWebClient)' != 'true'">
-    <Exec Condition="!Exists('$(WebClientDir)node_modules')" WorkingDirectory="$(WebClientDir)" Command="npm ci" />
-    <Exec WorkingDirectory="$(WebClientDir)" Command="npx ng build --define &quot;APP_VERSION='$(MinVerVersion)'&quot;" />
+    <Exec Condition="!Exists('$(WebClientDir)node_modules\.bin\ng')" WorkingDirectory="$(WebClientDir)" Command="npm ci" />
+    <Exec WorkingDirectory="$(WebClientDir)" Command="npm exec --no -- ng build --define &quot;APP_VERSION='$(MinVerVersion)'&quot;" />
     <ItemGroup>
       <WebClientFiles Include="$(WebClientDir)dist\web\browser\**" />
       <ResolvedFileToPublish Include="@(WebClientFiles)">
         <RelativePath>wwwroot\%(WebClientFiles.RecursiveDir)%(WebClientFiles.Filename)%(WebClientFiles.Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+      <ResolvedFileToPublish Include="$(WebClientDir)dist\web\3rdpartylicenses.txt">
+        <RelativePath>wwwroot\3rdpartylicenses.txt</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       </ResolvedFileToPublish>
