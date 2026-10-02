@@ -50,6 +50,7 @@
   },
   "titles": {
     "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen",
     "contact": "Kontakt",
     "login": "Anmelden",
     "register": "Registrieren",
@@ -101,8 +102,10 @@
   "register": {
     "privacyBefore": "Ich habe die ",
     "privacyLink": "Datenschutzerklärung",
-    "privacyAfter": " gelesen.",
-    "privacyRequired": "Bitte bestätige, dass du die Datenschutzerklärung gelesen hast.",
+    "termsBefore": " gelesen und akzeptiere die ",
+    "termsLink": "Nutzungsbedingungen",
+    "privacyAfter": ".",
+    "privacyRequired": "Bitte bestätige, dass du die Datenschutzerklärung gelesen hast und die Nutzungsbedingungen akzeptierst.",
     "title": "Registrieren",
     "firstName": "Vorname",
     "lastName": "Nachname",
@@ -452,6 +455,7 @@
   },
   "legal": {
     "privacyLink": "Datenschutz",
+    "termsLink": "Nutzungsbedingungen",
     "contactLink": "Kontakt",
     "notSet": "wird vor der Veröffentlichung ergänzt"
   },
@@ -509,6 +513,48 @@
     "changes": {
       "title": "Änderungen",
       "p1": "Wenn sich diese Erklärung ändert, wird die aktuelle Fassung mit neuem Datum auf dieser Seite veröffentlicht."
+    }
+  },
+  "terms": {
+    "title": "Nutzungsbedingungen",
+    "updated": "Zuletzt aktualisiert: {{date}}",
+    "intro": "Diese Bedingungen regeln die Nutzung von Coin Portal. Mit der Registrierung akzeptierst du sie. Wie deine personenbezogenen Daten verarbeitet werden, erklärt die Datenschutzerklärung.",
+    "service": {
+      "title": "Der Dienst",
+      "p1": "Coin Portal ist eine kostenlose, nicht kommerzielle Hobby-Website, um deine Euro-Münzsammlung zu erfassen, zu fotografieren und auf Wunsch zu teilen. Die Website wird so bereitgestellt, wie sie ist: Es gibt keine Garantie für einen unterbrechungsfreien Betrieb oder dafür, dass nie Daten verloren gehen. Für Daten, die dir wichtig sind, nutze den Export unter Einstellungen > Konto."
+    },
+    "account": {
+      "title": "Dein Konto",
+      "p1": "Für die Registrierung musst du mindestens 18 Jahre alt sein und korrekte Angaben machen. Ein Konto ist persönlich; gib dein Passwort nicht weiter. Konten automatisiert oder massenhaft anzulegen ist nicht erlaubt."
+    },
+    "content": {
+      "title": "Deine Inhalte",
+      "p1": "Deine Sammlungen, Münzangaben und Fotos bleiben deine. Wenn du eine Sammlung teilst, erlaubst du der Website, sie mit ihren Fotos zu zeigen, solange du sie teilst. Lade nur Fotos hoch, die du selbst aufgenommen hast oder verwenden darfst."
+    },
+    "rules": {
+      "title": "Was nicht erlaubt ist",
+      "p1": "In geteilten Inhalten und auf der Website ist Folgendes nicht erlaubt:",
+      "i1": "rechtswidrige Inhalte sowie Fotos oder Texte, die Urheberrechte anderer verletzen",
+      "i2": "personenbezogene Daten anderer Personen",
+      "i3": "Beleidigungen, Hassrede, Gewalt oder sexuelle Inhalte",
+      "i4": "Werbung, Spam und Inhalte ohne Bezug zu Münzen",
+      "i5": "die Website zu überlasten, ihre Sicherheit zu umgehen oder Daten automatisiert in großem Umfang abzurufen"
+    },
+    "moderation": {
+      "title": "Moderation",
+      "p1": "Administratoren können eine Sammlung, die gegen diese Regeln geteilt wurde, ausblenden: Sie wird privat und kann erst wieder geteilt werden, wenn die Sperre aufgehoben ist. Bei schweren oder wiederholten Verstößen können sie das Konto sperren (keine Anmeldung, geteilte Sammlungen nicht sichtbar) oder löschen. Jede Aktion wird mit Zeitpunkt und Begründung festgehalten; die Einträge über dich findest du in deinem Datenexport."
+    },
+    "objection": {
+      "title": "Widerspruch",
+      "p1": "Um einer Entscheidung zu widersprechen, schreib an die E-Mail-Adresse auf der Kontaktseite; dein Widerspruch wird geprüft und du erhältst das Ergebnis."
+    },
+    "ending": {
+      "title": "Ende deines Kontos",
+      "p1": "Du kannst dein Konto jederzeit unter Einstellungen > Konto löschen; alle deine Daten werden sofort gelöscht. Wird die Website eingestellt, wird das so früh wie möglich auf der Website angekündigt, mit Zeit, deine Daten herunterzuladen."
+    },
+    "changes": {
+      "title": "Änderungen",
+      "p1": "Ändern sich diese Bedingungen, wird die aktuelle Fassung mit neuem Datum auf dieser Seite veröffentlicht."
     }
   },
   "contact": {

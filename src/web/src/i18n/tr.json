@@ -50,6 +50,7 @@
   },
   "titles": {
     "privacy": "Gizlilik politikası",
+    "terms": "Kullanım şartları",
     "contact": "İletişim",
     "login": "Giriş yap",
     "register": "Kayıt ol",
@@ -101,8 +102,10 @@
   "register": {
     "privacyBefore": "Bu sitenin ",
     "privacyLink": "gizlilik politikasını",
-    "privacyAfter": " okudum.",
-    "privacyRequired": "Kayıt olmak için gizlilik politikasını okuduğunu onaylamalısın.",
+    "termsBefore": " okudum ve ",
+    "termsLink": "kullanım şartlarını",
+    "privacyAfter": " kabul ediyorum.",
+    "privacyRequired": "Kayıt olmak için gizlilik politikasını okuduğunu onaylamalı ve kullanım şartlarını kabul etmelisin.",
     "title": "Kayıt ol",
     "firstName": "İsim",
     "lastName": "Soyisim",
@@ -452,6 +455,7 @@
   },
   "legal": {
     "privacyLink": "Gizlilik",
+    "termsLink": "Kullanım şartları",
     "contactLink": "İletişim",
     "notSet": "yayından önce eklenecek"
   },
@@ -509,6 +513,48 @@
     "changes": {
       "title": "Değişiklikler",
       "p1": "Bu politika değişirse güncel hali yeni tarihiyle bu sayfada yayınlanır."
+    }
+  },
+  "terms": {
+    "title": "Kullanım şartları",
+    "updated": "Son güncelleme: {{date}}",
+    "intro": "Bu şartlar Coin Portal'ı kullanırken uyulacak kuralları anlatır. Kayıt olarak bunları kabul etmiş olursun. Kişisel verilerinin nasıl işlendiği gizlilik politikasında anlatılır.",
+    "service": {
+      "title": "Hizmet",
+      "p1": "Coin Portal, Euro coin koleksiyonunu kaydetmek, fotoğraflamak ve istersen paylaşmak için ticari olmayan, ücretsiz bir hobi sitesidir. Site olduğu gibi sunulur: kesintisiz çalışacağı ya da verilerin hiç kaybolmayacağı garanti edilmez. Senin için önemli veriler için Ayarlar > Hesap'taki dışa aktarmayı kullan."
+    },
+    "account": {
+      "title": "Hesabın",
+      "p1": "Kayıt için 18 yaşını doldurmuş olmalı ve doğru bilgiler vermelisin. Hesap kişiseldir; parolanı kimseyle paylaşma. Otomatik ya da toplu hesap açmak yasaktır."
+    },
+    "content": {
+      "title": "İçeriğin",
+      "p1": "Koleksiyonların, coin bilgilerin ve fotoğrafların senindir. Bir koleksiyonu paylaştığında, paylaşım sürdükçe sitenin onu fotoğraflarıyla birlikte göstermesine izin verirsin. Sadece kendi çektiğin ya da kullanma hakkına sahip olduğun fotoğrafları yükle."
+    },
+    "rules": {
+      "title": "Yasak olanlar",
+      "p1": "Paylaştığın içerikte ve sitede şunlar yasaktır:",
+      "i1": "yasa dışı içerik, başkalarının telif haklarını ihlal eden fotoğraflar ya da metinler",
+      "i2": "başkalarına ait kişisel veriler",
+      "i3": "hakaret, nefret söylemi, şiddet ya da cinsel içerik",
+      "i4": "reklam, spam ve coin'lerle ilgisi olmayan içerik",
+      "i5": "siteyi aşırı yüklemek, güvenliğini aşmaya çalışmak ya da verileri otomatik olarak toplu çekmek"
+    },
+    "moderation": {
+      "title": "Moderasyon",
+      "p1": "Yöneticiler bu kurallara aykırı paylaşılan bir koleksiyonu gizleyebilir: koleksiyon özel olur ve kilit kalkana kadar yeniden paylaşılamaz. Ağır ya da tekrarlanan ihlallerde hesabı kilitleyebilir (giriş yapılamaz, paylaşılan koleksiyonlar görünmez) ya da silebilirler. Her işlem zamanı ve gerekçesiyle kaydedilir; senin hakkındaki kayıtları veri dışa aktarmasında görebilirsin."
+    },
+    "objection": {
+      "title": "İtiraz",
+      "p1": "Bir karara itiraz etmek için iletişim sayfasındaki e-posta adresine yaz; itirazın değerlendirilir ve sonucu sana bildirilir."
+    },
+    "ending": {
+      "title": "Hesabın sona ermesi",
+      "p1": "Hesabını istediğin zaman Ayarlar > Hesap'tan silebilirsin; tüm verilerin hemen silinir. Site kapanacaksa bu, mümkün olduğunca önceden sitede duyurulur ve verilerini indirmen için zaman tanınır."
+    },
+    "changes": {
+      "title": "Değişiklikler",
+      "p1": "Bu şartlar değişirse güncel hali yeni tarihiyle bu sayfada yayınlanır."
     }
   },
   "contact": {

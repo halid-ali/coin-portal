@@ -40,15 +40,15 @@ public class AuthTests(CoinPortalFactory factory)
     public async Task Register_WithoutAcceptingThePrivacyPolicy_IsRejected()
     {
         using var client = await factory.CreateAnonymousClientAsync();
-        var request = TestUser.NewRegisterRequest() with { AcceptPrivacy = false };
+        var request = TestUser.NewRegisterRequest() with { AcceptTerms = false };
 
         using var response = await client.PostAsync("/api/auth/register", request);
         // Older clients that do not send the field at all
         using var missing = await client.SendRawJsonAsync(HttpMethod.Post, "/api/auth/register",
-            JsonSerializer.Serialize(TestUser.NewRegisterRequest(), ApiClient.Json).Replace(",\"acceptPrivacy\":true", ""));
+            JsonSerializer.Serialize(TestUser.NewRegisterRequest(), ApiClient.Json).Replace(",\"acceptTerms\":true", ""));
 
-        Assert.Contains("AcceptPrivacy", await response.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
-        Assert.Contains("AcceptPrivacy", await missing.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("AcceptTerms", await response.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("AcceptTerms", await missing.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]

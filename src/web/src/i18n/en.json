@@ -50,6 +50,7 @@
   },
   "titles": {
     "privacy": "Privacy policy",
+    "terms": "Terms of use",
     "contact": "Contact",
     "login": "Sign in",
     "register": "Sign up",
@@ -101,8 +102,10 @@
   "register": {
     "privacyBefore": "I have read the ",
     "privacyLink": "privacy policy",
+    "termsBefore": " and accept the ",
+    "termsLink": "terms of use",
     "privacyAfter": ".",
-    "privacyRequired": "Please confirm that you have read the privacy policy.",
+    "privacyRequired": "Please confirm that you have read the privacy policy and accept the terms of use.",
     "title": "Sign up",
     "firstName": "First name",
     "lastName": "Last name",
@@ -452,6 +455,7 @@
   },
   "legal": {
     "privacyLink": "Privacy",
+    "termsLink": "Terms of use",
     "contactLink": "Contact",
     "notSet": "to be added before release"
   },
@@ -509,6 +513,48 @@
     "changes": {
       "title": "Changes",
       "p1": "If this policy changes, the current version is published on this page with its new date."
+    }
+  },
+  "terms": {
+    "title": "Terms of use",
+    "updated": "Last updated: {{date}}",
+    "intro": "These terms set out the rules for using Coin Portal. By signing up you accept them. How your personal data is processed is explained in the privacy policy.",
+    "service": {
+      "title": "The service",
+      "p1": "Coin Portal is a free, non-commercial hobby site for recording, photographing and, if you like, sharing your euro coin collection. The site is provided as is: there is no guarantee that it runs without interruption or that data is never lost. For data that matters to you, use the export in Settings > Account."
+    },
+    "account": {
+      "title": "Your account",
+      "p1": "To sign up you must be at least 18 and give correct information. An account is personal; do not share your password. Creating accounts automatically or in bulk is not allowed."
+    },
+    "content": {
+      "title": "Your content",
+      "p1": "Your collections, coin details and photos remain yours. When you share a collection, you allow the site to show it with its photos for as long as you share it. Only upload photos you took yourself or have the right to use."
+    },
+    "rules": {
+      "title": "What is not allowed",
+      "p1": "The following is not allowed in what you share and on the site:",
+      "i1": "illegal content, and photos or texts that infringe other people's copyright",
+      "i2": "other people's personal data",
+      "i3": "insults, hate speech, violence or sexual content",
+      "i4": "advertising, spam and content unrelated to coins",
+      "i5": "overloading the site, trying to get around its security, or collecting data from it automatically in bulk"
+    },
+    "moderation": {
+      "title": "Moderation",
+      "p1": "Administrators can hide a collection shared against these rules: it becomes private and cannot be shared again until the lock is lifted. For serious or repeated violations they can lock the account (no sign-in, shared collections not visible) or delete it. Every action is recorded with its time and reason; you can see the records about you in your data export."
+    },
+    "objection": {
+      "title": "Objections",
+      "p1": "To object to a decision, write to the e-mail address on the contact page; your objection will be reviewed and you will be told the outcome."
+    },
+    "ending": {
+      "title": "Ending your account",
+      "p1": "You can delete your account at any time in Settings > Account; all your data is deleted at once. If the site is to close, this will be announced on the site as early as possible, with time to download your data."
+    },
+    "changes": {
+      "title": "Changes",
+      "p1": "If these terms change, the current version is published on this page with its new date."
     }
   },
   "contact": {

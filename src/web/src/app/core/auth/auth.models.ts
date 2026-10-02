@@ -36,7 +36,7 @@ export interface RegisterRequest {
   /** Current UI language: becomes the saved one and names the first collection. */
   language: Language;
   /** The "I have read the privacy policy" box; the API rejects false. */
-  acceptPrivacy: boolean;
+  acceptTerms: boolean;
 }
 
 // Mirrors src/api/Contracts/Auth/LoginRequest
