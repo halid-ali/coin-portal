@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#17 ve #19 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#19 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -832,6 +832,17 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     gerekçe metninin değişmemesi, dışa aktarmanın kapsamı, düzeltme için e-posta. `OPERATOR` kullanıcı
     kararıyla boş (alan adı ve e-posta hosting'le belli olacak). Elle karşılanacak talepler Açık konular 18.
     Testler: API 147 (+4 log maskesi; dışa aktarma ve herkese açık yanıt testleri genişledi), client 91.
+46. **Kullanım şartları** (`feat/terms-of-use`, 2026-10-02; #18, kullanıcı kararı: ekle, kayıtta kabul): `/terms`
+    (`pages/legal/terms.ts`, metin `terms.*`, dört dil, `TERMS_UPDATED`): hizmet (ücretsiz hobi sitesi, garanti
+    yok, dışa aktarma önerisi), hesap (18+, doğru bilgi, kişisel), içerik (kullanıcının; paylaşım sürdükçe
+    gösterme izni, sadece hakkı olan fotoğraflar), yasak olanlar (yasa dışı, telif, başkasının kişisel
+    verisi, hakaret/nefret/şiddet/cinsel, reklam/spam, siteyi zorlamak ve toplu veri çekmek), moderasyon
+    (gizleme, kilit, silme; kayıt ve dışa aktarmada görünmesi), itiraz (e-posta), hesabın sona ermesi,
+    değişiklikler. Footer'da "Gizlilik · Kullanım şartları · İletişim". Kayıt kutusu "Bu sitenin gizlilik
+    politikasını okudum ve kullanım şartlarını kabul ediyorum." (iki link); API alanı `AcceptPrivacy` →
+    `AcceptTerms` (iki belgeyi kapsıyor; client ve API birlikte yayınlanır). Metin hukuki danışmanlık
+    değildir, kullanıcı yayından önce okuyacak (Yayın öncesi yapılacaklar). Testler: API 147, client 92 (+1
+    şartlar sayfası; kayıt testi iki linki ve yeni cümleyi kontrol ediyor). Tarayıcıda görsel kontrol yok.
 
 ## Yol haritası
 
@@ -919,7 +930,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi (Tamamlananlar 38; süpürme #27'de).
   - [x] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü (Tamamlananlar 40).
   - [x] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur (Tamamlananlar 45; `OPERATOR` kullanıcı kararıyla yayın öncesine kaldı).
-  - [ ] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (kullanıcı kararı; Impressum ile birlikte).
+  - [x] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (Tamamlananlar 46; Impressum kararı ayrı, Açık konular 14).
   - [x] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması (Tamamlananlar 43).
   - [ ] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları.
   - [ ] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10).
@@ -1143,6 +1154,8 @@ Kararlar (2026-10-01, kullanıcıyla):
 - **E-posta şimdilik yer tutucu** (alan adı alınınca `contact@…` gibi); ad da sabitte, yayın öncesi
   doldurulur.
 - **Kayıtta işaretlenmesi zorunlu kutu** (bilgi metni + link yerine; kullanıcı daha resmi olanı seçti).
+  2026-10-02'den beri aynı kutu kullanım şartlarını da kabul ettirir (#18, kullanıcı kararı); şartlar
+  moderasyonun kurallarını kullanıcıya bildirir.
 - Metinler hukuki danışmanlık değildir; Claude yazdı, kullanıcı yayından önce okuyacak. İletişim formu
   yok (site e-posta göndermiyor); GitHub reposu hata bildirimi için anılır.
 
@@ -1331,6 +1344,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [ ] Yayından sonra HTTPS kontrolü: `curl -I http://<site>/api/health` → 307/308 ve `https://` yanıtında
       `Strict-Transport-Security`. Yönlendirme yoksa portu ver (`ASPNETCORE_HTTPS_PORT=443`). Site ve
       sertifika oturunca `Hsts__MaxAgeDays=365`.
+- [ ] Gizlilik politikası ve kullanım şartlarının kullanıcı tarafından okunması (Claude yazdı, hukuki
+      danışmanlık değildir); gerekirse değişiklikle `PRIVACY_UPDATED` / `TERMS_UPDATED`.
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).
 

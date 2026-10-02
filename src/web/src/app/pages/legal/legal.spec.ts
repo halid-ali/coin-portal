@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { Contact } from './contact';
 import { Privacy } from './privacy';
+import { Terms } from './terms';
 
 describe('Legal pages', () => {
   beforeEach(async () => {
@@ -28,6 +29,16 @@ describe('Legal pages', () => {
     expect(page.textContent).not.toMatch(/privacy\.\w+/);
     // The operator is not filled in yet
     expect(page.textContent).toContain('veri sorumlusu): yayından önce eklenecek');
+  });
+
+  it('shows every section of the terms of use, all of it translated', async () => {
+    const page = await render(Terms);
+
+    expect(page.querySelectorAll('h2').length).toBe(8);
+    expect(page.querySelectorAll('li').length).toBe(5);
+    expect(page.textContent).toContain('Son güncelleme: 2 Ekim 2026');
+    // A key would be shown as is when its text is missing
+    expect(page.textContent).not.toMatch(/terms\.\w+/);
   });
 
   it('names the operator, the e-mail and the source code', async () => {

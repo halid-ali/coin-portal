@@ -20,7 +20,7 @@ describe('Register', () => {
     await useTestLanguage('tr');
   });
 
-  it('asks to confirm the privacy policy before signing up', async () => {
+  it('asks to confirm the privacy policy and the terms before signing up', async () => {
     const fixture = TestBed.createComponent(Register);
     await fixture.whenStable();
     const page = fixture.nativeElement as HTMLElement;
@@ -40,21 +40,24 @@ describe('Register', () => {
     fill('confirmPassword', 'Coinportal1');
     const submit = () => page.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
 
-    // The label reads as one sentence with the link inside it
-    const label = page.querySelector('[formControlName=acceptPrivacy]')!.closest('label')!;
+    // The label reads as one sentence with both links inside it
+    const label = page.querySelector('[formControlName=acceptTerms]')!.closest('label')!;
     expect(label.textContent!.replace(/\s+/g, ' ').trim()).toBe(
-      'Bu sitenin gizlilik politikasını okudum.',
+      'Bu sitenin gizlilik politikasını okudum ve kullanım şartlarını kabul ediyorum.',
     );
-    expect(label.querySelector('a')!.getAttribute('href')).toBe('/privacy');
+    expect([...label.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual([
+      '/privacy',
+      '/terms',
+    ]);
 
     submit();
     await fixture.whenStable();
     http.expectNone('/api/auth/register');
-    expect(page.textContent).toContain('gizlilik politikasını okuduğunu onaylamalısın');
+    expect(page.textContent).toContain('kullanım şartlarını kabul etmelisin');
 
-    page.querySelector<HTMLInputElement>('[formControlName=acceptPrivacy]')!.click();
+    page.querySelector<HTMLInputElement>('[formControlName=acceptTerms]')!.click();
     submit();
     const request = http.expectOne('/api/auth/register');
-    expect(request.request.body.acceptPrivacy).toBe(true);
+    expect(request.request.body.acceptTerms).toBe(true);
   });
 });

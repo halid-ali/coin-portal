@@ -66,7 +66,7 @@ export class Register {
       birthDate: ['', [Validators.required, minimumAgeValidator(MIN_AGE)]],
       password: ['', [Validators.required, Validators.minLength(8), passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]],
-      acceptPrivacy: [false, [Validators.requiredTrue]],
+      acceptTerms: [false, [Validators.requiredTrue]],
     },
     { validators: passwordMatchValidator('password', 'confirmPassword') },
   );
