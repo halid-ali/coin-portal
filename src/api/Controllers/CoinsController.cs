@@ -85,6 +85,15 @@ public class CoinsController(
             return NotFound();
         }
 
+        // A collection hidden by an admin keeps its coins until the lock is lifted: moving them out
+        // would publish the hidden content again
+        if (request.CollectionId != coin.CollectionId
+            && await db.Collections.AnyAsync(c => c.Id == coin.CollectionId && c.ModerationLockedAtUtc != null, ct))
+        {
+            return this.CodedProblem("moderation_locked", "An administrator has hidden this collection.",
+                StatusCodes.Status403Forbidden);
+        }
+
         var countryCode = await ValidateCountryAsync(request.CountryCode, ct);
         var collectionValid = await ValidateCollectionAsync(request.CollectionId!.Value, ct);
         if (countryCode is null || !collectionValid)

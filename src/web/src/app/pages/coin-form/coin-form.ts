@@ -82,6 +82,12 @@ export class CoinForm implements OnInit {
   protected readonly deleting = signal(false);
   protected readonly formErrors = signal<string[]>([]);
 
+  /** The saved coin's collection is hidden by an admin: its coins stay in it (API 403). */
+  protected readonly moveLocked = computed(() => {
+    const collectionId = this.coin()?.collectionId;
+    return !!this.collections()?.find((c) => c.id === collectionId)?.moderationLocked;
+  });
+
   protected readonly denominations = DENOMINATIONS;
   protected readonly denominationLabel = denominationLabel;
   protected readonly countries = this.countryService.countries;
@@ -194,7 +200,12 @@ export class CoinForm implements OnInit {
       );
     } catch (err) {
       this.submitting.set(false);
-      this.formErrors.set(applyServerErrors(this.form, err as HttpErrorResponse));
+      const error = err as HttpErrorResponse;
+      this.formErrors.set(
+        (error.error as { code?: string } | null)?.code === 'moderation_locked'
+          ? [translate('coinForm.moveLocked')]
+          : applyServerErrors(this.form, error),
+      );
       return;
     }
 

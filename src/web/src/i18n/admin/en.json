@@ -80,6 +80,8 @@
     "lockMessage": "@{{userName}} cannot sign in, their open session ends within a minute, and their shared collections are hidden while the lock lasts.",
     "unlockTitle": "Unlock",
     "unlockMessage": "@{{userName}} can sign in again; their shared collections become visible again.",
+    "unlockTemporary": "Clear temporary lockout",
+    "unlockTemporaryMessage": "The temporary lockout after failed sign-ins ends; @{{userName}} can sign in right away.",
     "delete": "Delete user",
     "deleteTitle": "Delete the user for good",
     "deleteMessage": "@{{userName}}'s account is deleted right away with all their collections, coins, photos and share links. This cannot be undone. The audit log will show them as \"Deleted user\".",

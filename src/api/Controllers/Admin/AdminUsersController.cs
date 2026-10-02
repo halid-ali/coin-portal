@@ -63,7 +63,7 @@ public class AdminUsersController(
     /// <summary>Locks the user until unlocked; their sessions end within the cookie validation interval.</summary>
     [HttpPut("{id}/lock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Lock(string id,
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AdminLockRequest? request)
@@ -76,7 +76,8 @@ public class AdminUsersController(
         if (await userManager.IsInRoleAsync(user, AppRoles.Admin))
         {
             return this.CodedProblem("cannot_lock_admin",
-                "Administrators cannot be locked; remove them from the configuration instead.");
+                "Administrators cannot be locked; remove them from the configuration instead.",
+                StatusCodes.Status403Forbidden);
         }
         if (user.LockedAtUtc is not null)
         {
@@ -123,7 +124,7 @@ public class AdminUsersController(
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string id,
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AdminDeleteUserRequest? request,
@@ -137,7 +138,8 @@ public class AdminUsersController(
         if (await userManager.IsInRoleAsync(user, AppRoles.Admin))
         {
             return this.CodedProblem("cannot_delete_admin",
-                "Administrators cannot be deleted; remove them from the configuration instead.");
+                "Administrators cannot be deleted; remove them from the configuration instead.",
+                StatusCodes.Status403Forbidden);
         }
 
         await deletion.DeleteAsync(user, beforeSave: () =>

@@ -1,8 +1,8 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (#10 noktalı profil adresleri, #12 giriş kilidinin ifşası, #15 hesap
-silmede fotoğraf klasörü düzeltildi; kapsamlı incelemeden çıkan 25 iş GitHub issue'su oldu, sırası
-"Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13 bitti; kapsamlı incelemeden
+çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
+public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
@@ -762,6 +762,16 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     süpürmesi #27'de. Testler: API 129 (+1: fotoğraf okunurken hesap silinir, klasör kalmaz;
     `FileShare.Delete` kaldırılınca kırıldı). Linux'ta (CI) dosya kilidi olmadığı için test orada
     her durumda geçer.
+39. **Moderasyon kilidinin kapsamı** (`fix/moderation-lock-scope`, 2026-10-02; #13): gizlenmiş bir
+    koleksiyonun içeriği, coin'leri başka (herkese açık) bir koleksiyona taşıyarak ya da koleksiyonu
+    `?moveTo=` ile silerek 1-2 istekte yeniden yayınlanabiliyordu; silme kilidi de yok ediyordu. Artık
+    ikisi de 403 `moderation_locked`; coin'leriyle birlikte silmek ve coin'i yerinde düzenlemek serbest.
+    Client: coin formunda koleksiyon seçimi kapalı + açıklama (`coinForm.moveLocked`), silme penceresinde
+    taşıma seçeneği yok (`collectionDelete.lockedNoMove`). `cannot_lock_admin` / `cannot_delete_admin`
+    400 yerine 403 ("görünen ama yasak işlem" kuralı). Panel: geçici kilitteki (5 hatalı giriş) kullanıcıya
+    doğrudan "Kilitle" ve ayrıca "Geçici kilidi kaldır"; sahibi kilitli koleksiyonların ve kilitli
+    kullanıcının profil linkleri düz metin (sayfa herkese 404). Testler: API 130 (+1; eski controller'larla
+    kırıldı), client 88.
 
 ## Yol haritası
 
@@ -844,7 +854,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#10](https://github.com/halid-ali/coin-portal/issues/10) S `fix/spa-fallback-dotted-paths`: noktalı adreslerde (`/u/ayse.yilmaz`) SPA fallback 404 veriyor (Tamamlananlar 36).
   - [ ] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store`.
   - [x] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi (Tamamlananlar 37; kilit kuralı aynen, Açık konular 16).
-  - [ ] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı.
+  - [x] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı (Tamamlananlar 39).
   - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
   - [x] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi (Tamamlananlar 38; süpürme #27'de).
   - [ ] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü.
@@ -1014,6 +1024,9 @@ Kararlar (2026-09-30, kullanıcıyla):
 - **Koleksiyonu gizle, kilitli:** admin herkese açık ya da linkle paylaşılan bir koleksiyonu Private
   yapar ve kilitler; kilit kalkana kadar sahibi yayınlayamaz (API kodlu hata, arayüzde "Yönetici
   tarafından gizlendi"). Kilitsiz gizleme içeriği bir tıkla geri getirmeye izin verirdi.
+  Kilit coin'leri de kapsar (2026-10-02, #13): kilit sürdükçe coin'ler başka koleksiyona taşınamaz ve
+  koleksiyon coin'leri taşınarak silinemez (taşıma içeriği yeniden yayınlardı); coin'leriyle birlikte
+  silmek serbest (içerik yok olur). Coin yerinde düzenlenebilir.
 - **Giriş zamanları:** `LastSeenAtUtc` (son görülme; `me` isteğinde en fazla saatte bir; admin listesinde,
   sıralanabilir), `LastSignInAtUtc` (son giriş; admin detayında), `PreviousSignInAtUtc` (önceki giriş;
   kullanıcının Ayarlar > Profil'inde, bankalardaki gibi; yoksa "Kayıtlı önceki giriş yok"). Son giriş tek

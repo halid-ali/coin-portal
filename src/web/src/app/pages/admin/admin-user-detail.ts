@@ -51,7 +51,8 @@ import { AdminStatusBadge } from './admin-status-badge';
                 }
                 <app-admin-status-badge [status]="u.status" />
               </div>
-              @if (u.publicCollectionCount > 0) {
+              <!-- A locked user's profile is hidden from everyone (it would be a 404) -->
+              @if (u.publicCollectionCount > 0 && u.status !== 'Locked') {
                 <a [routerLink]="['/u', u.userName]" class="link mt-1 inline-block text-sm">
                   {{ 'admin.user.publicProfile' | transloco }}
                 </a>
@@ -63,18 +64,23 @@ import { AdminStatusBadge } from './admin-status-badge';
               </p>
             } @else {
               <div class="flex flex-wrap gap-2">
-                @if (u.status === 'Active') {
+                <!-- A temporary lockout (failed sign-ins) does not stop an admin lock -->
+                @if (u.status !== 'Locked') {
                   <button type="button" class="btn-danger" [disabled]="busy()" (click)="lock(u)">
                     {{ 'admin.user.lock' | transloco }}
                   </button>
-                } @else {
+                }
+                @if (u.status !== 'Active') {
                   <button
                     type="button"
                     class="btn-secondary"
                     [disabled]="busy()"
                     (click)="unlock(u)"
                   >
-                    {{ 'admin.user.unlock' | transloco }}
+                    {{
+                      (u.status === 'Locked' ? 'admin.user.unlock' : 'admin.user.unlockTemporary')
+                        | transloco
+                    }}
                   </button>
                 }
                 <button
@@ -264,10 +270,14 @@ export class AdminUserDetailPage {
   }
 
   protected async unlock(user: AdminUserDetail): Promise<void> {
+    const temporary = user.status !== 'Locked';
     const note = await this.confirm.confirmWithNote({
-      title: translate('admin.user.unlockTitle'),
-      message: translate('admin.user.unlockMessage', { userName: user.userName }),
-      confirmText: translate('admin.user.unlock'),
+      title: translate(temporary ? 'admin.user.unlockTemporary' : 'admin.user.unlockTitle'),
+      message: translate(
+        temporary ? 'admin.user.unlockTemporaryMessage' : 'admin.user.unlockMessage',
+        { userName: user.userName },
+      ),
+      confirmText: translate(temporary ? 'admin.user.unlockTemporary' : 'admin.user.unlock'),
       note: this.noteField(),
     });
     if (note !== null) {

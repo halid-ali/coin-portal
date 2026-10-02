@@ -122,9 +122,12 @@ export class AdminCollections extends AdminListBase {
       });
   }
 
-  /** Where others see the collection; hidden ones are private, so there is none. */
+  /**
+   * Where others see the collection. Hidden ones are private, and nobody sees the collections of
+   * a locked owner (the page would be a 404), so there is none.
+   */
   protected viewLink(c: AdminCollection): string[] | null {
-    if (c.moderationLockedAtUtc) {
+    if (c.moderationLockedAtUtc || c.ownerLocked) {
       return null;
     }
     if (c.visibility === 'Public') {

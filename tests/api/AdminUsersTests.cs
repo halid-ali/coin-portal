@@ -159,8 +159,8 @@ public class AdminUsersTests(CoinPortalFactory factory)
         using var self = await admin.Client.PutAsync($"/api/admin/users/{admin.User.Id}/lock", new AdminLockRequest(null));
         using var other = await admin.Client.PutAsync($"/api/admin/users/{otherAdmin.User.Id}/lock", new AdminLockRequest(null));
 
-        Assert.Equal("cannot_lock_admin", await self.ReadProblemCodeAsync());
-        Assert.Equal("cannot_lock_admin", await other.ReadProblemCodeAsync());
+        Assert.Equal("cannot_lock_admin", await self.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("cannot_lock_admin", await other.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
     }
 
     [Fact]
@@ -245,8 +245,8 @@ public class AdminUsersTests(CoinPortalFactory factory)
         using var other = await admin.Client.DeleteAsync($"/api/admin/users/{otherAdmin.User.Id}", new AdminDeleteUserRequest(null));
         using var unknown = await admin.Client.DeleteAsync($"/api/admin/users/{Guid.NewGuid()}", new AdminDeleteUserRequest(null));
 
-        Assert.Equal("cannot_delete_admin", await self.ReadProblemCodeAsync());
-        Assert.Equal("cannot_delete_admin", await other.ReadProblemCodeAsync());
+        Assert.Equal("cannot_delete_admin", await self.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("cannot_delete_admin", await other.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
         await unknown.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
     }
 

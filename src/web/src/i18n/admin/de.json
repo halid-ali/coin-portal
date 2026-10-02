@@ -80,6 +80,8 @@
     "lockMessage": "@{{userName}} kann sich nicht anmelden, die offene Sitzung endet innerhalb einer Minute, und geteilte Sammlungen werden ausgeblendet, solange die Sperre besteht.",
     "unlockTitle": "Entsperren",
     "unlockMessage": "@{{userName}} kann sich wieder anmelden; geteilte Sammlungen sind wieder sichtbar.",
+    "unlockTemporary": "Vorübergehende Sperre aufheben",
+    "unlockTemporaryMessage": "Die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen endet; @{{userName}} kann sich sofort anmelden.",
     "delete": "Benutzer löschen",
     "deleteTitle": "Benutzer endgültig löschen",
     "deleteMessage": "Das Konto von @{{userName}} wird sofort mit allen Sammlungen, Münzen, Fotos und geteilten Links gelöscht. Das kann nicht rückgängig gemacht werden. Im Protokoll erscheint der Benutzer als „Gelöschter Benutzer“.",
