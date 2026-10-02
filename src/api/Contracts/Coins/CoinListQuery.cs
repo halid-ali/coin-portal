@@ -61,7 +61,8 @@ public class CoinListQuery
     [RegularExpression("^[A-Za-z]{2}(,[A-Za-z]{2})*$")]
     public string? CountryOrder { get; set; }
 
-    [Range(1, int.MaxValue)]
+    // Bounded: (page - 1) * pageSize must not overflow
+    [Range(1, 100_000)]
     public int Page { get; set; } = 1;
 
     // 0 = all items on one page

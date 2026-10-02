@@ -29,7 +29,9 @@
     "network": "Can't reach the server. Check your connection.",
     "unexpected": "Something went wrong. Please try again.",
     "requestRejected": "The request could not be verified. Reload the page and try again.",
-    "rateLimited": "Too many requests in a short time. Wait a moment and try again."
+    "rateLimited": "Too many requests in a short time. Wait a moment and try again.",
+    "collectionLimit": "An account can have at most 50 collections. Delete one to add a new one.",
+    "coinLimit": "An account can have at most 10,000 coins."
   },
   "validation": {
     "required": "This field is required.",

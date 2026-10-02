@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
@@ -48,6 +49,12 @@ public sealed class RateLimitOptions
     public RateLimitRule Photos { get; set; } = new() { PermitLimit = 600 };
 
     public RateLimitRule Export { get; set; } = new() { PermitLimit = 3, WindowSeconds = 600 };
+
+    /// <summary>
+    /// Every change a signed-in user makes (POST, PUT, PATCH, DELETE), per user: a script cannot fill
+    /// the database or keep the image decoder busy. Far above what a person clicks.
+    /// </summary>
+    public RateLimitRule Writes { get; set; } = new() { PermitLimit = 120 };
 }
 
 public static class AppRateLimiting
@@ -62,7 +69,9 @@ public static class AppRateLimiting
             options.AddPolicy(RateLimitPolicies.Auth, http => PerClient(http, o => o.Auth, signedInExempt: false));
             options.AddPolicy(RateLimitPolicies.Public, http => PerClient(http, o => o.Public, signedInExempt: true));
             options.AddPolicy(RateLimitPolicies.Photos, http => PerClient(http, o => o.Photos, signedInExempt: true));
-            options.AddPolicy(RateLimitPolicies.Export, PerUser);
+            options.AddPolicy(RateLimitPolicies.Export, http => PerUser(http, o => o.Export));
+            // On top of the endpoint policies, for every request
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(WritesPerUser);
             options.OnRejected = OnRejectedAsync;
         });
     }
@@ -86,10 +95,16 @@ public static class AppRateLimiting
         });
     }
 
+    private static RateLimitPartition<string> WritesPerUser(HttpContext http) =>
+        http.User.Identity?.IsAuthenticated == true && !HttpMethods.IsGet(http.Request.Method)
+            && !HttpMethods.IsHead(http.Request.Method) && !HttpMethods.IsOptions(http.Request.Method)
+            ? PerUser(http, o => o.Writes)
+            : RateLimitPartition.GetNoLimiter("");
+
     // Only on endpoints that require a signed-in user
-    private static RateLimitPartition<string> PerUser(HttpContext http)
+    private static RateLimitPartition<string> PerUser(HttpContext http, Func<RateLimitOptions, RateLimitRule> rule)
     {
-        var limit = http.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value.Export;
+        var limit = rule(http.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value);
         var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientKey(http);
         return RateLimitPartition.GetFixedWindowLimiter(userId, _ => new FixedWindowRateLimiterOptions
         {
@@ -120,6 +135,21 @@ public static class AppRateLimiting
         return ip.ToString();
     }
 
+    // Minute of the last warning per policy and client: a flood of refused requests is one log line
+    // a minute, not one per request (the log files have a size limit)
+    private static readonly ConcurrentDictionary<string, long> LastWarning = new();
+
+    private static bool ShouldLog(string key)
+    {
+        var minute = Environment.TickCount64 / 60_000;
+        if (LastWarning.Count > 10_000)
+        {
+            LastWarning.Clear();
+        }
+        var previous = LastWarning.GetOrAdd(key, -1);
+        return previous != minute && LastWarning.TryUpdate(key, minute, previous);
+    }
+
     // 429 ProblemDetails with a code (the client shows its own message) and Retry-After
     private static async ValueTask OnRejectedAsync(OnRejectedContext context, CancellationToken cancellationToken)
     {
@@ -130,10 +160,17 @@ public static class AppRateLimiting
                 ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
         }
 
-        var policy = http.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
-        http.RequestServices.GetRequiredService<ILoggerFactory>()
-            .CreateLogger(typeof(AppRateLimiting).FullName!)
-            .LogWarning("Rate limit {Policy} exceeded by {Client}", policy, ClientKey(http));
+        // Without an endpoint policy the per-user write limit (the global limiter) refused it
+        var policy = http.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName
+            ?? "writes";
+        var client = ClientKey(http);
+        if (ShouldLog(policy + " " + client))
+        {
+            http.RequestServices.GetRequiredService<ILoggerFactory>()
+                .CreateLogger(typeof(AppRateLimiting).FullName!)
+                .LogWarning("Rate limit {Policy} exceeded by {Client} (logged once a minute per client)",
+                    policy, client);
+        }
 
         var problem = http.RequestServices.GetRequiredService<ProblemDetailsFactory>().CreateProblemDetails(
             http, StatusCodes.Status429TooManyRequests, "Too many requests. Try again later.");

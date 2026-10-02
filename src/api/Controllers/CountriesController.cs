@@ -1,6 +1,9 @@
 using CoinPortal.Api.Contracts.Countries;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Hosting;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Controllers;
@@ -10,6 +13,8 @@ namespace CoinPortal.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
+[EnableRateLimiting(RateLimitPolicies.Public)]
 public class CountriesController(AppDbContext db) : ControllerBase
 {
     [HttpGet]

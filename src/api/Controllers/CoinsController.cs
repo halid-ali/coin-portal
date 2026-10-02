@@ -1,3 +1,4 @@
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Data;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CoinPortal.Api.Controllers;
 
@@ -19,7 +21,8 @@ namespace CoinPortal.Api.Controllers;
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class CoinsController(
-    AppDbContext db, UserManager<ApplicationUser> userManager, IPhotoStorage photoStorage) : ControllerBase
+    AppDbContext db, UserManager<ApplicationUser> userManager, IPhotoStorage photoStorage,
+    IOptions<UserLimitOptions> limits) : ControllerBase
 {
     private string CurrentUserId => userManager.GetUserId(User)!;
 
@@ -57,6 +60,12 @@ public class CoinsController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CoinResponse>> Create(CoinUpsertRequest request, CancellationToken ct)
     {
+        var userId = CurrentUserId;
+        if (await db.Coins.CountAsync(c => c.OwnerId == userId, ct) >= limits.Value.MaxCoins)
+        {
+            return this.CodedProblem("coin_limit", "You have reached the maximum number of coins.");
+        }
+
         var countryCode = await ValidateCountryAsync(request.CountryCode, ct);
         var collectionValid = await ValidateCollectionAsync(request.CollectionId!.Value, ct);
         if (countryCode is null || !collectionValid)

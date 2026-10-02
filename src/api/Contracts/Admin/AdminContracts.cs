@@ -58,7 +58,8 @@ public class AdminUserQuery
     [EnumDataType(typeof(SortDirection))]
     public SortDirection Dir { get; set; } = SortDirection.Desc;
 
-    [Range(1, int.MaxValue)]
+    // Bounded: (page - 1) * pageSize must not overflow
+    [Range(1, 100_000)]
     public int Page { get; set; } = 1;
 
     [Range(1, 100)]
@@ -138,7 +139,8 @@ public class AdminCollectionQuery
     [EnumDataType(typeof(SortDirection))]
     public SortDirection Dir { get; set; } = SortDirection.Desc;
 
-    [Range(1, int.MaxValue)]
+    // Bounded: (page - 1) * pageSize must not overflow
+    [Range(1, 100_000)]
     public int Page { get; set; } = 1;
 
     [Range(1, 100)]
@@ -179,7 +181,8 @@ public class AdminAuditQuery
     [Range(1, int.MaxValue)]
     public int? CollectionId { get; set; }
 
-    [Range(1, int.MaxValue)]
+    // Bounded: (page - 1) * pageSize must not overflow
+    [Range(1, 100_000)]
     public int Page { get; set; } = 1;
 
     [Range(1, 100)]

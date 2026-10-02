@@ -173,9 +173,12 @@ public class CoinsTests(CoinPortalFactory factory)
         using var pageSize = await alice.Client.GetAsync("/api/coins?pageSize=101");
         using var sort = await alice.Client.GetAsync("/api/coins?sort=Quantity");
         using var countryOrder = await alice.Client.GetAsync("/api/coins?countryOrder=DE;BE");
+        // A huge page would overflow the offset (a 500 before)
+        using var page = await alice.Client.GetAsync("/api/public/coins?page=2147483647&pageSize=100");
 
         await pageSize.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
         await sort.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
         await countryOrder.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
+        await page.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
     }
 }

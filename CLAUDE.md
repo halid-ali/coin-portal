@@ -236,7 +236,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **Rate limit:** girişsiz (`[AllowAnonymous]`) okuma uçları ve kimlik uçları bir politika alır:
   `[EnableRateLimiting(RateLimitPolicies.Public | Photos | Auth)]` (`Hosting/AppRateLimiting`; IP
   başına, sınırlar `RateLimiting` ayarından, girişli kullanıcı `Public`/`Photos`'a takılmaz). Aşım 429 +
-  `Retry-After` + kod `rate_limited`.
+  `Retry-After` + kod `rate_limited`; uyarı logu istemci ve politika başına dakikada bir. Ayrıca genel
+  limiter: girişli kullanıcının her yazma isteği (GET dışı) kullanıcı başına `Writes` (dakikada 120).
+  Hesap başına satır sınırı `UserLimits` (50 koleksiyon, 10.000 coin; aşımda 400 `collection_limit` /
+  `coin_limit`), görsel çözme `PhotoStorage:MaxSourceDimension` (4000 px) ve aynı anda
+  `MaxConcurrentDecodes` (2) ile sınırlı.
 - **Loglar** (Serilog, `Hosting/AppLogging`): seviyeler `Serilog` ayar bölümünde (`Logging` bölümü
   yok), dosyalar `Logs:Path`'e. İstek logu adresi sorgusuyla yazar; paylaşım anahtarı maskelenir
   (`MaskShareKeys`). URL'e yeni bir gizli değer (token, anahtar) girerse maskeye eklenir. Loga parola,

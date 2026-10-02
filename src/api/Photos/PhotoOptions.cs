@@ -19,9 +19,16 @@ public class PhotoOptions
     [Range(1, 50 * 1024 * 1024)]
     public long MaxUploadBytes { get; set; } = 10 * 1024 * 1024;
 
-    /// <summary>Largest accepted source width or height; guards against decompression bombs.</summary>
-    [Range(1600, 20000)]
-    public int MaxSourceDimension { get; set; } = 6000;
+    /// <summary>
+    /// Largest accepted source width or height; guards against decompression bombs. The client sends
+    /// at most 1600 px (crop output); 4000 px decodes to about 64 MB.
+    /// </summary>
+    [Range(1600, 12000)]
+    public int MaxSourceDimension { get; set; } = 4000;
+
+    /// <summary>Images decoded at the same time; more uploads wait. Bounds the memory they take.</summary>
+    [Range(1, 16)]
+    public int MaxConcurrentDecodes { get; set; } = 2;
 
     /// <summary>Stored bytes allowed per user, all sizes of all photos together.</summary>
     [Range(1, long.MaxValue)]

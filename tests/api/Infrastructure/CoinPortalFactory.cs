@@ -62,6 +62,7 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["RateLimiting:Auth:PermitLimit"] = "1000000",
                 ["RateLimiting:Public:PermitLimit"] = "1000000",
                 ["RateLimiting:Photos:PermitLimit"] = "1000000",
+                ["RateLimiting:Writes:PermitLimit"] = "1000000",
             }));
         // The app checks the cookie against the database once a minute; tests check every request,
         // so a lock or role change shows at once instead of after a wait
