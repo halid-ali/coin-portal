@@ -1,8 +1,8 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-01 (`v0.3.0` yayınlandı: yol haritası 9. adım hosting temeli, yani altyapı,
-büyük fotoğraflar, kalıcı oturum, PWA manifest, hesap silme + dışa aktarma, gizlilik + iletişim. Proje
-GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-02 (kapsamlı inceleme: 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda;
+son yayın `v0.3.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası ve
+sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
@@ -16,7 +16,8 @@ GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası ve sı
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
 - API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
   sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
-- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Yol haritası" ve "Sıradaki adım").
+- İlk iş: kullanıcıyla sıradaki adımı seçmek ("Aksiyon planı", "Yol haritası" ve "Sıradaki adım"). İnceleme
+  işlerinin ayrıntısı GitHub issue'larında (#10–#34).
 - Lokal admin: `src/api/appsettings.Development.json` → `Admin:UserIds` (API açılışta rolü verir).
 - 4200'deki `ng serve` 2026-09-29'dan beri sahipsiz bir süreçten çalışıyor olabilir (Tamamlananlar 31);
   `Port 4200 is already in use` görülürse önce o süreç kapatılır.
@@ -729,6 +730,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
 34. **`v0.3.0`** (`chore/release-v0.3.0`, 2026-10-01): yol haritası 9. adım (Tamamlananlar 28–33).
     CHANGELOG git-cliff ile, etiket merge commit'inde, GitHub Release açıldı (giriş, öne çıkanlar,
     CHANGELOG linki; notlar lokal `.notes/release-v0.3.0.md`).
+35. **Kapsamlı inceleme** (2026-10-02, kullanıcı isteği; commit `82ee6fe`, `v0.3.0` + 2): 16 inceleyici
+    (kimlik doğrulama, erişim, fotoğraflar, veri modeli, hosting, client, çeviriler, testler, dokümanlar,
+    gizlilik, erişilebilirlik, performans, bağımlılıklar, CLAUDE.md uyumu) repoyu salt okunur taradı;
+    349 aday tekilleştirilip 258 bulgu oldu, düşük ve üstü olanlar koda karşı ayrıca doğrulandı. Sonuç:
+    kritik ve yüksek yok; doğrulanmış 16 orta, 143 düşük, 10 bilgi; 2 çürütüldü, bilgi seviyesindeki 89
+    bulgu oturum limiti yüzünden doğrulanmadı (eksik alan taraması da yapılmadı). Çıkan 25 iş GitHub
+    issue'su oldu (#10–#34; etiketler `P0`–`P2`, milestone `v1.0.0`), sırası "Aksiyon planı"nda. Rapor ve
+    issue metinleri lokal (`.notes/reviews/`, `.notes/issues/`; betik `.notes/scripts/create-issues.js`).
 
 ## Yol haritası
 
@@ -778,8 +787,8 @@ mağaza için TWA.
   - [x] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları, footer linkleri, kayıtta zorunlu kutu
         (Tamamlananlar 33). İşletmeci adı ve e-posta yayın öncesi doldurulacak.
   - [x] `v0.3.0` yayını ve push (2026-10-01, Tamamlananlar 34).
-- [ ] 8b. `tests/e2e` (Playwright).
-- [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml`
+- [ ] 8b. `tests/e2e` (Playwright; #34).
+- [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml` (#21)
       (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
 - [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
@@ -799,13 +808,56 @@ lazy bir alan, uçları policy arkasında: canlıya eklemek düşük riskli. 15.
 mevcut kuralları değiştiren yorum/şikayet/e-posta doğrulama. Admin uçları bir erişim matrisi olduğu için
 önce API testleri (8a) yapıldı.
 
+## Aksiyon planı (inceleme 2026-10-02)
+
+2026-10-02'deki kapsamlı incelemeden (Tamamlananlar 35) çıkan işler. **Ayrıntı GitHub issue'larında**
+(bulgular, kanıt, etki, öneri; Türkçe), burası sırayı ve durumu tutar: yeni sohbet GitHub'a bakmadan
+buradan okur, işe başlarken ilgili issue açılır. Her iş kendi branch'inde (adı aşağıda, iş netleşince
+değişebilir); commit mesajına `Closes #N` yazılır, `main` push edilince issue kendiliğinden kapanır.
+Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar `v1.0.0` milestone'unda.
+
+- **P0, ilk yayından (hosting, `v1.0.0`) önce:**
+  - [ ] [#10](https://github.com/halid-ali/coin-portal/issues/10) S `fix/spa-fallback-dotted-paths`: noktalı adreslerde (`/u/ayse.yilmaz`) SPA fallback 404 veriyor.
+  - [ ] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store`.
+  - [ ] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi.
+  - [ ] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı.
+  - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
+  - [ ] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi.
+  - [ ] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü.
+  - [ ] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur.
+  - [ ] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (kullanıcı kararı; Impressum ile birlikte).
+  - [ ] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması.
+  - [ ] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları.
+  - [ ] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10).
+- **P1, ilk yayından hemen sonraki sürümler:**
+  - [ ] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları.
+  - [ ] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler.
+  - [ ] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması.
+  - [ ] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü.
+  - [ ] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi.
+  - [ ] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları.
+  - [ ] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri.
+  - [ ] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları).
+  - [ ] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce).
+- **P2, planlı:**
+  - [ ] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı.
+  - [ ] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi.
+  - [ ] [#33](https://github.com/halid-ali/coin-portal/issues/33) S `fix/public-page-weight`: girişsiz sayfaların ağırlığı.
+  - [ ] [#34](https://github.com/halid-ali/coin-portal/issues/34) L `feat/e2e-playwright`: Playwright e2e (yol haritası 8b).
+
+Notlar: Issue'lar incelemenin ham bulgu kimliklerini (`api-auth-1` gibi) taşır; tam rapor lokal
+`.notes/reviews/2026-10-02-full-review.md`. Bilgi seviyesindeki 89 bulgu doğrulanmadı ve hiçbir işe
+bağlanmadı; sadece o raporda. Açık konular ve yayın öncesi listesine dokunan düzeltmeler (6 ve 11'in
+kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi maddeleri) #20'de yapılır.
+
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. Yol haritasında adaylar: **10** `release.yml` (etiketten
-`dotnet publish` paketi; 9a'daki publish hedefiyle client artık pakette), **8b** e2e (Playwright), **11**
+Yeni sohbette kullanıcıyla seçilecek. **Önce "Aksiyon planı"ndaki P0 işleri** (2026-10-02 incelemesi): küçük
+ve bağımsız olanlar (#10, #12, #15) hızlı başlangıç; #20 (doküman senkronu) hosting görüşmelerinden önce;
+#21 yol haritası 10'un (`release.yml`) kendisi. Yol haritasındaki diğer adaylar: **8b** e2e (#34), **11**
 hosting seçimi ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Yayın öncesi kullanıcıda
-bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum kararı (Açık konular 14). **Önce Açık
-konular 15'e bak** (`piscina` güvenlik uyarısı: Angular 21 yaması çıktıysa küçük bir `fix/` branch'i). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
+bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum ve kullanım şartları kararı (Açık konular 14,
+#18). **Açık konular 15'e de bak** (`piscina` güvenlik uyarısı: Angular 21 yaması çıktıysa küçük bir `fix/` branch'i). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
 Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
