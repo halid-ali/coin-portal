@@ -18,6 +18,7 @@ var builder = WebApplication.CreateBuilder(
 builder.Services.AddAppLogging();
 builder.Services.AddAppDataProtection();
 builder.Services.AddAppRateLimiting();
+builder.Services.AddAppSecurityHeaders();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -146,11 +147,15 @@ catch (Exception ex)
     throw;
 }
 
-// HTTPS redirection only outside development; the dev proxy talks plain HTTP
+// HTTPS redirection only outside development; the dev proxy talks plain HTTP. On IIS the https
+// port comes from the site binding (or ASPNETCORE_HTTPS_PORT)
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// HSTS (not in development), no framing, no sniffing, no caching of API data: Hosting/
+app.UseAppSecurityHeaders();
 
 // Configure the HTTP request pipeline.
 // API docs and test UI, development only

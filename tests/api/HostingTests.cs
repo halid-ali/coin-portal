@@ -183,6 +183,72 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     }
 
     [Fact]
+    public async Task SecurityHeaders_OnPagesAndApi_AndApiDataIsNeverCached()
+    {
+        await using var host = HostWithClient();
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+
+        using var page = await client.GetAsync("/collections/5");
+        using var api = await client.GetAsync("/api/countries");
+
+        foreach (var response in new[] { page, api })
+        {
+            await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            Assert.Equal("nosniff", Single(response, "X-Content-Type-Options"));
+            Assert.Equal("DENY", Single(response, "X-Frame-Options"));
+            Assert.Equal("frame-ancestors 'none'", Single(response, "Content-Security-Policy"));
+            Assert.Equal("strict-origin-when-cross-origin", Single(response, "Referrer-Policy"));
+            Assert.Contains("camera=()", Single(response, "Permissions-Policy"));
+        }
+        Assert.True(api.Headers.CacheControl?.NoStore);
+        // The page keeps its own policy (revalidated, see ClientRoutes_ServeIndexHtml_Revalidated)
+        Assert.True(page.Headers.CacheControl?.NoCache);
+    }
+
+    [Fact]
+    public async Task Hsts_OnARealHostName_NotOnLocalhost()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>());
+        using var site = host.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://coins.example"),
+            AllowAutoRedirect = false,
+        });
+        using var local = host.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false,
+        });
+
+        using var siteResponse = await site.GetAsync("/api/health");
+        using var localResponse = await local.GetAsync("/api/health");
+
+        // 30 days at first (Hsts:MaxAgeDays)
+        Assert.Equal("max-age=2592000", Single(siteResponse, "Strict-Transport-Security"));
+        Assert.False(localResponse.Headers.Contains("Strict-Transport-Security"));
+    }
+
+    [Fact]
+    public async Task PlainHttp_IsRedirectedToHttps()
+    {
+        // On IIS the port comes from the site's binding; the test server has none
+        await using var host = factory.WithSettings(new Dictionary<string, string?> { ["https_port"] = "443" });
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("http://localhost"),
+            AllowAutoRedirect = false,
+        });
+
+        using var response = await client.GetAsync("/api/health?x=1");
+
+        Assert.Equal(HttpStatusCode.TemporaryRedirect, response.StatusCode);
+        Assert.Equal("https://localhost/api/health?x=1", response.Headers.Location?.ToString());
+    }
+
+    private static string Single(HttpResponseMessage response, string header) =>
+        Assert.Single(response.Headers.TryGetValues(header, out var values) ? values : []);
+
+    [Fact]
     public async Task MissingFiles_Return404NotTheClient()
     {
         await using var host = HostWithClient();
