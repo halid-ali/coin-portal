@@ -156,7 +156,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Yayın hedefi: tek site, Windows hosting. `dotnet publish` Angular'ı da derleyip paketin `wwwroot`'una
   koyar (`.csproj` `PublishWebClient`); API onu `Hosting/SpaHosting` ile sunar: client adreslerine
   `index.html` (fallback), `/api/…` altında bilinmeyen adres 404, hash'li dosyalar `immutable`, diğerleri
-  `no-cache`. Lokalde `wwwroot` yok, client'ı `ng serve` sunar.
+  `no-cache`. Lokalde `wwwroot` yok, client'ı `ng serve` sunar. Genel fallback son parçası dosya adına
+  benzeyen (noktalı) adresleri atlar, eksik bir `.js` 404 kalsın diye; `/u/…` (noktalı kullanıcı adları)
+  kendi fallback'ini alır. **Son parçasında nokta olabilen yeni bir client rotası** da `SpaHosting`'e
+  eklenir ve `HostingTests`'teki listeye girer.
 - **Yönetici paneli = moderasyon ve işletim paneli** (tüm verilerin yönetimi değil; kararlar
   PROJECT_STATUS "Yönetici paneli: kararlar"). Sadece `Admin` rolü. Rol **sadece ayardan** verilir:
   `Admin:UserIds` (kullanıcı adı değil Id: boşta kalan bir adı herkes kaydedebilir), açılışta
@@ -260,7 +263,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `factory.WithDbAsync(...)`. Ana test host'unda rate limit'ler çok yüksek ve log dosyası yok; başka
   ayar ya da `wwwroot` gereken testler ikinci bir host açar (`factory.WithSettings(ayarlar, webRoot)`,
   bkz. `HostingTests`). İkinci host'un açılışı admin senkronunu çalıştırır, o yüzden bu testler de
-  `[Collection(AdminCollection.Name)]` içinde.
+  `[Collection(AdminCollection.Name)]` içinde. Test sunucusu ham istek adresini (`RawTarget`) vermez:
+  istek logu orada sorgu dizesini yazmaz (Kestrel ve IIS'te yazar), sorgudaki değerlerin log maskesi
+  uçtan uca test edilemez.
 
 ## Client kuralları
 

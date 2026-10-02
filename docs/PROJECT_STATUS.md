@@ -1,8 +1,8 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (kapsamlı inceleme: 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda;
-son yayın `v0.3.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası ve
-sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-02 (#10 noktalı profil adresleri düzeltildi; kapsamlı incelemeden çıkan 25 iş
+GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da public:
+https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
@@ -738,6 +738,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     bulgu oturum limiti yüzünden doğrulanmadı (eksik alan taraması da yapılmadı). Çıkan 25 iş GitHub
     issue'su oldu (#10–#34; etiketler `P0`–`P2`, milestone `v1.0.0`), sırası "Aksiyon planı"nda. Rapor ve
     issue metinleri lokal (`.notes/reviews/`, `.notes/issues/`; betik `.notes/scripts/create-issues.js`).
+36. **Noktalı profil adresleri** (`fix/spa-fallback-dotted-paths`, 2026-10-02; #10): yayın paketinde
+    `/u/ayse.yilmaz` doğrudan açılınca ya da yenilenince 404 veriyordu. Genel fallback (`MapFallbackToFile`)
+    son parçası dosya adına benzeyen adresleri atlıyor; `/u/{**path}` için ayrı fallback eklendi, eksik
+    dosyalar (`/chunk-….js`) yine 404. Lokalde görünmüyordu (`ng serve`). Aynı issue'nun test boşlukları:
+    girişsiz görsel isteklerinde `photos` sınırı (429) ve istek logunda paylaşım anahtarının maskelenmesi
+    (log dosyasına karşı, uçtan uca). Test sunucusu sorgu dizesini loga yazmadığı için `?s=` maskesi orada
+    test edilemiyor (CLAUDE.md "API testleri"). Testler: API 127 (+5); düzeltme ve maske kapatılınca
+    ilgili testler kırıldı.
 
 ## Yol haritası
 
@@ -817,7 +825,7 @@ değişebilir); commit mesajına `Closes #N` yazılır, `main` push edilince iss
 Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar `v1.0.0` milestone'unda.
 
 - **P0, ilk yayından (hosting, `v1.0.0`) önce:**
-  - [ ] [#10](https://github.com/halid-ali/coin-portal/issues/10) S `fix/spa-fallback-dotted-paths`: noktalı adreslerde (`/u/ayse.yilmaz`) SPA fallback 404 veriyor.
+  - [x] [#10](https://github.com/halid-ali/coin-portal/issues/10) S `fix/spa-fallback-dotted-paths`: noktalı adreslerde (`/u/ayse.yilmaz`) SPA fallback 404 veriyor (Tamamlananlar 36).
   - [ ] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store`.
   - [ ] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi.
   - [ ] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı.
