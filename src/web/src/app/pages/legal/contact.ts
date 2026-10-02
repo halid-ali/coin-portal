@@ -48,6 +48,10 @@ import { OPERATOR, SOURCE_URL } from '../../core/legal/operator';
               >{{ sourceUrl }}</a
             >
             <p class="form-hint">{{ 'contact.sourceHint' | transloco }}</p>
+            <!-- Written by the Angular build; served by the published site (not by ng serve) -->
+            <a href="/3rdpartylicenses.txt" target="_blank" rel="noopener" class="link text-sm">{{
+              'contact.licenses' | transloco
+            }}</a>
           </dd>
         </div>
       </dl>

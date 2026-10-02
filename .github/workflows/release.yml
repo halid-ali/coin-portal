@@ -1,0 +1,102 @@
+name: Release
+
+# A version tag (vX.Y.Z, see CLAUDE.md "Sürüm ve yayın") builds the deployable package and attaches it
+# to the tag's GitHub Release: a new draft if there is none yet (notes are written and published by
+# hand), otherwise the files are added to the existing one. workflow_dispatch rebuilds the package of
+# an existing tag.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to package, e.g. v0.4.0
+        required: true
+
+permissions:
+  contents: write # the release and its files
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0 # MinVer derives the version from the tag
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Restore tools and packages
+        run: |
+          dotnet tool restore
+          (cd src/web && npm ci)
+
+      - name: Publish (API and client)
+        run: dotnet publish src/api --configuration Release --output "$RUNNER_TEMP/package/site"
+        env:
+          SixLaborsLicenseKey: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
+      # The package must be the tag's version, with the client inside: a wrong one cannot be fixed
+      # once the release is out
+      - name: Check the package
+        run: |
+          version="${TAG#v}"
+          site="$RUNNER_TEMP/package/site"
+          test -f "$site/wwwroot/index.html"
+          test -f "$site/wwwroot/3rdpartylicenses.txt"
+          grep -q "$version" "$site"/wwwroot/main-*.js
+          # MinVer's informational version, e.g. 0.4.0+<commit>
+          grep -aq "$version+" "$site/CoinPortal.Api.dll" || {
+            echo "CoinPortal.Api.dll does not carry version $version"; exit 1; }
+
+      # Run against the hosting database before the new version starts; safe to run again
+      - name: Migration script
+        run: >-
+          dotnet ef migrations script --idempotent --project src/api
+          --output "$RUNNER_TEMP/package/migrate.sql"
+        env:
+          # Design-time only; nothing connects to this database
+          ConnectionStrings__DefaultConnection: Server=localhost;Database=release;Trusted_Connection=True
+
+      - name: Zip
+        run: |
+          cp LICENSE THIRD-PARTY-NOTICES.md "$RUNNER_TEMP/package/"
+          cd "$RUNNER_TEMP/package"
+          zip -qr "$RUNNER_TEMP/coinportal-$TAG.zip" .
+          cd "$RUNNER_TEMP"
+          sha256sum "coinportal-$TAG.zip" > "coinportal-$TAG.zip.sha256"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coinportal-${{ env.TAG }}
+          path: |
+            ${{ runner.temp }}/coinportal-${{ env.TAG }}.zip
+            ${{ runner.temp }}/coinportal-${{ env.TAG }}.zip.sha256
+
+      - name: Attach to the GitHub Release
+        run: |
+          files=("$RUNNER_TEMP/coinportal-$TAG.zip" "$RUNNER_TEMP/coinportal-$TAG.zip.sha256")
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+          else
+            gh release create "$TAG" "${files[@]}" --draft --verify-tag --title "$TAG" \
+              --notes "Draft: the notes follow (CLAUDE.md, Sürüm ve yayın)."
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

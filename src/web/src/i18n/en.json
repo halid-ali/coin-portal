@@ -564,6 +564,7 @@
     "email": "E-mail",
     "emailHint": "For questions, bug reports, reports of inappropriate content and requests about your data.",
     "source": "Source code",
-    "sourceHint": "The project is open source; you can report bugs there too."
+    "sourceHint": "The project is open source; you can report bugs there too.",
+    "licenses": "Licenses of the open-source software used"
   }
 }

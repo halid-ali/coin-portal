@@ -564,6 +564,7 @@
     "email": "E-posta",
     "emailHint": "Soruların, hata bildirimlerin, uygunsuz içerik bildirimlerin ve verilerinle ilgili taleplerin için.",
     "source": "Kaynak kodu",
-    "sourceHint": "Proje açık kaynaklı; hataları orada da bildirebilirsin."
+    "sourceHint": "Proje açık kaynaklı; hataları orada da bildirebilirsin.",
+    "licenses": "Kullanılan açık kaynak yazılımların lisansları"
   }
 }

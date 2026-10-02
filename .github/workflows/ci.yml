@@ -14,19 +14,22 @@ concurrency:
 permissions:
   contents: read
 
+# Actions are pinned to a commit (the version in the comment); Dependabot updates both
 jobs:
   api:
     name: API
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     env:
       # ImageSharp 4 fails Release builds without a license key (see README). Pull requests
       # (Dependabot, forks) get no secrets, so they build Debug, where a missing key is only a warning.
       CONFIGURATION: ${{ github.event_name == 'pull_request' && 'Debug' || 'Release' }}
     services:
       # The API tests need a real SQL Server (collation, CHARINDEX, filtered indexes). The sa
-      # password belongs to this throwaway container only, so it is not a secret
+      # password belongs to this throwaway container only, so it is not a secret. A fixed cumulative
+      # update, not "latest": a new image is a deliberate change (Dependabot does not watch it)
       sql:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04
         env:
           ACCEPT_EULA: Y
           MSSQL_SA_PASSWORD: Ci_Tests_Passw0rd
@@ -38,11 +41,11 @@ jobs:
           --health-timeout 5s
           --health-retries 12
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # MinVer derives the version from the tags in the history
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
 
@@ -63,21 +66,51 @@ jobs:
           ConnectionStrings__DefaultConnection: Server=localhost;Database=ci;Trusted_Connection=True
 
       - name: Test
-        run: dotnet test --project tests/api --no-build --configuration "$CONFIGURATION"
+        run: >-
+          dotnet test --project tests/api --no-build --configuration "$CONFIGURATION"
+          --report-xunit-trx --results-directory "$RUNNER_TEMP/test-results"
         env:
           # Server only: each run creates and drops its own database
           COINPORTAL_TEST_SQL: Server=localhost,1433;User Id=sa;Password=Ci_Tests_Passw0rd;TrustServerCertificate=True
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: api-test-results
+          path: ${{ runner.temp }}/test-results
+          if-no-files-found: ignore
+
+      # The release package (API + client in wwwroot), as release.yml builds it: proves on every
+      # main push that publishing still works, not only on the day of a release
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: github.event_name != 'pull_request'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Publish package
+        if: github.event_name != 'pull_request'
+        run: |
+          (cd src/web && npm ci)
+          dotnet publish src/api --configuration Release --output "$RUNNER_TEMP/site"
+          test -f "$RUNNER_TEMP/site/wwwroot/index.html"
+          test -f "$RUNNER_TEMP/site/wwwroot/3rdpartylicenses.txt"
+        env:
+          SixLaborsLicenseKey: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
   web:
     name: Web
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: src/web
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -86,11 +119,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      # npm exec --no: the project's own tools only, never a download (npx would fetch any package)
       - name: Check formatting
-        run: npx prettier --check "src/**/*.{ts,html,css}"
+        run: npm exec --no -- prettier --check "src/**/*.{ts,html,css}"
 
       - name: Build
-        run: npx ng build
+        run: npm exec --no -- ng build
 
       - name: Test
-        run: npx ng test --watch=false
+        run: npm exec --no -- ng test --watch=false

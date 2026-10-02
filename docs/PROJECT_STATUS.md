@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#20 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işlerinin hepsi bitti: #10–#21; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -857,6 +857,20 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     `Export` politikası, iki admin silme kodu, `dark:` istisnaları, "eskiyen satırlar da taranır" kuralı.
     README güncel özellikler, `npx ng`, lokal admin; yeni `SECURITY.md` (GitHub'ın özel bildirim formu).
     Kod: `SettingsContracts`'ta yanlış kayda düşmüş XML yorumu.
+48. **Yayın zinciri ve `release.yml`** (`chore/release-workflow`, 2026-10-02; #21, yol haritası 10): etiket push
+    edilince `.github/workflows/release.yml` paketi üretir: `coinportal-vX.Y.Z.zip` (`site/` = `dotnet publish`
+    çıktısı, API + client; idempotent `migrate.sql`; `LICENSE`; `THIRD-PARTY-NOTICES.md`) ve `.sha256`; paketin
+    etiketin sürümünü taşıdığını (DLL ve client) ve client'ın içinde olduğunu kontrol eder, etiketin
+    Release'ine ekler, Release yoksa taslak açar (notlar elle; lokal `create-release.js` taslağı yayınlar).
+    `workflow_dispatch` ile bir etiketin paketi yeniden üretilir. CI: action'lar commit SHA'sına sabit
+    (yorumda sürüm), SQL Server `2022-CU27-ubuntu-22.04`, iş zaman aşımları, API test sonuçları TRX
+    artefaktı, `main`'de yayın paketi denemesi; client araçları `npm exec --no --` ile (`npx` eksik paketi
+    registry'den indirirdi; publish hedefi de böyle). Publish paketi Angular'ın `3rdpartylicenses.txt`'ini
+    `wwwroot`'a koyar, İletişim sayfası linkler (`ng serve`'de yok). Yeni `THIRD-PARTY-NOTICES.md`, README'de
+    yayın ve lisans notu. git-cliff `2.14.2`'ye sabit. `package.json`: eskimiş `packageManager` (npm 10)
+    kalktı, `engines.node >=22.19`. Lokal doğrulama: publish paketi (`wwwroot/index.html`,
+    `3rdpartylicenses.txt`, sürüm kontrolleri), `migrate.sql` (12 migration, idempotent), TRX raporu.
+    Workflow'un kendisi GitHub'da ilk etikette denenir; `ci.yml` değişikliği bu push'ta koşar.
 
 ## Yol haritası
 
@@ -906,7 +920,8 @@ mağaza için TWA.
         (Tamamlananlar 33). İşletmeci adı ve e-posta yayın öncesi doldurulacak.
   - [x] `v0.3.0` yayını ve push (2026-10-01, Tamamlananlar 34).
 - [ ] 8b. `tests/e2e` (Playwright; #34).
-- [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml` (#21).
+- [x] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ → `release.yml` (#21,
+      2026-10-02, Tamamlananlar 48; ilk gerçek koşusu bir sonraki etikette).
 - [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
@@ -945,7 +960,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (Tamamlananlar 46; Impressum kararı ayrı, Açık konular 14).
   - [x] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması (Tamamlananlar 43).
   - [x] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları (Tamamlananlar 47).
-  - [ ] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10).
+  - [x] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10; Tamamlananlar 48).
 - **P1, ilk yayından hemen sonraki sürümler:**
   - [ ] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları.
   - [ ] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler.
@@ -969,14 +984,20 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **Önce "Aksiyon planı"ndaki P0 işleri** (2026-10-02 incelemesi): küçük
-olanlar ve veri, moderasyon, hosting düzeltmeleri bitti (#10–#16, #19); kalan P0'lar #17 (gizlilik metni,
-`OPERATOR`), #18 (kullanım şartları, kullanıcı kararı), #20 (doküman senkronu, hosting görüşmelerinden önce),
-#21 yol haritası 10'un (`release.yml`) kendisi. Yol haritasındaki diğer adaylar: **8b** e2e (#34), **11**
-hosting seçimi ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Yayın öncesi kullanıcıda
-bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum ve kullanım şartları kararı (Açık konular 14,
-#18). **Açık konular 15'e de bak** (`piscina` güvenlik uyarısı: Angular 21 yaması çıktıysa küçük bir `fix/` branch'i). Alt adımlar ve kullanıcı kararları "Yol haritası"nda.
-Panel için kullanıcının bir sonraki geri bildirimleri de buraya.
+Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işlerinin hepsi bitti** (#10–#21, 2026-10-02). Adaylar:
+
+- **Ara sürüm `v0.4.0`:** P0 düzeltmeleri bir sürümde toplanır; `release.yml`'in ilk gerçek koşusu (taslak
+  Release + paket), notlar kullanıcı onayıyla.
+- **11. Hosting seçimi** ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Kullanıcıda bekleyen:
+  işletmeci adı ve e-posta (`OPERATOR`), Impressum ve DSA kararı (Açık konular 14), gizlilik politikası ve
+  kullanım şartlarının okunması.
+- **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
+  #27; çeviriler #28; testler #29, #30.
+- **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
+  5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
+
+Alt adımlar ve kullanıcı kararları "Yol haritası"nda. Panel için kullanıcının bir sonraki geri bildirimleri de
+buraya.
 
 Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angular 22 yükseltmesini andı;
 2026-09-28'de watermark "biraz daha ertelensin" dendi):

@@ -101,6 +101,12 @@ repository root) or set the `SixLaborsLicenseKey` environment variable to its co
 Release on `main` with the key from a repository secret. Image handling sits behind a single
 interface (`IImageProcessor`), so the library can be replaced.
 
+## Releases
+
+Pushing a version tag (`vX.Y.Z`) runs `.github/workflows/release.yml`: it publishes the site (API with
+the client in `wwwroot`), adds an idempotent `migrate.sql` for the database and attaches
+`coinportal-vX.Y.Z.zip` with its SHA-256 to the GitHub Release.
+
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md): release notes, generated from the commit history
@@ -113,4 +119,6 @@ These internal documents are written in Turkish; code, comments and commit messa
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The third-party software it uses and their licenses are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md); ImageSharp is used under the Apache 2.0 terms of the
+Six Labors Split License.
