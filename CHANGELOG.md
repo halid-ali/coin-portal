@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-10-02
+
+### Added
+
+- **api:** Send security headers, HSTS and no-store for API data
+- **api:** Check hosting settings at startup and retry transient SQL errors
+- Add the terms of use and accept them at sign-up
+
+### Fixed
+
+- **api:** Serve the client for profile addresses with dots
+- **auth:** Report a lockout only to someone who knows the password
+- **api:** Delete photo folders even while a photo is being served
+- Keep the coins of a hidden collection in it until the lock is lifted
+- Require an explicit choice before deleting a collection's coins
+- **api:** Bound image decoding, account size and write rates
+- **client:** Say what the admin collection counts cover
+- **client:** Show the licenses link only where the file exists
+
 ## [0.3.0] - 2026-10-01
 
 ### Added
