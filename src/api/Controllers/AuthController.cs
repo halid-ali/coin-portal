@@ -15,7 +15,8 @@ namespace CoinPortal.Api.Controllers;
 public class AuthController(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : ControllerBase
+    SignInManager<ApplicationUser> signInManager,
+    IPasswordHasher<ApplicationUser> passwordHasher) : ControllerBase
 {
     [HttpPost("register")]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
@@ -68,19 +69,25 @@ public class AuthController(
             : await userManager.FindByNameAsync(key);
 
         if (user is null)
+        {
+            // The same hashing work as a real check: the response time does not tell that the
+            // account does not exist
+            passwordHasher.VerifyHashedPassword(new ApplicationUser(), DummyPasswordHash(), request.Password);
             return InvalidCredentials();
+        }
+
+        // A lock is only reported to someone who knows the password; anyone else gets the usual
+        // 401, so failed attempts cannot reveal the account or its lock. Not counted as failures.
+        if (await userManager.IsLockedOutAsync(user))
+            return await userManager.CheckPasswordAsync(user, request.Password)
+                ? LockedOut(user)
+                : InvalidCredentials();
 
         var result = await signInManager.PasswordSignInAsync(
             user, request.Password, request.RememberMe, lockoutOnFailure: true);
 
-        // Without a code: the temporary lockout after failed attempts
-        if (result.IsLockedOut)
-            return user.LockedAtUtc is null
-                ? Problem(title: "Account temporarily locked. Try again later.",
-                          statusCode: StatusCodes.Status423Locked)
-                : this.CodedProblem("account_locked", "This account has been locked by an administrator.",
-                                    StatusCodes.Status423Locked);
-
+        // Not locked a moment ago: this failed attempt started the lockout (or one ran in
+        // parallel), so the password was not accepted
         if (!result.Succeeded)
             return InvalidCredentials();
 
@@ -153,6 +160,20 @@ public class AuthController(
     // Roles from the database, not the cookie: current even before the cookie is refreshed
     private async Task<UserResponse> ToResponseAsync(ApplicationUser user) =>
         UserResponse.From(user, await userManager.GetRolesAsync(user));
+
+    // Without a code: the temporary lockout after failed attempts
+    private ObjectResult LockedOut(ApplicationUser user) =>
+        user.LockedAtUtc is null
+            ? Problem(title: "Account temporarily locked. Try again later.",
+                      statusCode: StatusCodes.Status423Locked)
+            : this.CodedProblem("account_locked", "This account has been locked by an administrator.",
+                                StatusCodes.Status423Locked);
+
+    private static string? dummyPasswordHash;
+
+    // A hash of a random password, made once by the configured hasher (same algorithm and cost)
+    private string DummyPasswordHash() =>
+        dummyPasswordHash ??= passwordHasher.HashPassword(new ApplicationUser(), Guid.NewGuid().ToString());
 
     // Same message for unknown user and wrong password (no account enumeration)
     private ObjectResult InvalidCredentials() =>

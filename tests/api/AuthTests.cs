@@ -166,11 +166,34 @@ public class AuthTests(CoinPortalFactory factory)
 
         for (var i = 0; i < 5; i++)
         {
+            // The attempt that starts the lockout looks like any failure
             using var failed = await client.LoginAsync(alice.UserName, "Wrongpass123");
+            await failed.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
         }
         using var response = await client.LoginAsync(alice.UserName, TestUser.Password);
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.Locked);
+    }
+
+    [Fact]
+    public async Task Login_LockedAccount_WrongPassword_LooksLikeUnknownUser()
+    {
+        var alice = await factory.SignUpAsync();
+        using var client = await factory.CreateAnonymousClientAsync();
+        for (var i = 0; i < 5; i++)
+        {
+            using var failed = await client.LoginAsync(alice.UserName, "Wrongpass123");
+        }
+
+        // Without the password nobody learns that the account exists or is locked
+        using var wrongPassword = await client.LoginAsync(alice.UserName, "Wrongpass123");
+        using var unknownUser = await client.LoginAsync("nobody" + Guid.NewGuid().ToString("N")[..8], "Wrongpass123");
+
+        await wrongPassword.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
+        Assert.Equal(await TitleAsync(unknownUser), await TitleAsync(wrongPassword));
+        // Failures during the lockout do not count: the correct password still reports the lock
+        using var correct = await client.LoginAsync(alice.UserName, TestUser.Password);
+        await correct.ShouldHaveStatusAsync(HttpStatusCode.Locked);
     }
 
     [Fact]

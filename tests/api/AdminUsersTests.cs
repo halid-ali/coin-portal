@@ -89,10 +89,13 @@ public class AdminUsersTests(CoinPortalFactory factory)
         }
         using var session = await alice.Client.GetAsync("/api/auth/me");
         using var signIn = await other.LoginAsync(alice.UserName, TestUser.Password);
+        using var guess = await other.LoginAsync(alice.UserName, "Wrongpass123");
         var detail = await admin.Client.GetJsonAsync<AdminUserDetailResponse>($"/api/admin/users/{alice.User.Id}");
 
         await session.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
         Assert.Equal("account_locked", await signIn.ReadProblemCodeAsync(HttpStatusCode.Locked));
+        // The lock is told only with the right password
+        await guess.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
         Assert.Equal(AdminUserStatus.Locked, detail.Status);
         Assert.NotNull(detail.LockedAtUtc);
 
