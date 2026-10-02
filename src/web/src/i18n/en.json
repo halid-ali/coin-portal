@@ -289,6 +289,7 @@
     "createFirst": "Create your first collection",
     "errors": {
       "last_collection": "You can't delete your only collection. Create a new one first.",
+      "has_coins": "Coins were added to this collection in the meantime. Close the dialog, open it again and choose what happens to the coins.",
       "invalid_target": "The collection to move the coins to isn't valid.",
       "not_unlisted": "The link can only be renewed for collections shared \"Link only\".",
       "moderation_locked": "An administrator has hidden this collection; it cannot be shared for now.",

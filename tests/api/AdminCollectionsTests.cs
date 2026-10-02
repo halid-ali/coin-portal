@@ -92,7 +92,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
             (await edit.ReadJsonAsync<Contracts.Coins.CoinResponse>() is var c ? (c.CollectionId, c.Title) : default));
 
         // Deleting it with its coins takes the content away: allowed
-        using var deleteAll = await alice.Client.DeleteAsync($"/api/collections/{hidden.Id}");
+        using var deleteAll = await alice.Client.DeleteAsync($"/api/collections/{hidden.Id}?deleteCoins=true");
         await deleteAll.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         using var gone = await alice.Client.GetAsync($"/api/coins/{coin.Id}");
         await gone.ShouldHaveStatusAsync(HttpStatusCode.NotFound);

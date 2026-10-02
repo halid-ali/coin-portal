@@ -419,6 +419,10 @@
       </div>
     </div>
 
+    @if (deleteError(); as message) {
+      <div role="alert" class="alert-error">{{ message }}</div>
+    }
+
     <!-- Results -->
     @if (loadError()) {
       <div role="alert" class="alert-error">{{ 'coinList.loadError' | transloco }}</div>
@@ -789,7 +793,7 @@
   @if (deleteTargets(); as all) {
     @if (collection(); as c) {
       <app-collection-delete-dialog
-        [collection]="c"
+        [collection]="freshOf(all, c)"
         [collections]="all"
         (closed)="onDeleted($event)"
       />

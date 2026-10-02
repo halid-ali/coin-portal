@@ -216,15 +216,17 @@ export class CollectionDeleteDialog {
     if (!this.confirmed()) {
       return;
     }
-    const moveTo =
-      this.collection().coinCount && this.mode() === 'move'
-        ? (this.targetId() ?? undefined)
-        : undefined;
+    const hasCoins = this.collection().coinCount > 0;
+    const moveTo = hasCoins && this.mode() === 'move' ? (this.targetId() ?? undefined) : undefined;
+    // Only what the user chose here: if coins arrived meanwhile, the API refuses (has_coins)
+    const deleteCoins = hasCoins && this.mode() === 'delete';
 
     this.deleting.set(true);
     this.error.set(null);
     try {
-      await firstValueFrom(this.collectionService.delete(this.collection().id, moveTo));
+      await firstValueFrom(
+        this.collectionService.delete(this.collection().id, { moveTo, deleteCoins }),
+      );
       this.result = true;
       this.dialog().nativeElement.close();
     } catch (err) {

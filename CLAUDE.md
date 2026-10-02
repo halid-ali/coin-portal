@@ -307,7 +307,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   sayfasının son adresiyle yapılır (`CollectionReturn` servisi, `returnTree()`); yoksa coin'in
   koleksiyonuna dönülür. Düz bir link koleksiyonu, görünümü ve filtreleri kaybettirir.
 - Koleksiyon silme: ad birebir yazılmadan silinemez (boş olsa da); dolu koleksiyonda varsayılan seçenek
-  coin'leri taşımak. Tek koleksiyon silinemez (API `last_collection`).
+  coin'leri taşımak. Tek koleksiyon silinemez (API `last_collection`). Coin'li bir koleksiyonu coin'leriyle
+  silmek açık seçim ister (`deleteCoins=true`; taşıma hedefi de yoksa 409 `has_coins`): eski bir sayfa
+  coin'leri kazara silemez.
 - **Renkler tema duyarlı token'larla:** `shade` (nötr, slate yerine), `brand` (vurgu rengi, varsayılan
   amber), `danger` (red), `info` (sky), `success` (emerald), `primary` / `primary-hover` / `on-primary`
   (birincil butonun dolgusu ve yazısı); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema

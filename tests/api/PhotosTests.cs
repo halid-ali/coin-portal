@@ -84,7 +84,7 @@ public class PhotosTests(CoinPortalFactory factory)
         var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
         var cover = await UploadCoverAsync(alice, doomed.Id);
 
-        using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}");
+        using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?deleteCoins=true");
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         Assert.Empty(StoredFiles(alice, photo.Id));

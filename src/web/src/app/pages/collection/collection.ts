@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -40,6 +41,7 @@ import {
   CollectionSummary,
 } from '../../core/collections/collection.models';
 import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
+import { httpErrorMessage } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
@@ -389,8 +391,23 @@ export class Collection {
     );
   }
 
+  /** Set when the delete dialog could not be prepared (the list request failed). */
+  protected readonly deleteError = signal<string | null>(null);
+
+  /**
+   * The dialog decides with fresh data (coin count, other collections): this page's copy may be
+   * older than another tab's changes.
+   */
   protected openDelete(): void {
-    this.collectionService.list().subscribe((list) => this.deleteTargets.set(list));
+    this.deleteError.set(null);
+    this.collectionService.list().subscribe({
+      next: (list) => this.deleteTargets.set(list),
+      error: (err: HttpErrorResponse) => this.deleteError.set(httpErrorMessage(err)),
+    });
+  }
+
+  protected freshOf(list: CoinCollection[], collection: CoinCollection): CoinCollection {
+    return list.find((c) => c.id === collection.id) ?? collection;
   }
 
   protected onEdited(collection: CoinCollection | null): void {
