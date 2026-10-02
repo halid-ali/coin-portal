@@ -16,11 +16,13 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
 - Kullanıcıya verilen terminal komutları **Git Bash** sözdiziminde (`/c/repos/...`).
 - Büyük bir değişiklikten önce kısa bir plan sun, kullanıcı onaylayınca uygula. Karar kullanıcıya aitse
   (UX, kapsam, kütüphane seçimi) sor; teknik varsayılanı belli olan konularda sorma, seçip söyle.
-- Kodu değiştirdikten sonra doğrula: backend için `dotnet build` ve `dotnet test`, client için `ng build`
-  ve `ng test`.
+- Kodu değiştirdikten sonra doğrula: backend için `dotnet build` ve `dotnet test`, client için `ng build`,
+  `ng test` ve `npx prettier --check "src/**/*.{ts,html,css}"` (CI bununla kırılır).
   Doğrulanamayan bir şey varsa (ör. tarayıcıda görsel kontrol) bunu açıkça söyle.
 - Bir özellik ya da anlamlı bir adım bitince [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) güncellenir
-  (tamamlananlar, yeni kararlar, açık konular, sıradaki adım, "Son güncelleme" satırı).
+  (tamamlananlar, yeni kararlar, açık konular, sıradaki adım, "Son güncelleme" satırı). O iş yüzünden
+  eskiyen satırlar da taranır: Yol haritası, Aksiyon planı, Açık konular, Yayın öncesi yapılacaklar, kapsam
+  listesi ve buradaki "Mimari" listeleri (rotalar, klasörler, politikalar, hata kodları).
   Kalıcı bir kural veya tuzak öğrenildiyse bu dosyaya eklenir.
 
 ## Çalışan uygulamalar
@@ -122,7 +124,7 @@ src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+
                         Hosting/ (Serilog, DataProtection, rate limiter,
                         client'ın wwwroot'tan sunulması), App_Data/{photos,logs,keys} (gitignored)
 src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
-src/web/src/app/        core/{admin,auth,coins,collections,public,http,i18n,settings}/, shared/,
+src/web/src/app/        core/{admin,auth,coins,collections,public,http,i18n,legal,settings,theme}/, shared/,
                         layout/{header,footer}/ + page-width.service, pages/ (+ admin/)
 src/web/src/i18n/       en.json, tr.json, de.json, bg.json (çeviriler); admin/<dil>.json (panelin scope'u)
 tests/api/              API testleri (CoinPortal.Api.Tests: xUnit v3 + WebApplicationFactory), Infrastructure/
@@ -136,10 +138,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
 - Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
-  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`).
+  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `account`).
   Eski `/collection…` adresleri yönlendirilir.
   Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`; `adminGuard`).
-  Girişsiz: `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
+  Girişsiz: `/privacy`, `/terms`, `/contact` (yasal sayfalar), `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
   koleksiyon), `/s/:token` (sadece linkle). Koleksiyon sayfası tek bileşen, route data `mode`
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
 - Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
@@ -187,7 +189,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yanında "Admin" rozeti, `ownerIsAdmin`), admin hesabı kilitlenemez. Admin kendi koleksiyonunun
   kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
   Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
-  kendi hesaplarını Ayarlar'dan silemez (`admin_account`), önce ayardan çıkarılırlar.
+  kendi hesaplarını Ayarlar'dan silemez (`admin_account`; paneldeki silmede `cannot_delete_admin`), önce
+  ayardan çıkarılırlar.
 
 ## Backend kuralları
 
@@ -235,7 +238,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Görünen ama yasak işlem → **403** (ör. kendi kilitli koleksiyonunu yayınlamak, `moderation_locked`).
 - **Rate limit:** girişsiz (`[AllowAnonymous]`) okuma uçları ve kimlik uçları bir politika alır:
   `[EnableRateLimiting(RateLimitPolicies.Public | Photos | Auth)]` (`Hosting/AppRateLimiting`; IP
-  başına, sınırlar `RateLimiting` ayarından, girişli kullanıcı `Public`/`Photos`'a takılmaz). Aşım 429 +
+  başına, sınırlar `RateLimiting` ayarından, girişli kullanıcı `Public`/`Photos`'a takılmaz; veri dışa
+  aktarması `Export` ile kullanıcı başına). Aşım 429 +
   `Retry-After` + kod `rate_limited`; uyarı logu istemci ve politika başına dakikada bir. Ayrıca genel
   limiter: girişli kullanıcının her yazma isteği (GET dışı) kullanıcı başına `Writes` (dakikada 120).
   Hesap başına satır sınırı `UserLimits` (50 koleksiyon, 10.000 coin; aşımda 400 `collection_limit` /
@@ -253,7 +257,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Denetim kaydı gibi FK'sız ad anlık görüntüleri silmede boşaltılır.
 - Site klasörü dışında tutulacak yollar ayardan: `PhotoStorage:RootPath`, `Logs:Path`,
   `DataProtection:KeysPath` (anahtarlar Windows'ta DPAPI ile şifreli, `DataProtection:Dpapi`); hepsinin
-  varsayılanı `App_Data/` altında.
+  varsayılanı `App_Data/` altında. **Production ayarları repoya girmez:** connection string ve yollar
+  hosting panelinin ortam değişkenlerinden ya da sunucuda elle oluşturulan dosyadan;
+  `appsettings.Production.json` `.gitignore`'da. Lokal Production denemesinde ortam değişkeni kullanılır.
 - Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
@@ -329,7 +335,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (birincil butonun dolgusu ve yazısı); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema
   (`<html class="dark">`, `ThemeService`) sadece `styles.css`'teki değişkenleri değiştirir; template'e
   `dark:` ve düz palet (`slate-*`, `amber-*`, `bg-white`) yazılmaz. İstisna: iki temada aynı görünmesi
-  gerekenler (tehlike butonunun dolgusu, logo, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri).
+  gerekenler (tehlike butonunun dolgusu, logo, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri)
+  ve `dark:` kullanan iki yer: baş harf avatarı (header, profil) ve bayrak çerçevesi (`shared/flag`).
   Tema tercihi dil gibi hesapta (`me` → `theme`, `PUT api/settings`), değişiklik `ThemePreference.change()`.
 - **Vurgu rengi (tema rengi):** `brand` ve `primary` token'ları `--accent-*` değişkenlerinden gelir;
   her renk `styles.css`'te bir `:root[data-accent='…']` bloğu (amber varsayılan, attribute yok).

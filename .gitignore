@@ -492,3 +492,6 @@ src/api/wwwroot/
 
 # ImageSharp license key file (never commit)
 sixlabors.lic
+
+# Production settings live in the hosting panel or on the server, never in the repository
+src/api/appsettings.Production.json

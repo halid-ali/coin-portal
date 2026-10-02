@@ -15,6 +15,12 @@ into collections, add photos of both sides, and share collections publicly or th
 - List and grid views with filtering, sorting and paging kept in the URL
 - Public profiles and an Explore page across all public collections
 - Interface in English, Turkish, German and Bulgarian; light, dark and system themes; accent colours
+- Admin panel for moderation: statistics, users (lock, delete), shared collections (hide), audit log
+- Account data export (ZIP with all data and photos) and account deletion
+- Privacy policy, terms of use and contact pages
+- Installable as an app (web app manifest)
+- Hosting safeguards: rate limits, security headers, startup checks of the configured folders,
+  daily log files with share keys and search terms masked
 
 ## Tech stack
 
@@ -41,7 +47,7 @@ docs/           Project status, decisions and dated reviews
 ## Requirements
 
 - .NET SDK 10 (pinned in `global.json`)
-- Node.js 22+ and Angular CLI 21
+- Node.js 22.19+ ( works without a global Angular CLI)
 - SQL Server LocalDB (or another SQL Server; set `ConnectionStrings:DefaultConnection`)
 
 Docker is not required.
@@ -61,18 +67,22 @@ cd src/api && dotnet run --launch-profile http -- --seed-dev-data
 cd src/api && dotnet run --launch-profile http
 
 # Terminal 2: client on http://localhost:4200 (/api is proxied to the API)
-cd src/web && ng serve
+cd src/web && npx ng serve
 ```
 
 The development data is for local use only; it resets the seed users' collections and photos each
 time it runs.
+
+The admin panel (`/admin`) is open to the users whose Id is listed in `Admin:UserIds`: put your
+`AspNetUsers.Id` into `src/api/appsettings.Development.json` (or set `Admin__UserIds__0`) and restart the
+API. Roles are granted only from configuration, never from the panel.
 
 ## Tests and checks
 
 ```bash
 dotnet build
 dotnet test                  # API tests; needs LocalDB (or set COINPORTAL_TEST_SQL)
-cd src/web && ng test --watch=false
+cd src/web && npx ng test --watch=false
 cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
 ```
 
@@ -97,6 +107,7 @@ interface (`IImageProcessor`), so the library can be replaced.
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md): current state, decisions and roadmap
 - [docs/reviews/](docs/reviews/): dated reviews of the project's direction
 - [CLAUDE.md](CLAUDE.md): development rules and known pitfalls
+- [SECURITY.md](SECURITY.md): how to report a vulnerability
 
 These internal documents are written in Turkish; code, comments and commit messages are in English.
 
