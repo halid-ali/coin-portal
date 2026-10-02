@@ -134,6 +134,7 @@ public class AuthController(
     /// </summary>
     [HttpGet("antiforgery")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Public)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public IActionResult GetAntiforgeryToken([FromServices] IAntiforgery antiforgery)
     {

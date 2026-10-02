@@ -1,4 +1,5 @@
 using System.Net;
+using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -46,8 +47,10 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     {
         await using var host = factory.WithSettings(new Dictionary<string, string?>
         {
-            ["RateLimiting:Public:PermitLimit"] = "2",
+            ["RateLimiting:Public:PermitLimit"] = "4",
         });
+        // Each new client fetches its antiforgery token signed out: 2 of the 4 (the test server
+        // has no remote address, so all clients share one)
         using var anonymous = await CoinPortalFactory.CreateAnonymousClientAsync(host);
         using var signedIn = await CoinPortalFactory.CreateAnonymousClientAsync(host);
         await signedIn.RegisterAsync(TestUser.NewRegisterRequest());
@@ -65,6 +68,78 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
             using var ok = await signedIn.GetAsync("/api/public/collectors");
             await ok.ShouldHaveStatusAsync(HttpStatusCode.OK);
         }
+    }
+
+    [Fact]
+    public async Task Writes_AreLimitedPerUser_ReadsAreNot()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["RateLimiting:Writes:PermitLimit"] = "2",
+        });
+        using var alice = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        await alice.RegisterAsync(TestUser.NewRegisterRequest());
+        using var bob = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        await bob.RegisterAsync(TestUser.NewRegisterRequest());
+
+        for (var i = 0; i < 2; i++)
+        {
+            using var ok = await alice.PostAsync("/api/collections", new CollectionUpsertRequest { Name = $"C{i}" });
+            await ok.ShouldHaveStatusAsync(HttpStatusCode.Created);
+        }
+        using var limited = await alice.PostAsync("/api/collections", new CollectionUpsertRequest { Name = "C2" });
+        using var read = await alice.GetAsync("/api/collections");
+        // Another user from the same address has a count of their own
+        using var other = await bob.PostAsync("/api/collections", new CollectionUpsertRequest { Name = "C0" });
+
+        Assert.Equal("rate_limited", await limited.ReadProblemCodeAsync(HttpStatusCode.TooManyRequests));
+        await read.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        await other.ShouldHaveStatusAsync(HttpStatusCode.Created);
+    }
+
+    [Fact]
+    public async Task AccountLimits_CollectionsAndCoins()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["UserLimits:MaxCollections"] = "2",
+            ["UserLimits:MaxCoins"] = "1",
+        });
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        await client.RegisterAsync(TestUser.NewRegisterRequest());
+        var first = Assert.Single(await client.GetJsonAsync<List<CollectionResponse>>("/api/collections"));
+
+        // The first collection comes with sign-up: one more fits
+        using var second = await client.PostAsync("/api/collections", new CollectionUpsertRequest { Name = "Second" });
+        using var third = await client.PostAsync("/api/collections", new CollectionUpsertRequest { Name = "Third" });
+        using var coin = await client.PostAsync("/api/coins", TestUser.NewCoin(first.Id));
+        using var tooMany = await client.PostAsync("/api/coins", TestUser.NewCoin(first.Id));
+
+        await second.ShouldHaveStatusAsync(HttpStatusCode.Created);
+        Assert.Equal("collection_limit", await third.ReadProblemCodeAsync());
+        await coin.ShouldHaveStatusAsync(HttpStatusCode.Created);
+        Assert.Equal("coin_limit", await tooMany.ReadProblemCodeAsync());
+    }
+
+    [Fact]
+    public async Task Upload_LargerThanTheSourceLimit_IsRejected()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["PhotoStorage:MaxSourceDimension"] = "1600",
+        });
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        await client.RegisterAsync(TestUser.NewRegisterRequest());
+        var collection = Assert.Single(await client.GetJsonAsync<List<CollectionResponse>>("/api/collections"));
+        using var created = await client.PostAsync("/api/coins", TestUser.NewCoin(collection.Id));
+        var coin = await created.ReadJsonAsync<Contracts.Coins.CoinResponse>();
+
+        // Checked from the header, before any pixel is decoded
+        using var tooWide = await client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", TestImages.Png(1601, 200));
+        using var fits = await client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", TestImages.Png(1600, 200));
+
+        Assert.Equal("invalid_image", await tooWide.ReadProblemCodeAsync());
+        await fits.ShouldHaveStatusAsync(HttpStatusCode.OK);
     }
 
     [Fact]

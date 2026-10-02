@@ -16,6 +16,10 @@ public class ImageSharpImageProcessor(IOptions<PhotoOptions> options) : IImagePr
 {
     private readonly PhotoOptions options = options.Value;
 
+    // A decoded image takes width x height x 4 bytes and more while resizing; a registered
+    // singleton, so this bounds the memory of all uploads together
+    private readonly SemaphoreSlim decodes = new(options.Value.MaxConcurrentDecodes);
+
     private static readonly DecoderOptions Decoder = new()
     {
         MaxFrames = 1,
@@ -24,6 +28,32 @@ public class ImageSharpImageProcessor(IOptions<PhotoOptions> options) : IImagePr
     };
 
     public async Task<IReadOnlyDictionary<PhotoSize, byte[]>> ProcessAsync(Stream source, CancellationToken ct)
+    {
+        await decodes.WaitAsync(ct);
+        try
+        {
+            return await ProcessPhotoAsync(source, ct);
+        }
+        finally
+        {
+            decodes.Release();
+        }
+    }
+
+    public async Task<byte[]> ProcessCoverAsync(Stream source, CancellationToken ct)
+    {
+        await decodes.WaitAsync(ct);
+        try
+        {
+            return await ProcessCoverImageAsync(source, ct);
+        }
+        finally
+        {
+            decodes.Release();
+        }
+    }
+
+    private async Task<IReadOnlyDictionary<PhotoSize, byte[]>> ProcessPhotoAsync(Stream source, CancellationToken ct)
     {
         using var image = await LoadAsync(source, ct);
 
@@ -44,7 +74,7 @@ public class ImageSharpImageProcessor(IOptions<PhotoOptions> options) : IImagePr
         return result;
     }
 
-    public async Task<byte[]> ProcessCoverAsync(Stream source, CancellationToken ct)
+    private async Task<byte[]> ProcessCoverImageAsync(Stream source, CancellationToken ct)
     {
         using var image = await LoadAsync(source, ct);
 

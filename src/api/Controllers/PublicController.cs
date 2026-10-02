@@ -26,13 +26,17 @@ public class PublicController(AppDbContext db) : ControllerBase
     private IQueryable<Collection> PublicCollections =>
         db.Collections.AsNoTracking().Where(CollectionAccess.IsPublic<Collection>(c => c));
 
-    /// <summary>Users with at least one public collection, by user name.</summary>
+    private const int MaxCollectors = 1000;
+
+    /// <summary>Users with at least one public collection, by user name (the first 1000).</summary>
     [HttpGet("collectors")]
     public async Task<IReadOnlyList<CollectorResponse>> Collectors(CancellationToken ct) =>
         // Ordered before projecting: EF cannot sort on the constructed response
         await db.Users.AsNoTracking()
             .Where(u => PublicCollections.Any(c => c.OwnerId == u.Id))
             .OrderBy(u => u.UserName)
+            // The explore filter lists them; a cap keeps a signed-out request bounded
+            .Take(MaxCollectors)
             .Select(u => new CollectorResponse(
                 u.UserName!,
                 PublicCollections.Count(c => c.OwnerId == u.Id),

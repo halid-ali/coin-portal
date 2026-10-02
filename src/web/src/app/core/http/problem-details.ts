@@ -57,6 +57,12 @@ export function mapValidationProblem(
   return result;
 }
 
+/** Account-wide limits (UserLimits in the API), whatever the form. */
+const CODE_MESSAGE_KEYS: Record<string, string> = {
+  collection_limit: 'errors.collectionLimit',
+  coin_limit: 'errors.coinLimit',
+};
+
 /**
  * Applies a failed save response to a reactive form: field errors become a 'server'
  * error on the matching control, everything else is returned as general messages.
@@ -67,6 +73,10 @@ export function applyServerErrors(
   codeMap: Record<string, string> = {},
   messageKeys: Record<string, string> = {},
 ): string[] {
+  const code = (error.error as { code?: string } | null)?.code;
+  if (code && CODE_MESSAGE_KEYS[code]) {
+    return [translate(CODE_MESSAGE_KEYS[code])];
+  }
   if (error.status !== 400) {
     return [httpErrorMessage(error)];
   }

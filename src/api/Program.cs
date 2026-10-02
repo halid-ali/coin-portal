@@ -116,6 +116,10 @@ builder.Services.AddScoped<PhotoQuota>();
 // Account export (ZIP) and deletion, for the user (Settings) and admins
 builder.Services.AddScoped<AccountExport>();
 builder.Services.AddScoped<AccountDeletion>();
+builder.Services.AddOptions<UserLimitOptions>()
+    .Bind(builder.Configuration.GetSection(UserLimitOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

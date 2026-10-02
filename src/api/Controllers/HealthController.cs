@@ -1,10 +1,15 @@
 using System.Reflection;
+using CoinPortal.Api.Hosting;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CoinPortal.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
+[EnableRateLimiting(RateLimitPolicies.Public)]
 public class HealthController : ControllerBase
 {
     // Release version from the Git tag (MinVer), e.g. "0.1.0+a1b2c3d"; used to verify deployments

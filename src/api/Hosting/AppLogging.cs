@@ -47,7 +47,7 @@ public static partial class AppLogging
                     System.IO.Path.Combine(folder, "coinportal-.log"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: files.RetainedDays,
-                    fileSizeLimitBytes: 100 * 1024 * 1024,
+                    fileSizeLimitBytes: 20 * 1024 * 1024,
                     rollOnFileSizeLimit: true,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
             }

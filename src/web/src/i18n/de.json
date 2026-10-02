@@ -29,7 +29,9 @@
     "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung.",
     "unexpected": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "requestRejected": "Die Anfrage konnte nicht bestätigt werden. Lade die Seite neu und versuche es erneut.",
-    "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut."
+    "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut.",
+    "collectionLimit": "Ein Konto kann höchstens 50 Sammlungen haben. Lösche eine, um eine neue anzulegen.",
+    "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich.",

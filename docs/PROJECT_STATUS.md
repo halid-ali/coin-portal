@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13, #16, #11 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13, #16, #11, #14 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -790,6 +790,19 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     önbelleğe girmez); görseller kendi `private, immutable` başlığını korur. HTTP→HTTPS yönlendirmesi
     test edildi (port verilince 307). Tam CSP ertelendi (Açık konular 17). Testler: API 135 (+3;
     middleware kapatılınca 2 test kırıldı). Tarayıcıda denenmedi.
+42. **Kaynak tüketimi ve kötüye kullanım sınırları** (`fix/abuse-limits`, 2026-10-02; #14; değerler
+    Claude'un varsayılanı, hepsi ayardan): girişli bir kullanıcı küçük ama 6000×6000'lik PNG'lerle istek
+    başına yüzlerce MB bellek ayırtabiliyor, sınırsız koleksiyon/coin açabiliyordu. Artık kaynak görsel
+    en fazla 4000 px (`MaxSourceDimension`, ~64 MB), aynı anda en fazla 2 görsel çözülür
+    (`MaxConcurrentDecodes`, fazlası sırada bekler); girişli kullanıcının her yazma isteği kullanıcı başına
+    dakikada 120 (`RateLimiting:Writes`, genel limiter); hesap başına 50 koleksiyon ve 10.000 coin
+    (`UserLimits`, 400 `collection_limit` / `coin_limit`, dört dilde mesaj; metindeki sayılar
+    varsayılanlar). `countries`, `health` ve `antiforgery` artık `public` sınırında; sayfa numarası en
+    fazla 100.000 (büyük sayı ofseti taşırıp 500 veriyordu); Keşfet'in koleksiyoncu listesi ilk 1000; 429
+    uyarı logu istemci + politika başına dakikada bir satır; log dosyası en fazla 20 MB (30 dosya).
+    Client: kodlu 400 hatası alan hatası taşımıyorsa "istek reddedildi"ye düşüyordu; sınır kodları
+    artık tanınıyor (genel düzeltme #26). Testler: API 138 (+4 ve bir sorgu durumu; genel limiter
+    kapatılınca yazma testi kırıldı), client 90 (+1).
 
 ## Yol haritası
 
@@ -873,7 +886,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store` (Tamamlananlar 41).
   - [x] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi (Tamamlananlar 37; kilit kuralı aynen, Açık konular 16).
   - [x] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı (Tamamlananlar 39).
-  - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
+  - [x] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları (Tamamlananlar 42).
   - [x] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi (Tamamlananlar 38; süpürme #27'de).
   - [x] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü (Tamamlananlar 40).
   - [ ] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur.
@@ -1303,6 +1316,8 @@ Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olm
 - Sitenin önünde CDN/proxy var mı ya da konacak mı? (Varsa rate limiter ve loglar için
   `KnownProxies`.)
 - `web.config` ile istek boyutu sınırı (`maxAllowedContentLength`) ayarlanabiliyor mu?
+- Uygulama havuzunun bellek sınırı ne? (Aynı anda 2 görsel çözülür, her biri ~64 MB'a kadar;
+  `PhotoStorage__MaxConcurrentDecodes` ve `MaxSourceDimension` buna göre ayarlanır.)
 
 **Fotoğraflar ve disk**
 - **Uygulama havuzu kimliğinin (app pool identity) yazabildiği, site klasörü dışında bir klasör var mı?**

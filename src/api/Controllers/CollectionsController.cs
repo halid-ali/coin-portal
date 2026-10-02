@@ -1,4 +1,5 @@
 using System.Globalization;
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
@@ -7,13 +8,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CoinPortal.Api.Controllers;
 
 /// <summary>
 /// The signed-in user's collections. Other users' collections are reported as 404.
 /// Errors that the client words itself carry a code: DuplicateName (validation key),
-/// last_collection, has_coins, invalid_target, not_unlisted and moderation_locked (ProblemDetails "code").
+/// last_collection, has_coins, collection_limit, invalid_target, not_unlisted and moderation_locked (ProblemDetails "code").
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -22,7 +24,8 @@ namespace CoinPortal.Api.Controllers;
 public class CollectionsController(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
-    IPhotoStorage photoStorage) : ControllerBase
+    IPhotoStorage photoStorage,
+    IOptions<UserLimitOptions> limits) : ControllerBase
 {
     private string CurrentUserId => userManager.GetUserId(User)!;
 
@@ -52,8 +55,14 @@ public class CollectionsController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CollectionResponse>> Create(CollectionUpsertRequest request, CancellationToken ct)
     {
+        var userId = CurrentUserId;
+        if (await db.Collections.CountAsync(c => c.OwnerId == userId, ct) >= limits.Value.MaxCollections)
+        {
+            return this.CodedProblem("collection_limit", "You have reached the maximum number of collections.");
+        }
+
         var now = DateTime.UtcNow;
-        var collection = new Collection { OwnerId = CurrentUserId, CreatedAtUtc = now };
+        var collection = new Collection { OwnerId = userId, CreatedAtUtc = now };
         if (!await TryApplyAsync(collection, request, now, ct))
         {
             return ValidationProblem(ModelState);
