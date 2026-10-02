@@ -147,7 +147,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 
 - Auth: ASP.NET Core Identity + HttpOnly cookie `coinportal.auth` (JWT yok, SPA ile API aynı origin).
   Oturum 14 gün, kullandıkça uzar; login'de "Beni hatırla" varsayılan işaretli, kayıt kalıcı oturum açar
-  (işaretsiz login tarayıcı kapanınca biter).
+  (işaretsiz login tarayıcı kapanınca biter). Login hesabın varlığını ve kilidini ele vermez: bilinmeyen
+  kullanıcı, yanlış parola ve kilitli hesapta yanlış parola aynı 401 (bilinmeyen kullanıcıda da parola
+  hash'lenir, süre farkı olmasın); 423 sadece doğru parolayla döner.
   **Tek kimlik doğrulama şeması cookie + antiforgery kalır** (web, PWA, TWA; karar 2026-09-29): bearer/JWT
   şeması, CORS ya da "bearer'da antiforgery atla" kodu eklenmez; yeni uçlar düz `[Authorize]` + policy.
   Native mobil gerekirse önce cookie'yi koruyan yol denenir (`docs/reviews/2026-09-29-project-direction.md`).

@@ -1,8 +1,8 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (#10 noktalı profil adresleri düzeltildi; kapsamlı incelemeden çıkan 25 iş
-GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da public:
-https://github.com/halid-ali/coin-portal; yol haritası ve sıra "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-02 (#10 noktalı profil adresleri ve #12 giriş kilidinin ifşası düzeltildi;
+kapsamlı incelemeden çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`.
+Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası "Yol haritası" bölümünde)
 
 ## Yeni sohbete başlarken
 
@@ -746,6 +746,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     (log dosyasına karşı, uçtan uca). Test sunucusu sorgu dizesini loga yazmadığı için `?s=` maskesi orada
     test edilemiyor (CLAUDE.md "API testleri"). Testler: API 127 (+5); düzeltme ve maske kapatılınca
     ilgili testler kırıldı.
+37. **Giriş kilidinin ifşası** (`fix/login-lockout-disclosure`, 2026-10-02; #12): kilitli hesapta login,
+    parola bilinmeden 423 dönüyor, hesabın varlığını ve kilidini (admin kilidinde `account_locked`)
+    gösteriyordu; kilidi başlatan 5. hatalı deneme de 423'tü. Artık kilitli hesapta önce parola kontrol
+    edilir (`CheckPasswordAsync`, hata sayılmaz): doğruysa 423, yanlışsa bilinmeyen kullanıcıyla aynı 401.
+    Bilinmeyen kullanıcıda sabit bir sahte hash'e karşı parola doğrulanır, yanıt süresi e-postanın kayıtlı
+    olup olmadığını ele vermez. Kilit kuralı (5 deneme / 10 dk) kullanıcı kararıyla aynen kaldı; kasıtlı
+    kilitleme bilinen risk (Açık konular 16). Testler: API 128 (+1, iki testte yeni kontrol); eski
+    controller'la 3 test kırıldı. Client değişmedi (423 mesajları aynı).
 
 ## Yol haritası
 
@@ -802,7 +810,7 @@ mağaza için TWA.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
-      bölümleri eklenir (panelin kendisi 12. adımda).
+      bölümleri eklenir (panelin kendisi 12. adımda). Turnstile giriş formuna da (Açık konular 16).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
 
@@ -827,7 +835,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
 - **P0, ilk yayından (hosting, `v1.0.0`) önce:**
   - [x] [#10](https://github.com/halid-ali/coin-portal/issues/10) S `fix/spa-fallback-dotted-paths`: noktalı adreslerde (`/u/ayse.yilmaz`) SPA fallback 404 veriyor (Tamamlananlar 36).
   - [ ] [#11](https://github.com/halid-ali/coin-portal/issues/11) M `feat/security-headers`: güvenlik başlıkları, HSTS, API yanıtlarında `no-store`.
-  - [ ] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi.
+  - [x] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi (Tamamlananlar 37; kilit kuralı aynen, Açık konular 16).
   - [ ] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı.
   - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
   - [ ] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi.
@@ -1197,6 +1205,13 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     @angular/cli@21`) yükseltilir, `ng build` + `ng test`. Elenen: npm `overrides` ile 5.3.2'yi zorlamak
     (A; çalışırdı ama Angular'ın resmi bağımlılığından sapma) ve Angular 22'yi şimdi yapmak (C; planlı,
     büyük iş). Angular 22 yükseltmesi (Sıradaki adım 5) de bunu çözer.
+
+16. **Kasıtlı giriş kilidi (bilinen risk, 2026-10-02, kullanıcı kararı):** kullanıcı adları herkese açık;
+    biri 5 yanlış parolayla başkasının yeni girişini 10 dakika engelleyebilir ve bunu tekrarlayabilir.
+    Açık oturumlar (14 günlük kalıcı cookie) etkilenmez; #12'den beri saldırgan kilidi kurup kuramadığını
+    göremez. Eşiği gevşetmek ve IP'ye bağlı kilit (özel kod, çok IP'li saldırgana karşı zayıf) elendi;
+    hobi sitesi için kural aynen kaldı. Kötüye kullanım görülürse ya da Turnstile gelince (yol haritası
+    15) yeniden ele alınır: giriş formunda belli sayıda hatadan sonra Turnstile.
 
 ## Yayın öncesi yapılacaklar
 
