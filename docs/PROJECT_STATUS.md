@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#19 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#20 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -14,8 +14,10 @@ public: https://github.com/halid-ali/coin-portal)
 - Veritabanı en son migration'da (`AccountDeletion`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
-- API'yi Claude sohbetlerde kendi arka plan oturumunda çalıştırıyor; sohbet kapanınca durur. Yeni
-  sohbette API'nin kullanıcının terminalinde çalışıp çalışmadığı kontrol edilir (`/api/health`).
+- API'yi (5080) ve `ng serve`'ü (4200) kullanıcı kendi terminallerinde çalıştırır; kural CLAUDE.md "Çalışan
+  uygulamalar"da. Yeni sohbette ikisi kontrol edilir (`curl -s localhost:5080/api/health`,
+  `curl -s -o /dev/null -w '%{http_code}' localhost:4200/`); API çalışıyorsa `bin/` kilitlidir, derleme ve
+  test ayrı klasöre (`-p:BaseOutputPath=<scratchpad>/testbin/`).
 - İlk iş: kullanıcıyla sıradaki adımı seçmek ("Aksiyon planı", "Yol haritası" ve "Sıradaki adım"). İnceleme
   işlerinin ayrıntısı GitHub issue'larında (#10–#34).
 - Lokal admin: `src/api/appsettings.Development.json` → `Admin:UserIds` (API açılışta rolü verir).
@@ -44,7 +46,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
 - **Frontend:** Angular 21 (standalone, signals, zoneless) + Tailwind CSS 4 (`@tailwindcss/postcss`),
   TypeScript ~5.9, testler Vitest + jsdom. UI kütüphanesi yok.
 - **Backend:** ASP.NET Core Web API (.NET 10, controller tabanlı) + EF Core 10 + ASP.NET Core Identity.
-  Google/Microsoft girişi sonradan eklenecek.
+  Google/Microsoft girişi düşünülmüştü; yol haritasında değil (gerekirse ayrı karar).
 - **API dokümantasyonu:** `Microsoft.AspNetCore.OpenApi` (`/openapi/v1.json`) +
   `Swashbuckle.AspNetCore.SwaggerUI` (`/swagger`), sadece Development'ta.
 - **Veritabanı:** Lokalde SQL Server LocalDB (`(localdb)\MSSQLLocalDB`, sürüm 16), veritabanı `CoinPortal`.
@@ -420,8 +422,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `coin-web-portal` olarak kaldı, Claude Code hafızası klasör yoluna bağlı). Açıklama ve topic'ler
       (euro-coins, coin-collection, aspnet-core, angular, tailwindcss, dotnet), wiki kapalı.
     - Güvenlik (kullanıcı ayarladı): private vulnerability reporting, dependency graph, Dependabot
-      alerts ve security updates, secret scanning ve push protection açık. Öneri: malware alerts ve
-      grouped security updates da açılsın. CodeQL şimdilik kapalı (istenirse "Default setup" tek tık).
+      alerts ve security updates, secret scanning ve push protection açık. Malware alerts, grouped
+      security updates ve CodeQL kararı Açık konular 19'da.
     - Rulesets: `main` (silme ve force-push yasak) ve `release-tags` (`v*`: silme, güncelleme,
       force-push yasak; yayınlanmış etiket taşınamaz). Bypass yok. PR ve zorunlu status check bilinçli
       olarak yok: lokal merge + doğrudan `main` push akışını engellerdi; CI yine her push'ta koşar.
@@ -432,8 +434,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       oluşturdu: Git Credential Manager'daki GitHub oturumu REST API için kullanıldı (anahtar
       gösterilmedi, kaydedilmedi); betik ve notlar lokal `.notes/` klasöründe.
 21. **ImageSharp lisansı** (`chore/imagesharp-license`, 2026-09-30; yol haritası 10. adımın CI kısmı):
-    - Six Labors ücretsiz **Community** lisansı verdi (License ID `ctm_01m3hrxvqkt74ke0cdc359x79p`,
-      geçerlilik **2027-12-26**'ya kadar). Six Labors'un şartı: anahtar ya da `.lic` public repoya girmez;
+    - Six Labors ücretsiz **Community** lisansı verdi (License ID lokal `.notes/environment.md`'de; public
+      dokümana yazılmaz), geçerlilik **2027-12-26**'ya kadar. Six Labors'un şartı: anahtar ya da `.lic` public repoya girmez;
       katkı verenler kendi anahtarlarını alır.
     - Lokal: `src/api/sixlabors.lic` (kullanıcı kaydetti; `.gitignore`'daki `sixlabors.lic` kuralı
       kapsıyor). E-posta "proje köküne koy" diyor ama paketin MSBuild hedefi `**/sixlabors.lic`'i
@@ -843,6 +845,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     `AcceptTerms` (iki belgeyi kapsıyor; client ve API birlikte yayınlanır). Metin hukuki danışmanlık
     değildir, kullanıcı yayından önce okuyacak (Yayın öncesi yapılacaklar). Testler: API 147, client 92 (+1
     şartlar sayfası; kayıt testi iki linki ve yeni cümleyi kontrol ediyor). Tarayıcıda görsel kontrol yok.
+47. **Doküman eşitlemesi** (`chore/docs-sync`, 2026-10-02; #20): Yayın öncesi listesine ilk kurulum sırası
+    (Production ortamı, önce migration, HTTPS), ilk admin ataması ve ilk açılışın log kontrolü; hosting
+    kontrol listesine collation, WebSocket/SSE ve DPAPI için önce "Load User Profile" soruları.
+    `appsettings.Production.json` `.gitignore`'da, CLAUDE.md'de "production ayarları repoya girmez" kuralı.
+    ImageSharp License ID dokümandan lokal notlara taşındı (git geçmişinde duruyor; anahtar hiç girmedi).
+    Eskimiş satırlar düzeltildi: "Yeni sohbete başlarken"deki API satırı, yol haritasındaki öneri/bekliyor
+    ifadeleri, Açık konular 8 ve 9, kapsam listesi, Fotoğraflar kararlarındaki yükleme akışı ve sınırlar,
+    Angular 22'nin Node ön koşulu, Impressum ile birlikte DSA notu, GitHub güvenlik ayarları (Açık konular 19).
+    CLAUDE.md: doğrulamaya Prettier, rotalar (`/privacy`, `/terms`, `/contact`, `account`), core klasörleri,
+    `Export` politikası, iki admin silme kodu, `dark:` istisnaları, "eskiyen satırlar da taranır" kuralı.
+    README güncel özellikler, `npx ng`, lokal admin; yeni `SECURITY.md` (GitHub'ın özel bildirim formu).
+    Kod: `SettingsContracts`'ta yanlış kayda düşmüş XML yorumu.
 
 ## Yol haritası
 
@@ -851,7 +865,7 @@ doğrulanan dış bilgiler [reviews/2026-09-29-project-direction.md](reviews/202
 içinde (dondurulmuş doküman; burası güncel tutulur). Adımlar kullanıcı onayıyla başlar; durum değiştikçe
 başındaki işaret güncellenir.
 
-Özet kararlar (öneri, kullanıcı onayı bekliyor): klasörler `src/api` + `src/web` + `tests/` + `docs/`;
+Özet kararlar (kullanıcı onayladı, 2026-09-29/30; hepsi uygulandı ya da kural oldu): klasörler `src/api` + `src/web` + `tests/` + `docs/`;
 container şimdi yok (tetikleyici bekler); tek kimlik doğrulama şeması cookie + antiforgery kalır (JWT yok,
 mobil de buna göre); sosyal katman kendi domain modeliyle, önce temel, yorum en son; mobil PWA önce,
 mağaza için TWA.
@@ -864,8 +878,7 @@ mağaza için TWA.
 - [x] 5. `chore/release-tooling`: sürüm (`Directory.Build.props`), health + footer sürümü, git-cliff,
       CHANGELOG, `v0.1.0`.
 - [x] 6. `chore/ci`: GitHub Actions + Dependabot.
-- [x] 7. GitHub publish (2026-09-29/30), release `v0.1.0`. Six Labors başvurusunun repo adresiyle
-      güncellenmesi kullanıcıda.
+- [x] 7. GitHub publish (2026-09-29/30), release `v0.1.0`. ImageSharp lisansı alındı (Tamamlananlar 21).
 - [x] 8a. `chore/api-tests`: `tests/api` (xUnit v3), CI'da SQL Server'a karşı (2026-09-30).
 - [x] 12. **Yönetici paneli temeli (arayüzüyle), hosting'den önce** (2026-09-30'da öne alındı, aşağıda;
       kararlar "Yönetici paneli: kararlar"). Sonunda `v0.2.0`.
@@ -893,8 +906,7 @@ mağaza için TWA.
         (Tamamlananlar 33). İşletmeci adı ve e-posta yayın öncesi doldurulacak.
   - [x] `v0.3.0` yayını ve push (2026-10-01, Tamamlananlar 34).
 - [ ] 8b. `tests/e2e` (Playwright; #34).
-- [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml` (#21)
-      (9. adımdaki wwwroot + SPA fallback'ten sonra; onsuz paket client'sız olur).
+- [ ] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ (tamam) + `release.yml` (#21).
 - [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
@@ -932,7 +944,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur (Tamamlananlar 45; `OPERATOR` kullanıcı kararıyla yayın öncesine kaldı).
   - [x] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (Tamamlananlar 46; Impressum kararı ayrı, Açık konular 14).
   - [x] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması (Tamamlananlar 43).
-  - [ ] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları.
+  - [x] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları (Tamamlananlar 47).
   - [ ] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10).
 - **P1, ilk yayından hemen sonraki sürümler:**
   - [ ] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları.
@@ -984,7 +996,10 @@ Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angul
 4. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
 5. **Angular 22'ye yükseltme** (2026-09-29'da Dependabot gösterdi): `ng update @angular/core @angular/cli`
    ile ayrı bir branch'te, Vitest 5 ve jsdom 30 ile birlikte; testler ve görsel kontrol. Dependabot bu
-   major sürümleri artık önermiyor, takip burada.
+   major sürümleri artık önermiyor, takip burada. **Ön koşul:** Angular 22 ve jsdom 30 Node ≥ 22.22.3 ister,
+   geliştirme makinesi 22.19.0 (Node güncellenir; README'deki sürüm ve CI'daki Node 22 kontrol edilir).
+   `npm outdated` motor filtresi yüzünden jsdom 30'u göstermeyebilir. Angular 21 2026-06'dan beri LTS'de,
+   LTS 2027-06'da biter. `piscina` uyarısını da bu yükseltme kapatır (Açık konular 15).
 
 ## Koleksiyonlar ve paylaşım: kararlar
 
@@ -1201,17 +1216,20 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - **Format ve boyutlar:** Giriş JPG/PNG, çıktı **WebP** (kalite ~80). thumb 150x150, preview 600x600,
   full en fazla 1600x1600.
 - **Sunum API üzerinden:** `GET api/coins/{id}/photos/{side}/{size}`, coin ile aynı erişim kuralı
-  (şimdilik sadece sahibi; görünürlük ayarı gelince burada genişler). URL'de sürüm anahtarı (`?v=`),
+  (sahibi, herkese açık koleksiyonlarda herkes, linkle paylaşılanlarda `s=` anahtarıyla; `CollectionAccess`). URL'de sürüm anahtarı (`?v=`),
   `Cache-Control: private, max-age=31536000, immutable`. `wwwroot` altından statik sunum yok.
 - **Yükleme akışı:**
   - Client ngx-image-cropper ile 1:1 kırpar, en fazla 1600x1600'e küçültüp multipart gönderir.
   - Server client'a güvenmez: görseli ImageSharp ile açarak doğrular (uzantı/content-type'a bakmaz),
     boyut ve piksel sınırı uygular, kare değilse ortadan kırpar, EXIF yönüne göre döndürüp EXIF/GPS'i
     temizler, üç boyutu üretir.
-  - Dosyalar önce geçici klasöre yazılır, veritabanı kaydı başarılıysa yerine taşınır. Fotoğraf veya coin
-    silinince dosyalar da silinir. Antiforgery multipart isteklerde de geçerli.
-- **Sınırlar (yapılandırılabilir):** dosya başına 10 MB, piksel sınırı ~6000x6000, **kullanıcı başına
-  300 MB**. Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir.
+  - Dosyalar önce `.tmp` altına yazılır ve tek bir yeniden adlandırmayla yerine taşınır; sonra veritabanı
+    satırı kaydedilir, kayıt başarısızsa yeni klasör silinir. Değiştirilen fotoğrafın eski dosyaları satır
+    kaydedildikten sonra silinir. Fotoğraf veya coin silinince dosyalar satırdan sonra silinir; silinemeyen
+    klasör Error logu (Tamamlananlar 38, yetim süpürmesi #27). Antiforgery multipart isteklerde de geçerli.
+- **Sınırlar (yapılandırılabilir):** yükleme başına 10 MB (2026-10-01'den beri kırpılmış JPEG'e
+  uygulanır, seçilen dosyaya değil; Tamamlananlar 29), kaynak en fazla 4000x4000 piksel ve aynı anda iki
+  görsel (2026-10-02, Tamamlananlar 42; önce ~6000x6000), **kullanıcı başına 300 MB**. Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir.
   (Üç boyut birlikte ~250-350 KB, yani kota ~1000 fotoğraf.)
 - **Görsel işleme kütüphanesi:** SixLabors ImageSharp 4.1.2 (tamamen managed, native bağımlılığı yok).
   Lisansı Six Labors Split License: yıllık geliri 1 milyon doların altındaki kullanıcılar için Apache 2.0.
@@ -1241,8 +1259,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 6. ~~**Yayında SPA fallback**~~ (kapandı 2026-10-01): `SpaHosting`, Tamamlananlar 28.
 7. ~~**Backend testleri yok.**~~ (kapandı 2026-09-30): `tests/api`, Tamamlananlar 22. e2e testleri
    (Playwright) yol haritasında 8b.
-8. **Fotoğraflara watermark (ileride, 2026-09-27'de konuşuldu):** Görünürlük ayarı ve herkese açık profil
-   sayfasıyla birlikte yapılacak; o zamana kadar fotoğrafları sadece sahibi gördüğü için gerek yok.
+8. **Fotoğraflara watermark (ileride, 2026-09-27'de konuşuldu):** Paylaşım 2026-09-27'den beri var, yani
+   fotoğrafları başkaları da görebiliyor; karar bekliyor (Sıradaki adım 1). Kütüphane ImageSharp kaldı.
    - Önerilen yol: sunucuda, **hazır bir PNG** (yazı veya logo) yarı saydam olarak köşeye basılır. Bunun
      için ek kütüphane gerekmez (ImageSharp temel paketi ve SkiaSharp ikisi de görsel üst üste bindirir).
      `IImageProcessor` sözleşmesine eklenir.
@@ -1258,8 +1276,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
      atlatılabilir, ikincisi dosyayı korumaz.
    - Karar verilecekler: watermark içeriği (yazı/logo), konum, saydamlık, sadece herkese açıklara mı.
 9. İleride: e-posta doğrulama ve şifre sıfırlama (e-postalar `PreferredLanguage` dilinde), kayıt formunda
-   kullanıcı adı/e-posta müsaitlik kontrolü, Register'ın da `applyServerErrors` kullanması, mobilde
-   katlanabilir filtre paneli.
+   kullanıcı adı/e-posta müsaitlik kontrolü (kayıt ucunun e-postayı ele vermesini büyütür, bilinçli karar
+   gerekir), Register'ın da `applyServerErrors` kullanması (#26). Mobilde katlanabilir filtreler
+   2026-09-28'de yapıldı.
 10. **Euro dışı, tedavülden kalkmış ve antika coin'ler (ileride, 2026-09-27'de kullanıcı istedi):**
     Birden fazla koleksiyon bunun için temel. Gerekecekler: koleksiyona bir "tür" alanı (Euro / diğer);
     nominalin genelleşmesi (şu an Euro değerleri enum'u, `CK_Coins_Denomination`), ülkenin genelleşmesi
@@ -1289,6 +1308,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     yok, kullanıcı kararı 2026-10-01). Kayıtlı kullanıcılı, herkese açık bir sitede Impressum genelde
     önerilir; tamamen özel hobi sitelerinde gerekliliği tartışmalı. Yayından önce karar verilecek;
     gerekirse iletişim sayfası "Impressum" adıyla adresi de gösterir (`contact.*` + `OPERATOR`).
+    Aynı kararda AB Dijital Hizmetler Yasası (DSA) da değerlendirilir: kullanıcı içeriği barındıran her
+    hizmet için iletişim noktası ve moderasyon kararlarının gerekçesi gibi yükümlülükler var; küçük
+    işletmeler için çoğu hafifletilmiş. Kullanım şartları ve denetim kaydı bunun bir kısmını karşılıyor
+    (#18).
 
 15. **`piscina` güvenlik uyarısı** (GHSA-67c8-pqhq-4rmx, critical, 2026-10-01): `piscina` < 5.3.2.
     `@angular/build` 21.2.24 onu sabit 5.2.0 olarak getiriyor; düzeltilmiş sürümü sadece Angular 22
@@ -1321,6 +1344,11 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     geçici açılır). Denetim kaydının saklama süresi belirlenmedi (şimdi süresiz; silinen kullanıcının Id'leri
     de kalıyor): bir süre kararı ve gerekirse eski kayıtları silen bir bakım komutu.
 
+19. **GitHub güvenlik ayarları** (2026-10-02, #20): private vulnerability reporting, Dependabot alerts ve
+    security updates, secret scanning, push protection açık; `SECURITY.md` bildirimi oraya yönlendiriyor.
+    Kullanıcıya kalan: malware alerts ve grouped security updates'i açmak (Settings > Code security, tek
+    tık), CodeQL "Default setup" kararı (public repoda ücretsiz; C# ve TypeScript taraması, haftalık).
+
 ## Yayın öncesi yapılacaklar
 
 İlk publish'ten önce tamamlanması gerekenler (ayrıntılar Açık konular'da):
@@ -1344,6 +1372,14 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [ ] Yayından sonra HTTPS kontrolü: `curl -I http://<site>/api/health` → 307/308 ve `https://` yanıtında
       `Strict-Transport-Security`. Yönlendirme yoksa portu ver (`ASPNETCORE_HTTPS_PORT=443`). Site ve
       sertifika oturunca `Hsts__MaxAgeDays=365`.
+- [ ] İlk kurulum sırası: `ASPNETCORE_ENVIRONMENT=Production` ve `ConnectionStrings__DefaultConnection`
+      panelden; **önce migration** (`dotnet ef migrations script --idempotent` çıktısı panelde ya da
+      `dotnet ef database update`), sonra uygulama (boş veritabanında API başlamaz); HTTPS ilk istekten önce
+      açık (cookie'ler Secure).
+- [ ] İlk admin: sitede kayıt ol, `AspNetUsers.Id`'ni `Admin__UserIds__0` olarak ver, uygulamayı yeniden
+      başlat, `GET /api/auth/me` → `roles: ["Admin"]`.
+- [ ] İlk açılışın logunda `Photos:`, `Log files:`, `Data protection keys:` satırları ve doğru yollar;
+      `GET /api/health` sürümü footer'daki sürümle aynı.
 - [ ] Gizlilik politikası ve kullanım şartlarının kullanıcı tarafından okunması (Claude yazdı, hukuki
       danışmanlık değildir); gerekirse değişiklikle `PRIVACY_UPDATED` / `TERMS_UPDATED`.
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
@@ -1362,8 +1398,9 @@ Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olm
   (İlk istekte soğuk başlama gecikmesi.)
 - Uygulamanın yazdığı log dosyalarına (site klasörü dışında, `Logs__Path`) dosya yöneticisi / FTP ile
   erişilebiliyor mu?
-- Uygulama havuzunda "Load User Profile" açık mı? (DataProtection anahtarlarının DPAPI şifrelemesi:
-  açıksa `CurrentUser`, değilse `DataProtection__Dpapi=LocalMachine`.)
+- Uygulama havuzunda "Load User Profile" açık mı? **Önce bunu açtır**, `CurrentUser` kalsın (DPAPI ile
+  anahtarları sadece havuzun hesabı çözebilir). Açılamıyorsa `DataProtection__Dpapi=LocalMachine`; o zaman
+  sunucudaki her hesap çözebileceği için anahtar klasörü sadece havuz kimliğine açık olmalı (`icacls`).
 - Sitenin önünde CDN/proxy var mı ya da konacak mı? (Varsa rate limiter ve loglar için
   `KnownProxies`.)
 - `web.config` ile istek boyutu sınırı (`maxAllowedContentLength`) ayarlanabiliyor mu?
@@ -1381,6 +1418,10 @@ Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olm
 - Veritabanına dışarıdan (SSMS / `dotnet ef`) bağlanılabiliyor mu, yoksa migration'ları SQL script olarak
   mı uygulamak gerekiyor?
 - Veritabanı yedekleri otomatik mi, ne sıklıkla, ne kadar saklanıyor?
+- **Varsayılan collation ne, oluştururken seçilebiliyor mu?** Kod `SQL_Latin1_General_CP1_CI_AS` gibi büyük/küçük
+  harf duyarsız bir collation varsayıyor (unique index'ler, arama); `Turkish_CI_AS` i/I aramasını değiştirir.
+  Farklıysa CI'daki SQL Server container'ı `MSSQL_COLLATION` ile aynı collation'da çalıştırılır ya da
+  ilgili sütunlara `UseCollation` verilir.
 
 **Yayın ve alan adı**
 - **SSL sertifikası (ör. Let's Encrypt) ve özel alan adı** destekleniyor mu, sertifika otomatik yenileniyor mu?
@@ -1389,6 +1430,7 @@ Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olm
 
 **İleride gerekecek**
 - SMTP ile e-posta gönderimi (e-posta doğrulama, şifre sıfırlama) destekleniyor mu, gönderim sınırı ne?
+- WebSocket ve uzun bağlantılar (SSE, SignalR; bildirimler için) destekleniyor mu, zaman aşımı ne?
 
 ## Web uygulamasının kapsamı
 
@@ -1396,7 +1438,8 @@ Zorunlu gereksinimler: JPG/PNG yükleme, 1:1 kırpma ve üç boyut, kayıt formu
 benzersiz e-posta, doğum tarihi, en az 18 yaş), Tailwind ile stil, yükleme formunda başlık ve açıklama,
 liste/tablo/kart görünümü, filtreler (nominal, ülke, kullanıcı, yıl).
 
-Önerilen ek özellikler: "Bende var mı?" hızlı kontrol, görünürlük ayarı (herkese açık / sadece linkle /
-özel) ve paylaşılabilir profil sayfası, ülkeye göre eksik listesi için referans Euro coin kataloğu,
-fotoğraf boyut/tür/kota sınırları, gizlilik politikası ve iletişim sayfası, istatistikler, dil desteği
-(yapıldı: EN/TR/DE/BG), karanlık mod, PWA.
+Önerilen ek özellikler: "Bende var mı?" hızlı kontrol (filtreli liste yeterli bulundu), ülkeye göre eksik
+listesi için referans Euro coin kataloğu, istatistikler. Yapılanlar: görünürlük ayarı (herkese açık /
+sadece linkle / özel) ve profil sayfası, fotoğraf boyut/tür/kota sınırları, gizlilik politikası, kullanım
+şartları ve iletişim sayfası, dil desteği (EN/TR/DE/BG), karanlık mod ve tema rengi, PWA manifest
+(service worker HTTPS'ten sonra, yol haritası 11).
