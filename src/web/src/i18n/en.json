@@ -468,23 +468,24 @@
       "i1": "Account details: your first and last name, user name, e-mail address, date of birth and password. The password is only stored as a one-way hash.",
       "i2": "Preferences and times: your language, theme and color choices; when you signed up, signed in and last used the site.",
       "i3": "Your content: collections, coin details and the photos you upload. All extra information in photos (EXIF), including the location, is removed on upload.",
-      "i4": "Technical records: the server logs the address, time and result of each request and keeps them for 30 days. Your IP address is only recorded when a request limit is exceeded. The hosting provider's servers may also keep access logs that include IP addresses."
+      "i4": "Technical records: the server logs the address, time and result of each request and keeps them for 30 days. Search terms in the address, the user filter of Explore and the keys of share links are not written to the log. Your IP address is only recorded when a request limit is exceeded. The hosting provider's servers may also keep access logs that include IP addresses."
     },
     "purposes": {
       "title": "Why we process it (legal basis)",
       "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the minimum age of 18.",
       "i2": "To keep the site safe: technical records, request limits, the temporary lock after failed sign-ins and moderation against abuse (Art. 6(1)(f) GDPR, legitimate interest).",
+      "i3": "To run the site, as totals: for example the number of accounts that used the site in the last 30 days. These numbers are not used to assess individuals (Art. 6(1)(f) GDPR, legitimate interest).",
       "p1": "Your data is not sold, not used for advertising or profiling, and not processed for any other purpose."
     },
     "visibility": {
       "title": "Who can see it",
       "p1": "Collections are private by default; only you can see them. If you share a collection publicly or with a link, that collection, its coins and photos are visible together with your user name. Your name, e-mail address and date of birth are never shown to others.",
-      "p2": "For moderation, the site's administrators can see your user name, e-mail address, first and last name, the number of your collections and coins, and the content you share; they cannot see your private collections. Administrators' actions are recorded in an audit log."
+      "p2": "For moderation, the site's administrators can see your user name, e-mail address, first and last name, when you signed up, last signed in and last used the site, whether your account is locked, the number of your collections, coins and photos, the storage you use, and the content you share (including the link of collections you share by link); they cannot see your private collections. Administrators' actions (locking, hiding, deleting) are recorded in an audit log with their time and the reason the administrator wrote."
     },
     "cookies": {
       "title": "Cookies and browser storage",
       "p1": "The site only uses the cookies it needs to work, so it does not ask for consent:",
-      "i1": "coinportal.auth keeps you signed in. With \"Remember me\" it lasts 14 days and is extended while you use the site; otherwise it ends when you close the browser.",
+      "i1": "coinportal.auth keeps you signed in. After signing up and with \"Remember me\" it lasts 14 days and is extended while you use the site; without \"Remember me\" it ends when you close the browser. Signing out removes it at once.",
       "i2": "coinportal.af and XSRF-TOKEN stop forms from being sent from other sites (security).",
       "p2": "Your language, theme and color choices are kept in the browser's local storage. There are no analytics, advertising or tracking cookies, and pages load nothing (fonts, scripts) from other sites."
     },
@@ -494,11 +495,11 @@
     },
     "retention": {
       "title": "How long we keep it",
-      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once, and your name is removed from the administrators' audit log. Technical records are deleted after 30 days. In the hosting provider's backups, data can remain for a while until the backups are replaced."
+      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. In the hosting provider's backups, data can remain for a while until the backups are replaced."
     },
     "rights": {
       "title": "Your rights",
-      "p1": "You have the right to access your data, to have it corrected or deleted, to restrict or object to its processing, and to data portability. You can download all your data as a ZIP file and delete your account yourself in Settings > Account. For anything else, write to the e-mail address above.",
+      "p1": "You have the right to access your data, to have it corrected or deleted, to restrict or object to its processing, and to data portability. You can download all your data as a ZIP file (including the administrators' records about your account and collections) and delete your account yourself in Settings > Account. To correct your name, e-mail address or date of birth, and for anything else, write to the e-mail address above.",
       "p2": "If you think your data is processed unlawfully, you can complain to a data protection supervisory authority."
     },
     "age": {

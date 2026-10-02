@@ -52,13 +52,35 @@ public sealed record ExploreCoinResponse(
     string? MintMark,
     bool IsCommemorative,
     int Quantity,
-    IReadOnlyList<CoinPhotoResponse> Photos,
-    DateTime CreatedAtUtc)
+    IReadOnlyList<CoinPhotoResponse> Photos)
 {
     // Owner, Collection and Photos must be loaded
     public static ExploreCoinResponse From(Coin c) => new(
         c.Id, c.CollectionId, c.Collection.Name, c.Owner.UserName!, c.Title, c.Description,
         c.Denomination, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity,
-        c.Photos.OrderBy(p => p.Side).Select(CoinPhotoResponse.From).ToList(),
-        c.CreatedAtUtc);
+        c.Photos.OrderBy(p => p.Side).Select(CoinPhotoResponse.From).ToList());
+}
+
+/// <summary>
+/// A coin of a public or shared collection: what the owner sees minus when it was added or
+/// changed, which would tell others when the owner was active.
+/// </summary>
+public sealed record PublicCoinResponse(
+    int Id,
+    int CollectionId,
+    string Title,
+    string? Description,
+    Denomination Denomination,
+    string CountryCode,
+    int Year,
+    string? MintMark,
+    bool IsCommemorative,
+    int Quantity,
+    IReadOnlyList<CoinPhotoResponse> Photos)
+{
+    // Photos must be loaded (Include)
+    public static PublicCoinResponse From(Coin c) => new(
+        c.Id, c.CollectionId, c.Title, c.Description, c.Denomination, c.CountryCode, c.Year,
+        c.MintMark, c.IsCommemorative, c.Quantity,
+        c.Photos.OrderBy(p => p.Side).Select(CoinPhotoResponse.From).ToList());
 }

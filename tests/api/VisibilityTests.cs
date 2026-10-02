@@ -88,6 +88,8 @@ public class VisibilityTests(CoinPortalFactory factory)
             Assert.DoesNotContain(alice.User.Id, body, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("1990-01-01", body);
             Assert.DoesNotContain("firstName", body, StringComparison.OrdinalIgnoreCase);
+            // When coins were added or changed would tell when the owner was active
+            Assert.DoesNotContain("AtUtc", body, StringComparison.OrdinalIgnoreCase);
         }
     }
 

@@ -1,7 +1,11 @@
+using System.IO.Compression;
 using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Contracts.Common;
+using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
 
@@ -75,9 +79,19 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         var hidden = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
         var coin = await alice.CreateCoinAsync(hidden.Id);
         var other = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
-        using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{hidden.Id}/lock", new AdminLockRequest(null)))
+        using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{hidden.Id}/lock", new AdminLockRequest("Spam")))
         {
             await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+
+        // The owner's data export tells what happened, and why (not who did it)
+        using (var export = await alice.Client.GetAsync("/api/settings/export"))
+        {
+            using var zip = new ZipArchive(await export.Content.ReadAsStreamAsync());
+            await using var json = zip.GetEntry("moderation.json")!.Open();
+            var entry = Assert.Single((await JsonSerializer.DeserializeAsync<List<ModerationExport>>(json,
+                new JsonSerializerOptions(JsonSerializerOptions.Web) { Converters = { new JsonStringEnumConverter() } }))!);
+            Assert.Equal((AuditAction.CollectionHidden, hidden.Id, "Spam"), (entry.Action, entry.CollectionId, entry.Note));
         }
 
         // Moving the coins out would publish the hidden content again

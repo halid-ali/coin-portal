@@ -134,8 +134,8 @@ public static class DevDataSeeder
         }
 
         logger.LogInformation(
-            "Dev data seeded: {Users} users. Password for all seed users: {Password}",
-            data.Users.Count, data.Password);
+            // Never the password (CLAUDE.md lists it for developers)
+            "Dev data seeded: {Users} users", data.Users.Count);
     }
 
     private sealed record SeedData(string Password, List<SeedUser> Users);
