@@ -43,6 +43,8 @@ terminallerinde sürekli çalışır halde tutuyor.
   `git merge --no-ff --no-edit <branch>` ile alınır; merge mesajı git'in varsayılanıdır
   (`Merge branch 'feat/x'`, 2026-09-29'dan beri; eski `feat: merge x` biçimi changelog'da tekrar üretir).
 - Conventional Commits (`feat(api): …`, `feat(client): …`, `chore: …`), İngilizce, küçük ve anlamlı commit'ler.
+  Bir GitHub issue'sunu kapatan commit'in gövdesine `Closes #N` yazılır (`main` push edilince issue kapanır);
+  PROJECT_STATUS "Aksiyon planı"ndaki kutusu aynı branch'te işaretlenir.
 - Commit ve merge **kullanıcı onayıyla** yapılır. Commit öncesinde gelen düzeltme istekleri önce uygulanır,
   commit son haliyle atılır (sonradan "fix" commit'i yığmak yerine).
 - **Push kullanıcı onayıyla.** Repo kullanıcının kişisel GitHub hesabında, public (karar 2026-09-29).
