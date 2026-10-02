@@ -17,6 +17,8 @@
     "newUsers": "Joined in the last 30 days",
     "lockedUsers": "Locked",
     "collections": "Collections",
+    "allCollections": "All collections",
+    "allCollectionsHint": "private ones included",
     "publicCollections": "Public",
     "unlistedCollections": "Link only",
     "hiddenCollections": "Hidden",
@@ -100,6 +102,10 @@
     "count": {
       "one": "{{count}} collection",
       "other": "{{count}} collections"
+    },
+    "privateNotListed": {
+      "one": "{{count}} private collection is not listed; the panel shows no private content.",
+      "other": "{{count}} private collections are not listed; the panel shows no private content."
     },
     "empty": "No collections match this search.",
     "ownerLocked": "Owner locked",

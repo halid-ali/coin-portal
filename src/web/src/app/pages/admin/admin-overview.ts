@@ -31,6 +31,8 @@ type TileColor =
 
 interface Tile {
   labelKey: string;
+  /** Small print under the label: what the number covers, where it could be misread. */
+  hintKey?: string;
   icon: TileIcon;
   color: TileColor;
   value: (stats: AdminStats, lang: string) => string;
@@ -76,7 +78,9 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
     titleKey: 'admin.overview.collections',
     tiles: [
       {
-        labelKey: 'admin.overview.collections',
+        // Private ones included; the Collections list shows only shared and hidden ones
+        labelKey: 'admin.overview.allCollections',
+        hintKey: 'admin.overview.allCollectionsHint',
         icon: 'collections',
         color: 'orange',
         value: (s, l) => number(s.collectionCount, l),
@@ -250,6 +254,9 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
         </span>
       </div>
       <p class="mt-1 text-sm text-shade-600">{{ tile.labelKey | transloco }}</p>
+      @if (tile.hintKey) {
+        <p class="text-xs text-shade-500">{{ tile.hintKey | transloco }}</p>
+      }
     </ng-template>
   `,
 })

@@ -60,7 +60,12 @@
   @if (loadError()) {
     <p class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
   } @else if (result(); as r) {
-    <p class="text-sm text-shade-500">{{ 'admin.collections.count' | plural: r.totalCount }}</p>
+    <p class="text-sm text-shade-500">
+      {{ 'admin.collections.count' | plural: r.totalCount }}
+      @if (privateCount(); as hidden) {
+        · {{ 'admin.collections.privateNotListed' | plural: hidden }}
+      }
+    </p>
 
     @if (r.items.length === 0) {
       <p class="card text-sm text-shade-600">{{ 'admin.collections.empty' | transloco }}</p>

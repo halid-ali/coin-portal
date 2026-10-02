@@ -17,6 +17,8 @@
     "newUsers": "Neu in den letzten 30 Tagen",
     "lockedUsers": "Gesperrt",
     "collections": "Sammlungen",
+    "allCollections": "Alle Sammlungen",
+    "allCollectionsHint": "private eingeschlossen",
     "publicCollections": "Öffentlich",
     "unlistedCollections": "Nur mit Link",
     "hiddenCollections": "Ausgeblendet",
@@ -100,6 +102,10 @@
     "count": {
       "one": "{{count}} Sammlung",
       "other": "{{count}} Sammlungen"
+    },
+    "privateNotListed": {
+      "one": "{{count}} private Sammlung wird nicht aufgelistet; das Panel zeigt keine privaten Inhalte.",
+      "other": "{{count}} private Sammlungen werden nicht aufgelistet; das Panel zeigt keine privaten Inhalte."
     },
     "empty": "Keine Sammlungen passen zu dieser Suche.",
     "ownerLocked": "Besitzer gesperrt",

@@ -98,6 +98,12 @@ export class AdminCollections extends AdminListBase {
   protected readonly busyId = signal<number | null>(null);
   protected readonly actionError = signal(false);
 
+  /**
+   * Private collections that are not hidden: never listed here, only counted, so the overview's
+   * total and this list do not look contradictory. Null until the numbers arrive (or if they fail).
+   */
+  protected readonly privateCount = signal<number | null>(null);
+
   constructor() {
     super();
     toObservable(this.query)
@@ -119,6 +125,21 @@ export class AdminCollections extends AdminListBase {
       .subscribe((result) => {
         this.result.set(result);
         this.loading.set(false);
+      });
+
+    // Hidden collections are private too, but they are listed
+    this.admin
+      .stats()
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (s) =>
+          this.privateCount.set(
+            s.collectionCount -
+              s.publicCollectionCount -
+              s.unlistedCollectionCount -
+              s.hiddenCollectionCount,
+          ),
+        error: () => this.privateCount.set(null),
       });
   }
 

@@ -17,6 +17,8 @@
     "newUsers": "Нови през последните 30 дни",
     "lockedUsers": "Заключени",
     "collections": "Колекции",
+    "allCollections": "Всички колекции",
+    "allCollectionsHint": "включително частните",
     "publicCollections": "Публични",
     "unlistedCollections": "Само с връзка",
     "hiddenCollections": "Скрити",
@@ -100,6 +102,10 @@
     "count": {
       "one": "{{count}} колекция",
       "other": "{{count}} колекции"
+    },
+    "privateNotListed": {
+      "one": "{{count}} частна колекция не се показва; панелът не показва частно съдържание.",
+      "other": "{{count}} частни колекции не се показват; панелът не показва частно съдържание."
     },
     "empty": "Няма колекции, отговарящи на търсенето.",
     "ownerLocked": "Собственикът е заключен",
