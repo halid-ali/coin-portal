@@ -33,16 +33,17 @@ public class AuthController(
         };
 
         // The user and their first collection together or not at all: a failure in between would
-        // leave an account without a collection (and a sign-up that "failed" but took the name)
-        await using (var transaction = await db.Database.BeginTransactionAsync())
+        // leave an account without a collection (and a sign-up that "failed" but took the name).
+        // Run by the execution strategy, which repeats the whole unit after a transient error
+        var errors = await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
+            // A repeat starts clean: nothing left over from the failed attempt
+            db.ChangeTracker.Clear();
+            await using var transaction = await db.Database.BeginTransactionAsync();
             var result = await userManager.CreateAsync(user, request.Password);
             if (!result.Succeeded)
             {
-                // Map Identity errors (duplicate email/username, weak password) to a 400 response
-                foreach (var error in result.Errors)
-                    ModelState.AddModelError(error.Code, error.Description);
-                return ValidationProblem(ModelState);
+                return result.Errors.ToList();
             }
 
             // Every user starts with one collection, so coins can be added right away
@@ -56,6 +57,14 @@ public class AuthController(
             });
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
+            return new List<IdentityError>();
+        });
+        if (errors.Count > 0)
+        {
+            // Map Identity errors (duplicate email/username, weak password) to a 400 response
+            foreach (var error in errors)
+                ModelState.AddModelError(error.Code, error.Description);
+            return ValidationProblem(ModelState);
         }
 
         // Sign the new user in right away, kept like a sign-in with "remember me" (its default):

@@ -17,6 +17,8 @@ public sealed class LogFileOptions
 
     public string? Path { get; set; } = "App_Data/logs";
 
+    /// <summary>Number of files kept (one a day, more if a day passes the size limit).</summary>
+    [System.ComponentModel.DataAnnotations.Range(1, 3650)]
     public int RetainedDays { get; set; } = 30;
 }
 
@@ -28,7 +30,11 @@ public static partial class AppLogging
 {
     public static IServiceCollection AddAppLogging(this IServiceCollection services)
     {
-        services.AddOptions<LogFileOptions>().BindConfiguration(LogFileOptions.SectionName);
+        services.AddOptions<LogFileOptions>().BindConfiguration(LogFileOptions.SectionName)
+            .ValidateDataAnnotations().ValidateOnStart();
+        // Serilog's own problems (a log folder it cannot write) go to the error output instead of
+        // vanishing; on IIS they reach the stdout log when that is switched on
+        Serilog.Debugging.SelfLog.Enable(Console.Error);
 
         // Configured from the services, not at startup: test hosts change the configuration later
         return services.AddSerilog((provider, logger) =>
@@ -39,10 +45,8 @@ public static partial class AppLogging
                 .WriteTo.Console();
 
             var files = provider.GetRequiredService<IOptions<LogFileOptions>>().Value;
-            if (!string.IsNullOrWhiteSpace(files.Path))
+            if (LogFolder(provider.GetRequiredService<IWebHostEnvironment>(), files) is { } folder)
             {
-                var folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(
-                    provider.GetRequiredService<IWebHostEnvironment>().ContentRootPath, files.Path));
                 logger.WriteTo.File(
                     System.IO.Path.Combine(folder, "coinportal-.log"),
                     rollingInterval: RollingInterval.Day,
@@ -53,6 +57,12 @@ public static partial class AppLogging
             }
         });
     }
+
+    /// <summary>The absolute folder of the log files, or null when only the console logs.</summary>
+    public static string? LogFolder(IWebHostEnvironment env, LogFileOptions options) =>
+        string.IsNullOrWhiteSpace(options.Path)
+            ? null
+            : System.IO.Path.GetFullPath(System.IO.Path.Combine(env.ContentRootPath, options.Path));
 
     /// <summary>One line per request ("HTTP GET /api/coins?page=2 responded 200 in 35.1 ms").</summary>
     public static IApplicationBuilder UseAppRequestLogging(this IApplicationBuilder app) =>

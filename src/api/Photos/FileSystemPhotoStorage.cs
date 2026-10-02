@@ -66,6 +66,15 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
 
     public Task DeleteOwnerAsync(string ownerId) => DeleteFolderAsync(OwnerFolder(ownerId));
 
+    public async Task<string> CheckWritableAsync()
+    {
+        Directory.CreateDirectory(root);
+        var probe = Path.Combine(root, $".write-test-{Guid.NewGuid():N}");
+        await File.WriteAllTextAsync(probe, "ok");
+        File.Delete(probe);
+        return root;
+    }
+
     private string OwnerFolder(string ownerId)
     {
         // Identity ids are GUID strings; anything else could escape the root folder

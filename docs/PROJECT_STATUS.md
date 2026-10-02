@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10, #12, #15, #13, #16, #11, #14 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#16 ve #19 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -803,6 +803,17 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     Client: kodlu 400 hatası alan hatası taşımıyorsa "istek reddedildi"ye düşüyordu; sınır kodları
     artık tanınıyor (genel düzeltme #26). Testler: API 138 (+4 ve bir sorgu durumu; genel limiter
     kapatılınca yazma testi kırıldı), client 90 (+1).
+43. **Açılış öz-kontrolü ve dayanıklılık** (`feat/startup-self-check`, 2026-10-02; #19): yanlış bir hosting
+    ayarı (yazılamayan fotoğraf/log/anahtar klasörü, DPAPI'nin çözemediği anahtarlar, sıfır bir sınır)
+    ilk yüklemede 500 ya da her yeniden başlatmada oturum düşmesi olarak çıkıyordu. Artık açılışta
+    `Hosting/StartupChecks` üç klasöre deneme yazması yapar, DataProtection'ı dener ve çözülen yolları loglar;
+    hosting ayarları açılışta doğrulanır, hata uygulamayı başlatmaz (Critical log). Serilog'un kendi hataları
+    standart hataya (`SelfLog`). EF `EnableRetryOnFailure(3)`: geçici SQL hataları yeniden denenir; üç
+    transaction (kayıt, koleksiyon silme, hesap silme) yürütme stratejisinin içinde ve tekrar edilebilir.
+    Yanıt sıkıştırması (Brotli/Gzip, HTTPS'te de): client paketi ve JSON. Testler: API 143 (+5: üç
+    sıkıştırma, yazılamayan klasör ve geçersiz sınırla açılmama; açılış kontrolü kapatılınca kırıldı).
+    Canlı (5090, dev veritabanı): açılışta üç klasör satırı, `/api/countries` Brotli + güvenlik başlıkları.
+    Yeniden deneme yolu testle tetiklenmedi (geçici SQL hatası üretilemiyor).
 
 ## Yol haritası
 
@@ -891,7 +902,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü (Tamamlananlar 40).
   - [ ] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur.
   - [ ] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (kullanıcı kararı; Impressum ile birlikte).
-  - [ ] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması.
+  - [x] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması (Tamamlananlar 43).
   - [ ] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları.
   - [ ] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10).
 - **P1, ilk yayından hemen sonraki sürümler:**
@@ -918,8 +929,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 Yeni sohbette kullanıcıyla seçilecek. **Önce "Aksiyon planı"ndaki P0 işleri** (2026-10-02 incelemesi): küçük
-olanlar (#10, #12, #15) bitti; sırada veri ve moderasyon düzeltmeleri (#13, #16), sonra hosting tarafı
-(#11, #14, #19); #20 (doküman senkronu) hosting görüşmelerinden önce;
+olanlar ve veri, moderasyon, hosting düzeltmeleri bitti (#10–#16, #19); kalan P0'lar #17 (gizlilik metni,
+`OPERATOR`), #18 (kullanım şartları, kullanıcı kararı), #20 (doküman senkronu, hosting görüşmelerinden önce),
 #21 yol haritası 10'un (`release.yml`) kendisi. Yol haritasındaki diğer adaylar: **8b** e2e (#34), **11**
 hosting seçimi ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Yayın öncesi kullanıcıda
 bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum ve kullanım şartları kararı (Açık konular 14,

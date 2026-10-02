@@ -257,6 +257,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
 - `UseHttpsRedirection()` sadece Development dışında.
+- **EF geçici hata yeniden denemesi açık** (`EnableRetryOnFailure`): elle açılan her transaction
+  `db.Database.CreateExecutionStrategy().ExecuteAsync(...)` içinde yazılır (yoksa EF hata fırlatır) ve
+  tekrar edilebilir olmalı: deneme ilk satırda `db.ChangeTracker.Clear()` ile temiz başlar (bkz.
+  `AccountDeletion`, `AuthController.Register`, `CollectionsController.Delete`).
 - Migration'ı uygulamadan önce oluşan `Up()` gözden geçirilir; Identity tablolarında beklenmeyen
   `AlterColumn` olmamalı. Mevcut veriye zorunlu yabancı anahtar eklenirken EF `defaultValue: 0`
   üretir ve FK'yı bozar: elle nullable ekle → `Sql()` ile doldur → `AlterColumn` NOT NULL
@@ -430,7 +434,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yapar. Yani kullanıcı başına dakikada bir yanıt (çoğu zaman bir fotoğraf) önbelleğe alınmaz; bilinen,
   küçük bir bedel.
 - API açılışta veritabanına yazar (admin rol senkronu): veritabanı erişilemezse ya da boşsa (hiç
-  migration uygulanmamış) API başlamaz. Hosting'de önce migration, sonra uygulama.
+  migration uygulanmamış) API başlamaz. Hosting'de önce migration, sonra uygulama. Açılışta ayrıca
+  `Hosting/StartupChecks`: fotoğraf, log ve anahtar klasörlerine deneme yazması ve DataProtection; yanlış bir
+  yol ya da DPAPI sorunu uygulamayı başlatmaz (Critical log). Çözülen klasörler Information logda (`Photos:`,
+  `Log files:`, `Data protection keys:`); yeni hosting'de ilk açılışta bu satırlara bakılır. Hosting
+  ayarları (`RateLimiting`, `Logs`, `PhotoStorage`, `UserLimits`) açılışta doğrulanır.
 - Dev veritabanına karşı ikinci bir API (5090, publish paketi, Production ortamı) çalıştırılırken
   `Admin__UserIds__0=<kendi Id'n>` verilir: `appsettings.Development.json` sadece Development'ta
   okunur, boş liste açılış senkronunda kullanıcının admin rolünü alır.

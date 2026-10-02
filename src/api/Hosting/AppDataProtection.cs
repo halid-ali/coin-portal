@@ -45,12 +45,11 @@ public static class AppDataProtection
             .Configure<IOptions<DataProtectionSettings>, IWebHostEnvironment, ILoggerFactory>(
                 (options, settings, env, loggerFactory) =>
                 {
-                    if (string.IsNullOrWhiteSpace(settings.Value.KeysPath))
+                    if (KeysFolder(env, settings.Value) is not { } folder)
                     {
                         return;
                     }
 
-                    var folder = Path.GetFullPath(Path.Combine(env.ContentRootPath, settings.Value.KeysPath));
                     options.XmlRepository = new FileSystemXmlRepository(new DirectoryInfo(folder), loggerFactory);
 
                     // Plain XML keys would let anyone who can read the folder forge sign-in cookies.
@@ -64,4 +63,10 @@ public static class AppDataProtection
 
         return services;
     }
+
+    /// <summary>The absolute key folder, or null for ASP.NET Core's default location.</summary>
+    public static string? KeysFolder(IWebHostEnvironment env, DataProtectionSettings settings) =>
+        string.IsNullOrWhiteSpace(settings.KeysPath)
+            ? null
+            : Path.GetFullPath(Path.Combine(env.ContentRootPath, settings.KeysPath));
 }

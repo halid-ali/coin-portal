@@ -18,8 +18,13 @@ public class AccountDeletion(
     /// <param name="beforeSave">Adds changes that are saved with the deletion (an admin's audit entry).</param>
     public async Task DeleteAsync(ApplicationUser user, Action? beforeSave, CancellationToken ct)
     {
-        await using (var transaction = await db.Database.BeginTransactionAsync(ct))
+        // Run by the execution strategy, which repeats the whole unit after a transient error
+        await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
+            // A repeat starts clean: no second audit entry from the failed attempt
+            db.ChangeTracker.Clear();
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
             // Names are personal data; the entries themselves stay (who did what, and when)
             await db.AuditLog.Where(e => e.TargetUserId == user.Id).ExecuteUpdateAsync(s => s
                 .SetProperty(e => e.TargetUserName, (string?)null)
@@ -34,7 +39,7 @@ public class AccountDeletion(
                 throw new InvalidOperationException(string.Join(" ", result.Errors.Select(e => e.Description)));
             }
             await transaction.CommitAsync(ct);
-        }
+        });
 
         // Files after the database, like coin and photo deletion: a failure here leaves files
         // nobody can reach, never rows that point to missing files

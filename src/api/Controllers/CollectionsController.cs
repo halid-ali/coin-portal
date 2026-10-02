@@ -137,8 +137,12 @@ public class CollectionsController(
         }
 
         List<Guid> photoIds = [];
-        await using (var transaction = await db.Database.BeginTransactionAsync(ct))
+        // Run by the execution strategy, which repeats the whole unit after a transient error
+        var refused = await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
+            photoIds = [];
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
             // The user's collections stay locked until the commit: two deletions at the same time
             // cannot both pass the "not the last one" check, and the move target cannot vanish
             var ownIds = await db.Database
@@ -173,6 +177,11 @@ public class CollectionsController(
             db.Collections.Remove(collection);
             await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
+            return (IActionResult?)null;
+        });
+        if (refused is not null)
+        {
+            return refused;
         }
 
         // Files only after the rows are gone
