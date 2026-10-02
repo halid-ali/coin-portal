@@ -23,6 +23,7 @@ public class AccountTests(CoinPortalFactory factory)
         var (collection, coin) = await FillAsync(alice, Title);
         var bob = await factory.SignUpAsync();
         await FillAsync(bob, "Bob's secret coin");
+        var shared = await alice.SetVisibilityAsync(collection, CollectionVisibility.Unlisted);
 
         using var response = await alice.Client.GetAsync("/api/settings/export");
 
@@ -34,7 +35,8 @@ public class AccountTests(CoinPortalFactory factory)
         using var zip = new ZipArchive(await response.Content.ReadAsStreamAsync());
         var names = zip.Entries.Select(e => e.FullName).Order().ToList();
         Assert.Equal(
-            ["account.json", "collections.json", $"covers/{collection.Id}.webp", $"photos/{coin.Id}-national.webp"],
+            ["account.json", "collections.json", $"covers/{collection.Id}.webp", "moderation.json",
+                $"photos/{coin.Id}-national.webp"],
             names);
 
         var account = Read<AccountExportFile>(zip, "account.json");
@@ -45,6 +47,9 @@ public class AccountTests(CoinPortalFactory factory)
         var collections = Read<List<CollectionExport>>(zip, "collections.json");
         var exported = Assert.Single(collections, c => c.Id == collection.Id);
         Assert.Equal($"covers/{collection.Id}.webp", exported.Cover);
+        Assert.Equal(shared.ShareToken, exported.ShareToken);
+        Assert.Null(exported.HiddenByAdminAtUtc);
+        Assert.Empty(Read<List<ModerationExport>>(zip, "moderation.json"));
         var exportedCoin = Assert.Single(exported.Coins);
         Assert.Equal((coin.Id, Title, "DE", 2006), (exportedCoin.Id, exportedCoin.Title,
             exportedCoin.CountryCode, exportedCoin.Year));

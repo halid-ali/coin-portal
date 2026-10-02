@@ -11,7 +11,8 @@ namespace CoinPortal.Api.Accounts;
 
 /// <summary>
 /// The user's data as a ZIP (GDPR access and portability): account.json, collections.json with
-/// every coin, and the largest size of every photo and cover. Built in a temporary file, not in
+/// every coin, moderation.json (administrators' actions about the user), and the largest size of
+/// every photo and cover. Built in a temporary file, not in
 /// memory (up to the photo quota, 300 MB); the file is deleted when the returned stream closes.
 /// </summary>
 public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
@@ -35,13 +36,20 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
             .OrderBy(c => c.Id)
             .Select(c => new
             {
-                c.Id, c.Name, c.Description, c.Visibility, c.CreatedAtUtc, c.UpdatedAtUtc, c.CoverImageId,
+                c.Id, c.Name, c.Description, c.Visibility, c.ShareToken, c.ModerationLockedAtUtc,
+                c.CreatedAtUtc, c.UpdatedAtUtc, c.CoverImageId,
                 Coins = c.Coins.OrderBy(coin => coin.Id).Select(coin => new
                 {
                     Coin = coin,
                     Photos = coin.Photos.Select(p => new { p.Id, p.Side }).ToList(),
                 }).ToList(),
             })
+            .ToListAsync(ct);
+        var moderation = await db.AuditLog.AsNoTracking()
+            .Where(a => a.TargetUserId == user.Id)
+            .OrderBy(a => a.CreatedAtUtc).ThenBy(a => a.Id)
+            .Select(a => new ModerationExport(a.CreatedAtUtc, a.Action, a.TargetCollectionId,
+                a.TargetCollectionName, a.Note))
             .ToListAsync(ct);
 
         var file = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None,
@@ -76,11 +84,12 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
                             coin.CountryCode, coin.Year, coin.MintMark, coin.IsCommemorative, coin.Quantity,
                             coin.CreatedAtUtc, coin.UpdatedAtUtc, photos));
                     }
-                    export.Add(new CollectionExport(c.Id, c.Name, c.Description, c.Visibility, c.CreatedAtUtc,
-                        c.UpdatedAtUtc, cover, coins));
+                    export.Add(new CollectionExport(c.Id, c.Name, c.Description, c.Visibility, c.ShareToken,
+                        c.ModerationLockedAtUtc, c.CreatedAtUtc, c.UpdatedAtUtc, cover, coins));
                 }
 
                 await AddJsonAsync(zip, "collections.json", export, ct);
+                await AddJsonAsync(zip, "moderation.json", moderation, ct);
                 await AddJsonAsync(zip, "account.json", new AccountExportFile(DateTime.UtcNow, user.UserName!,
                     user.Email!, user.FirstName, user.LastName, user.BirthDate, user.CreatedAtUtc,
                     user.PreferredLanguage, user.PreferredTheme, user.PreferredAccent, user.LastSignInAtUtc,

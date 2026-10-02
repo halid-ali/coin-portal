@@ -468,23 +468,24 @@
       "i1": "Kontodaten: Vor- und Nachname, Benutzername, E-Mail-Adresse, Geburtsdatum und dein Passwort. Das Passwort wird nur als nicht umkehrbarer Hash gespeichert.",
       "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
       "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
-      "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch die Server des Hosting-Anbieters können Zugriffsprotokolle mit IP-Adressen führen."
+      "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Freigabelinks werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch die Server des Hosting-Anbieters können Zugriffsprotokolle mit IP-Adressen führen."
     },
     "purposes": {
       "title": "Zwecke und Rechtsgrundlagen",
       "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren.",
       "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
+      "i3": "Um die Website zu betreiben, als Gesamtzahlen: zum Beispiel die Zahl der Konten, die die Website in den letzten 30 Tagen genutzt haben. Diese Zahlen dienen nicht der Bewertung einzelner Personen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "p1": "Deine Daten werden nicht verkauft, nicht für Werbung oder Profilbildung genutzt und zu keinem anderen Zweck verarbeitet."
     },
     "visibility": {
       "title": "Wer sie sehen kann",
       "p1": "Sammlungen sind standardmäßig privat; nur du siehst sie. Wenn du eine Sammlung öffentlich oder per Link teilst, sind diese Sammlung, ihre Münzen und Fotos zusammen mit deinem Benutzernamen sichtbar. Dein Name, deine E-Mail-Adresse und dein Geburtsdatum werden anderen nie angezeigt.",
-      "p2": "Zur Moderation sehen die Administratoren der Website deinen Benutzernamen, deine E-Mail-Adresse, deinen Vor- und Nachnamen, die Anzahl deiner Sammlungen und Münzen sowie die Inhalte, die du teilst; deine privaten Sammlungen sehen sie nicht. Aktionen der Administratoren werden in einem Protokoll festgehalten."
+      "p2": "Zur Moderation sehen die Administratoren der Website deinen Benutzernamen, deine E-Mail-Adresse, deinen Vor- und Nachnamen, wann du dich registriert, zuletzt angemeldet und die Website zuletzt genutzt hast, ob dein Konto gesperrt ist, die Anzahl deiner Sammlungen, Münzen und Fotos, deinen belegten Speicherplatz sowie die Inhalte, die du teilst (einschließlich des Links von Sammlungen, die du per Link teilst); deine privaten Sammlungen sehen sie nicht. Aktionen der Administratoren (Sperren, Ausblenden, Löschen) werden mit Zeitpunkt und der vom Administrator angegebenen Begründung in einem Protokoll festgehalten."
     },
     "cookies": {
       "title": "Cookies und Browserspeicher",
       "p1": "Die Website verwendet nur Cookies, die für ihren Betrieb erforderlich sind, und fragt deshalb nicht nach einer Einwilligung:",
-      "i1": "coinportal.auth hält dich angemeldet. Mit „Angemeldet bleiben“ gilt es 14 Tage und verlängert sich, solange du die Website nutzt; sonst endet es, wenn du den Browser schließt.",
+      "i1": "coinportal.auth hält dich angemeldet. Nach der Registrierung und mit „Angemeldet bleiben“ gilt es 14 Tage und verlängert sich, solange du die Website nutzt; ohne „Angemeldet bleiben“ endet es, wenn du den Browser schließt. Beim Abmelden wird es sofort gelöscht.",
       "i2": "coinportal.af und XSRF-TOKEN verhindern, dass Formulare von anderen Websites aus abgeschickt werden (Sicherheit).",
       "p2": "Deine Wahl von Sprache, Farbschema und Akzentfarbe wird im lokalen Speicher des Browsers (localStorage) abgelegt. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies, und die Seiten laden nichts (Schriften, Skripte) von anderen Websites."
     },
@@ -494,11 +495,11 @@
     },
     "retention": {
       "title": "Speicherdauer",
-      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht, und dein Name wird aus dem Protokoll der Administratoren entfernt. Technische Protokolle werden nach 30 Tagen gelöscht. In den Sicherungen des Hosting-Anbieters können Daten noch eine Zeit lang verbleiben, bis die Sicherungen ersetzt werden."
+      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht. Einträge im Protokoll der Administratoren (Aktion, Zeitpunkt, Begründung) bleiben bestehen, aber dein Name wird daraus entfernt; eine von einem Administrator geschriebene Begründung bleibt unverändert. Technische Protokolle werden nach 30 Tagen gelöscht. In den Sicherungen des Hosting-Anbieters können Daten noch eine Zeit lang verbleiben, bis die Sicherungen ersetzt werden."
     },
     "rights": {
       "title": "Deine Rechte",
-      "p1": "Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und Datenübertragbarkeit. Unter Einstellungen > Konto kannst du alle deine Daten als ZIP-Datei herunterladen und dein Konto selbst löschen. Für alles andere schreib an die oben genannte E-Mail-Adresse.",
+      "p1": "Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und Datenübertragbarkeit. Unter Einstellungen > Konto kannst du alle deine Daten (einschließlich der Einträge der Administratoren zu deinem Konto und deinen Sammlungen) als ZIP-Datei herunterladen und dein Konto selbst löschen. Um deinen Namen, deine E-Mail-Adresse oder dein Geburtsdatum zu berichtigen, und für alles andere schreib an die oben genannte E-Mail-Adresse.",
       "p2": "Wenn du meinst, dass deine Daten rechtswidrig verarbeitet werden, kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren."
     },
     "age": {

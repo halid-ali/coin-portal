@@ -17,7 +17,7 @@ public sealed class LogFileOptions
 
     public string? Path { get; set; } = "App_Data/logs";
 
-    /// <summary>Number of files kept (one a day, more if a day passes the size limit).</summary>
+    /// <summary>Days the log files are kept (at most three files a day, 20 MB each).</summary>
     [System.ComponentModel.DataAnnotations.Range(1, 3650)]
     public int RetainedDays { get; set; } = 30;
 }
@@ -50,7 +50,9 @@ public static partial class AppLogging
                 logger.WriteTo.File(
                     System.IO.Path.Combine(folder, "coinportal-.log"),
                     rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: files.RetainedDays,
+                    // Days, not files: a day that passes the size limit has several files
+                    retainedFileTimeLimit: TimeSpan.FromDays(files.RetainedDays),
+                    retainedFileCountLimit: files.RetainedDays * 3,
                     fileSizeLimitBytes: 20 * 1024 * 1024,
                     rollOnFileSizeLimit: true,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
@@ -84,19 +86,21 @@ public static partial class AppLogging
     private static partial Regex ImagePath();
 
     /// <summary>
-    /// The key of a link-only collection is part of some paths (/s/{key}, api/public/shared/{key})
-    /// and of photo URLs (?s={key}); it is a secret, so it never reaches a log file.
+    /// The address as it may be logged. The key of a link-only collection is part of some paths
+    /// (/s/{key}, api/public/shared/{key}) and of image URLs (?s={key}): a secret, never logged.
+    /// Search terms (?search=, also an admin's search for an e-mail address) and the explore filter
+    /// (?owner=) are personal data the logs do not need.
     /// </summary>
-    public static string MaskShareKeys(string pathAndQuery) =>
-        ShareKeyQuery().Replace(SharedLinkPath().Replace(pathAndQuery, "$1***"), "$1***");
+    public static string MaskLoggedAddress(string pathAndQuery) =>
+        MaskedQuery().Replace(SharedLinkPath().Replace(pathAndQuery, "$1***"), "$1***");
 
     [GeneratedRegex(@"^(/s/|/api/public/shared/)[^/?#]+", RegexOptions.IgnoreCase)]
     private static partial Regex SharedLinkPath();
 
-    [GeneratedRegex(@"([?&]s=)[^&#]+", RegexOptions.IgnoreCase)]
-    private static partial Regex ShareKeyQuery();
+    [GeneratedRegex(@"([?&](?:s|search|owner)=)[^&#]+", RegexOptions.IgnoreCase)]
+    private static partial Regex MaskedQuery();
 
-    /// <summary><see cref="MaskShareKeys"/> on the request path of every event, request log or not.</summary>
+    /// <summary><see cref="MaskLoggedAddress"/> on the request path of every event, request log or not.</summary>
     private sealed class MaskSharedLinks : ILogEventEnricher
     {
         private static readonly string[] PathProperties = ["RequestPath", "Path"];
@@ -107,7 +111,7 @@ public static partial class AppLogging
             {
                 if (logEvent.Properties.TryGetValue(name, out var value)
                     && value is ScalarValue { Value: string path }
-                    && MaskShareKeys(path) is var masked && masked != path)
+                    && MaskLoggedAddress(path) is var masked && masked != path)
                 {
                     logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty(name, masked));
                 }

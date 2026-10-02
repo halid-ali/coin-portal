@@ -70,8 +70,6 @@ export interface Coin {
   quantity: number;
   /** At most one per side, national side first. */
   photos: CoinPhoto[];
-  createdAtUtc: string;
-  updatedAtUtc: string;
 }
 
 /**

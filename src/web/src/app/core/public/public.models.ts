@@ -21,7 +21,7 @@ export interface Collector {
 }
 
 /** A coin in Explore, with where it comes from. */
-export interface ExploreCoin extends Omit<Coin, 'updatedAtUtc'> {
+export interface ExploreCoin extends Coin {
   collectionName: string;
   ownerUserName: string;
 }

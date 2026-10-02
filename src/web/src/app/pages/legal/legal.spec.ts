@@ -22,8 +22,8 @@ describe('Legal pages', () => {
     const page = await render(Privacy);
 
     expect(page.querySelectorAll('h2').length).toBe(10);
-    expect(page.querySelectorAll('li').length).toBe(8);
-    expect(page.textContent).toContain('Son güncelleme: 1 Ekim 2026');
+    expect(page.querySelectorAll('li').length).toBe(9);
+    expect(page.textContent).toContain('Son güncelleme: 2 Ekim 2026');
     // A key would be shown as is when its text is missing
     expect(page.textContent).not.toMatch(/privacy\.\w+/);
     // The operator is not filled in yet

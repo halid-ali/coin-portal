@@ -70,14 +70,14 @@ public class PublicController(AppDbContext db) : ControllerBase
     [HttpGet("collections/{id:int}/coins")]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PagedResponse<CoinResponse>>> CollectionCoins(
+    public async Task<ActionResult<PagedResponse<PublicCoinResponse>>> CollectionCoins(
         int id, [FromQuery] CoinListQuery query, CancellationToken ct)
     {
         if (!await PublicCollections.AnyAsync(c => c.Id == id, ct))
         {
             return NotFound();
         }
-        return await CoinsOf(id).ToPagedAsync(query, CoinResponse.From, ct);
+        return await CoinsOf(id).ToPagedAsync(query, PublicCoinResponse.From, ct);
     }
 
     /// <summary>A collection opened with its share link (Unlisted only).</summary>
@@ -92,7 +92,7 @@ public class PublicController(AppDbContext db) : ControllerBase
     [HttpGet("shared/{token}/coins")]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PagedResponse<CoinResponse>>> SharedCoins(
+    public async Task<ActionResult<PagedResponse<PublicCoinResponse>>> SharedCoins(
         string token, [FromQuery] CoinListQuery query, CancellationToken ct)
     {
         var id = await SharedCollections(token).Select(c => (int?)c.Id).FirstOrDefaultAsync(ct);
@@ -100,7 +100,7 @@ public class PublicController(AppDbContext db) : ControllerBase
         {
             return NotFound();
         }
-        return await CoinsOf(id.Value).ToPagedAsync(query, CoinResponse.From, ct);
+        return await CoinsOf(id.Value).ToPagedAsync(query, PublicCoinResponse.From, ct);
     }
 
     /// <summary>Explore: coins of all public collections, optionally of one user.</summary>

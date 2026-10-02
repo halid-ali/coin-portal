@@ -12,4 +12,4 @@ export const OPERATOR: { readonly name: string | null; readonly email: string | 
 export const SOURCE_URL = 'https://github.com/halid-ali/coin-portal';
 
 /** Date of the privacy policy's current text (ISO); changed with the text. */
-export const PRIVACY_UPDATED = '2026-10-01';
+export const PRIVACY_UPDATED = '2026-10-02';

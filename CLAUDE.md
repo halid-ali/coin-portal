@@ -242,8 +242,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `coin_limit`), görsel çözme `PhotoStorage:MaxSourceDimension` (4000 px) ve aynı anda
   `MaxConcurrentDecodes` (2) ile sınırlı.
 - **Loglar** (Serilog, `Hosting/AppLogging`): seviyeler `Serilog` ayar bölümünde (`Logging` bölümü
-  yok), dosyalar `Logs:Path`'e. İstek logu adresi sorgusuyla yazar; paylaşım anahtarı maskelenir
-  (`MaskShareKeys`). URL'e yeni bir gizli değer (token, anahtar) girerse maskeye eklenir. Loga parola,
+  yok), dosyalar `Logs:Path`'e. İstek logu adresi sorgusuyla yazar; paylaşım anahtarı, arama terimleri
+  (`search=`) ve Keşfet filtresi (`owner=`) maskelenir (`MaskLoggedAddress`). URL'e yeni bir gizli değer
+  (token, anahtar) ya da kişisel veri girerse maskeye eklenir. Dosyalar `Logs:RetainedDays` gün tutulur. Loga parola,
   cookie, token ya da istek gövdesi yazılmaz.
 - **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi ve
   admin'in silmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)

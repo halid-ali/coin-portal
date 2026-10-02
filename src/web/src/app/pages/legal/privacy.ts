@@ -15,7 +15,7 @@ interface Section {
 const SECTIONS: readonly Section[] = [
   { id: 'controller', blocks: [{ p: 'p1' }] },
   { id: 'data', blocks: [{ list: ['i1', 'i2', 'i3', 'i4'] }] },
-  { id: 'purposes', blocks: [{ list: ['i1', 'i2'] }, { p: 'p1' }] },
+  { id: 'purposes', blocks: [{ list: ['i1', 'i2', 'i3'] }, { p: 'p1' }] },
   { id: 'visibility', blocks: [{ p: 'p1' }, { p: 'p2' }] },
   { id: 'cookies', blocks: [{ p: 'p1' }, { list: ['i1', 'i2'] }, { p: 'p2' }] },
   { id: 'hosting', blocks: [{ p: 'p1' }] },

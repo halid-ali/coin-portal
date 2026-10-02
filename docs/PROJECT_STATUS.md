@@ -1,6 +1,6 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#16 ve #19 bitti; kapsamlı incelemeden
+Son güncelleme: 2026-10-02 (inceleme P0 işleri sürüyor: #10–#17 ve #19 bitti; kapsamlı incelemeden
 çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da
 public: https://github.com/halid-ali/coin-portal)
 
@@ -820,6 +820,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     artık "Tüm koleksiyonlar · özel olanlar dahil", listenin sayısının yanında "11 özel koleksiyon
     listelenmez; panel özel içerik göstermez" (sayı istatistik ucundan, API değişmedi). Dört dilde. Testler:
     client 91 (+1, ilk `AdminCollections` bileşen testi). Tarayıcıda görsel kontrol yapılmadı.
+45. **Gizlilik metni kodla eşit** (`chore/privacy-policy-sync`, 2026-10-02; #17): kod tarafı: istek logunda
+    arama terimleri (`search=`, admin'in e-posta araması dahil) ve Keşfet filtresi (`owner=`) de maskeleniyor
+    (`MaskLoggedAddress`, eski adı `MaskShareKeys`); log dosyaları gerçekten 30 gün (`retainedFileTimeLimit`;
+    önce dosya sayısıydı); dev seed parolayı loga yazmıyor; herkese açık ve linkli coin yanıtlarında eklenme/
+    değiştirilme zamanı yok (`PublicCoinResponse`; sahibinin ne zaman aktif olduğunu gösteriyordu, client
+    kullanmıyordu); dışa aktarmaya koleksiyonların link anahtarı ve gizlenme zamanı, `moderation.json`
+    (kullanıcıyı hedef alan yönetici işlemleri: zaman, işlem, gerekçe; admin adı yok). Metin (dört dil,
+    `PRIVACY_UPDATED` 2026-10-02): log maskesi, toplu kullanım sayıları amacı (6/1-f), yöneticinin gördükleri
+    tam liste, kayıtta da 14 günlük oturum ve çıkışta silinme, denetim kaydının silmeden sonra kalması ve
+    gerekçe metninin değişmemesi, dışa aktarmanın kapsamı, düzeltme için e-posta. `OPERATOR` kullanıcı
+    kararıyla boş (alan adı ve e-posta hosting'le belli olacak). Elle karşılanacak talepler Açık konular 18.
+    Testler: API 147 (+4 log maskesi; dışa aktarma ve herkese açık yanıt testleri genişledi), client 91.
 
 ## Yol haritası
 
@@ -906,7 +918,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları (Tamamlananlar 42).
   - [x] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi (Tamamlananlar 38; süpürme #27'de).
   - [x] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü (Tamamlananlar 40).
-  - [ ] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur.
+  - [x] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur (Tamamlananlar 45; `OPERATOR` kullanıcı kararıyla yayın öncesine kaldı).
   - [ ] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (kullanıcı kararı; Impressum ile birlikte).
   - [x] [#19](https://github.com/halid-ali/coin-portal/issues/19) M `feat/startup-self-check`: açılışta ayar ve klasör kontrolü, SQL retry, yanıt sıkıştırması (Tamamlananlar 43).
   - [ ] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları.
@@ -1288,6 +1300,13 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (`script-src 'self' 'sha256-…'`) ve Angular'ın satır içi stilleri (`style-src 'self' 'unsafe-inline'`)
     gerekir; önce `Content-Security-Policy-Report-Only` ile, gerçek tarayıcıda (yayın paketi + HTTPS)
     denenerek açılır. Satır içi betik değişince hash de değişir (CLAUDE.md'ye kural olarak girer).
+
+18. **Elle karşılanacak gizlilik talepleri ve denetim kaydı süresi** (2026-10-02, #17'den): profil salt
+    okunur olduğu için ad, e-posta ya da doğum tarihi düzeltmesi e-postayla istenir ve veritabanında elle
+    yapılır (profil düzenleme Sıradaki adım 3). Admin'in kilitlediği kullanıcı giriş yapamadığından kendi
+    verisini indiremez; isterse admin panelinde bir dışa aktarma aracı yok, elle hazırlanır (ya da kilit
+    geçici açılır). Denetim kaydının saklama süresi belirlenmedi (şimdi süresiz; silinen kullanıcının Id'leri
+    de kalıyor): bir süre kararı ve gerekirse eski kayıtları silen bir bakım komutu.
 
 ## Yayın öncesi yapılacaklar
 

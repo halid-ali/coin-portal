@@ -12,6 +12,11 @@ public class LogMaskingTests
     [InlineData("/api/collections/3/cover?s=AbC123xyz&v=abc", "/api/collections/3/cover?s=***&v=abc")]
     [InlineData("/collections/5?sort=year&size=20", "/collections/5?sort=year&size=20")]
     [InlineData("/settings/profile", "/settings/profile")]
-    public void ShareKeys_AreMaskedInLoggedAddresses(string address, string logged) =>
-        Assert.Equal(logged, AppLogging.MaskShareKeys(address));
+    // Search terms and the explore filter are personal data
+    [InlineData("/api/admin/users?search=alice@example.com&page=2", "/api/admin/users?search=***&page=2")]
+    [InlineData("/api/coins?collectionId=3&search=Belçika", "/api/coins?collectionId=3&search=***")]
+    [InlineData("/api/public/coins?owner=ayse.yilmaz", "/api/public/coins?owner=***")]
+    [InlineData("/explore?sort=year&size=20", "/explore?sort=year&size=20")]
+    public void SecretsAndSearchTerms_AreMaskedInLoggedAddresses(string address, string logged) =>
+        Assert.Equal(logged, AppLogging.MaskLoggedAddress(address));
 }
