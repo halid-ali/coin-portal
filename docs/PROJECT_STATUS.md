@@ -1,8 +1,8 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (#10 noktalı profil adresleri ve #12 giriş kilidinin ifşası düzeltildi;
-kapsamlı incelemeden çıkan 25 iş GitHub issue'su oldu, sırası "Aksiyon planı"nda; son yayın `v0.3.0`.
-Proje GitHub'da public: https://github.com/halid-ali/coin-portal; yol haritası "Yol haritası" bölümünde)
+Son güncelleme: 2026-10-02 (#10 noktalı profil adresleri, #12 giriş kilidinin ifşası, #15 hesap
+silmede fotoğraf klasörü düzeltildi; kapsamlı incelemeden çıkan 25 iş GitHub issue'su oldu, sırası
+"Aksiyon planı"nda; son yayın `v0.3.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
@@ -754,6 +754,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     olup olmadığını ele vermez. Kilit kuralı (5 deneme / 10 dk) kullanıcı kararıyla aynen kaldı; kasıtlı
     kilitleme bilinen risk (Açık konular 16). Testler: API 128 (+1, iki testte yeni kontrol); eski
     controller'la 3 test kırıldı. Client değişmedi (423 mesajları aynı).
+38. **Hesap silmede fotoğraf klasörü** (`fix/account-deletion-files`, 2026-10-02; #15): sunucu bir
+    fotoğrafı gönderirken dosya Windows'ta silmeye kilitliydi; o anda hesap (ya da coin, fotoğraf)
+    silinirse klasör diskte kalıyor, iz olarak sadece bir uyarı logu düşüyordu. Okuma artık
+    `FileShare.Delete` ile açılıyor; silme iki kez daha denenir (200 ms, 1 sn), yine olmazsa yoluyla
+    Error logu. Hata fırlatmaz (veritabanı satırları zaten gitmiştir). Yetim klasörlerin periyodik
+    süpürmesi #27'de. Testler: API 129 (+1: fotoğraf okunurken hesap silinir, klasör kalmaz;
+    `FileShare.Delete` kaldırılınca kırıldı). Linux'ta (CI) dosya kilidi olmadığı için test orada
+    her durumda geçer.
 
 ## Yol haritası
 
@@ -838,7 +846,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#12](https://github.com/halid-ali/coin-portal/issues/12) S `fix/login-lockout-disclosure`: giriş kilidinin kötüye kullanımı ve 423'ün hesabı ifşa etmesi (Tamamlananlar 37; kilit kuralı aynen, Açık konular 16).
   - [ ] [#13](https://github.com/halid-ali/coin-portal/issues/13) M `fix/moderation-lock-scope`: moderasyon kilidi coin taşıma ve silmeyi de kapsamalı.
   - [ ] [#14](https://github.com/halid-ali/coin-portal/issues/14) M `fix/abuse-limits`: görsel işleme belleği, kullanıcı başına satır ve yazma sınırları.
-  - [ ] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi.
+  - [x] [#15](https://github.com/halid-ali/coin-portal/issues/15) S `fix/account-deletion-files`: hesap silmede fotoğraf klasörünün kesin silinmesi (Tamamlananlar 38; süpürme #27'de).
   - [ ] [#16](https://github.com/halid-ali/coin-portal/issues/16) M `fix/collection-delete-safety`: koleksiyon silme ve kayıtta veri bütünlüğü.
   - [ ] [#17](https://github.com/halid-ali/coin-portal/issues/17) M `chore/privacy-policy-sync`: gizlilik metnini kodla eşitle, `OPERATOR`'ı doldur.
   - [ ] [#18](https://github.com/halid-ali/coin-portal/issues/18) M `feat/terms-of-use`: kullanım şartları ve içerik kuralları (kullanıcı kararı; Impressum ile birlikte).
@@ -869,7 +877,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 Yeni sohbette kullanıcıyla seçilecek. **Önce "Aksiyon planı"ndaki P0 işleri** (2026-10-02 incelemesi): küçük
-ve bağımsız olanlar (#10, #12, #15) hızlı başlangıç; #20 (doküman senkronu) hosting görüşmelerinden önce;
+olanlar (#10, #12, #15) bitti; sırada veri ve moderasyon düzeltmeleri (#13, #16), sonra hosting tarafı
+(#11, #14, #19); #20 (doküman senkronu) hosting görüşmelerinden önce;
 #21 yol haritası 10'un (`release.yml`) kendisi. Yol haritasındaki diğer adaylar: **8b** e2e (#34), **11**
 hosting seçimi ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Yayın öncesi kullanıcıda
 bekleyenler: işletmeci adı ve e-posta (`OPERATOR`), Impressum ve kullanım şartları kararı (Açık konular 14,

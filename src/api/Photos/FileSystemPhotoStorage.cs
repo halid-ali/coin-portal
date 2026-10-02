@@ -41,7 +41,7 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         }
         catch
         {
-            TryDeleteFolder(temp);
+            await DeleteFolderAsync(temp);
             throw;
         }
     }
@@ -51,7 +51,9 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         var path = Path.Combine(ImageFolder(ownerId, imageId), SafeFileName(fileName));
         try
         {
-            return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            // FileShare.Delete: a photo being served does not block deleting it (on Windows an
+            // account deletion would otherwise leave the folder behind)
+            return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete,
                 bufferSize: 64 * 1024, useAsync: true);
         }
         catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
@@ -60,17 +62,9 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
         }
     }
 
-    public Task DeleteAsync(string ownerId, Guid imageId)
-    {
-        TryDeleteFolder(ImageFolder(ownerId, imageId));
-        return Task.CompletedTask;
-    }
+    public Task DeleteAsync(string ownerId, Guid imageId) => DeleteFolderAsync(ImageFolder(ownerId, imageId));
 
-    public Task DeleteOwnerAsync(string ownerId)
-    {
-        TryDeleteFolder(OwnerFolder(ownerId));
-        return Task.CompletedTask;
-    }
+    public Task DeleteOwnerAsync(string ownerId) => DeleteFolderAsync(OwnerFolder(ownerId));
 
     private string OwnerFolder(string ownerId)
     {
@@ -85,20 +79,33 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
     private string ImageFolder(string ownerId, Guid imageId) =>
         Path.Combine(OwnerFolder(ownerId), imageId.ToString("N"));
 
-    // File deletion is best effort: the database is the source of truth, a leftover folder
-    // only costs disk space and is logged
-    private void TryDeleteFolder(string path)
+    // Waits between attempts: a virus scanner or a backup may hold a file for a moment
+    private static readonly TimeSpan[] RetryDelays = [TimeSpan.FromMilliseconds(200), TimeSpan.FromSeconds(1)];
+
+    // Never throws: the database is the source of truth and its rows are already gone. A folder
+    // left behind holds personal data the user was told is deleted, so it is an error in the log
+    // (with the path, to remove it by hand)
+    private async Task DeleteFolderAsync(string path)
     {
-        try
+        for (var attempt = 0; ; attempt++)
         {
-            if (Directory.Exists(path))
+            try
             {
-                Directory.Delete(path, recursive: true);
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, recursive: true);
+                }
+                return;
             }
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        {
-            logger.LogWarning(e, "Could not delete photo folder {Path}", path);
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                if (attempt == RetryDelays.Length)
+                {
+                    logger.LogError(e, "Could not delete photo folder {Path}", path);
+                    return;
+                }
+                await Task.Delay(RetryDelays[attempt]);
+            }
         }
     }
 
