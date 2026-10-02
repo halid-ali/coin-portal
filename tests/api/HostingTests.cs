@@ -68,6 +68,52 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     }
 
     [Fact]
+    public async Task ImageReads_AreLimitedForSignedOutClients()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["RateLimiting:Photos:PermitLimit"] = "2",
+        });
+        using var anonymous = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+
+        // Missing images count too: the limit is on requests, not on what they find
+        using var photo = await anonymous.GetAsync("/api/coins/999999/photos/National/Thumb");
+        using var cover = await anonymous.GetAsync("/api/collections/999999/cover");
+        using var limited = await anonymous.GetAsync("/api/coins/999999/photos/National/Thumb");
+
+        await photo.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await cover.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        Assert.Equal("rate_limited", await limited.ReadProblemCodeAsync(HttpStatusCode.TooManyRequests));
+    }
+
+    [Fact]
+    public async Task RequestLog_MasksShareKeys()
+    {
+        const string key = "SecretKey0123456789abc";
+        Directory.CreateDirectory(webRoot);
+        var logs = Path.Combine(webRoot, "logs");
+        await using (var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["Serilog:MinimumLevel:Default"] = "Information",
+            ["Logs:Path"] = logs,
+        }))
+        {
+            using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+            using var shared = await client.GetAsync($"/api/public/shared/{key}");
+            await shared.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        }
+
+        // The request line is written before the response returns. The file sink may still hold
+        // the file right after the host stops, so it is read shared.
+        // The key in a query (?s=) is not covered here: the test server gives no raw request
+        // target, so the request log leaves the query out (Kestrel and IIS give it); see
+        // LogMaskingTests for the masking itself.
+        var text = string.Concat(Directory.GetFiles(logs).Select(ReadShared));
+        Assert.Contains("HTTP GET /api/public/shared/*** responded 404", text);
+        Assert.DoesNotContain(key, text);
+    }
+
+    [Fact]
     public async Task Export_IsLimitedPerUser()
     {
         await using var host = factory.WithSettings(new Dictionary<string, string?>
@@ -93,6 +139,9 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     [InlineData("/")]
     [InlineData("/collections/5")]
     [InlineData("/s/AbCdEf0123456789")]
+    // User names may contain dots: not to be taken for a file name
+    [InlineData("/u/ayse.yilmaz")]
+    [InlineData("/u/ayse.yilmaz/12")]
     public async Task ClientRoutes_ServeIndexHtml_Revalidated(string path)
     {
         await using var host = HostWithClient();
@@ -134,6 +183,19 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     }
 
     [Fact]
+    public async Task MissingFiles_Return404NotTheClient()
+    {
+        await using var host = HostWithClient();
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+
+        // A chunk of an older build: the browser must see it is gone, not get index.html as script
+        using var response = await client.GetAsync("/chunk-ZZ99ZZ99.js");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        Assert.NotEqual(IndexHtml, await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task UnknownApiPaths_Return404NotTheClient()
     {
         await using var host = HostWithClient();
@@ -167,11 +229,26 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         return factory.WithSettings(new Dictionary<string, string?>(), webRoot);
     }
 
+    private static string ReadShared(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
     public void Dispose()
     {
-        if (Directory.Exists(webRoot))
+        if (!Directory.Exists(webRoot))
+        {
+            return;
+        }
+        try
         {
             Directory.Delete(webRoot, recursive: true);
+        }
+        catch (IOException)
+        {
+            // A log file still held open by the logger; the temp folder is left behind
         }
     }
 }

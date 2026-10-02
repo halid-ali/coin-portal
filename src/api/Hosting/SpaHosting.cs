@@ -22,6 +22,11 @@ public static partial class SpaHosting
 
         if (HasClient(app))
         {
+            // The plain fallback skips paths whose last segment looks like a file name ("nonfile"),
+            // so a missing script stays a 404. User names may contain dots (/u/ayse.yilmaz), so
+            // profile pages get a fallback of their own. A new client route whose last segment can
+            // hold a dot needs one too.
+            app.MapFallbackToFile("u/{**path}", "index.html", FileOptions);
             app.MapFallbackToFile("index.html", FileOptions);
         }
     }
