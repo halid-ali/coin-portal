@@ -68,6 +68,37 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task Hide_KeepsTheCoinsInTheCollection_UntilUnlocked()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var hidden = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var coin = await alice.CreateCoinAsync(hidden.Id);
+        var other = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{hidden.Id}/lock", new AdminLockRequest(null)))
+        {
+            await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+
+        // Moving the coins out would publish the hidden content again
+        using var move = await alice.Client.PutAsync($"/api/coins/{coin.Id}", TestUser.NewCoin(other.Id, "Moved"));
+        using var deleteAndMove = await alice.Client.DeleteAsync($"/api/collections/{hidden.Id}?moveTo={other.Id}");
+        // Editing it in place is fine
+        using var edit = await alice.Client.PutAsync($"/api/coins/{coin.Id}", TestUser.NewCoin(hidden.Id, "Edited"));
+
+        Assert.Equal("moderation_locked", await move.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("moderation_locked", await deleteAndMove.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal((hidden.Id, "Edited"),
+            (await edit.ReadJsonAsync<Contracts.Coins.CoinResponse>() is var c ? (c.CollectionId, c.Title) : default));
+
+        // Deleting it with its coins takes the content away: allowed
+        using var deleteAll = await alice.Client.DeleteAsync($"/api/collections/{hidden.Id}");
+        await deleteAll.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        using var gone = await alice.Client.GetAsync($"/api/coins/{coin.Id}");
+        await gone.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task AdminsCollections_AreMarked_AndCanBeHiddenToo()
     {
         // Content moderation applies to everyone; only account locks spare admins

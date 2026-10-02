@@ -37,6 +37,7 @@
               id="collectionId"
               class="form-input sm:max-w-sm"
               #collectionSelect
+              [disabled]="moveLocked()"
               (change)="form.controls.collectionId.setValue(+collectionSelect.value)"
             >
               @for (c of list; track c.id) {
@@ -45,7 +46,11 @@
                 </option>
               }
             </select>
-            @if (isEdit() && coin() && form.controls.collectionId.value !== coin()!.collectionId) {
+            @if (moveLocked()) {
+              <p class="form-hint">{{ 'coinForm.moveLocked' | transloco }}</p>
+            } @else if (
+              isEdit() && coin() && form.controls.collectionId.value !== coin()!.collectionId
+            ) {
               <p class="form-hint">{{ 'coinForm.moveHint' | transloco }}</p>
             }
           } @else {

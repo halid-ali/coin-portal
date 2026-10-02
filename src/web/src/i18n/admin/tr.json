@@ -80,6 +80,8 @@
     "lockMessage": "@{{userName}} giriş yapamaz, açık oturumu en geç bir dakikada kapanır ve paylaştığı koleksiyonlar kilit sürdükçe gizlenir.",
     "unlockTitle": "Kilidi aç",
     "unlockMessage": "@{{userName}} tekrar giriş yapabilir; paylaştığı koleksiyonlar yeniden görünür.",
+    "unlockTemporary": "Geçici kilidi kaldır",
+    "unlockTemporaryMessage": "Hatalı girişlerden kalan geçici kilit kalkar; @{{userName}} hemen giriş yapabilir.",
     "delete": "Kullanıcıyı sil",
     "deleteTitle": "Kullanıcıyı kalıcı olarak sil",
     "deleteMessage": "@{{userName}} hesabı, tüm koleksiyonları, coin'leri, fotoğrafları ve paylaşım linkleriyle hemen silinir. Geri alınamaz. Denetim kaydında adı \"Silinmiş kullanıcı\" olarak görünür.",

@@ -81,7 +81,12 @@ let nextId = 0;
               <legend class="form-label">
                 {{ 'collectionDelete.whatAboutCoins' | transloco }}
               </legend>
+              @if (collection().moderationLocked) {
+                <!-- Hidden by an admin: moving the coins would publish them again (API 403) -->
+                <p class="form-hint mt-0">{{ 'collectionDelete.lockedNoMove' | transloco }}</p>
+              }
               <label
+                [hidden]="collection().moderationLocked"
                 class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-checked:border-brand-400 has-checked:bg-brand-50"
               >
                 <input
@@ -199,6 +204,10 @@ export class CollectionDeleteDialog {
   constructor() {
     afterNextRender(() => {
       this.targetId.set(this.targets()[0]?.id ?? null);
+      // A hidden collection cannot move its coins: deleting them is the only choice
+      if (this.collection().moderationLocked) {
+        this.mode.set('delete');
+      }
       this.dialog().nativeElement.showModal();
     });
   }

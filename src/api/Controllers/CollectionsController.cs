@@ -119,6 +119,13 @@ public class CollectionsController(
         {
             return this.CodedProblem("last_collection", "The only collection cannot be deleted.");
         }
+        // Moving the coins of a hidden collection elsewhere would publish them again; deleting
+        // them with the collection is allowed
+        if (moveTo is not null && collection.ModerationLockedAtUtc is not null)
+        {
+            return this.CodedProblem("moderation_locked", "An administrator has hidden this collection.",
+                StatusCodes.Status403Forbidden);
+        }
         if (moveTo is { } targetId
             && (targetId == id || !await db.Collections.AnyAsync(c => c.Id == targetId && c.OwnerId == userId, ct)))
         {

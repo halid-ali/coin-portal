@@ -61,7 +61,7 @@ export class AdminService {
     });
   }
 
-  /** Deletes the user with everything they own (not admins: 400 cannot_delete_admin). */
+  /** Deletes the user with everything they own (not admins: 403 cannot_delete_admin). */
   deleteUser(id: string, note: string): Observable<void> {
     return this.http.delete<void>(`${API}/users/${encodeURIComponent(id)}`, { body: { note } });
   }

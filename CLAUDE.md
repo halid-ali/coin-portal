@@ -173,10 +173,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **Moderasyon:** admin kilidi (`ApplicationUser.LockedAtUtc` + Identity `LockoutEnd` en büyük değer +
   yeni security stamp) girişi engeller, açık oturumu düşürür ve kullanıcının paylaşılan koleksiyonlarını
   kilit sürdükçe gizler (veri değişmez). 5 hatalı girişin geçici kilidi sadece `LockoutEnd`'dir, içeriği
-  etkilemez. Admin'ler panelden kilitlenemez (`cannot_lock_admin`). Koleksiyon gizleme
+  etkilemez. Admin'ler panelden kilitlenemez (403 `cannot_lock_admin`). Koleksiyon gizleme
   (`Collection.ModerationLockedAtUtc`): Private yapar, linki siler, kilit kalkana kadar sahip görünürlüğü
-  değiştiremez (403 `moderation_locked`); kilit kalkınca Private kalır. Her admin işlemi `AuditLog`'a
-  (FK'sız, ad anlık görüntüsüyle) aynı `SaveChanges` içinde yazılır. **İçerik moderasyonu herkese
+  değiştiremez, coin'lerini başka koleksiyona taşıyamaz ve koleksiyonu coin'lerini taşıyarak silemez (403
+  `moderation_locked`; coin'leriyle birlikte silebilir); kilit kalkınca Private kalır. Her admin işlemi
+  `AuditLog`'a (FK'sız, ad anlık görüntüsüyle) aynı `SaveChanges` içinde yazılır. **İçerik moderasyonu herkese
   uygulanır, hesap işlemleri admin olmayanlara:** admin'in koleksiyonu gizlenebilir (panelde sahibinin
   yanında "Admin" rozeti, `ownerIsAdmin`), admin hesabı kilitlenemez. Admin kendi koleksiyonunun
   kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
