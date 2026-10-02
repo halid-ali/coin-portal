@@ -198,7 +198,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`ProcessCoverAsync`, 16:9) aynı sözleşmede. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır
   (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte.
 - Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar.
-  Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir.
+  Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir. Dosya silme hata fırlatmaz: kısa
+  aralıklarla yeniden dener, kalan klasörü Error seviyesinde (yoluyla) loglar; okuma silmeyi engellemez
+  (`FileShare.Delete`).
 - **Kim neyi görebilir tek yerde:** `Querying/CollectionAccess` — `CanView` (sahip, herkese açık, ya da
   Unlisted + doğru `s=` anahtarı; sahibi admin kilitliyse sadece sahip), `IsPublic` ve `IsShared`
   (PublicController). Fotoğraf ve kapak GET'leri `CanView` kullanır (`[AllowAnonymous]`).

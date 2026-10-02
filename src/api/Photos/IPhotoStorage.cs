@@ -11,12 +11,18 @@ public interface IPhotoStorage
     Task SaveAsync(string ownerId, Guid imageId, IReadOnlyDictionary<string, byte[]> files,
         CancellationToken ct);
 
-    /// <summary>Opens one file for reading, or returns null if it does not exist.</summary>
+    /// <summary>
+    /// Opens one file for reading, or returns null if it does not exist. An open stream does not
+    /// block deleting the file.
+    /// </summary>
     Stream? OpenRead(string ownerId, Guid imageId, string fileName);
 
-    /// <summary>Removes all files of an image. Missing files are not an error.</summary>
+    /// <summary>
+    /// Removes all files of an image. Missing files are not an error. Never throws (called after
+    /// the database rows are gone): retries briefly, then logs the leftover as an error.
+    /// </summary>
     Task DeleteAsync(string ownerId, Guid imageId);
 
-    /// <summary>Removes every image of an owner (dev data reset, later account deletion).</summary>
+    /// <summary>Removes every image of an owner (account deletion, dev data reset); as DeleteAsync.</summary>
     Task DeleteOwnerAsync(string ownerId);
 }

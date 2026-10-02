@@ -3,8 +3,10 @@ using System.Net;
 using System.Text.Json;
 using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoinPortal.Api.Tests;
 
@@ -135,6 +137,26 @@ public class AccountTests(CoinPortalFactory factory)
     }
 
     // A collection with a cover and a coin with a national side photo
+    [Fact]
+    public async Task Delete_WhileAPhotoIsBeingServed_RemovesTheFolder()
+    {
+        var alice = await factory.SignUpAsync();
+        var (_, coin) = await FillAsync(alice);
+        var photo = (await alice.Client.GetJsonAsync<Contracts.Coins.CoinResponse>($"/api/coins/{coin.Id}")).Photos[0];
+        var aliceFolder = Path.Combine(factory.PhotoRoot, alice.User.Id);
+
+        // A response still streaming the photo holds the file open, as the API does
+        var storage = factory.Services.GetRequiredService<IPhotoStorage>();
+        await using var reading = storage.OpenRead(alice.User.Id, photo.Id, "full.webp");
+        Assert.NotNull(reading);
+
+        using var response = await alice.Client.DeleteAsync("/api/settings/account",
+            new DeleteAccountRequest(TestUser.Password));
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        Assert.False(Directory.Exists(aliceFolder));
+    }
+
     private static async Task<(Contracts.Collections.CollectionResponse, Contracts.Coins.CoinResponse)> FillAsync(
         TestUser user, string coinTitle = "Alice's coin")
     {
