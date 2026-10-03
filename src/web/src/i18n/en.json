@@ -456,13 +456,12 @@
   "legal": {
     "privacyLink": "Privacy",
     "termsLink": "Terms of use",
-    "contactLink": "Contact",
-    "notSet": "to be added before release"
+    "contactLink": "Contact"
   },
   "privacy": {
     "title": "Privacy policy",
     "updated": "Last updated: {{date}}",
-    "intro": "Coin Portal is a non-commercial hobby project. This page explains which personal data it processes and why, who can see it and what your rights are. The EU General Data Protection Regulation (GDPR) applies.",
+    "intro": "CoinVitrine is a non-commercial hobby project. This page explains which personal data it processes and why, who can see it and what your rights are. The EU General Data Protection Regulation (GDPR) applies.",
     "controller": {
       "title": "Who is responsible",
       "p1": "Responsible for your data (the controller) is {{name}}. Contact: {{email}}."
@@ -472,13 +471,15 @@
       "i1": "Account details: your first and last name, user name, e-mail address, date of birth and password. The password is only stored as a one-way hash.",
       "i2": "Preferences and times: your language, theme and color choices; when you signed up, signed in and last used the site.",
       "i3": "Your content: collections, coin details and the photos you upload. All extra information in photos (EXIF), including the location, is removed on upload.",
-      "i4": "Technical records: the server logs the address, time and result of each request and keeps them for 30 days. Search terms in the address, the user filter of Explore and the keys of share links are not written to the log. Your IP address is only recorded when a request limit is exceeded. The hosting provider's servers may also keep access logs that include IP addresses."
+      "i4": "Technical records: the server logs the address, time and result of each request and keeps them for 30 days. Search terms in the address, the user filter of Explore and the keys of share links are not written to the log. Your IP address is only recorded when a request limit is exceeded. The hosting provider also writes the IP address, time, address, result and browser details of each request to its own server logs and keeps them for 6 months.",
+      "i5": "E-mails: the e-mails you send us and your e-mail address."
     },
     "purposes": {
       "title": "Why we process it (legal basis)",
       "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the minimum age of 18.",
       "i2": "To keep the site safe: technical records, request limits, the temporary lock after failed sign-ins and moderation against abuse (Art. 6(1)(f) GDPR, legitimate interest).",
       "i3": "To run the site, as totals: for example the number of accounts that used the site in the last 30 days. These numbers are not used to assess individuals (Art. 6(1)(f) GDPR, legitimate interest).",
+      "i4": "To answer the e-mails you send us: your e-mail address and message (Art. 6(1)(f) GDPR, legitimate interest).",
       "p1": "Your data is not sold, not used for advertising or profiling, and not processed for any other purpose."
     },
     "visibility": {
@@ -495,11 +496,11 @@
     },
     "hosting": {
       "title": "Hosting",
-      "p1": "The site runs on the servers of a hosting provider, where the data is stored. The provider processes the data only on our behalf and on our instructions. Your data is not shared with anyone else."
+      "p1": "The site runs on servers of MonsterASP.NET s.r.o. (Prague, Czech Republic) in data centers in the European Union; the data and the e-mails sent to our contact address are stored there. The provider processes the data only on our behalf and on our instructions (a data processing agreement under Art. 28 GDPR). Your data is not shared with anyone else."
     },
     "retention": {
       "title": "How long we keep it",
-      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. In the hosting provider's backups, data can remain for a while until the backups are replaced."
+      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. The hosting provider backs up the site's files, the database and the mailboxes every day and keeps the backups for 21 days, so deleted data remains in them for up to 21 days. The provider's server logs are deleted after 6 months. E-mails you send us are kept as long as needed to answer your request and then deleted."
     },
     "rights": {
       "title": "Your rights",
@@ -508,7 +509,7 @@
     },
     "age": {
       "title": "Minimum age",
-      "p1": "Only people aged 18 or over can sign up for Coin Portal."
+      "p1": "Only people aged 18 or over can sign up for CoinVitrine."
     },
     "changes": {
       "title": "Changes",
@@ -518,10 +519,10 @@
   "terms": {
     "title": "Terms of use",
     "updated": "Last updated: {{date}}",
-    "intro": "These terms set out the rules for using Coin Portal. By signing up you accept them. How your personal data is processed is explained in the privacy policy.",
+    "intro": "These terms set out the rules for using CoinVitrine. By signing up you accept them. How your personal data is processed is explained in the privacy policy.",
     "service": {
       "title": "The service",
-      "p1": "Coin Portal is a free, non-commercial hobby site for recording, photographing and, if you like, sharing your euro coin collection. The site is provided as is: there is no guarantee that it runs without interruption or that data is never lost. For data that matters to you, use the export in Settings > Account."
+      "p1": "CoinVitrine is a free, non-commercial hobby site for recording, photographing and, if you like, sharing your euro coin collection. The site is provided as is: there is no guarantee that it runs without interruption or that data is never lost. For data that matters to you, use the export in Settings > Account."
     },
     "account": {
       "title": "Your account",
@@ -559,7 +560,7 @@
   },
   "contact": {
     "title": "Contact",
-    "intro": "Coin Portal is a non-commercial site, built and run by one person as a hobby.",
+    "intro": "CoinVitrine is a non-commercial site, built and run by one person as a hobby.",
     "operator": "Run by",
     "email": "E-mail",
     "emailHint": "For questions, bug reports, reports of inappropriate content and requests about your data.",

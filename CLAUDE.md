@@ -1,7 +1,13 @@
 # CLAUDE.md
 
-Coin Portal: kullanıcıların kendi Euro madeni para koleksiyonlarını yönettiği web uygulaması.
-Tek repo: ASP.NET Core Web API (.NET 10) + Angular 21 SPA + SQL Server.
+CoinVitrine (https://coinvitrine.com): kullanıcıların kendi Euro madeni para koleksiyonlarını yönettiği
+web uygulaması. Tek repo: ASP.NET Core Web API (.NET 10) + Angular 21 SPA + SQL Server.
+Eski adı Coin Portal (2026-10-03'e kadar). **Sadece görünen ad değişti:** arayüz, sayfa başlığı
+(`APP_NAME`, `core/i18n/translated-title-strategy.ts`), manifest, metinler, README, dışa aktarma
+ZIP'inin adı. İç adlar bilerek `CoinPortal`/`coinportal` kaldı: namespace ve proje adları,
+cookie'ler (`coinportal.auth`, `coinportal.af`), localStorage anahtarları, DataProtection uygulama
+adı, log dosyaları, veritabanı, paket ve yayın paketi adları, GitHub reposu. Bunları değiştirmek
+oturumları ve kayıtlı tercihleri sıfırlar; yeni kodda da aynı iç adlar kullanılır.
 
 **Her oturumun başında [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) dosyasını oku.** Orada güncel durum,
 tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararların gerekçeleri var. Bu dosya
@@ -75,7 +81,8 @@ terminallerinde sürekli çalışır halde tutuyor.
   kadar breaking → minor, feat → minor, fix → patch; karar kullanıcıyla) → `chore/release-vX.Y.Z`
   branch'inde `npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
   merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
-- Canlı site MonsterASP.NET'te (https://coinportal.runasp.net); yeni sürümün kurulumu elle,
+- Canlı site MonsterASP.NET'te (https://coinvitrine.com; sağlayıcının adresi `coinportal.runasp.net`
+  ve `www.` oraya yönlenir); yeni sürümün kurulumu elle,
   PROJECT_STATUS "Yayın (deploy) adımları"na göre: önce `migrate.sql` panelden, sonra `site/`.
 - Etiket push edilince `.github/workflows/release.yml` yayın paketini üretir: `coinportal-vX.Y.Z.zip`
   (`site/` = API + client, idempotent `migrate.sql`, `LICENSE`, `THIRD-PARTY-NOTICES.md`) ve `.sha256`;
@@ -179,6 +186,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Development dışında HSTS (`Hsts:MaxAgeDays`, varsayılan 30, localhost hariç); `/api` altında kendi
   `Cache-Control`'ü olmayan yanıtlar `no-store` (görseller `private, immutable` kalır). Tam CSP yok
   (PROJECT_STATUS Açık konular 17).
+- **Tek adres** `Hosting/CanonicalHost`: `CanonicalHost:Host` doluysa (sunucuda `coinvitrine.com`,
+  `web.config`'te `CanonicalHost__Host`) başka bir host adına gelen her istek 308 ile
+  `https://<host>`'a gider, yol ve sorgu korunur (HTTP'den de tek adımda); Let's Encrypt'in
+  `/.well-known/acme-challenge` istekleri hariç. Boşsa (varsayılan, Development, testler) kapalı;
+  geçersiz bir değer açılışı durdurur.
 - **Yönetici paneli = moderasyon ve işletim paneli** (tüm verilerin yönetimi değil; kararlar
   PROJECT_STATUS "Yönetici paneli: kararlar"). Sadece `Admin` rolü. Rol **sadece ayardan** verilir:
   `Admin:UserIds` (kullanıcı adı değil Id: boşta kalan bir adı herkes kaydedebilir), açılışta
@@ -521,6 +533,18 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **Canlı sitenin `web.config`'i sunucuda kalır:** veritabanı parolası, admin Id'si ve bütün ortam
   değişkenleri orada (MonsterASP'ta panel ortam değişkeni sunmuyor). Yayın paketindeki `web.config` onun
   üzerine yüklenmez; parola sohbete, repoya ya da `.notes/`'a yazılmaz, kullanıcı sunucuda kendisi girer.
+- **Alan adı Cloudflare'de** (Registrar + DNS; Cloudflare'den alınan alan adının DNS'i başka yere
+  taşınamaz, MonsterASP'ın nameserver seçeneği kullanılamaz): `@` A kaydı sunucunun IP'sine, `www`
+  CNAME `siteXXXX.siteasp.net`'e, ikisi de **"DNS only"** (gri bulut). Proxy (turuncu) açılırsa bütün
+  istekler Cloudflare IP'lerinden gelir: önce `UseForwardedHeaders` + Cloudflare aralıkları
+  `KnownNetworks`'e girmeli (rate limit, loglar), yoksa herkes tek kovaya düşer. MonsterASP'ta her host
+  adı (`coinvitrine.com`, `www.`) ayrı eklenir ve ayrı Let's Encrypt sertifikası alır; yeni sertifika
+  sunucuya birkaç dakikada yerleşir (o arada o adla TLS bağlantısı kopar). E-posta (`contact@`) da
+  MonsterASP'ta; MX, SPF, DKIM (`…._domainkey`, panel üretir) ve DMARC kayıtları Cloudflare'de elle
+  tutulur: MonsterASP'ın DNS'i kullanılmadığı için panel bunları kendisi yayınlayamaz, "Manual DNS setup
+  required" uyarısı normaldir. Şirket ağı dış DNS'e
+  (`nslookup … 1.1.1.1`) izin vermiyor: kayıtlar DNS-over-HTTPS ile kontrol edilir
+  (`curl -H 'accept: application/dns-json' 'https://cloudflare-dns.com/dns-query?name=…&type=A'`).
 - MonsterASP'ın uygulama havuzu kullanıcı profili yüklemez: `DataProtection__Dpapi=LocalMachine`
   olmadan API açılışta DPAPI hatasıyla düşer (HTTP 500.30). Havuz x86, bellek 512 MB (aynı anda tek
   görsel çözülür). Dosya yöneticisinde ZIP açmak üzerine yazar ama fazla dosyayı silmez.

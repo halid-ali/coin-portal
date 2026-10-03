@@ -6,6 +6,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, of, switchMap, tap } from 'rxjs';
 
 import { PluralPipe } from '../../core/i18n/plural';
+import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { PublicProfile } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
@@ -102,7 +103,7 @@ export class Profile {
       .subscribe((profile) => {
         this.profile.set(profile);
         if (profile) {
-          this.title.setTitle(`@${profile.userName} · Coin Portal`);
+          this.title.setTitle(`@${profile.userName} · ${APP_NAME}`);
         }
       });
   }

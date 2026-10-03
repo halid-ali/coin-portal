@@ -14,8 +14,8 @@ interface Section {
 // The text itself is in the translation files (privacy.*); this is only its shape
 const SECTIONS: readonly Section[] = [
   { id: 'controller', blocks: [{ p: 'p1' }] },
-  { id: 'data', blocks: [{ list: ['i1', 'i2', 'i3', 'i4'] }] },
-  { id: 'purposes', blocks: [{ list: ['i1', 'i2', 'i3'] }, { p: 'p1' }] },
+  { id: 'data', blocks: [{ list: ['i1', 'i2', 'i3', 'i4', 'i5'] }] },
+  { id: 'purposes', blocks: [{ list: ['i1', 'i2', 'i3', 'i4'] }, { p: 'p1' }] },
   { id: 'visibility', blocks: [{ p: 'p1' }, { p: 'p2' }] },
   { id: 'cookies', blocks: [{ p: 'p1' }, { list: ['i1', 'i2'] }, { p: 'p2' }] },
   { id: 'hosting', blocks: [{ p: 'p1' }] },
@@ -50,11 +50,7 @@ const SECTIONS: readonly Section[] = [
               <p class="text-shade-700">
                 {{
                   'privacy.' + section.id + '.' + block.p
-                    | transloco
-                      : {
-                          name: operator.name ?? ('legal.notSet' | transloco),
-                          email: operator.email ?? ('legal.notSet' | transloco),
-                        }
+                    | transloco: { name: operator.name, email: operator.email }
                 }}
               </p>
             } @else {

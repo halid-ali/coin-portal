@@ -1,16 +1,20 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-03 (site yayında: https://coinportal.runasp.net, MonsterASP.NET, `v0.4.0`;
-sırada alan adı, e-posta ve `v1.0.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-03 (site yayında, MonsterASP.NET, `v0.4.0`; alan adı **coinvitrine.com** bağlandı,
+site adı **CoinVitrine** oldu, `contact@coinvitrine.com` çalışıyor (`feat/coinvitrine-domain`, Tamamlananlar
+51); sırada Impressum kararı ve `v1.0.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; açık feature branch yok (`chore/release-v0.4.0` 2026-10-02'de merge
-  edildi, son etiket ve release `v0.4.0`). GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` temiz; `feat/coinvitrine-domain` (yeni ad, tek adres yönlendirmesi, `OPERATOR`, gizlilik
+  metni; Tamamlananlar 51) 2026-10-03'te merge edildi, henüz push edilmedi ve yayınlanmadı (canlıda `v0.4.0`).
+  Son etiket ve release `v0.4.0`. GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinportal.runasp.net (`v0.4.0`, MonsterASP.NET; kullanıcı orada admin). Yeni sürüm
+- Canlı site: https://coinvitrine.com (`v0.4.0`, MonsterASP.NET; sağlayıcının adresi
+  https://coinportal.runasp.net de açılıyor, bu dalın sürümü kurulunca oraya yönlenir; kullanıcı admin;
+  alan adı ve DNS Cloudflare'de). Yeni sürüm
   "Yayın (deploy) adımları"yla elle kurulur; sunucudaki `web.config` parolayı tutar, üzerine yazılmaz.
 - Veritabanı en son migration'da (`AccountDeletion`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
@@ -896,6 +900,34 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       indirme (fotoğraflar dahil) sorunsuz.
     - Sonraki sürümler için "Yayın (deploy) adımları". Sunucu adları lokal `.notes/environment.md`'de,
       parolasız `web.config` şablonu `.notes/deploy/`'da; parola sadece sunucuda.
+51. **Alan adı ve yeni ad: CoinVitrine** (`feat/coinvitrine-domain`, 2026-10-03; kullanıcı kararları):
+    - **Ad:** "coin" kripto çağrıştırdığı ve "Euro" ileride daralttığı (Açık konular 10) için adaylar
+      konuşuldu (coinshelf, numishelf, numiscase, obolino…; RDAP ile `.com`/`.app`/`.org`/`.net`
+      kontrolü). Kullanıcı **coinvitrine.com**'u seçti ("vitrin" dört dilde aynı kelime); görünen yazım
+      **CoinVitrine** (adresle birebir). Sadece görünen ad değişti, iç adlar `coinportal` kaldı
+      (gerekçe ve liste CLAUDE.md'nin başında).
+    - **Alan adı:** Cloudflare Registrar (maliyetine satış, yenileme aynı fiyat; INWX ve Porkbun
+      alternatifti). DNS Cloudflare'de, kayıtlar "DNS only"; MonsterASP'a `coinvitrine.com` ve
+      `www.coinvitrine.com` eklendi, ikisine de Let's Encrypt (`www`'nun sertifikası birkaç dakikada
+      yerleşti). Panelin "HTTPS Redirect"i kapalı kalır (uygulama yapıyor).
+    - **Ana adres `coinvitrine.com`:** yeni `Hosting/CanonicalHost` (`CanonicalHost:Host`) diğer host
+      adlarını 308 ile oraya yönlendirir; sunucuda `web.config`'e `CanonicalHost__Host=coinvitrine.com`
+      eklenince devreye girer. Eski adreste açık oturumlar yeni adrese geçmez (cookie host'a bağlı), bir
+      kez yeniden giriş gerekir.
+    - **Yasal:** `OPERATOR` = Halid Ali, `contact@coinvitrine.com` (yer tutucu metni `legal.notSet`
+      kalktı). Gizlilik metni MonsterASP'ın şartları ve gizlilik politikasına göre: sağlayıcının adı ve
+      yeri (MonsterASP.NET s.r.o., Prag; sunucular AB'de, Hetzner), Art. 28 sözleşmesi, sağlayıcının
+      sunucu logları (IP, adres, tarayıcı; 6 ay), günlük yedekler (dosyalar, veritabanı, e-posta; 21 gün),
+      iletişim e-postaları (yeni veri, amaç ve saklama: "talebi cevaplamak için gerektiği sürece"; sabit süre
+      yerine ölçüt, kullanıcı kararı).
+      `PRIVACY_UPDATED` ve `TERMS_UPDATED` 2026-10-03 (şartlarda sadece ad değişti).
+    - **E-posta:** MonsterASP'ta `contact@coinvitrine.com` kutusu (sunucu `mail2248.mailasp.net`, AB;
+      ayrıca alan adının `postmaster@` yönetici kutusu). Cloudflare'de MX (10), SPF
+      `v=spf1 a mx include:spf.mailasp.net ~all`, DMARC `v=DMARC1; p=none`, `autodiscover` CNAME ve
+      panelin ürettiği DKIM TXT'si (`uu8DF218F8F8D6440._domainkey`; destek talebi gerekmedi, panelde
+      "Enable DKIM"). Test: Gmail'den gelen e-posta ulaştı, webmail'den cevap Gmail'de SPF, DKIM ve DMARC
+      `PASS`. Kutu yönlendirmesiz (yönlendirme SPF'i bozar); webmail https://webmail.monsterasp.net/.
+    - Dışa aktarma ZIP'i `coinvitrine-<kullanıcı>-<tarih>.zip`. README, CLAUDE.md güncellendi.
 
 ## Yol haritası
 
@@ -947,8 +979,9 @@ mağaza için TWA.
 - [ ] 8b. `tests/e2e` (Playwright; #34).
 - [x] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ → `release.yml` (#21,
       2026-10-02, Tamamlananlar 48; ilk gerçek koşusu bir sonraki etikette).
-- [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) → alan adı,
-      e-posta, `OPERATOR` → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
+- [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) →
+      ~~alan adı~~ (coinvitrine.com, ~~`OPERATOR`~~, ~~e-posta~~, 2026-10-03, Tamamlananlar 51) →
+      Impressum kararı → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
@@ -1013,15 +1046,16 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işleri bitti** (`v0.4.0`) ve **site yayında**:
 https://coinportal.runasp.net (MonsterASP.NET, 2026-10-02, Tamamlananlar 50). Adaylar:
 
-- **11. `v1.0.0`'a giden yol** (kullanıcı 2026-10-02'de "kalan adımlara başka sohbette devam" dedi):
-  - Alan adı (domain) kararı ve bağlanması; HTTPS sertifikası yeni ad için. Alan adı gelirse
-    `coinportal.runasp.net` ona yönlendirilir.
-  - İletişim e-postası (alan adıyla birlikte düşünülebilir) ve işletmeci adı → `OPERATOR`.
-  - Impressum ve DSA kararı (Açık konular 14).
-  - Gizlilik metninde barındırma, sağlayıcı logları ve yedek cümlelerinin MonsterASP'a göre kontrolü;
-    kullanıcının gizlilik politikasını ve kullanım şartlarını okuması ("Yayın öncesi yapılacaklar").
-  - Canlı sitenin güvenlik ayarları (Açık konular 20: uzaktan veritabanı erişimi, yedekler).
-  - Sonra `v1.0.0` (ilk gerçek yayın), "Yayın (deploy) adımları"yla; site oturunca `Hsts__MaxAgeDays=365`.
+- **11. `v1.0.0`'a giden yol** (2026-10-03'te başlandı; alan adı, yeni ad, `OPERATOR` ve
+  `contact@coinvitrine.com` bitti, Tamamlananlar 51):
+  - ~~`feat/coinvitrine-domain`'in merge'ü~~ (2026-10-03); push yayınla birlikte (kullanıcı onayıyla).
+  - İsteğe bağlı: webmail'de gönderen adı "CoinVitrine" (şu an adres görünüyor).
+  - Impressum ve DSA kararı (Açık konular 14; 2026-10-03'te konuşuldu: MStV §18/1 ad + posta adresi
+    istiyor gibi, karar kullanıcıda).
+  - Kullanıcının gizlilik politikasını ve kullanım şartlarını okuması ("Yayın öncesi yapılacaklar").
+  - Canlı sitenin güvenlik ayarları (Açık konular 20: uzaktan veritabanı erişimini kapatmak).
+  - Sonra `v1.0.0` (ilk gerçek yayın), "Yayın (deploy) adımları"yla; kurulumda sunucudaki `web.config`'e
+    `CanonicalHost__Host=coinvitrine.com`. Site oturunca `Hsts__MaxAgeDays=365`.
 - **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
   #27; çeviriler #28; testler #29, #30.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
@@ -1218,8 +1252,11 @@ Kararlar (2026-10-01, kullanıcıyla):
 - **İşletmeci Almanya'da**, GDPR geçerli. Sayfalarda ad soyad ve e-posta görünür; posta adresi yok.
   **Impressum** (§5 DDG) tamamen özel, ticari olmayan sitelerde gerekip gerekmediği tartışmalı; karar
   yayın öncesine kaldı (Açık konular 14). Gerekirse iletişim sayfasına adres satırı eklenir.
-- **E-posta şimdilik yer tutucu** (alan adı alınınca `contact@…` gibi); ad da sabitte, yayın öncesi
-  doldurulur.
+- **İşletmeci Halid Ali, e-posta `contact@coinvitrine.com`** (2026-10-03, `OPERATOR`). Ad gerçek ad
+  olmalı (veri sorumlusu); repoda ve sitede herkese açık olduğu kullanıcıya söylendi. Gizlilik metni
+  sağlayıcıyı adıyla anar (MonsterASP.NET s.r.o.); iletişim e-postaları talebi cevaplamak için gerektiği sürece
+  saklanır, sonra silinir (kullanıcı kararı: sabit süre yok, GDPR md. 13 ölçütle de karşılanır; pratikte eski
+  e-postalar ara sıra silinir, md. 5/1-e).
 - **Kayıtta işaretlenmesi zorunlu kutu** (bilgi metni + link yerine; kullanıcı daha resmi olanı seçti).
   2026-10-02'den beri aynı kutu kullanım şartlarını da kabul ettirir (#18, kullanıcı kararı); şartlar
   moderasyonun kurallarını kullanıcıya bildirir.
@@ -1408,8 +1445,11 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     - `DataProtection__Dpapi=LocalMachine`: anahtarları sunucudaki her hesap çözebilir; koruma
       `\private` klasörünün site hesabına özel olması (MonsterASP'ın site izolasyonu). Paylaşımlı hosting
       için kabul edildi.
-    - Yedekler: MonsterASP'ın veritabanı ve dosya yedeklerinin sıklığı ve geri dönüş yolu henüz
-      kontrol edilmedi (fotoğraflar `\private\photos`'ta).
+    - Yedekler (2026-10-03, MonsterASP kullanım şartları): ücretli pakette site dosyaları, veritabanı ve
+      e-posta kutuları her gün yedeklenir, 21 gün tutulur; "nezaketen", garanti değil, kendi yedeğinden
+      müşteri sorumlu. Veritabanı yedeği panelden tek tıkla geri yüklenir. Kalan: `\private\photos`'un
+      bu yedeğe dahil olduğu ve geri dönüşün nasıl yapıldığı panelde kontrol edilecek; ayrıca ara sıra
+      kendi yedeğimiz (veritabanı yedeği + fotoğraf klasörü indirme) düşünülebilir.
 
 ## Yayın öncesi yapılacaklar
 
@@ -1423,12 +1463,16 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [x] Rate limiter, loglama, DataProtection anahtar yolu (2026-10-01, Tamamlananlar 28).
 - [x] Hesap silme ve veri dışa aktarma (2026-10-01, Tamamlananlar 32).
 - [x] Gizlilik ve iletişim sayfası (2026-10-01, Tamamlananlar 33).
-- [ ] İşletmeci adı ve iletişim e-postası: `src/web/src/app/core/legal/operator.ts` `OPERATOR`.
+- [x] İşletmeci adı ve iletişim e-postası (2026-10-03): `OPERATOR` = Halid Ali, `contact@coinvitrine.com`.
+- [x] Alan adı (2026-10-03): coinvitrine.com (Cloudflare), `www` ile birlikte HTTPS'li (Tamamlananlar 51).
+- [x] `contact@coinvitrine.com` kutusu ve e-posta DNS kayıtları (2026-10-03; SPF, DKIM, DMARC `PASS`,
+      Tamamlananlar 51).
+- [ ] Yayında sunucudaki `web.config`'e `CanonicalHost__Host=coinvitrine.com`; ardından
+      `https://coinportal.runasp.net/x` ve `https://www.coinvitrine.com/x` → 308 `https://coinvitrine.com/x`.
 - [ ] Impressum kararı (Açık konular 14).
 - [x] Sağlayıcıyla veri işleme sözleşmesi (AVV / Art. 28 GDPR): MonsterASP'ın kullanım şartlarının parçası.
-- [ ] Gizlilik metnindeki barındırma, sağlayıcının erişim logları ve yedek süresi cümlelerinin
-      MonsterASP'a göre kontrolü (`privacy.hosting`, `privacy.data.i4`, `privacy.retention`; değişirse
-      `PRIVACY_UPDATED`).
+- [x] Gizlilik metnindeki barındırma, sağlayıcının erişim logları ve yedek süresi cümlelerinin
+      MonsterASP'a göre kontrolü (2026-10-03, Tamamlananlar 51; `PRIVACY_UPDATED` 2026-10-03).
 - [x] Yayın yöntemi fazla dosyaları silmiyor (dosya yöneticisinde ZIP açma üzerine yazar, silmez;
       fotoğraflar zaten site klasörü dışında, `\private`).
 - [x] HTTPS kontrolü (2026-10-02): `http://` → 307 `https://`, `Strict-Transport-Security` 30 gün, Brotli.
@@ -1445,7 +1489,7 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 
 ## Yayın (deploy) adımları
 
-Canlı site: https://coinportal.runasp.net (MonsterASP.NET; sunucu adları ve yollar lokal
+Canlı site: https://coinvitrine.com (MonsterASP.NET; sağlayıcının adresi `coinportal.runasp.net`; sunucu adları ve yollar lokal
 `.notes/environment.md`'de, parolasız `web.config` şablonu `.notes/deploy/`). Yeni bir sürüm:
 
 1. Etiketin GitHub Release'inden `coinportal-vX.Y.Z.zip` indirilir, `.sha256` ile karşılaştırılır.
@@ -1458,8 +1502,8 @@ Canlı site: https://coinportal.runasp.net (MonsterASP.NET; sunucu adları ve yo
    pakettekiyle değiştirilirse site açılmaz (o zaman şablondan yeniden kurulur, parolayı kullanıcı yazar).
    Paketten kalkan eski dosyalar silinmez; hash'li client dosyaları birikir, zararsızdır.
 4. Panelden uygulama havuzu yeniden başlatılır (yeni DLL'ler yüklensin).
-5. Kontrol: `GET /api/health` → yeni sürüm, footer'daki sürüm aynı; giriş, bir fotoğraf ve paylaşım
-   linki açılır. Hata olursa `\private\logs` (uygulama logu) ya da geçici olarak
+5. Kontrol: `GET https://coinvitrine.com/api/health` → yeni sürüm, footer'daki sürüm aynı; giriş, bir
+   fotoğraf ve paylaşım linki açılır; `coinportal.runasp.net` ve `www.` 308 ile `coinvitrine.com`'a gider. Hata olursa `\private\logs` (uygulama logu) ya da geçici olarak
    `stdoutLogEnabled="true"` (`\wwwroot\logs`).
 
 ## Hosting seçimi kontrol listesi
@@ -1471,7 +1515,8 @@ in-process (x86 havuz) var; ortam değişkenleri sunucudaki `web.config`'te; hav
 (`DataProtection__Dpapi=LocalMachine`); önünde CDN yok (`KnownProxies` gerekmez); bellek 512 MB (aynı
 anda 1 görsel, en fazla 2000 px); site klasörünün yanında `\private` yazılabilir; MSSQL, collation
 `SQL_Latin1_General_CP1_CI_AS`; Let's Encrypt otomatik; yayın dosya yöneticisi / FTP (fazla dosya
-silinmez). Liste sağlayıcı değişirse diye duruyor; SMTP ve WebSocket soruları açık (ileride).
+silinmez); özel alan adı Premium'da var (Tamamlananlar 51), e-posta 10 GB. Liste sağlayıcı değişirse diye
+duruyor; SMTP (uygulamadan e-posta) ve WebSocket soruları açık (ileride).
 
 **Uygulama**
 - **.NET 10 (ASP.NET Core) destekleniyor mu?** ASP.NET Core Hosting Bundle kurulu mu, in-process

@@ -32,13 +32,13 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
                  text-amber-950 shadow-sm ring-1 ring-amber-600/20"
           >€</span
         >
-        Coin Portal
+        CoinVitrine
       </a>
 
       <p
         class="order-last col-span-2 text-center text-xs text-shade-500 sm:order-none sm:col-span-1"
       >
-        © {{ year }} Coin Portal
+        © {{ year }} CoinVitrine
         @if (version) {
           <span class="text-shade-400">· v{{ version }}</span>
         }

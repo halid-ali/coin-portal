@@ -29,7 +29,7 @@ public class AccountTests(CoinPortalFactory factory)
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
         Assert.Equal("application/zip", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal($"coinportal-{alice.UserName}-{DateTime.UtcNow:yyyyMMdd}.zip",
+        Assert.Equal($"coinvitrine-{alice.UserName}-{DateTime.UtcNow:yyyyMMdd}.zip",
             response.Content.Headers.ContentDisposition?.FileName);
 
         using var zip = new ZipArchive(await response.Content.ReadAsStreamAsync());

@@ -4,11 +4,12 @@ import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 
-const APP_NAME = 'Coin Portal';
+/** The site's name, in page titles and wherever the client writes it out of a template. */
+export const APP_NAME = 'CoinVitrine';
 
 /**
  * Route titles are translation keys (e.g. title: 'titles.login'); the page title becomes
- * "<text> · Coin Portal", or just the app name for routes without one. A language switch
+ * "<text> · CoinVitrine", or just the app name for routes without one. A language switch
  * updates it, unless the page has set its own title since (e.g. a collection's name).
  */
 @Injectable({ providedIn: 'root' })

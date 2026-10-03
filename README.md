@@ -1,9 +1,10 @@
-# Coin Portal
+# CoinVitrine
 
 [![CI](https://github.com/halid-ali/coin-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/halid-ali/coin-portal/actions/workflows/ci.yml)
 
 A web application for managing a personal euro coin collection. Users register, organise their coins
 into collections, add photos of both sides, and share collections publicly or through a private link.
+Live at https://coinvitrine.com.
 
 ## Features
 
@@ -19,8 +20,8 @@ into collections, add photos of both sides, and share collections publicly or th
 - Account data export (ZIP with all data and photos) and account deletion
 - Privacy policy, terms of use and contact pages
 - Installable as an app (web app manifest)
-- Hosting safeguards: rate limits, security headers, startup checks of the configured folders,
-  daily log files with share keys and search terms masked
+- Hosting safeguards: rate limits, security headers, one canonical address, startup checks of the
+  configured folders, daily log files with share keys and search terms masked
 
 ## Tech stack
 

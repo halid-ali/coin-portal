@@ -456,13 +456,12 @@
   "legal": {
     "privacyLink": "Gizlilik",
     "termsLink": "Kullanım şartları",
-    "contactLink": "İletişim",
-    "notSet": "yayından önce eklenecek"
+    "contactLink": "İletişim"
   },
   "privacy": {
     "title": "Gizlilik politikası",
     "updated": "Son güncelleme: {{date}}",
-    "intro": "Coin Portal ticari olmayan bir hobi projesidir. Bu sayfa hangi kişisel verilerini neden işlediğimizi, kimlerin görebildiğini ve haklarını anlatır. Avrupa Birliği Genel Veri Koruma Tüzüğü (GDPR) geçerlidir.",
+    "intro": "CoinVitrine ticari olmayan bir hobi projesidir. Bu sayfa hangi kişisel verilerini neden işlediğimizi, kimlerin görebildiğini ve haklarını anlatır. Avrupa Birliği Genel Veri Koruma Tüzüğü (GDPR) geçerlidir.",
     "controller": {
       "title": "Sorumlu",
       "p1": "Verilerinden sorumlu kişi (veri sorumlusu): {{name}}. İletişim: {{email}}."
@@ -472,13 +471,15 @@
       "i1": "Hesap bilgileri: adın, soyadın, kullanıcı adın, e-posta adresin, doğum tarihin ve parolan. Parola sadece geri çevrilemeyen bir özet (hash) olarak saklanır.",
       "i2": "Tercihler ve zamanlar: dil, tema ve renk seçimlerin; kayıt olduğun, giriş yaptığın ve siteyi son kullandığın zamanlar.",
       "i3": "İçeriğin: koleksiyonların, coin bilgilerin ve yüklediğin fotoğraflar. Fotoğraflardaki konum dahil tüm ek bilgiler (EXIF) yüklemede silinir.",
-      "i4": "Teknik kayıtlar: sunucu her isteğin adresini, zamanını ve sonucunu kaydeder ve 30 gün saklar. Adresteki arama terimleri, Keşfet'teki kullanıcı filtresi ve paylaşım linklerinin anahtarları kayda yazılmaz. IP adresin sadece bir istek sınırı aşıldığında kaydedilir. Barındırma sağlayıcısının sunucuları da IP adresi içeren erişim kayıtları tutabilir."
+      "i4": "Teknik kayıtlar: sunucu her isteğin adresini, zamanını ve sonucunu kaydeder ve 30 gün saklar. Adresteki arama terimleri, Keşfet'teki kullanıcı filtresi ve paylaşım linklerinin anahtarları kayda yazılmaz. IP adresin sadece bir istek sınırı aşıldığında kaydedilir. Barındırma sağlayıcısı da kendi sunucu kayıtlarına her isteğin IP adresini, zamanını, adresini, sonucunu ve tarayıcı bilgisini yazar ve bunları 6 ay saklar.",
+      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin."
     },
     "purposes": {
       "title": "Neden işliyoruz (hukuki dayanak)",
       "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır.",
       "i2": "Siteyi güvende tutmak için: teknik kayıtlar, istek sınırları, hatalı girişlerden sonraki geçici kilit ve kötüye kullanıma karşı moderasyon (GDPR md. 6/1-f, meşru menfaat).",
       "i3": "Siteyi işletmek için toplu sayılar: örneğin son 30 günde siteyi kullanan hesap sayısı. Bu sayılar kişi bazında değerlendirme için kullanılmaz (GDPR md. 6/1-f, meşru menfaat).",
+      "i4": "Bize yazdığın e-postaları cevaplamak için: e-posta adresin ve mesajın (GDPR md. 6/1-f, meşru menfaat).",
       "p1": "Verilerin satılmaz, reklam ya da profil çıkarma için kullanılmaz ve başka hiçbir amaçla işlenmez."
     },
     "visibility": {
@@ -495,11 +496,11 @@
     },
     "hosting": {
       "title": "Barındırma",
-      "p1": "Site bir barındırma sağlayıcısının sunucularında çalışır ve veriler orada saklanır. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler. Verilerin başka kimseyle paylaşılmaz."
+      "p1": "Site, MonsterASP.NET s.r.o. şirketinin (Prag, Çek Cumhuriyeti) Avrupa Birliği'ndeki veri merkezlerinde bulunan sunucularında çalışır; veriler ve iletişim adresimize gelen e-postalar orada saklanır. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler (GDPR md. 28'e göre veri işleme sözleşmesi). Verilerin başka kimseyle paylaşılmaz."
     },
     "retention": {
       "title": "Ne kadar saklıyoruz",
-      "p1": "Verilerin hesabın var olduğu sürece saklanır. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir. Yöneticilerin denetim kaydındaki girişler (işlem, zaman, gerekçe) kalır, ama adın onlardan kaldırılır; bir yöneticinin gerekçe olarak yazdığı metin olduğu gibi kalır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısının yedeklerinde veriler, yedekler yenilenene kadar bir süre daha kalabilir."
+      "p1": "Verilerin hesabın var olduğu sürece saklanır. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir. Yöneticilerin denetim kaydındaki girişler (işlem, zaman, gerekçe) kalır, ama adın onlardan kaldırılır; bir yöneticinin gerekçe olarak yazdığı metin olduğu gibi kalır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısı site dosyalarını, veritabanını ve e-posta kutularını her gün yedekler ve yedekleri 21 gün saklar; silinen veriler bu yedeklerde en fazla 21 gün daha kalır. Sağlayıcının sunucu kayıtları 6 ay sonra silinir. Bize yazdığın e-postalar, talebini cevaplamak için gerektiği sürece saklanır ve sonra silinir."
     },
     "rights": {
       "title": "Hakların",
@@ -508,7 +509,7 @@
     },
     "age": {
       "title": "Yaş sınırı",
-      "p1": "Coin Portal'a sadece 18 yaşını doldurmuş kişiler kayıt olabilir."
+      "p1": "CoinVitrine sitesine sadece 18 yaşını doldurmuş kişiler kayıt olabilir."
     },
     "changes": {
       "title": "Değişiklikler",
@@ -518,10 +519,10 @@
   "terms": {
     "title": "Kullanım şartları",
     "updated": "Son güncelleme: {{date}}",
-    "intro": "Bu şartlar Coin Portal'ı kullanırken uyulacak kuralları anlatır. Kayıt olarak bunları kabul etmiş olursun. Kişisel verilerinin nasıl işlendiği gizlilik politikasında anlatılır.",
+    "intro": "Bu şartlar CoinVitrine sitesini kullanırken uyulacak kuralları anlatır. Kayıt olarak bunları kabul etmiş olursun. Kişisel verilerinin nasıl işlendiği gizlilik politikasında anlatılır.",
     "service": {
       "title": "Hizmet",
-      "p1": "Coin Portal, Euro coin koleksiyonunu kaydetmek, fotoğraflamak ve istersen paylaşmak için ticari olmayan, ücretsiz bir hobi sitesidir. Site olduğu gibi sunulur: kesintisiz çalışacağı ya da verilerin hiç kaybolmayacağı garanti edilmez. Senin için önemli veriler için Ayarlar > Hesap'taki dışa aktarmayı kullan."
+      "p1": "CoinVitrine, Euro coin koleksiyonunu kaydetmek, fotoğraflamak ve istersen paylaşmak için ticari olmayan, ücretsiz bir hobi sitesidir. Site olduğu gibi sunulur: kesintisiz çalışacağı ya da verilerin hiç kaybolmayacağı garanti edilmez. Senin için önemli veriler için Ayarlar > Hesap'taki dışa aktarmayı kullan."
     },
     "account": {
       "title": "Hesabın",
@@ -559,7 +560,7 @@
   },
   "contact": {
     "title": "İletişim",
-    "intro": "Coin Portal, bir kişinin hobi olarak geliştirdiği ve işlettiği, ticari olmayan bir sitedir.",
+    "intro": "CoinVitrine, bir kişinin hobi olarak geliştirdiği ve işlettiği, ticari olmayan bir sitedir.",
     "operator": "İşleten",
     "email": "E-posta",
     "emailHint": "Soruların, hata bildirimlerin, uygunsuz içerik bildirimlerin ve verilerinle ilgili taleplerin için.",
