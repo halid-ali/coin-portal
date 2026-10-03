@@ -1,14 +1,16 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-03 (**`v1.0.0` etiketlendi**: ilk gerçek yayın, site adı **CoinVitrine**, adres
-https://coinvitrine.com, `contact@coinvitrine.com`; Tamamlananlar 51–52. Sırada push, Release notları ve
-canlı kurulum. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-03 (**`v1.0.0` etiketlendi ve push edildi**: ilk gerçek yayın, site adı
+**CoinVitrine**, adres https://coinvitrine.com; Tamamlananlar 51–52. **Yayın pipeline'ı** yazıldı
+(`feat/deploy-pipeline`, Tamamlananlar 53); `v1.0.0` onunla kurulacak, sonra Release notları. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` temiz; `chore/release-v1.0.0` 2026-10-03'te merge edildi ve merge commit'i `v1.0.0`
-  etiketini taşıyor (Tamamlananlar 52). Push ve canlı kurulum kullanıcı onayıyla; yapıldıysa bu cümle
-  güncellenir. Canlıda hâlâ `v0.4.0` olabilir: `GET https://coinvitrine.com/api/health` ile bakılır. GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `v1.0.0` etiketi ve `main` push edildi (2026-10-03, Tamamlananlar 52); taslak Release'te paket
+  var, notlar (`.notes/release-v1.0.0.md`) kullanıcı onaylı, kurulumdan sonra yayınlanacak.
+  `feat/deploy-pipeline` (Tamamlananlar 53) bitince merge + push, kullanıcının bir kerelik ayarları
+  ("Sıradaki adım"), sonra Release workflow'u `v1.0.0` için `deploy` ile elle başlatılır. Bunlar
+  yapıldıysa bu cümle güncellenir; canlı sürüm `GET https://coinvitrine.com/api/health`. GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -933,6 +935,23 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     Impressum'suz devam kararı (Açık konular 14); kullanıcı gizlilik politikasını ve şartları okudu.
     git-cliff `v0.5.0` önerdi (1.0.0 öncesi feat → minor); kullanıcıyla planlandığı gibi `v1.0.0`
     (`--tag v1.0.0`). CHANGELOG git-cliff 2.14.2 ile, etiket merge commit'inde.
+53. **Yayın pipeline'ı** (`feat/deploy-pipeline`, 2026-10-03; kullanıcı istedi: elle kurulum zahmetli):
+    etiket push'u → `release.yml`: **Checks** (`ci.yml` `workflow_call` ile etiketin commit'inde) →
+    **Package** (önceki gibi + canlı sürümden bu yana yeni migration özeti, varsa yedek uyarısı) →
+    **Deploy** (`production` ortamı, kullanıcı onayı; Windows runner'da Web Deploy, `AppOffline`,
+    `DoNotDeleteRule`, sunucudaki `web.config` atlanır) → canlı `/api/health` sürüm kontrolü.
+    `workflow_dispatch` (etiket + `deploy`) yeniden kurulum ve eski sürüme dönüş için.
+    - **Kararlar (kullanıcı):** onay adımı var (gerekçe: kurulum öncesi sunucu hazırlığı, migration öncesi
+      yedek, zamanlama, yanlış etiket; birkaç sorunsuz sürümden sonra kaldırılabilir, tek ayar).
+      Migration'ları **uygulama açılışta uygular** (`Hosting/StartupMigration`, `Database:MigrateOnStartup`;
+      veritabanı parolası GitHub'a gitmez, dış erişim kapalı kalır). Elenen: GitHub'ın `migrate.sql`'i
+      1433 üzerinden çalıştırması.
+    - **Yedek:** MonsterASP'ta yedeği dışarıdan tetikleyecek API yok (sadece panel; günlük yedekler FTP'den
+      indirilebilir ama repo public olduğu için GitHub'da saklanamaz: kişisel veri). Pipeline yeni
+      migration'lı sürümde onaydan önce panelden yedek almayı özetinde ister.
+    - Doğrulama: workflow'lar şema kontrolünden geçti (`@action-validator/cli`); migration tespiti lokalde
+      canlı sürüme karşı denendi; `Startup_MigratesAnEmptyDatabase_OnlyWhenAskedTo` testi. Web Deploy'un
+      kendisi ilk gerçek koşuda (`v1.0.0`) denenecek; Windows runner'da `msdeploy` yoksa `choco` kurar.
 
 ## Yol haritası
 
@@ -987,7 +1006,8 @@ mağaza için TWA.
 - [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) →
       ~~alan adı~~ (coinvitrine.com, ~~`OPERATOR`~~, ~~e-posta~~, 2026-10-03, Tamamlananlar 51) →
       ~~Impressum kararı~~ (2026-10-03: şimdilik yok, Açık konular 14) → ~~elle ilk yayın `v1.0.0`~~ (etiket 2026-10-03,
-      Tamamlananlar 52) → service worker → otomatik deploy.
+      Tamamlananlar 52) → service worker → ~~otomatik deploy~~ (onaylı pipeline, 2026-10-03,
+      Tamamlananlar 53).
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
@@ -1052,11 +1072,17 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 Yeni sohbette kullanıcıyla seçilecek. **`v1.0.0` etiketlendi** (2026-10-03, Tamamlananlar 52); site
 https://coinvitrine.com (MonsterASP.NET). Adaylar:
 
-- **`v1.0.0`'ın yayını** (bittiyse bu madde kalkar):
-  - Push (`git push origin main`, `git push origin v1.0.0`; kullanıcı onayıyla) → `release.yml` paketi
-    taslak Release'e ekler → Release notları (kullanıcı onayıyla, `.notes/release-v1.0.0.md`).
-  - Kurulum "Yayın (deploy) adımları"yla; ilk kez sunucudaki `web.config`'e
-    `CanonicalHost__Host=coinvitrine.com`. Kontrol: health `1.0.0`, `coinportal.runasp.net` ve `www.` 308.
+- **`v1.0.0`'ın yayını pipeline ile** (bittiyse bu madde kalkar):
+  - ~~Push~~ (2026-10-03); taslak Release'te paket var.
+  - `feat/deploy-pipeline` merge + `main` push (kullanıcı onayıyla).
+  - ~~Kullanıcının bir kerelik ayarları~~ (2026-10-03): MonsterASP'ta Web Deploy açık (sunucu
+    `site95780.siteasp.net:8172`, site ve kullanıcı `site95780`); GitHub'da `production` ortamı (required
+    reviewer kendisi, self-review serbest; sadece `main` dalı ve `v*` etiketleri, elle başlatılan koşu
+    `main`'den çalışır; dört secret `WEBDEPLOY_SERVER` = `https://site95780.siteasp.net:8172`,
+    `WEBDEPLOY_SITE`, `WEBDEPLOY_USERNAME`, `WEBDEPLOY_PASSWORD`); sunucudaki `web.config`'te
+    `CanonicalHost__Host=coinvitrine.com` ve `Database__MigrateOnStartup=true`.
+  - Actions > Release > Run workflow: tag `v1.0.0`, deploy işaretli → onay → kontrol: health `1.0.0`,
+    `coinportal.runasp.net` ve `www.` 308. Sonra Release notları yayınlanır (`.notes/release-v1.0.0.md`).
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - İsteğe bağlı: webmail'de gönderen adı "CoinVitrine" (şu an adres görünüyor).
 - **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
@@ -1500,8 +1526,21 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 
 ## Yayın (deploy) adımları
 
-Canlı site: https://coinvitrine.com (MonsterASP.NET; sağlayıcının adresi `coinportal.runasp.net`; sunucu adları ve yollar lokal
-`.notes/environment.md`'de, parolasız `web.config` şablonu `.notes/deploy/`). Yeni bir sürüm:
+Canlı site: https://coinvitrine.com (MonsterASP.NET; sağlayıcının adresi `coinportal.runasp.net`; sunucu
+adları ve yollar lokal `.notes/environment.md`'de, parolasız `web.config` şablonu `.notes/deploy/`).
+
+**Normal yol: pipeline** (Tamamlananlar 53, kural CLAUDE.md "Sürüm ve yayın"). Etiket push edilince Release
+workflow'u kontrol, paket ve onay bekleyen deploy adımlarını çalıştırır:
+
+1. Actions'ta Release koşusunun özetine bakılır: yeni migration varsa **önce panelden veritabanı yedeği**
+   (Databases > Backups management > Create Backup). Sürüm sunucuda bir hazırlık istiyorsa (yeni ortam
+   değişkeni vb.) o da şimdi, sunucudaki `web.config`'e.
+2. GitHub'ın e-postasındaki ya da koşu sayfasındaki **Review deployments → Approve**.
+3. Deploy ve canlı kontrol yeşilse iş biter; elle kontrol: giriş, bir fotoğraf, paylaşım linki. Kırmızıysa
+   koşunun logu, sonra `\private\logs`. Eski sürüme dönüş: Run workflow, eski etiket + deploy
+   (veritabanı geri alınmaz).
+
+**Yedek yol: elle kurulum** (pipeline çalışmazsa):
 
 1. Etiketin GitHub Release'inden `coinportal-vX.Y.Z.zip` indirilir, `.sha256` ile karşılaştırılır.
 2. **Veritabanı önce:** paketteki `migrate.sql` (idempotent) panelde Databases > Manage > "Import SQL"

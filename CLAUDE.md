@@ -65,7 +65,9 @@ terminallerinde sürekli çalışır halde tutuyor.
   `ng test`; araçlar `npm exec --no --` ile (projenin kendi araçları; `npx` eksik paketi indirir). API `main`
   push'unda Release derlenir (ImageSharp anahtarı secret `SIXLABORS_LICENSE_KEY`), pull request'lerde
   Debug (Dependabot ve fork'lar secret görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm
-  önermez (onlar planlı iş, Angular için `ng update`).
+  önermez (onlar planlı iş, Angular için `ng update`). `ci.yml` `workflow_call` ile `release.yml`'den de
+  çağrılır (`ref` girdisi etiketin commit'i; çağrıldığında `github.workflow` "Release" olur, deneme
+  paketi atlanır, concurrency grubu adı ayrı tutar).
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
@@ -82,14 +84,24 @@ terminallerinde sürekli çalışır halde tutuyor.
   branch'inde `npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
   merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
 - Canlı site MonsterASP.NET'te (https://coinvitrine.com; sağlayıcının adresi `coinportal.runasp.net`
-  ve `www.` oraya yönlenir); yeni sürümün kurulumu elle,
-  PROJECT_STATUS "Yayın (deploy) adımları"na göre: önce `migrate.sql` panelden, sonra `site/`.
-- Etiket push edilince `.github/workflows/release.yml` yayın paketini üretir: `coinportal-vX.Y.Z.zip`
-  (`site/` = API + client, idempotent `migrate.sql`, `LICENSE`, `THIRD-PARTY-NOTICES.md`) ve `.sha256`;
-  paketin sürümünü ve içindeki client'ı kontrol eder, etiketin GitHub Release'ine ekler (Release yoksa
-  taslak açar). Sonra Release'in notları yazılıp yayınlanır (kullanıcı onayıyla): kısa giriş, öne çıkanlar
-  ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil. Paket `workflow_dispatch` ile bir
-  etiket için yeniden üretilebilir.
+  ve `www.` oraya yönlenir).
+- **Etiket push'u yayın pipeline'ını başlatır** (`.github/workflows/release.yml`):
+  1. **Checks:** `ci.yml` etiketin commit'inde (biçim, build, migration kontrolü, API ve client testleri).
+  2. **Package:** `coinportal-vX.Y.Z.zip` (`site/` = API + client, idempotent `migrate.sql`, `LICENSE`,
+     `THIRD-PARTY-NOTICES.md`) ve `.sha256`; sürümü ve client'ı kontrol eder, etiketin GitHub Release'ine
+     ekler (yoksa taslak açar). Özete canlı sürümden (`/api/health` → commit) bu yana **yeni migration'ları**
+     yazar; varsa "onaydan önce panelden veritabanı yedeği al" uyarısı.
+  3. **Deploy:** GitHub ortamı `production` (onaylayıcı kullanıcı; sadece `main` ve `v*` etiketleri, elle başlatma `main`'den koşar; secret'lar
+     `WEBDEPLOY_SERVER`, `WEBDEPLOY_SITE`, `WEBDEPLOY_USERNAME`, `WEBDEPLOY_PASSWORD`).
+     **Onay** (Approve) bekler; sonra Windows runner'da Web Deploy (`msdeploy`): `AppOffline` (dosyalar
+     değişirken bakım sayfası), `DoNotDeleteRule` (fazla dosya silinmez), **sunucudaki `web.config`
+     atlanır**. Migration'ları uygulama açılışta kendisi uygular (`Database:MigrateOnStartup`).
+  4. **Kontrol:** `/api/health` 3 dakika içinde yeni sürümü göstermezse iş başarısız.
+  Kurulumdan önce sunucuda elle bir hazırlık gereken sürümde (yeni ortam değişkeni vb.) hazırlık onaydan
+  önce yapılır. `workflow_dispatch` (etiket + `deploy`) bir etiketi yeniden paketler ve isterse kurar
+  (yeniden kurulum, eski sürüme dönüş; veritabanı geri alınmaz). Elle kurulum yedek yol: PROJECT_STATUS
+  "Yayın (deploy) adımları". Sonra Release'in notları yazılıp yayınlanır (kullanıcı onayıyla): kısa giriş,
+  öne çıkanlar ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil.
 - GitHub rulesets: `main`'de silme ve force-push, `v*` etiketlerinde silme, güncelleme ve force-push yasak.
   **Push edilmiş bir etiket düzeltilemez**; yanlışsa yeni bir patch sürümü atılır. Etiketi push etmeden
   önce doğru commit'te olduğunu kontrol et.
@@ -294,6 +306,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `AlterColumn` olmamalı. Mevcut veriye zorunlu yabancı anahtar eklenirken EF `defaultValue: 0`
   üretir ve FK'yı bozar: elle nullable ekle → `Sql()` ile doldur → `AlterColumn` NOT NULL
   (bkz. `AddCollections`). Migration'larda uygulama sabitleri değil literal değerler kullanılır.
+  **Canlıda migration'ları uygulama açılışta uygular** (`Hosting/StartupMigration`,
+  `Database:MigrateOnStartup`, varsayılan kapalı, sunucuda açık): her migration eski veriyle tek başına
+  çalışmalı ve kısa sürmeli (açılış bekler); başarısız bir migration uygulamayı açılışta durdurur.
 - **API testleri** (`tests/api`): API bellekte (`WebApplicationFactory`, ortam `Testing`, istemci
   `https://localhost`, yani production cookie kuralları) gerçek SQL Server'a karşı çalışır; SQLite
   kullanılmaz (collation, `CHARINDEX`, filtreli index'ler). Koşu başına `CoinPortal_Tests_<zaman>_<id>`
@@ -466,7 +481,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yapar. Yani kullanıcı başına dakikada bir yanıt (çoğu zaman bir fotoğraf) önbelleğe alınmaz; bilinen,
   küçük bir bedel.
 - API açılışta veritabanına yazar (admin rol senkronu): veritabanı erişilemezse ya da boşsa (hiç
-  migration uygulanmamış) API başlamaz. Hosting'de önce migration, sonra uygulama. Açılışta ayrıca
+  migration uygulanmamış) API başlamaz; sunucuda `Database:MigrateOnStartup` migration'ları önce uygular
+  (elle kurulumda `migrate.sql` uygulamadan önce). Açılışta ayrıca
   `Hosting/StartupChecks`: fotoğraf, log ve anahtar klasörlerine deneme yazması ve DataProtection; yanlış bir
   yol ya da DPAPI sorunu uygulamayı başlatmaz (Critical log). Çözülen klasörler Information logda (`Photos:`,
   `Log files:`, `Data protection keys:`); yeni hosting'de ilk açılışta bu satırlara bakılır. Hosting
