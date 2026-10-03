@@ -89,7 +89,8 @@ terminallerinde sürekli çalışır halde tutuyor.
   1. **Checks:** `ci.yml` etiketin commit'inde (biçim, build, migration kontrolü, API ve client testleri).
   2. **Package:** `coinportal-vX.Y.Z.zip` (`site/` = API + client, idempotent `migrate.sql`, `LICENSE`,
      `THIRD-PARTY-NOTICES.md`) ve `.sha256`; sürümü ve client'ı kontrol eder, etiketin GitHub Release'ine
-     ekler (yoksa taslak açar). Özete canlı sürümden (`/api/health` → commit) bu yana **yeni migration'ları**
+     ekler (Release taslaklar dahil listeden aranır, yoksa taslak açılır; paketi zaten olan Release'e
+     dokunulmaz, yeniden kurulumda koşu kendi artefaktını kurar). Özete canlı sürümden (`/api/health` → commit) bu yana **yeni migration'ları**
      yazar; varsa "onaydan önce panelden veritabanı yedeği al" uyarısı.
   3. **Deploy:** GitHub ortamı `production` (onaylayıcı kullanıcı; sadece `main` ve `v*` etiketleri, elle başlatma `main`'den koşar; secret'lar
      `WEBDEPLOY_SERVER`, `WEBDEPLOY_SITE`, `WEBDEPLOY_USERNAME`, `WEBDEPLOY_PASSWORD`).

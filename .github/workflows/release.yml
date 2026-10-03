@@ -141,14 +141,27 @@ jobs:
             ${{ runner.temp }}/coinportal-${{ env.TAG }}.zip
             ${{ runner.temp }}/coinportal-${{ env.TAG }}.zip.sha256
 
+      # The release is looked up in the list, drafts included: "gh release view <tag>" does not find a
+      # draft, and a rerun before the notes are published would open a second one. A release that
+      # already has the package keeps it (a rebuild must not quietly replace a published file; this
+      # run deploys its own artifact)
       - name: Attach to the GitHub Release
         run: |
-          files=("$RUNNER_TEMP/coinportal-$TAG.zip" "$RUNNER_TEMP/coinportal-$TAG.zip.sha256")
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release upload "$TAG" "${files[@]}" --clobber
+          zip="coinportal-$TAG.zip"
+          release=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq "[.[] | select(.tag_name == \"$TAG\")][0] // empty | \"\(.id) \(.draft) \([.assets[].name] | index(\"$zip\") != null)\"")
+          read -r id draft has_zip <<< "$release"
+          if [ -z "$id" ]; then
+            gh release create "$TAG" "$RUNNER_TEMP/$zip" "$RUNNER_TEMP/$zip.sha256" --draft --verify-tag \
+              --title "$TAG" --notes "Draft: the notes follow (CLAUDE.md, Sürüm ve yayın)."
+          elif [ "$has_zip" = true ]; then
+            echo "Release $id (draft: $draft) already has $zip; left as it is."
           else
-            gh release create "$TAG" "${files[@]}" --draft --verify-tag --title "$TAG" \
-              --notes "Draft: the notes follow (CLAUDE.md, Sürüm ve yayın)."
+            for file in "$zip" "$zip.sha256"; do
+              gh api -X POST "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$id/assets?name=$file" \
+                -H "Content-Type: application/octet-stream" --input "$RUNNER_TEMP/$file" > /dev/null
+            done
+            echo "Attached $zip to release $id (draft: $draft)."
           fi
         env:
           GH_TOKEN: ${{ github.token }}

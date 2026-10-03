@@ -1,26 +1,19 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-03 (**`v1.0.0` etiketlendi ve push edildi**: ilk gerçek yayın, site adı
-**CoinVitrine**, adres https://coinvitrine.com; Tamamlananlar 51–52. **Yayın pipeline'ı** yazıldı
-(`feat/deploy-pipeline`, Tamamlananlar 53); `v1.0.0` onunla kurulacak, sonra Release notları. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-04 (**`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
+**onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
+https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `v1.0.0` etiketi ve `main` push edildi (2026-10-03, Tamamlananlar 52); taslak Release'te paket
-  var, notlar (`.notes/release-v1.0.0.md`) kullanıcı onaylı, kurulumdan sonra yayınlanacak.
-  `feat/deploy-pipeline` (Tamamlananlar 53) bitince merge + push, kullanıcının bir kerelik ayarları
-  ("Sıradaki adım"), sonra Release workflow'u `v1.0.0` için `deploy` ile elle başlatılır. Bunlar
-  yapıldıysa bu cümle güncellenir; canlı sürüm `GET https://coinvitrine.com/api/health`. GitHub: https://github.com/halid-ali/coin-portal (public;
-  sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
+- Durum: `main` güncel ve temiz; son etiket ve Release `v1.0.0` (2026-10-03, "latest"), canlıda `v1.0.0`.
+  GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v0.4.0`, MonsterASP.NET; sağlayıcının adresi
-  https://coinportal.runasp.net de açılıyor, bu dalın sürümü kurulunca oraya yönlenir; kullanıcı admin;
-  alan adı ve DNS Cloudflare'de). Yeni sürüm
-  "Yayın (deploy) adımları"yla elle kurulur; sunucudaki `web.config` parolayı tutar, üzerine yazılmaz.
-- Veritabanı en son migration'da (`AccountDeletion`); dev seed 2026-09-27'de çalıştırıldı
-  (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
-  "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
+- Canlı site: https://coinvitrine.com (`v1.0.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+  oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
+  **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
+  ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
 - API'yi (5080) ve `ng serve`'ü (4200) kullanıcı kendi terminallerinde çalıştırır; kural CLAUDE.md "Çalışan
   uygulamalar"da. Yeni sohbette ikisi kontrol edilir (`curl -s localhost:5080/api/health`,
   `curl -s -o /dev/null -w '%{http_code}' localhost:4200/`); API çalışıyorsa `bin/` kilitlidir, derleme ve
@@ -950,8 +943,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       indirilebilir ama repo public olduğu için GitHub'da saklanamaz: kişisel veri). Pipeline yeni
       migration'lı sürümde onaydan önce panelden yedek almayı özetinde ister.
     - Doğrulama: workflow'lar şema kontrolünden geçti (`@action-validator/cli`); migration tespiti lokalde
-      canlı sürüme karşı denendi; `Startup_MigratesAnEmptyDatabase_OnlyWhenAskedTo` testi. Web Deploy'un
-      kendisi ilk gerçek koşuda (`v1.0.0`) denenecek; Windows runner'da `msdeploy` yoksa `choco` kurar.
+      canlı sürüme karşı denendi; `Startup_MigratesAnEmptyDatabase_OnlyWhenAskedTo` testi.
+    - **İlk koşu** (2026-10-03, `v1.0.0`, Run workflow ile; etiket pipeline'dan önce push edilmişti):
+      Checks ~1,5 dk, Package ~1,5 dk, onay e-postası geldi, kullanıcı onayladı; Deploy 24 sn (Web Deploy
+      12 sn, `msdeploy` runner'da hazır, `choco` gerekmedi), canlı kontrol 5 sn. Sonra: health
+      `1.0.0+21c3123`, `coinportal.runasp.net` ve `www.` 308 (yol ve sorgu korunur, HTTP'den tek adım),
+      başlık ve manifest "CoinVitrine". Release notları (`.notes/release-v1.0.0.md`) kurulumdan sonra
+      yayınlandı. Normal akışta deploy etiket push'uyla kendiliğinden başlar; `main` push'u deploy etmez.
+    - **Hata ve düzeltme:** elle başlatılan koşu, notları henüz yayınlanmamış (taslak) `v1.0.0` Release'ini
+      `gh release view` ile bulamadı (taslaklar etiketle bulunmuyor) ve ikinci bir taslak açtı. Release artık
+      API listesinden, taslaklar dahil aranıyor; paketi olan Release'e dokunulmuyor (yayınlanmış bir paket
+      yeniden build ile değişmesin). Fazla taslak silindi (iki paket aynı commit'ten, sadece zip zamanları
+      farklı; yayınlanan Release ilk koşunun paketini taşıyor, canlıdaki ikinci koşunun aynı kaynaklı build'i).
 
 ## Yol haritası
 
@@ -1069,22 +1072,14 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **`v1.0.0` etiketlendi** (2026-10-03, Tamamlananlar 52); site
-https://coinvitrine.com (MonsterASP.NET). Adaylar:
+Yeni sohbette kullanıcıyla seçilecek. **`v1.0.0` yayında** (https://coinvitrine.com, onaylı pipeline;
+Tamamlananlar 51–53). Adaylar:
 
-- **`v1.0.0`'ın yayını pipeline ile** (bittiyse bu madde kalkar):
-  - ~~Push~~ (2026-10-03); taslak Release'te paket var.
-  - `feat/deploy-pipeline` merge + `main` push (kullanıcı onayıyla).
-  - ~~Kullanıcının bir kerelik ayarları~~ (2026-10-03): MonsterASP'ta Web Deploy açık (sunucu
-    `site95780.siteasp.net:8172`, site ve kullanıcı `site95780`); GitHub'da `production` ortamı (required
-    reviewer kendisi, self-review serbest; sadece `main` dalı ve `v*` etiketleri, elle başlatılan koşu
-    `main`'den çalışır; dört secret `WEBDEPLOY_SERVER` = `https://site95780.siteasp.net:8172`,
-    `WEBDEPLOY_SITE`, `WEBDEPLOY_USERNAME`, `WEBDEPLOY_PASSWORD`); sunucudaki `web.config`'te
-    `CanonicalHost__Host=coinvitrine.com` ve `Database__MigrateOnStartup=true`.
-  - Actions > Release > Run workflow: tag `v1.0.0`, deploy işaretli → onay → kontrol: health `1.0.0`,
-    `coinportal.runasp.net` ve `www.` 308. Sonra Release notları yayınlanır (`.notes/release-v1.0.0.md`).
+- **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - İsteğe bağlı: webmail'de gönderen adı "CoinVitrine" (şu an adres görünüyor).
+  - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
+    "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
   #27; çeviriler #28; testler #29, #30.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
