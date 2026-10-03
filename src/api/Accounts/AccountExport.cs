@@ -27,7 +27,7 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
     };
 
     public static string FileName(ApplicationUser user, DateTime nowUtc) =>
-        $"coinportal-{user.UserName}-{nowUtc:yyyyMMdd}.zip";
+        $"coinvitrine-{user.UserName}-{nowUtc:yyyyMMdd}.zip";
 
     public async Task<Stream> CreateAsync(ApplicationUser user, CancellationToken ct)
     {

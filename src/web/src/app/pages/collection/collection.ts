@@ -43,6 +43,7 @@ import {
 import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
 import { httpErrorMessage } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
+import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
@@ -386,8 +387,8 @@ export class Collection {
     this.header.set(header);
     this.title.setTitle(
       header.ownerUserName && this.readOnly()
-        ? `${header.name} · @${header.ownerUserName} · Coin Portal`
-        : `${header.name} · Coin Portal`,
+        ? `${header.name} · @${header.ownerUserName} · ${APP_NAME}`
+        : `${header.name} · ${APP_NAME}`,
     );
   }
 

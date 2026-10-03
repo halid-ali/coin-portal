@@ -13,7 +13,7 @@ namespace CoinPortal.Api.Tests;
 [Collection(AdminCollection.Name)]
 public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
 {
-    private const string IndexHtml = "<!doctype html><title>Coin Portal test client</title>";
+    private const string IndexHtml = "<!doctype html><title>CoinVitrine test client</title>";
     private const string HashedScript = "main-AB12CD34.js";
 
     private readonly string webRoot = Path.Combine(Path.GetTempPath(), $"CoinPortal_WebRoot_{Guid.NewGuid():N}");
@@ -320,6 +320,54 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         Assert.Equal("https://localhost/api/health?x=1", response.Headers.Location?.ToString());
     }
 
+    [Fact]
+    public async Task OtherHostNames_AreRedirectedToTheCanonicalHost()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["CanonicalHost:Host"] = "coins.example",
+            ["https_port"] = "443",
+        });
+        HttpClient Client(string address) => host.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri(address),
+            AllowAutoRedirect = false,
+        });
+        using var old = Client("https://old.example");
+        using var oldHttp = Client("http://old.example");
+        using var site = Client("https://COINS.example");
+
+        using var page = await old.GetAsync("/u/ayse.yilmaz?x=1");
+        using var post = await old.PostAsync("/api/auth/logout", null);
+        using var plain = await oldHttp.GetAsync("/s/abc");
+        using var challenge = await oldHttp.GetAsync("/.well-known/acme-challenge/token");
+        using var canonical = await site.GetAsync("/api/health");
+
+        Assert.Equal(HttpStatusCode.PermanentRedirect, page.StatusCode);
+        Assert.Equal("https://coins.example/u/ayse.yilmaz?x=1", page.Headers.Location?.ToString());
+        // 308 keeps the method
+        Assert.Equal(HttpStatusCode.PermanentRedirect, post.StatusCode);
+        Assert.Equal("https://coins.example/api/auth/logout", post.Headers.Location?.ToString());
+        // From plain HTTP in one step, not through https://old.example first
+        Assert.Equal("https://coins.example/s/abc", plain.Headers.Location?.ToString());
+        // Certificate renewals of the other names stay on their own name
+        Assert.Equal("https://old.example/.well-known/acme-challenge/token", challenge.Headers.Location?.ToString());
+        // The host name is compared case-insensitively
+        await canonical.ShouldHaveStatusAsync(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Startup_WithAnInvalidCanonicalHost_Fails()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["CanonicalHost:Host"] = "https://coins.example/",
+        });
+
+        var error = Assert.ThrowsAny<Exception>(() => host.CreateClient());
+        Assert.Contains("CanonicalHost:Host", error.ToString());
+    }
+
     [Theory]
     [InlineData("/")]
     [InlineData("/" + HashedScript)]
@@ -414,7 +462,7 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         Directory.CreateDirectory(webRoot);
         File.WriteAllText(Path.Combine(webRoot, "index.html"), IndexHtml);
         File.WriteAllText(Path.Combine(webRoot, HashedScript), "console.log('test');");
-        File.WriteAllText(Path.Combine(webRoot, "manifest.webmanifest"), """{ "name": "Coin Portal" }""");
+        File.WriteAllText(Path.Combine(webRoot, "manifest.webmanifest"), """{ "name": "CoinVitrine" }""");
         return factory.WithSettings(new Dictionary<string, string?>(), webRoot);
     }
 

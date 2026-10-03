@@ -23,12 +23,13 @@ describe('Legal pages', () => {
     const page = await render(Privacy);
 
     expect(page.querySelectorAll('h2').length).toBe(10);
-    expect(page.querySelectorAll('li').length).toBe(9);
-    expect(page.textContent).toContain('Son güncelleme: 2 Ekim 2026');
+    expect(page.querySelectorAll('li').length).toBe(11);
+    expect(page.textContent).toContain('Son güncelleme: 3 Ekim 2026');
     // A key would be shown as is when its text is missing
     expect(page.textContent).not.toMatch(/privacy\.\w+/);
-    // The operator is not filled in yet
-    expect(page.textContent).toContain('veri sorumlusu): yayından önce eklenecek');
+    expect(page.textContent).toContain(
+      'veri sorumlusu): Halid Ali. İletişim: contact@coinvitrine.com.',
+    );
   });
 
   it('shows every section of the terms of use, all of it translated', async () => {
@@ -36,7 +37,7 @@ describe('Legal pages', () => {
 
     expect(page.querySelectorAll('h2').length).toBe(8);
     expect(page.querySelectorAll('li').length).toBe(5);
-    expect(page.textContent).toContain('Son güncelleme: 2 Ekim 2026');
+    expect(page.textContent).toContain('Son güncelleme: 3 Ekim 2026');
     // A key would be shown as is when its text is missing
     expect(page.textContent).not.toMatch(/terms\.\w+/);
   });
@@ -44,7 +45,9 @@ describe('Legal pages', () => {
   it('names the operator, the e-mail and the source code', async () => {
     const page = await render(Contact);
 
-    expect(page.textContent).toContain('yayından önce eklenecek');
+    expect(page.textContent).toContain('Halid Ali');
+    const email = page.querySelector<HTMLAnchorElement>('a[href^="mailto:"]')!;
+    expect(email.href).toBe('mailto:contact@coinvitrine.com');
     const source = page.querySelector<HTMLAnchorElement>('a[target=_blank]')!;
     expect(source.href).toBe('https://github.com/halid-ali/coin-portal');
     expect(source.rel).toBe('noopener');

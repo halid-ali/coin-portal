@@ -20,19 +20,15 @@ import { OPERATOR, SOURCE_URL } from '../../core/legal/operator';
       <dl class="card space-y-4">
         <div class="grid gap-x-6 gap-y-0.5 sm:grid-cols-[10rem_1fr]">
           <dt class="text-sm text-shade-500">{{ 'contact.operator' | transloco }}</dt>
-          <dd class="font-medium wrap-break-word text-shade-900">
-            {{ operator.name ?? ('legal.notSet' | transloco) }}
-          </dd>
+          <dd class="font-medium wrap-break-word text-shade-900">{{ operator.name }}</dd>
         </div>
 
         <div class="grid gap-x-6 gap-y-0.5 sm:grid-cols-[10rem_1fr]">
           <dt class="text-sm text-shade-500">{{ 'contact.email' | transloco }}</dt>
           <dd class="min-w-0">
-            @if (operator.email; as email) {
-              <a [href]="'mailto:' + email" class="link font-medium break-all">{{ email }}</a>
-            } @else {
-              <span class="font-medium text-shade-900">{{ 'legal.notSet' | transloco }}</span>
-            }
+            <a [href]="'mailto:' + operator.email" class="link font-medium break-all">{{
+              operator.email
+            }}</a>
             <p class="form-hint">{{ 'contact.emailHint' | transloco }}</p>
           </dd>
         </div>
