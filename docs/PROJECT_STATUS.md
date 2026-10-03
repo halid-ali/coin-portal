@@ -1,7 +1,7 @@
 # Coin Portal - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-02 (`v0.4.0` yayınlandı: 2026-10-02 incelemesinin bütün P0 işleri, #10–#21; kalan
-işler "Aksiyon planı"nda. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-03 (site yayında: https://coinportal.runasp.net, MonsterASP.NET, `v0.4.0`;
+sırada alan adı, e-posta ve `v1.0.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
@@ -10,6 +10,8 @@ işler "Aksiyon planı"nda. Proje GitHub'da public: https://github.com/halid-ali
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
+- Canlı site: https://coinportal.runasp.net (`v0.4.0`, MonsterASP.NET; kullanıcı orada admin). Yeni sürüm
+  "Yayın (deploy) adımları"yla elle kurulur; sunucudaki `web.config` parolayı tutar, üzerine yazılmaz.
 - Veritabanı en son migration'da (`AccountDeletion`); dev seed 2026-09-27'de çalıştırıldı
   (seed kullanıcılarında örnek paylaşımlar var: ayse ve elif'in birer koleksiyonu herkese açık, jonas'ın
   "Koleksiyonum"u sadece linkle). Seed kullanıcılarının kayıtlı dili yok (arayüz cihazın diliyle açılır).
@@ -875,6 +877,25 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     36–48, #10–#21). CHANGELOG git-cliff 2.14.2 ile, etiket merge commit'inde. `release.yml`'in ilk gerçek
     koşusu bu etiketle: paket taslak Release'e eklendi, notlar (`.notes/release-v0.4.0.md`) lokal betikle
     yayınlandı. #17'nin gizlilik değişiklikleri `chore:` commit'i olduğu için CHANGELOG'da yok, notlarda var.
+50. **Hosting ve ilk canlı kurulum** (2026-10-02, kod değişikliği yok): kullanıcının seçimi **MonsterASP.NET
+    Premium Single** (AB firması, veri işleme sözleşmesi kullanım şartlarında; .NET 10, MSSQL, Let's
+    Encrypt). Türkiye'deki bir sağlayıcı (Natro) elendi: işletmeci Almanya'da yaşadığı ve site AB'deki
+    kullanıcılara açık olduğu için GDPR geçerli (Art. 3), AB dışında barındırma ek sözleşme (SCC) ve
+    aktarım değerlendirmesi ister. Site: https://coinportal.runasp.net, `v0.4.0` yayın paketiyle.
+    - Kurulum: veritabanı (MSSQL, collation `SQL_Latin1_General_CP1_CI_AS`) → paketteki `migrate.sql`
+      panelin "Import SQL"i ile (başına `QUOTED_IDENTIFIER`) → `site/` içeriği ZIP olarak `\wwwroot`'a →
+      sunucudaki `web.config`'e ortam değişkenleri (Production, connection string, `..\private\…`
+      yolları, `DataProtection__Dpapi=LocalMachine`, `Admin__UserIds__0`, 512 MB bellek için
+      `PhotoStorage__MaxConcurrentDecodes=1` ve `MaxSourceDimension=2000`) → HTTPS.
+    - Karşılaşılanlar: şirket ağı dışarı 1433'ü kapatıyor (`sqlcmd` zaman aşımı; panelden import);
+      havuz kullanıcı profili yüklemediği için DPAPI `CurrentUser` HTTP 500.30 verdi (`LocalMachine` ile
+      çözüldü); HTTPS açılınca sertifika birkaç dakika sonra hazır oldu (arada şirket proxy'si hata
+      sayfası gösterdi).
+    - Doğrulama: `GET /api/health` `0.4.0+c17f03d`; `http://` → 307; HSTS 30 gün; Brotli; önünde CDN
+      yok. Kullanıcı kayıt oldu, admin oldu; telefonla fotoğraf yükleme, paylaşım linkleri ve veri
+      indirme (fotoğraflar dahil) sorunsuz.
+    - Sonraki sürümler için "Yayın (deploy) adımları". Sunucu adları lokal `.notes/environment.md`'de,
+      parolasız `web.config` şablonu `.notes/deploy/`'da; parola sadece sunucuda.
 
 ## Yol haritası
 
@@ -926,7 +947,8 @@ mağaza için TWA.
 - [ ] 8b. `tests/e2e` (Playwright; #34).
 - [x] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ → `release.yml` (#21,
       2026-10-02, Tamamlananlar 48; ilk gerçek koşusu bir sonraki etikette).
-- [ ] 11. Hosting seçimi → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
+- [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) → alan adı,
+      e-posta, `OPERATOR` → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
@@ -988,11 +1010,18 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işlerinin hepsi bitti** (#10–#21, `v0.4.0`). Adaylar:
+Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işleri bitti** (`v0.4.0`) ve **site yayında**:
+https://coinportal.runasp.net (MonsterASP.NET, 2026-10-02, Tamamlananlar 50). Adaylar:
 
-- **11. Hosting seçimi** ("Hosting seçimi kontrol listesi" ve "Yayın öncesi yapılacaklar"). Kullanıcıda bekleyen:
-  işletmeci adı ve e-posta (`OPERATOR`), Impressum ve DSA kararı (Açık konular 14), gizlilik politikası ve
-  kullanım şartlarının okunması.
+- **11. `v1.0.0`'a giden yol** (kullanıcı 2026-10-02'de "kalan adımlara başka sohbette devam" dedi):
+  - Alan adı (domain) kararı ve bağlanması; HTTPS sertifikası yeni ad için. Alan adı gelirse
+    `coinportal.runasp.net` ona yönlendirilir.
+  - İletişim e-postası (alan adıyla birlikte düşünülebilir) ve işletmeci adı → `OPERATOR`.
+  - Impressum ve DSA kararı (Açık konular 14).
+  - Gizlilik metninde barındırma, sağlayıcı logları ve yedek cümlelerinin MonsterASP'a göre kontrolü;
+    kullanıcının gizlilik politikasını ve kullanım şartlarını okuması ("Yayın öncesi yapılacaklar").
+  - Canlı sitenin güvenlik ayarları (Açık konular 20: uzaktan veritabanı erişimi, yedekler).
+  - Sonra `v1.0.0` (ilk gerçek yayın), "Yayın (deploy) adımları"yla; site oturunca `Hsts__MaxAgeDays=365`.
 - **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
   #27; çeviriler #28; testler #29, #30.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
@@ -1274,11 +1303,11 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    kullanıcının takviminde (2027-12-01).
 2. ~~**Yayın izni**~~ (kapandı 2026-09-29): hobi projesi, kullanıcının kişisel GitHub hesabında public
    repo. Push yine kullanıcı onayıyla.
-3. **Hosting seçilmedi.** Seçerken aşağıdaki "Hosting seçimi kontrol listesi" kullanılacak.
+3. ~~**Hosting seçilmedi.**~~ (kapandı 2026-10-02): MonsterASP.NET Premium Single, Tamamlananlar 50.
 4. GitHub: https://github.com/halid-ali/coin-portal (public, 2026-09-29'da boş oluşturuldu; remote `origin`).
    Push'ta etiketler ayrıca gönderilir (`git push origin vX.Y.Z`).
-5. **Production connection string:** `appsettings.Production.json` veya hosting paneli ortam değişkeni;
-   parolalı connection string repoya girmeyecek.
+5. ~~**Production connection string**~~ (kapandı 2026-10-02): sunucudaki `web.config`'te ortam değişkeni;
+   parola repoda ve lokal notlarda yok (Tamamlananlar 50).
 6. ~~**Yayında SPA fallback**~~ (kapandı 2026-10-01): `SpaHosting`, Tamamlananlar 28.
 7. ~~**Backend testleri yok.**~~ (kapandı 2026-09-30): `tests/api`, Tamamlananlar 22. e2e testleri
    (Playwright) yol haritasında 8b.
@@ -1323,9 +1352,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     - Yeni bir dil eklemek: `SupportedLanguages` + `languages.ts` + `src/i18n/<dil>.json` +
       `Collection.DefaultNameFor`; test dosya eşliğini kontrol eder. Tablo başlıklarını ölç.
 
-13. **Telefonda fotoğraf denemesi (hosting'den sonra):** Android (Chrome) ve iPhone (Safari) ile kameradan
-    doğrudan fotoğraf ekleme; büyük fotoğrafın kırpma penceresinde açılması (bellek), Android'de HEIC
-    mesajı. Masaüstü headless Edge'de denendi (Tamamlananlar 29).
+13. ~~**Telefonda fotoğraf denemesi**~~ (kapandı 2026-10-02): kullanıcı canlı sitede telefonla çektiği
+    fotoğrafları yükledi; paylaşım linkleri ve veri indirme (fotoğraflar dahil) sorunsuz. Diğer telefon
+    platformu ve Android'deki HEIC mesajı ayrıca denenmedi; sorun görülürse yeniden açılır.
 
 14. **Impressum (Almanya, §5 DDG):** gizlilik ve iletişim sayfaları ad + e-postayla yapıldı (posta adresi
     yok, kullanıcı kararı 2026-10-01). Kayıtlı kullanıcılı, herkese açık bir sitede Impressum genelde
@@ -1372,45 +1401,77 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     Kullanıcıya kalan: malware alerts ve grouped security updates'i açmak (Settings > Code security, tek
     tık), CodeQL "Default setup" kararı (public repoda ücretsiz; C# ve TypeScript taraması, haftalık).
 
+20. **Canlı sitenin güvenlik ayarları** (2026-10-02, hosting'den kalan):
+    - Veritabanının uzaktan erişimi (dışarıdan 1433) `sqlcmd` denemesi için açıldı, kullanılmıyor (şirket
+      ağı 1433'ü kapatıyor, script'ler panelden). Gerekmedikçe kapatılması önerilir; açık kalırsa güçlü
+      parola tek koruma.
+    - `DataProtection__Dpapi=LocalMachine`: anahtarları sunucudaki her hesap çözebilir; koruma
+      `\private` klasörünün site hesabına özel olması (MonsterASP'ın site izolasyonu). Paylaşımlı hosting
+      için kabul edildi.
+    - Yedekler: MonsterASP'ın veritabanı ve dosya yedeklerinin sıklığı ve geri dönüş yolu henüz
+      kontrol edilmedi (fotoğraflar `\private\photos`'ta).
+
 ## Yayın öncesi yapılacaklar
 
 İlk publish'ten önce tamamlanması gerekenler (ayrıntılar Açık konular'da):
 
-- [ ] Hosting seçimi ("Hosting seçimi kontrol listesi").
+- [x] Hosting seçimi (2026-10-02, MonsterASP.NET, Tamamlananlar 50).
 - [x] ImageSharp lisans anahtarı (Açık konular 1, 2026-09-30); `dotnet build -c Release` hatasız.
-- [ ] Production connection string ve site klasörü dışındaki yollar hosting panelinde:
-      `PhotoStorage__RootPath`, `Logs__Path`, `DataProtection__KeysPath` (uygulama havuzu profil
-      yüklemiyorsa `DataProtection__Dpapi=LocalMachine`).
+- [x] Production connection string ve site klasörü dışındaki yollar (2026-10-02): sunucudaki `web.config`
+      ortam değişkenleri, `DataProtection__Dpapi=LocalMachine` (havuz profil yüklemiyor).
 - [x] Angular derlemesinin `wwwroot`'tan sunulması ve SPA fallback (2026-10-01, Tamamlananlar 28).
 - [x] Rate limiter, loglama, DataProtection anahtar yolu (2026-10-01, Tamamlananlar 28).
 - [x] Hesap silme ve veri dışa aktarma (2026-10-01, Tamamlananlar 32).
 - [x] Gizlilik ve iletişim sayfası (2026-10-01, Tamamlananlar 33).
 - [ ] İşletmeci adı ve iletişim e-postası: `src/web/src/app/core/legal/operator.ts` `OPERATOR`.
 - [ ] Impressum kararı (Açık konular 14).
-- [ ] Hosting seçilince: sağlayıcıyla veri işleme sözleşmesi (AVV / Art. 28 GDPR, çoğu sağlayıcı panelde
-      sunar); gizlilik metnindeki barındırma, sağlayıcının erişim logları ve yedek süresi cümleleri
-      sağlayıcıya göre kontrol edilir (`privacy.hosting`, `privacy.data.i4`, `privacy.retention`;
-      değişirse `PRIVACY_UPDATED`).
-- [ ] Publish ayarında "hedefteki fazla dosyaları sil" kapalı (fotoğraflar `App_Data`'daysa).
-- [ ] Yayından sonra HTTPS kontrolü: `curl -I http://<site>/api/health` → 307/308 ve `https://` yanıtında
-      `Strict-Transport-Security`. Yönlendirme yoksa portu ver (`ASPNETCORE_HTTPS_PORT=443`). Site ve
-      sertifika oturunca `Hsts__MaxAgeDays=365`.
-- [ ] İlk kurulum sırası: `ASPNETCORE_ENVIRONMENT=Production` ve `ConnectionStrings__DefaultConnection`
-      panelden; **önce migration** (`dotnet ef migrations script --idempotent` çıktısı panelde ya da
-      `dotnet ef database update`), sonra uygulama (boş veritabanında API başlamaz); HTTPS ilk istekten önce
-      açık (cookie'ler Secure).
-- [ ] İlk admin: sitede kayıt ol, `AspNetUsers.Id`'ni `Admin__UserIds__0` olarak ver, uygulamayı yeniden
-      başlat, `GET /api/auth/me` → `roles: ["Admin"]`.
-- [ ] İlk açılışın logunda `Photos:`, `Log files:`, `Data protection keys:` satırları ve doğru yollar;
-      `GET /api/health` sürümü footer'daki sürümle aynı.
+- [x] Sağlayıcıyla veri işleme sözleşmesi (AVV / Art. 28 GDPR): MonsterASP'ın kullanım şartlarının parçası.
+- [ ] Gizlilik metnindeki barındırma, sağlayıcının erişim logları ve yedek süresi cümlelerinin
+      MonsterASP'a göre kontrolü (`privacy.hosting`, `privacy.data.i4`, `privacy.retention`; değişirse
+      `PRIVACY_UPDATED`).
+- [x] Yayın yöntemi fazla dosyaları silmiyor (dosya yöneticisinde ZIP açma üzerine yazar, silmez;
+      fotoğraflar zaten site klasörü dışında, `\private`).
+- [x] HTTPS kontrolü (2026-10-02): `http://` → 307 `https://`, `Strict-Transport-Security` 30 gün, Brotli.
+      Kalan: site ve alan adı oturunca `Hsts__MaxAgeDays=365`.
+- [x] İlk kurulum sırası (2026-10-02): önce `migrate.sql` panelin "Import SQL"i ile, sonra site; HTTPS
+      açıldı (sertifika birkaç dakikada hazır oldu).
+- [x] İlk admin (2026-10-02): kullanıcı sitede kayıt oldu, Id `Admin__UserIds__0`'da, panel açılıyor.
+- [x] İlk açılış: `private\logs` altında log, `photos` ve `keys` klasörleri oluştu; `GET /api/health`
+      `0.4.0+c17f03d`.
 - [ ] Gizlilik politikası ve kullanım şartlarının kullanıcı tarafından okunması (Claude yazdı, hukuki
       danışmanlık değildir); gerekirse değişiklikle `PRIVACY_UPDATED` / `TERMS_UPDATED`.
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).
 
+## Yayın (deploy) adımları
+
+Canlı site: https://coinportal.runasp.net (MonsterASP.NET; sunucu adları ve yollar lokal
+`.notes/environment.md`'de, parolasız `web.config` şablonu `.notes/deploy/`). Yeni bir sürüm:
+
+1. Etiketin GitHub Release'inden `coinportal-vX.Y.Z.zip` indirilir, `.sha256` ile karşılaştırılır.
+2. **Veritabanı önce:** paketteki `migrate.sql` (idempotent) panelde Databases > Manage > "Import SQL"
+   ile çalıştırılır. Dosyanın başına `SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON;` + `GO` eklenir
+   (filtreli index'ler ister; v0.4.0'da böyle yapıldı). Şirket ağı 1433'ü kapattığı için `sqlcmd` /
+   SSMS buradan bağlanamaz.
+3. **Site:** `site/` klasörünün içeriği, **`web.config` hariç**, ZIP'lenip `\wwwroot`'a yüklenir ve
+   üzerine yazılarak açılır, ZIP silinir. Sunucudaki `web.config` parolayı ve bütün ayarları tutar;
+   pakettekiyle değiştirilirse site açılmaz (o zaman şablondan yeniden kurulur, parolayı kullanıcı yazar).
+   Paketten kalkan eski dosyalar silinmez; hash'li client dosyaları birikir, zararsızdır.
+4. Panelden uygulama havuzu yeniden başlatılır (yeni DLL'ler yüklensin).
+5. Kontrol: `GET /api/health` → yeni sürüm, footer'daki sürüm aynı; giriş, bir fotoğraf ve paylaşım
+   linki açılır. Hata olursa `\private\logs` (uygulama logu) ya da geçici olarak
+   `stdoutLogEnabled="true"` (`\wwwroot\logs`).
+
 ## Hosting seçimi kontrol listesi
 
 Hosting firmasına satın almadan önce sorulacaklar. Kalın olanlar olmazsa olmaz.
+
+**Seçim (2026-10-02): MonsterASP.NET Premium Single** (Tamamlananlar 50). Cevaplar kısaca: .NET 10
+in-process (x86 havuz) var; ortam değişkenleri sunucudaki `web.config`'te; havuz profil yüklemiyor
+(`DataProtection__Dpapi=LocalMachine`); önünde CDN yok (`KnownProxies` gerekmez); bellek 512 MB (aynı
+anda 1 görsel, en fazla 2000 px); site klasörünün yanında `\private` yazılabilir; MSSQL, collation
+`SQL_Latin1_General_CP1_CI_AS`; Let's Encrypt otomatik; yayın dosya yöneticisi / FTP (fazla dosya
+silinmez). Liste sağlayıcı değişirse diye duruyor; SMTP ve WebSocket soruları açık (ileride).
 
 **Uygulama**
 - **.NET 10 (ASP.NET Core) destekleniyor mu?** ASP.NET Core Hosting Bundle kurulu mu, in-process
