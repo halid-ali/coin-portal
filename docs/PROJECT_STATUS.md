@@ -1,14 +1,14 @@
-# Coin Portal - Proje Durumu ve Kararlar
+# CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-03 (site yayında, MonsterASP.NET, `v0.4.0`; alan adı **coinvitrine.com** bağlandı,
-site adı **CoinVitrine** oldu, `contact@coinvitrine.com` çalışıyor (`feat/coinvitrine-domain`, Tamamlananlar
-51); Impressum'suz devam kararı verildi (Açık konular 14); sırada `v1.0.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-03 (**`v1.0.0` etiketlendi**: ilk gerçek yayın, site adı **CoinVitrine**, adres
+https://coinvitrine.com, `contact@coinvitrine.com`; Tamamlananlar 51–52. Sırada push, Release notları ve
+canlı kurulum. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` temiz; `feat/coinvitrine-domain` (yeni ad, tek adres yönlendirmesi, `OPERATOR`, gizlilik
-  metni; Tamamlananlar 51) 2026-10-03'te merge edildi, henüz push edilmedi ve yayınlanmadı (canlıda `v0.4.0`).
-  Son etiket ve release `v0.4.0`. GitHub: https://github.com/halid-ali/coin-portal (public;
+- Durum: `main` temiz; `chore/release-v1.0.0` 2026-10-03'te merge edildi ve merge commit'i `v1.0.0`
+  etiketini taşıyor (Tamamlananlar 52). Push ve canlı kurulum kullanıcı onayıyla; yapıldıysa bu cümle
+  güncellenir. Canlıda hâlâ `v0.4.0` olabilir: `GET https://coinvitrine.com/api/health` ile bakılır. GitHub: https://github.com/halid-ali/coin-portal (public;
   sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -928,6 +928,11 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       "Enable DKIM"). Test: Gmail'den gelen e-posta ulaştı, webmail'den cevap Gmail'de SPF, DKIM ve DMARC
       `PASS`. Kutu yönlendirmesiz (yönlendirme SPF'i bozar); webmail https://webmail.monsterasp.net/.
     - Dışa aktarma ZIP'i `coinvitrine-<kullanıcı>-<tarih>.zip`. README, CLAUDE.md güncellendi.
+52. **`v1.0.0`** (`chore/release-v1.0.0`, 2026-10-03): ilk gerçek yayın. Yeni ad ve alan adı, tek adres
+    yönlendirmesi, işletmeci ve iletişim adresi, MonsterASP'a göre gizlilik metni (Tamamlananlar 51);
+    Impressum'suz devam kararı (Açık konular 14); kullanıcı gizlilik politikasını ve şartları okudu.
+    git-cliff `v0.5.0` önerdi (1.0.0 öncesi feat → minor); kullanıcıyla planlandığı gibi `v1.0.0`
+    (`--tag v1.0.0`). CHANGELOG git-cliff 2.14.2 ile, etiket merge commit'inde.
 
 ## Yol haritası
 
@@ -981,7 +986,8 @@ mağaza için TWA.
       2026-10-02, Tamamlananlar 48; ilk gerçek koşusu bir sonraki etikette).
 - [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) →
       ~~alan adı~~ (coinvitrine.com, ~~`OPERATOR`~~, ~~e-posta~~, 2026-10-03, Tamamlananlar 51) →
-      ~~Impressum kararı~~ (2026-10-03: şimdilik yok, Açık konular 14) → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
+      ~~Impressum kararı~~ (2026-10-03: şimdilik yok, Açık konular 14) → ~~elle ilk yayın `v1.0.0`~~ (etiket 2026-10-03,
+      Tamamlananlar 52) → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
@@ -1043,18 +1049,16 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **İnceleme P0 işleri bitti** (`v0.4.0`) ve **site yayında**:
-https://coinportal.runasp.net (MonsterASP.NET, 2026-10-02, Tamamlananlar 50). Adaylar:
+Yeni sohbette kullanıcıyla seçilecek. **`v1.0.0` etiketlendi** (2026-10-03, Tamamlananlar 52); site
+https://coinvitrine.com (MonsterASP.NET). Adaylar:
 
-- **11. `v1.0.0`'a giden yol** (2026-10-03'te başlandı; alan adı, yeni ad, `OPERATOR` ve
-  `contact@coinvitrine.com` bitti, Tamamlananlar 51):
-  - ~~`feat/coinvitrine-domain`'in merge'ü~~ (2026-10-03); push yayınla birlikte (kullanıcı onayıyla).
+- **`v1.0.0`'ın yayını** (bittiyse bu madde kalkar):
+  - Push (`git push origin main`, `git push origin v1.0.0`; kullanıcı onayıyla) → `release.yml` paketi
+    taslak Release'e ekler → Release notları (kullanıcı onayıyla, `.notes/release-v1.0.0.md`).
+  - Kurulum "Yayın (deploy) adımları"yla; ilk kez sunucudaki `web.config`'e
+    `CanonicalHost__Host=coinvitrine.com`. Kontrol: health `1.0.0`, `coinportal.runasp.net` ve `www.` 308.
+  - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - İsteğe bağlı: webmail'de gönderen adı "CoinVitrine" (şu an adres görünüyor).
-  - ~~Impressum ve DSA kararı~~ (2026-10-03: şimdilik adres yok, bilinen risk; Açık konular 14).
-  - Kullanıcının gizlilik politikasını ve kullanım şartlarını okuması ("Yayın öncesi yapılacaklar").
-  - ~~Uzaktan veritabanı erişimini kapatmak~~ (2026-10-03, Açık konular 20).
-  - Sonra `v1.0.0` (ilk gerçek yayın), "Yayın (deploy) adımları"yla; kurulumda sunucudaki `web.config`'e
-    `CanonicalHost__Host=coinvitrine.com`. Site oturunca `Hsts__MaxAgeDays=365`.
 - **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
   #27; çeviriler #28; testler #29, #30.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
@@ -1489,8 +1493,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [x] İlk admin (2026-10-02): kullanıcı sitede kayıt oldu, Id `Admin__UserIds__0`'da, panel açılıyor.
 - [x] İlk açılış: `private\logs` altında log, `photos` ve `keys` klasörleri oluştu; `GET /api/health`
       `0.4.0+c17f03d`.
-- [ ] Gizlilik politikası ve kullanım şartlarının kullanıcı tarafından okunması (Claude yazdı, hukuki
-      danışmanlık değildir); gerekirse değişiklikle `PRIVACY_UPDATED` / `TERMS_UPDATED`.
+- [x] Gizlilik politikası ve kullanım şartlarının kullanıcı tarafından okunması (2026-10-03; Claude yazdı,
+      hukuki danışmanlık değildir).
 - [ ] (Önerilir) Almanca ve Bulgarca metinlerin anadili konuşan biri tarafından gözden geçirilmesi
       (Açık konular 12).
 
