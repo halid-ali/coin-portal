@@ -1,17 +1,23 @@
 name: Release
 
-# A version tag (vX.Y.Z, see CLAUDE.md "Sürüm ve yayın") builds the deployable package and attaches it
-# to the tag's GitHub Release: a new draft if there is none yet (notes are written and published by
-# hand), otherwise the files are added to the existing one. workflow_dispatch rebuilds the package of
-# an existing tag.
+# A version tag (vX.Y.Z, see CLAUDE.md "Sürüm ve yayın") runs the CI checks on the tagged commit,
+# builds the deployable package and attaches it to the tag's GitHub Release (a new draft if there is
+# none yet; notes are written and published by hand, otherwise the files are added to the existing
+# one), then deploys it to the live site once approved in the "production" environment.
+# workflow_dispatch does the same for an existing tag: rebuild its package, and with "deploy" also
+# install it (a redeploy, or a rollback to an older tag; the database is never rolled back).
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing tag to package, e.g. v0.4.0
+        description: Existing tag, e.g. v1.0.0
         required: true
+      deploy:
+        description: Deploy it to the live site after packaging (asks for approval)
+        type: boolean
+        default: false
 
 permissions:
   contents: write # the release and its files
@@ -19,13 +25,23 @@ permissions:
 concurrency:
   group: release-${{ github.event.inputs.tag || github.ref_name }}
 
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  SITE_URL: https://coinvitrine.com
+
 jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ github.event.inputs.tag || github.ref }}
+    secrets: inherit
+
   package:
     name: Package
+    needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -65,7 +81,8 @@ jobs:
           grep -aq "$version+" "$site/CoinPortal.Api.dll" || {
             echo "CoinPortal.Api.dll does not carry version $version"; exit 1; }
 
-      # Run against the hosting database before the new version starts; safe to run again
+      # For a manual install: run against the hosting database before the new version starts; safe
+      # to run again. The pipeline does not need it (the app migrates itself, Database:MigrateOnStartup)
       - name: Migration script
         run: >-
           dotnet ef migrations script --idempotent --project src/api
@@ -73,6 +90,41 @@ jobs:
         env:
           # Design-time only; nothing connects to this database
           ConnectionStrings__DefaultConnection: Server=localhost;Database=release;Trusted_Connection=True
+
+      # Shown on the run's page while the deployment waits for approval: a release that changes the
+      # database needs a backup first (hosting panel, Databases > Backups management > Create Backup)
+      - name: Database changes since the live version
+        run: |
+          live=$(curl -fsS --max-time 20 "$SITE_URL/api/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p' || true)
+          base="${live##*+}"
+          if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)
+            echo "Live version unknown (${live:-no answer}); comparing with the previous tag ${base:-none}."
+          fi
+          {
+            echo "## $TAG"
+            echo
+            echo "Live now: \`${live:-unknown}\`"
+            echo
+            if [ -z "$base" ]; then
+              echo "> [!WARNING]"
+              echo "> No base version to compare with: check the migrations by hand."
+            else
+              new=$(git diff --name-only --diff-filter=A "$base" HEAD -- 'src/api/Data/Migrations/*.cs' \
+                | grep -v -e '\.Designer\.cs$' -e 'ModelSnapshot\.cs$' || true)
+              if [ -n "$new" ]; then
+                echo "> [!WARNING]"
+                echo "> **This release changes the database.** Before approving the deployment, create a"
+                echo "> backup in the hosting panel (Databases > Backups management > Create Backup)."
+                echo
+                echo "New migrations, applied by the app when it starts:"
+                echo
+                echo "$new" | sed 's|.*/|- |'
+              else
+                echo "No database changes since \`${base:0:12}\`."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Zip
         run: |
@@ -100,3 +152,72 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # Waits for approval in the "production" environment (required reviewer; only main, where manual
+  # runs start, and v* tags may use it: it holds the Web Deploy credentials). The server's own web.config (database password, settings)
+  # is never replaced, and files the package no longer has are left in place, as with a manual install
+  deploy:
+    name: Deploy
+    needs: package
+    if: github.event_name == 'push' || github.event.inputs.deploy == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ env.SITE_URL }}
+    concurrency:
+      group: deploy-production
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coinportal-${{ env.TAG }}
+          path: ${{ runner.temp }}
+
+      - name: Unpack
+        shell: pwsh
+        run: Expand-Archive "$env:RUNNER_TEMP/coinportal-$env:TAG.zip" "$env:RUNNER_TEMP/package"
+
+      - name: Web Deploy
+        shell: pwsh
+        env:
+          WEBDEPLOY_SERVER: ${{ secrets.WEBDEPLOY_SERVER }} # https://siteXXXX.siteasp.net:8172
+          WEBDEPLOY_SITE: ${{ secrets.WEBDEPLOY_SITE }} # siteXXXX
+          WEBDEPLOY_USERNAME: ${{ secrets.WEBDEPLOY_USERNAME }}
+          WEBDEPLOY_PASSWORD: ${{ secrets.WEBDEPLOY_PASSWORD }}
+        run: |
+          $msdeploy = "$env:ProgramFiles\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          if (-not (Test-Path $msdeploy)) {
+            choco install webdeploy --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'Web Deploy could not be installed' }
+          }
+          foreach ($name in 'WEBDEPLOY_SERVER', 'WEBDEPLOY_SITE', 'WEBDEPLOY_USERNAME', 'WEBDEPLOY_PASSWORD') {
+            if (-not [Environment]::GetEnvironmentVariable($name)) { throw "$name is not set in the production environment" }
+          }
+          $site = Join-Path $env:RUNNER_TEMP 'package/site'
+          $dest = "contentPath=$env:WEBDEPLOY_SITE,computerName=$env:WEBDEPLOY_SERVER/msdeploy.axd?site=$env:WEBDEPLOY_SITE," +
+            "userName=$env:WEBDEPLOY_USERNAME,password=$env:WEBDEPLOY_PASSWORD,authType=Basic"
+          # AppOffline: app_offline.htm while files change, so the running app releases its DLLs
+          & $msdeploy -verb:sync "-source:contentPath=$site" "-dest:$dest" `
+            -enableRule:AppOffline -enableRule:DoNotDeleteRule `
+            '-skip:objectName=filePath,absolutePath=\\web\.config$' `
+            -retryAttempts:3 -retryInterval:5000
+          if ($LASTEXITCODE -ne 0) { throw "msdeploy failed ($LASTEXITCODE)" }
+
+      # The new version answers within a few minutes (first start, migrations), or the job fails
+      - name: Check the live site
+        shell: pwsh
+        run: |
+          $version = $env:TAG.Substring(1)
+          $deadline = (Get-Date).AddMinutes(3)
+          do {
+            try {
+              $health = Invoke-RestMethod "$env:SITE_URL/api/health" -TimeoutSec 20
+              if ($health.version -like "$version+*") {
+                "Live: $($health.version)" >> $env:GITHUB_STEP_SUMMARY
+                return
+              }
+              "Still $($health.version)"
+            } catch { "No answer yet: $($_.Exception.Message)" }
+            Start-Sleep -Seconds 10
+          } while ((Get-Date) -lt $deadline)
+          throw "$env:SITE_URL does not report version $version"
