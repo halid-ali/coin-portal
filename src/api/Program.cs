@@ -159,6 +159,8 @@ if (seedDevData)
 try
 {
     await using var scope = app.Services.CreateAsyncScope();
+    // On the server the app brings the schema up to date itself (Database:MigrateOnStartup)
+    await StartupMigration.RunAsync(app, scope.ServiceProvider);
     await scope.ServiceProvider.GetRequiredService<AdminRoleSync>().SyncAsync();
     // Folders the app writes to and data protection: a wrong setting stops the app here
     await StartupChecks.RunAsync(app);
