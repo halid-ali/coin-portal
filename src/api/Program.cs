@@ -20,6 +20,7 @@ builder.Services.AddAppLogging();
 builder.Services.AddAppDataProtection();
 builder.Services.AddAppRateLimiting();
 builder.Services.AddAppSecurityHeaders();
+builder.Services.AddAppCanonicalHost();
 
 // Brotli or gzip for text (the client bundle, JSON); images are compressed already. Shared hosting
 // may or may not compress dynamic responses, so the app does it itself
@@ -167,6 +168,9 @@ catch (Exception ex)
     app.Logger.LogCritical(ex, "Startup failed");
     throw;
 }
+
+// Other host names to the site's address (CanonicalHost:Host), in one step also from plain HTTP
+app.UseAppCanonicalHost();
 
 // HTTPS redirection only outside development; the dev proxy talks plain HTTP. On IIS the https
 // port comes from the site binding (or ASPNETCORE_HTTPS_PORT)
