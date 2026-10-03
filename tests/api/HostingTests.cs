@@ -1,7 +1,10 @@
 using System.Net;
 using CoinPortal.Api.Contracts.Collections;
+using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoinPortal.Api.Tests;
 
@@ -354,6 +357,42 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
         Assert.Equal("https://old.example/.well-known/acme-challenge/token", challenge.Headers.Location?.ToString());
         // The host name is compared case-insensitively
         await canonical.ShouldHaveStatusAsync(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Startup_MigratesAnEmptyDatabase_OnlyWhenAskedTo()
+    {
+        var connectionString = factory.ConnectionStringWithDatabaseSuffix("_Migrate");
+        try
+        {
+            // Off by default: a database without the schema stops the app (the admin sync needs it)
+            await using (var plain = factory.WithSettings(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
+            }))
+            {
+                Assert.ThrowsAny<Exception>(() => plain.CreateClient());
+            }
+
+            await using var host = factory.WithSettings(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
+                ["Database:MigrateOnStartup"] = "true",
+            });
+            using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+            using var health = await client.GetAsync("/api/health");
+
+            await health.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            await using var scope = host.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+        }
+        finally
+        {
+            await using var db = new AppDbContext(
+                new DbContextOptionsBuilder<AppDbContext>().UseSqlServer(connectionString).Options);
+            await db.Database.EnsureDeletedAsync();
+        }
     }
 
     [Fact]

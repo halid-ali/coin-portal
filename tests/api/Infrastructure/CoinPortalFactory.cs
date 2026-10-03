@@ -41,6 +41,14 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         PhotoRoot = Path.Combine(Path.GetTempPath(), name);
     }
 
+    /// <summary>The test server with another database of this run (<paramref name="suffix"/> appended to its name).</summary>
+    public string ConnectionStringWithDatabaseSuffix(string suffix)
+    {
+        var builder = new SqlConnectionStringBuilder(connectionString);
+        builder.InitialCatalog += suffix;
+        return builder.ConnectionString;
+    }
+
     /// <summary>Photo storage folder of this run (PhotoStorage:RootPath).</summary>
     public string PhotoRoot { get; }
 
