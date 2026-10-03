@@ -75,6 +75,8 @@ terminallerinde sürekli çalışır halde tutuyor.
   kadar breaking → minor, feat → minor, fix → patch; karar kullanıcıyla) → `chore/release-vX.Y.Z`
   branch'inde `npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
   merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
+- Canlı site MonsterASP.NET'te (https://coinportal.runasp.net); yeni sürümün kurulumu elle,
+  PROJECT_STATUS "Yayın (deploy) adımları"na göre: önce `migrate.sql` panelden, sonra `site/`.
 - Etiket push edilince `.github/workflows/release.yml` yayın paketini üretir: `coinportal-vX.Y.Z.zip`
   (`site/` = API + client, idempotent `migrate.sql`, `LICENSE`, `THIRD-PARTY-NOTICES.md`) ve `.sha256`;
   paketin sürümünü ve içindeki client'ı kontrol eder, etiketin GitHub Release'ine ekler (Release yoksa
@@ -516,3 +518,13 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - `src/web/package.json` `allowScripts`, kurulum betiği çalıştırmasına izin verilen paketleri **sürümüyle**
   listeler. Bir bağımlılık yükseltmesi (Dependabot dahil) bu paketlerden birinin sürümünü değiştirirse liste
   de güncellenir; yükseltmeden sonra `npm ci` çıktısında atlanan ya da onay bekleyen betik uyarısına bakılır.
+- **Canlı sitenin `web.config`'i sunucuda kalır:** veritabanı parolası, admin Id'si ve bütün ortam
+  değişkenleri orada (MonsterASP'ta panel ortam değişkeni sunmuyor). Yayın paketindeki `web.config` onun
+  üzerine yüklenmez; parola sohbete, repoya ya da `.notes/`'a yazılmaz, kullanıcı sunucuda kendisi girer.
+- MonsterASP'ın uygulama havuzu kullanıcı profili yüklemez: `DataProtection__Dpapi=LocalMachine`
+  olmadan API açılışta DPAPI hatasıyla düşer (HTTP 500.30). Havuz x86, bellek 512 MB (aynı anda tek
+  görsel çözülür). Dosya yöneticisinde ZIP açmak üzerine yazar ama fazla dosyayı silmez.
+- Şirket ağı dışarı 1433 portunu kapatıyor: canlı veritabanına `sqlcmd`/SSMS ile bağlanılamaz, SQL
+  script'leri panelin "Import SQL"i ile çalıştırılır. Panelden çalışan script'in başına
+  `SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON;` + `GO` eklenir (filtreli index'ler). Yeni açılan HTTPS
+  sertifikası birkaç dakika hazır olmayabilir; şirket proxy'si o arada kendi hata sayfasını gösterir.
