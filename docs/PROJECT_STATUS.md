@@ -2,7 +2,7 @@
 
 Son güncelleme: 2026-10-03 (site yayında, MonsterASP.NET, `v0.4.0`; alan adı **coinvitrine.com** bağlandı,
 site adı **CoinVitrine** oldu, `contact@coinvitrine.com` çalışıyor (`feat/coinvitrine-domain`, Tamamlananlar
-51); sırada Impressum kararı ve `v1.0.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
+51); Impressum'suz devam kararı verildi (Açık konular 14); sırada `v1.0.0`. Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
@@ -981,7 +981,7 @@ mağaza için TWA.
       2026-10-02, Tamamlananlar 48; ilk gerçek koşusu bir sonraki etikette).
 - [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) →
       ~~alan adı~~ (coinvitrine.com, ~~`OPERATOR`~~, ~~e-posta~~, 2026-10-03, Tamamlananlar 51) →
-      Impressum kararı → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
+      ~~Impressum kararı~~ (2026-10-03: şimdilik yok, Açık konular 14) → elle ilk yayın `v1.0.0` → service worker → otomatik deploy.
 - [ ] 13. Sosyal A: takas / istek listesi, bağımsız profil, takip, feed.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
@@ -1050,10 +1050,9 @@ https://coinportal.runasp.net (MonsterASP.NET, 2026-10-02, Tamamlananlar 50). Ad
   `contact@coinvitrine.com` bitti, Tamamlananlar 51):
   - ~~`feat/coinvitrine-domain`'in merge'ü~~ (2026-10-03); push yayınla birlikte (kullanıcı onayıyla).
   - İsteğe bağlı: webmail'de gönderen adı "CoinVitrine" (şu an adres görünüyor).
-  - Impressum ve DSA kararı (Açık konular 14; 2026-10-03'te konuşuldu: MStV §18/1 ad + posta adresi
-    istiyor gibi, karar kullanıcıda).
+  - ~~Impressum ve DSA kararı~~ (2026-10-03: şimdilik adres yok, bilinen risk; Açık konular 14).
   - Kullanıcının gizlilik politikasını ve kullanım şartlarını okuması ("Yayın öncesi yapılacaklar").
-  - Canlı sitenin güvenlik ayarları (Açık konular 20: uzaktan veritabanı erişimini kapatmak).
+  - ~~Uzaktan veritabanı erişimini kapatmak~~ (2026-10-03, Açık konular 20).
   - Sonra `v1.0.0` (ilk gerçek yayın), "Yayın (deploy) adımları"yla; kurulumda sunucudaki `web.config`'e
     `CanonicalHost__Host=coinvitrine.com`. Site oturunca `Hsts__MaxAgeDays=365`.
 - **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
@@ -1250,8 +1249,8 @@ Kararlar (2026-09-30, kullanıcıyla):
 Kararlar (2026-10-01, kullanıcıyla):
 
 - **İşletmeci Almanya'da**, GDPR geçerli. Sayfalarda ad soyad ve e-posta görünür; posta adresi yok.
-  **Impressum** (§5 DDG) tamamen özel, ticari olmayan sitelerde gerekip gerekmediği tartışmalı; karar
-  yayın öncesine kaldı (Açık konular 14). Gerekirse iletişim sayfasına adres satırı eklenir.
+  **Impressum:** 2026-10-03'te kullanıcı kararıyla şimdilik yok (adres yayınlanmaz; gerekçe ve yeniden
+  ele alma koşulları Açık konular 14).
 - **İşletmeci Halid Ali, e-posta `contact@coinvitrine.com`** (2026-10-03, `OPERATOR`). Ad gerçek ad
   olmalı (veri sorumlusu); repoda ve sitede herkese açık olduğu kullanıcıya söylendi. Gizlilik metni
   sağlayıcıyı adıyla anar (MonsterASP.NET s.r.o.); iletişim e-postaları talebi cevaplamak için gerektiği sürece
@@ -1393,14 +1392,22 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     fotoğrafları yükledi; paylaşım linkleri ve veri indirme (fotoğraflar dahil) sorunsuz. Diğer telefon
     platformu ve Android'deki HEIC mesajı ayrıca denenmedi; sorun görülürse yeniden açılır.
 
-14. **Impressum (Almanya, §5 DDG):** gizlilik ve iletişim sayfaları ad + e-postayla yapıldı (posta adresi
-    yok, kullanıcı kararı 2026-10-01). Kayıtlı kullanıcılı, herkese açık bir sitede Impressum genelde
-    önerilir; tamamen özel hobi sitelerinde gerekliliği tartışmalı. Yayından önce karar verilecek;
-    gerekirse iletişim sayfası "Impressum" adıyla adresi de gösterir (`contact.*` + `OPERATOR`).
-    Aynı kararda AB Dijital Hizmetler Yasası (DSA) da değerlendirilir: kullanıcı içeriği barındıran her
-    hizmet için iletişim noktası ve moderasyon kararlarının gerekçesi gibi yükümlülükler var; küçük
-    işletmeler için çoğu hafifletilmiş. Kullanım şartları ve denetim kaydı bunun bir kısmını karşılıyor
-    (#18).
+14. **Impressum: şimdilik yok (bilinen risk, kullanıcı kararı 2026-10-03).** Sayfalarda ad (Halid Ali) ve
+    `contact@coinvitrine.com` var, posta adresi yok.
+    - Değerlendirme (hukuki danışmanlık değil): §5 DDG "ticari, genelde ücretli" hizmetler için; reklamsız,
+      ücretsiz hobi sitesi büyük ihtimalle dışında. Asıl yükümlülük **§18/1 MStV**: "sadece kişisel ya da
+      ailevi amaçlı olmayan" her site ad + tebligat yapılabilir adres (posta kutusu değil) göstermeli; açık
+      kayıtlı bir site bu muafiyete pek girmiyor, yani adressiz hali büyük ihtimalle uymuyor. Pratik risk
+      düşük: rakip yok (UWG Abmahnung'u beklenmez), ama eyalet medya kurumu bir şikâyetle (ör. moderasyona
+      kızan kullanıcı) yazabilir. DSA ücretsiz hobi sitesine muhtemelen uygulanmaz; uygulansa da iletişim
+      noktası, şartlar ve moderasyon kaydı var.
+    - Elenen seçenekler: A ev adresi (en sağlam, adres herkese açık), B Impressum adres hizmeti (ayda
+      ~5–15 €, yeterliliği tartışmalı). Kullanıcı ikisini de şimdilik istemedi.
+    - **Yeniden ele alınır:** bir kurumdan ya da avukattan yazı gelirse (hemen A/B'ye geçilir), sitede
+      reklam, bağış ya da ücretli bir özellik olursa (o zaman §5 DDG de), site belirgin büyürse.
+    - A/B'ye geçilirse plan hazır: adres repoya girmez (public git geçmişi), sunucudaki `web.config`'ten
+      okunur ve API'den sayfaya gelir; iletişim sayfası Almancada "Impressum" başlığı alır, adres dört dilde
+      görünür; sayfaya `noindex` (aramada listelenmesin).
 
 15. **`piscina` güvenlik uyarısı** (GHSA-67c8-pqhq-4rmx, critical, 2026-10-01): `piscina` < 5.3.2.
     `@angular/build` 21.2.24 onu sabit 5.2.0 olarak getiriyor; düzeltilmiş sürümü sadece Angular 22
@@ -1439,9 +1446,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     tık), CodeQL "Default setup" kararı (public repoda ücretsiz; C# ve TypeScript taraması, haftalık).
 
 20. **Canlı sitenin güvenlik ayarları** (2026-10-02, hosting'den kalan):
-    - Veritabanının uzaktan erişimi (dışarıdan 1433) `sqlcmd` denemesi için açıldı, kullanılmıyor (şirket
-      ağı 1433'ü kapatıyor, script'ler panelden). Gerekmedikçe kapatılması önerilir; açık kalırsa güçlü
-      parola tek koruma.
+    - ~~Veritabanının uzaktan erişimi~~ (dışarıdan 1433): `sqlcmd` denemesi için açılmıştı, kullanıcı
+      2026-10-03'te kapattı (script'ler zaten panelden çalışıyor).
     - `DataProtection__Dpapi=LocalMachine`: anahtarları sunucudaki her hesap çözebilir; koruma
       `\private` klasörünün site hesabına özel olması (MonsterASP'ın site izolasyonu). Paylaşımlı hosting
       için kabul edildi.
@@ -1469,7 +1475,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
       Tamamlananlar 51).
 - [ ] Yayında sunucudaki `web.config`'e `CanonicalHost__Host=coinvitrine.com`; ardından
       `https://coinportal.runasp.net/x` ve `https://www.coinvitrine.com/x` → 308 `https://coinvitrine.com/x`.
-- [ ] Impressum kararı (Açık konular 14).
+- [x] Impressum kararı (2026-10-03): şimdilik adres yok, bilinen risk (Açık konular 14).
+- [x] Canlı veritabanının dışarıdan erişimi kapalı (2026-10-03, Açık konular 20).
 - [x] Sağlayıcıyla veri işleme sözleşmesi (AVV / Art. 28 GDPR): MonsterASP'ın kullanım şartlarının parçası.
 - [x] Gizlilik metnindeki barındırma, sağlayıcının erişim logları ve yedek süresi cümlelerinin
       MonsterASP'a göre kontrolü (2026-10-03, Tamamlananlar 51; `PRIVACY_UPDATED` 2026-10-03).
