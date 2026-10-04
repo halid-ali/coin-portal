@@ -14,11 +14,12 @@
         id="userNameOrEmail"
         type="text"
         formControlName="userNameOrEmail"
+        appField
         autocomplete="username"
         class="form-input"
       />
       @if (errorMessage(form.controls.userNameOrEmail); as msg) {
-        <p class="form-error">{{ msg }}</p>
+        <p id="userNameOrEmail-error" class="form-error">{{ msg }}</p>
       }
     </div>
 
@@ -28,11 +29,12 @@
         id="password"
         type="password"
         formControlName="password"
+        appField
         autocomplete="current-password"
         class="form-input"
       />
       @if (errorMessage(form.controls.password); as msg) {
-        <p class="form-error">{{ msg }}</p>
+        <p id="password-error" class="form-error">{{ msg }}</p>
       }
     </div>
 

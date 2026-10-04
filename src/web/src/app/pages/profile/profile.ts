@@ -21,6 +21,7 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
     <section class="space-y-6">
       @if (notFound()) {
         <div class="card text-center">
+          <h1 class="sr-only">{{ 'profile.notFoundTitle' | transloco }}</h1>
           <p class="text-shade-600">
             {{ 'profile.notFound' | transloco }}
           </p>
@@ -65,7 +66,7 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
           }
         </ul>
       } @else {
-        <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+        <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
       }
     </section>
   `,

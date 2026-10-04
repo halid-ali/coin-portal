@@ -26,7 +26,8 @@ import { CollectionService } from '../../core/collections/collection.service';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
 import { denominationLabel, suggestTitle } from '../../shared/coin-format';
-import { errorMessage } from '../../shared/form-errors';
+import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
+import { FieldA11y } from '../../shared/field-a11y';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { ImageChange } from '../../shared/image-change';
@@ -36,7 +37,7 @@ import { PhotoSlot } from './photo-slot';
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
 @Component({
   selector: 'app-coin-form',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, PhotoSlot, PhotoViewer],
+  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe, PhotoSlot, PhotoViewer],
   templateUrl: './coin-form.html',
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
 })
@@ -98,6 +99,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected readonly limits = COIN_LIMITS;
   protected readonly maxYear = maxCoinYear();
   protected readonly errorMessage = errorMessage;
+  private readonly focusFirstInvalid = injectFocusFirstInvalid();
   protected readonly sides = COIN_SIDES;
 
   /** Pending photo changes per side, applied after the coin itself is saved. */
@@ -196,6 +198,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.focusFirstInvalid();
       return;
     }
 
@@ -215,6 +218,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       this.formErrors.set(
         applyServerErrors(this.form, error, {}, { moderation_locked: 'coinForm.moveLocked' }),
       );
+      this.focusFirstInvalid();
       return;
     }
 

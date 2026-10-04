@@ -7,11 +7,12 @@ import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { safeReturnUrl } from '../../core/auth/return-url';
 import { httpErrorMessage } from '../../core/http/problem-details';
-import { errorMessage } from '../../shared/form-errors';
+import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
+import { FieldA11y } from '../../shared/field-a11y';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe],
+  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe],
   templateUrl: './login.html',
 })
 export class Login {
@@ -24,6 +25,7 @@ export class Login {
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly errorMessage = errorMessage;
+  private readonly focusFirstInvalid = injectFocusFirstInvalid();
 
   protected readonly form = inject(NonNullableFormBuilder).group({
     userNameOrEmail: ['', [Validators.required]],
@@ -36,6 +38,7 @@ export class Login {
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.focusFirstInvalid();
       return;
     }
 

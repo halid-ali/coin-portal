@@ -36,7 +36,7 @@ import { AdminStatusBadge } from './admin-status-badge';
       @if (notFound()) {
         <p class="card text-sm text-shade-600">{{ 'admin.user.notFound' | transloco }}</p>
       } @else if (loadError()) {
-        <p class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
+        <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
       } @else if (user(); as u) {
         <div class="card space-y-4">
           <div class="flex flex-wrap items-start justify-between gap-3">
@@ -95,7 +95,7 @@ import { AdminStatusBadge } from './admin-status-badge';
             }
           </div>
           @if (actionError()) {
-            <p class="alert-error">{{ 'admin.actionFailed' | transloco }}</p>
+            <p role="alert" class="alert-error">{{ 'admin.actionFailed' | transloco }}</p>
           }
 
           <dl class="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">

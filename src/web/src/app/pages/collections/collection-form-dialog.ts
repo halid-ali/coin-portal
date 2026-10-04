@@ -35,7 +35,8 @@ import { confirmDiscardChanges } from '../../shared/unsaved-changes';
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
-import { errorMessage } from '../../shared/form-errors';
+import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
+import { FieldA11y } from '../../shared/field-a11y';
 import { ImageChange } from '../../shared/image-change';
 import { CoverPicker } from './cover-picker';
 
@@ -48,7 +49,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-collection-form-dialog',
-  imports: [ReactiveFormsModule, TranslocoPipe, CoverPicker, VisibilityBadge],
+  imports: [ReactiveFormsModule, FieldA11y, TranslocoPipe, CoverPicker, VisibilityBadge],
   template: `
     <dialog
       #dialog
@@ -78,14 +79,17 @@ let nextId = 0;
             [id]="titleId + '-name'"
             type="text"
             formControlName="name"
+            appField
             autofocus
             [maxlength]="limits.nameMaxLength"
             class="form-input"
           />
           @if (errorMessage(form.controls.name); as msg) {
-            <p class="form-error">{{ msg }}</p>
+            <p [id]="titleId + '-name-error'" class="form-error">{{ msg }}</p>
           } @else {
-            <p class="form-hint">{{ 'collectionForm.nameHint' | transloco }}</p>
+            <p [id]="titleId + '-name-hint'" class="form-hint">
+              {{ 'collectionForm.nameHint' | transloco }}
+            </p>
           }
         </div>
 
@@ -97,13 +101,14 @@ let nextId = 0;
             [id]="titleId + '-description'"
             rows="3"
             formControlName="description"
+            appField
             [maxlength]="limits.descriptionMaxLength"
             class="form-input"
           ></textarea>
           @if (errorMessage(form.controls.description); as msg) {
-            <p class="form-error">{{ msg }}</p>
+            <p [id]="titleId + '-description-error'" class="form-error">{{ msg }}</p>
           } @else {
-            <p class="form-hint">
+            <p [id]="titleId + '-description-hint'" class="form-hint">
               {{ 'common.optional' | transloco }}
               {{ form.controls.description.value.length }}/{{ limits.descriptionMaxLength }}
             </p>
@@ -183,6 +188,13 @@ let nextId = 0;
                       ) | transloco
                     }}
                   </button>
+                  <span class="sr-only" aria-live="polite">{{
+                    copied()
+                      ? ('common.copied' | transloco)
+                      : copyFailed()
+                        ? ('common.copyFailed' | transloco)
+                        : ''
+                  }}</span>
                 </div>
                 @if (saved()?.visibility === 'Unlisted') {
                   <button
@@ -234,6 +246,7 @@ export class CollectionFormDialog {
   protected readonly titleId = `collection-form-${++nextId}`;
   protected readonly limits = COLLECTION_LIMITS;
   protected readonly errorMessage = errorMessage;
+  private readonly focusFirstInvalid = injectFocusFirstInvalid();
   protected readonly saving = signal(false);
   protected readonly formErrors = signal<string[]>([]);
 
@@ -302,6 +315,7 @@ export class CollectionFormDialog {
     this.form.controls.name.setValue(name);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.focusFirstInvalid();
       return;
     }
 
@@ -330,6 +344,7 @@ export class CollectionFormDialog {
             COLLECTION_ERROR_MESSAGE_KEYS,
           ),
         );
+        this.focusFirstInvalid();
         return;
       }
       this.saved.set(collection);

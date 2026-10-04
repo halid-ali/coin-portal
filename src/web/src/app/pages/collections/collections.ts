@@ -57,7 +57,7 @@ import { CollectionFormDialog } from './collection-form-dialog';
           </ul>
         }
       } @else {
-        <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+        <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
       }
     </section>
 

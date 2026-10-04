@@ -6,7 +6,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { applyServerErrors } from '../../core/http/problem-details';
-import { errorMessage } from '../../shared/form-errors';
+import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
+import { FieldA11y } from '../../shared/field-a11y';
 import {
   USER_NAME_PATTERN,
   latestBirthDate,
@@ -36,7 +37,7 @@ const IDENTITY_MESSAGE_KEYS: Record<string, string> = {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe],
+  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe],
   templateUrl: './register.html',
 })
 export class Register {
@@ -46,6 +47,7 @@ export class Register {
   protected readonly submitting = signal(false);
   protected readonly formErrors = signal<string[]>([]);
   protected readonly errorMessage = errorMessage;
+  private readonly focusFirstInvalid = injectFocusFirstInvalid();
   protected readonly minAge = MIN_AGE;
   protected readonly maxBirthDate = latestBirthDate(MIN_AGE);
 
@@ -74,6 +76,7 @@ export class Register {
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.focusFirstInvalid();
       return;
     }
 
@@ -92,6 +95,7 @@ export class Register {
         this.formErrors.set(
           applyServerErrors(this.form, err, IDENTITY_CODE_MAP, IDENTITY_MESSAGE_KEYS),
         );
+        this.focusFirstInvalid();
       },
     });
   }

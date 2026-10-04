@@ -1,6 +1,8 @@
 <section class="mx-auto w-full max-w-6xl space-y-6">
   @if (notFound()) {
     <div class="card text-center">
+      <!-- For the heading list of screen readers; the text below says it already -->
+      <h1 class="sr-only">{{ 'coinList.notFoundTitle' | transloco }}</h1>
       @if (mode() === 'owner') {
         <p class="text-shade-600">{{ 'coinList.notFoundOwn' | transloco }}</p>
         <a routerLink="/collections" class="btn-secondary mt-4">{{
@@ -65,7 +67,12 @@
             }
             <div class="mt-1 flex min-w-0 items-center gap-3">
               <h1 class="truncate text-2xl font-semibold text-shade-900">
-                {{ header()?.name ?? ' ' }}
+                @if (header(); as h) {
+                  {{ h.name }}
+                } @else {
+                  <!-- Keeps the line height while loading, without an empty heading -->
+                  &nbsp;<span class="sr-only">{{ 'common.loading' | transloco }}</span>
+                }
               </h1>
               @if (header(); as h) {
                 @if (mode() === 'owner') {
@@ -477,7 +484,7 @@
           <app-view-toggle [value]="viewMode()" (valueChange)="setView($event)" />
         </app-pagination>
 
-        <div class="transition-opacity" [class.opacity-60]="loading()">
+        <div class="transition-opacity" [class.opacity-60]="loading()" [attr.aria-busy]="loading()">
           @if (viewMode() === 'grid') {
             <!-- Grid: 2 / 3 / 5 per row. An invisible control covers the whole tile: it opens the
              fullscreen viewer, or (owner) the coin form when there is no photo to show. The pencil
@@ -787,7 +794,7 @@
         />
       }
     } @else if (loading()) {
-      <p class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+      <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
     }
   }
 

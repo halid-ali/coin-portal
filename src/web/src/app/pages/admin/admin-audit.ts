@@ -42,8 +42,12 @@ import { AdminListBase } from './admin-list-base';
         </div>
       </div>
 
+      @if (loading() && !result() && !loadError()) {
+        <p role="status" class="text-sm text-shade-500">{{ 'common.loading' | transloco }}</p>
+      }
+
       @if (loadError()) {
-        <p class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
+        <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
       } @else if (result(); as r) {
         <p class="text-sm text-shade-500">{{ 'admin.audit.count' | plural: r.totalCount }}</p>
 
@@ -51,7 +55,11 @@ import { AdminListBase } from './admin-list-base';
           <p class="card text-sm text-shade-600">{{ 'admin.audit.empty' | transloco }}</p>
         } @else {
           <!-- Narrow screens: one card per entry -->
-          <ul class="space-y-3 xl:hidden" [class.opacity-60]="loading()">
+          <ul
+            class="space-y-3 xl:hidden"
+            [class.opacity-60]="loading()"
+            [attr.aria-busy]="loading()"
+          >
             @for (e of r.items; track e.id) {
               <li class="card p-4 text-sm">
                 <ng-container *ngTemplateOutlet="what; context: { $implicit: e }" />
@@ -70,7 +78,11 @@ import { AdminListBase } from './admin-list-base';
           <!-- Wide screens (xl): time, admin, and the action with its target and note (takes
            the rest). Measured as in admin-users.html: time the longest English date and time;
            admin "@" + a 20-character user name (the limit). -->
-          <div class="card hidden overflow-x-auto p-0 xl:block" [class.opacity-60]="loading()">
+          <div
+            class="card hidden overflow-x-auto p-0 xl:block"
+            [class.opacity-60]="loading()"
+            [attr.aria-busy]="loading()"
+          >
             <table class="w-full table-fixed text-left text-sm">
               <colgroup>
                 <col class="w-[175px]" />

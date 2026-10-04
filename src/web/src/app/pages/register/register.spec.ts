@@ -60,4 +60,20 @@ describe('Register', () => {
     const request = http.expectOne('/api/auth/register');
     expect(request.request.body.acceptTerms).toBe(true);
   });
+
+  it('focuses the first invalid field after a submit, tied to its error', async () => {
+    const fixture = TestBed.createComponent(Register);
+    await fixture.whenStable();
+    const page = fixture.nativeElement as HTMLElement;
+
+    page.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
+    await fixture.whenStable();
+
+    const first = page.querySelector<HTMLInputElement>('#firstName')!;
+    expect(document.activeElement).toBe(first);
+    expect(first.getAttribute('aria-invalid')).toBe('true');
+    const error = page.querySelector('#firstName-error')!;
+    expect(first.getAttribute('aria-describedby')).toContain(error.id);
+    expect(error.textContent).toContain('zorunlu');
+  });
 });
