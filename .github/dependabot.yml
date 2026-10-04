@@ -28,6 +28,18 @@ updates:
       web:
         patterns: ['*']
 
+  # The e2e tests' own packages (Playwright, axe)
+  - package-ecosystem: npm
+    directory: /tests/e2e
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
+    groups:
+      e2e:
+        patterns: ['*']
+
   # Action majors are usually drop-in; keep proposing them
   - package-ecosystem: github-actions
     directory: /
