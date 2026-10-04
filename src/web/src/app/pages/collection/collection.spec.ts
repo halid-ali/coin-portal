@@ -84,7 +84,7 @@ describe('Collection', () => {
   async function open(path: string, coinCount: number, coins: PagedResponse<Coin>) {
     await harness.navigateByUrl(path);
     http.match('/api/countries').forEach((r) => r.flush([]));
-    // A sorted list asks again once the countries (their display order) arrive
+    // A sorted list waits for the countries (their display order)
     await harness.fixture.whenStable();
     http.expectOne('/api/collections/5').flush(collection(coinCount));
     latestCoinRequest().flush(coins);
@@ -154,6 +154,36 @@ describe('Collection', () => {
 
     expect(url()).toBe('/collections/5?sort=Year&dir=Desc&pageSize=25&view=grid');
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin(25));
+  });
+
+  it('loads a list sorted by country order once, after the countries', async () => {
+    await harness.navigateByUrl('/collections/5?sort=Country');
+    http.expectOne('/api/collections/5').flush(collection(3));
+    await harness.fixture.whenStable();
+    http.expectNone((r) => r.url === '/api/coins');
+
+    http.expectOne('/api/countries').flush([
+      { code: 'AT', name: 'Austria' },
+      { code: 'DE', name: 'Germany' },
+    ]);
+    await harness.fixture.whenStable();
+
+    // One request, cancelled ones included: none went out without the order
+    const requests = http.match((r) => r.url === '/api/coins');
+    expect(requests).toHaveLength(1);
+    // Almanya before Avusturya
+    expect(requests[0].request.params.get('countryOrder')).toBe('DE,AT');
+  });
+
+  it('loads a sorted list without the order when the countries fail', async () => {
+    await harness.navigateByUrl('/collections/5?sort=Year');
+    http.expectOne('/api/collections/5').flush(collection(3));
+    http.expectOne('/api/countries').flush(null, { status: 500, statusText: 'Error' });
+    await harness.fixture.whenStable();
+
+    const request = latestCoinRequest();
+    expect(request.request.params.get('sort')).toBe('Year');
+    expect(request.request.params.has('countryOrder')).toBe(false);
   });
 
   it('uses the first of repeated query params', async () => {

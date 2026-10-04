@@ -37,9 +37,12 @@
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div class="flex min-w-0 items-end gap-4">
           @if (collectionCover(); as src) {
+            <!-- lazy: a hidden (phone) image is not downloaded, an eager one would be -->
             <img
               [src]="src"
               alt=""
+              loading="lazy"
+              decoding="async"
               class="hidden aspect-video w-32 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-shade-200 sm:block"
             />
           }
