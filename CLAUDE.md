@@ -529,6 +529,13 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
     için `whenStable` beklemez, metin `vi.waitFor` ile beklenir (bkz. `admin-users.spec.ts`).
   - Ayarlar sayfası: soldaki bölüm menüsü `pages/settings/settings.ts` `SECTIONS`, her bölüm
     `settings.routes.ts` içinde bir alt rota.
+- **Client birim testleri** (Vitest + jsdom, kodun yanında `*.spec.ts`): çekirdek servisler (`core/`),
+  paylaşılan bileşenler (`shared/`), her pencere (Esc ve meşgulken davranış) ve formların sunucu hata
+  eşlemesi spec'iyle gelir. HTTP `HttpTestingController` ile (istek sırası `expectNone` ile de kontrol
+  edilir); onay penceresi gereken sayfada `ConfirmDialogService` taklit edilir (bkz.
+  `admin-user-detail.spec.ts`); bir işlemden sonraki yeniden yükleme birkaç adım sonra başladığı için istek
+  `vi.waitFor(() => http.expectOne(...))` ile beklenir. Sayfa içindeki saf mantık (URL değerlerini okuma vb.)
+  bileşenden ayrı bir dosyaya alınıp ayrıca test edilir (`collection-url.ts`, `coin-sort.ts` `parseSort`).
 - Prettier: `printWidth: 100`, `singleQuote`.
 
 ## Bilinen tuzaklar

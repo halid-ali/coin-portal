@@ -7,6 +7,8 @@ import {
   minimumAgeValidator,
   notBlankValidator,
   passwordMatchValidator,
+  passwordStrengthValidator,
+  USER_NAME_PATTERN,
 } from './validators';
 
 describe('validators', () => {
@@ -52,5 +54,25 @@ describe('validators', () => {
 
     group.controls.confirm.setValue('Secret123');
     expect(group.controls.confirm.errors).toBeNull();
+  });
+
+  // The API's rules (Identity defaults, the username pattern); same examples as its tests
+  it.each([
+    ['Abcdefg1', true],
+    ['abcdefg1', false],
+    ['ABCDEFG1', false],
+    ['Abcdefgh', false],
+  ])('passwordStrengthValidator: %s is %s', (password, valid) => {
+    expect(passwordStrengthValidator(new FormControl(password)) === null).toBe(valid);
+  });
+
+  it.each([
+    ['ayse.yilmaz', true],
+    ['a_b-c.1', true],
+    ['a@b', false],
+    ['şule', false],
+    ['a b', false],
+  ])('USER_NAME_PATTERN: %s is %s', (userName, valid) => {
+    expect(USER_NAME_PATTERN.test(userName)).toBe(valid);
   });
 });

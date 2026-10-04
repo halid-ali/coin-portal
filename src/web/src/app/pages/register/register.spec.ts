@@ -76,4 +76,47 @@ describe('Register', () => {
     expect(first.getAttribute('aria-describedby')).toContain(error.id);
     expect(error.textContent).toContain('zorunlu');
   });
+
+  it("puts the API's errors on their fields, in the UI language", async () => {
+    const fixture = TestBed.createComponent(Register);
+    await fixture.whenStable();
+    const page = fixture.nativeElement as HTMLElement;
+    const fill = (name: string, value: string) => {
+      const input = page.querySelector<HTMLInputElement>(`[formControlName=${name}]`)!;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    };
+    fill('firstName', 'Ayşe');
+    fill('lastName', 'Yılmaz');
+    fill('userName', 'ayse');
+    fill('email', 'ayse@example.com');
+    fill('birthDate', '1990-05-17');
+    fill('password', 'Coinportal1');
+    fill('confirmPassword', 'Coinportal1');
+    page.querySelector<HTMLInputElement>('[formControlName=acceptTerms]')!.click();
+    page.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
+
+    // Identity's codes (taken email, a password rule) and an attribute's key (birth date)
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/auth/register')
+      .flush(
+        {
+          errors: {
+            DuplicateEmail: ["Email 'ayse@example.com' is already taken."],
+            PasswordRequiresDigit: ['Passwords must have at least one digit.'],
+            BirthDate: ['You must be at least 18 years old.'],
+          },
+        },
+        { status: 400, statusText: 'Bad Request' },
+      );
+    await fixture.whenStable();
+
+    const error = (id: string) => page.querySelector(`#${id}-error`)?.textContent?.trim();
+    expect(error('email')).toBe('Bu e-posta adresiyle zaten bir hesap var.');
+    expect(error('password')).toBe(
+      'Parola en az bir büyük harf, bir küçük harf ve bir rakam içermeli.',
+    );
+    expect(error('birthDate')).toBe('Kayıt için en az 18 yaşında olmalısın.');
+    expect(document.activeElement).toBe(page.querySelector('#email'));
+  });
 });
