@@ -515,10 +515,8 @@
                     }
                   </div>
                   <div class="space-y-1.5 p-3">
-                    <p
-                      class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900"
-                      [title]="coin.title"
-                    >
+                    <!-- The full title on hover: on the cover button or link above it, which gets the pointer -->
+                    <p class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900">
                       {{ coin.title }}
                     </p>
                     <div class="flex items-center gap-2 text-xs text-shade-600">
@@ -546,6 +544,7 @@
                       type="button"
                       class="absolute inset-0 cursor-zoom-in rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
                       [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                      [title]="coin.title"
                       (click)="viewerCoin.set(coin)"
                     ></button>
                   } @else if (!readOnly()) {
@@ -553,6 +552,7 @@
                       [routerLink]="['/coins', coin.id, 'edit']"
                       class="absolute inset-0 rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
                       [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                      [title]="coin.title"
                     ></a>
                   }
 
@@ -792,7 +792,8 @@
                           <a
                             [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
                             class="link"
-                            >&#64;{{ coin.ownerUserName }}</a
+                            >&#64;{{ coin.ownerUserName
+                            }}<span class="sr-only"> · {{ coin.collectionName }}</span></a
                           >
                         </td>
                       }
