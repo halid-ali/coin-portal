@@ -34,7 +34,7 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
                   ariaCurrentWhenActive="page"
                   class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap
                          text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900
-                         focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                         focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                 >
                   <svg
                     viewBox="0 0 24 24"

@@ -40,21 +40,18 @@ const SWATCH: Record<AccentColor, string> = {
         <!-- One row when the card is wide enough, otherwise 4 + 3 (never 6 + 1 or 5 + 2) -->
         <div class="grid max-w-lg grid-cols-4 gap-x-1 gap-y-4 @min-[30rem]:grid-cols-7">
           @for (color of colors; track color) {
-            <label
-              class="group flex min-w-0 cursor-pointer flex-col items-center gap-2 has-disabled:cursor-wait"
-            >
+            <label class="group flex min-w-0 cursor-pointer flex-col items-center gap-2">
               <input
                 type="radio"
                 name="accent"
                 class="peer sr-only"
                 [checked]="accent.current() === color"
-                [disabled]="saving()"
                 (change)="choose(color)"
               />
               <span
                 class="grid size-10 place-items-center rounded-full shadow-sm ring-2 ring-transparent
                        ring-offset-2 transition-shadow group-hover:ring-shade-300
-                       peer-checked:ring-shade-900 peer-focus-visible:ring-brand-500"
+                       peer-checked:ring-shade-900 peer-focus-visible:ring-focus"
                 [class]="swatches[color]"
                 aria-hidden="true"
               >
@@ -100,19 +97,15 @@ export class AccentSettings {
 
   protected readonly colors = ACCENT_COLORS;
   protected readonly swatches = SWATCH;
-  protected readonly saving = signal(false);
   protected readonly status = signal<'saved' | 'failed' | null>(null);
 
   protected async choose(color: AccentColor): Promise<void> {
-    this.saving.set(true);
     this.status.set(null);
     try {
       await this.preference.change(color);
       this.status.set('saved');
     } catch {
       this.status.set('failed');
-    } finally {
-      this.saving.set(false);
     }
   }
 }

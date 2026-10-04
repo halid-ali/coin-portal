@@ -27,7 +27,6 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
         <app-language-select
           [value]="language.current()"
           [label]="'settings.language.title' | transloco"
-          [disabled]="saving()"
           (valueChange)="choose($event)"
         />
         <span aria-live="polite">
@@ -49,19 +48,15 @@ export class LanguageSettings {
   protected readonly language = inject(LanguageService);
   private readonly preference = inject(LanguagePreference);
 
-  protected readonly saving = signal(false);
   protected readonly status = signal<'saved' | 'failed' | null>(null);
 
   protected async choose(lang: Language): Promise<void> {
-    this.saving.set(true);
     this.status.set(null);
     try {
       await this.preference.change(lang);
       this.status.set('saved');
     } catch {
       this.status.set('failed');
-    } finally {
-      this.saving.set(false);
     }
   }
 }

@@ -18,6 +18,8 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
   selector: 'app-footer',
   imports: [RouterLink, TranslocoPipe, LanguageSelect],
   host: {
+    // The page's footer landmark (the host is the element in the page, not a <footer>)
+    role: 'contentinfo',
     class:
       'z-30 block border-t border-shade-200/80 bg-shade-0/85 backdrop-blur supports-backdrop-filter:bg-shade-0/70 sm:sticky sm:bottom-0',
   },
@@ -40,7 +42,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
       >
         © {{ year }} CoinVitrine
         @if (version) {
-          <span class="text-shade-400">· v{{ version }}</span>
+          <span class="text-shade-500">· v{{ version }}</span>
         }
         ·
         <a routerLink="/privacy" class="hover:text-shade-800 hover:underline">{{

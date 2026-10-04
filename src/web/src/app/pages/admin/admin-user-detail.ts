@@ -1,4 +1,14 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
@@ -63,10 +73,17 @@ import { AdminStatusBadge } from './admin-status-badge';
                 {{ 'admin.user.adminNote' | transloco }}
               </p>
             } @else {
-              <div class="flex flex-wrap gap-2">
+              <!-- Busy buttons are aria-disabled, not disabled: the focus stays on the pressed one;
+                 after a lock or unlock the buttons change, so focus moves to the first one -->
+              <div #actions class="flex flex-wrap gap-2">
                 <!-- A temporary lockout (failed sign-ins) does not stop an admin lock -->
                 @if (u.status !== 'Locked') {
-                  <button type="button" class="btn-danger" [disabled]="busy()" (click)="lock(u)">
+                  <button
+                    type="button"
+                    class="btn-danger"
+                    [attr.aria-disabled]="busy() ? 'true' : null"
+                    (click)="lock(u)"
+                  >
                     {{ 'admin.user.lock' | transloco }}
                   </button>
                 }
@@ -74,7 +91,7 @@ import { AdminStatusBadge } from './admin-status-badge';
                   <button
                     type="button"
                     class="btn-secondary"
-                    [disabled]="busy()"
+                    [attr.aria-disabled]="busy() ? 'true' : null"
                     (click)="unlock(u)"
                   >
                     {{
@@ -86,7 +103,7 @@ import { AdminStatusBadge } from './admin-status-badge';
                 <button
                   type="button"
                   class="btn-secondary text-danger-700"
-                  [disabled]="busy()"
+                  [attr.aria-disabled]="busy() ? 'true' : null"
                   (click)="remove(u)"
                 >
                   {{ 'admin.user.delete' | transloco }}
@@ -229,6 +246,10 @@ export class AdminUserDetailPage {
   protected readonly actionError = signal(false);
   protected readonly busy = signal(false);
   private readonly reloads = signal(0);
+  private readonly injector = inject(Injector);
+  private readonly actions = viewChild<ElementRef<HTMLElement>>('actions');
+  /** Set by an action; the reload then gives the focus to the first action button. */
+  private refocusActions = false;
 
   /** Query params of the list this page was opened from (see AdminUsers). */
   protected readonly backQuery: Record<string, string> =
@@ -262,10 +283,19 @@ export class AdminUserDetailPage {
       .subscribe(({ user, history }) => {
         this.user.set(user);
         this.history.set(history.items);
+        if (this.refocusActions) {
+          this.refocusActions = false;
+          afterNextRender(() => this.actions()?.nativeElement.querySelector('button')?.focus(), {
+            injector: this.injector,
+          });
+        }
       });
   }
 
   protected async lock(user: AdminUserDetail): Promise<void> {
+    if (this.busy()) {
+      return;
+    }
     const note = await this.confirm.confirmWithNote({
       title: translate('admin.user.lockTitle'),
       message: translate('admin.user.lockMessage', { userName: user.userName }),
@@ -279,6 +309,9 @@ export class AdminUserDetailPage {
   }
 
   protected async unlock(user: AdminUserDetail): Promise<void> {
+    if (this.busy()) {
+      return;
+    }
     const temporary = user.status !== 'Locked';
     const note = await this.confirm.confirmWithNote({
       title: translate(temporary ? 'admin.user.unlockTemporary' : 'admin.user.unlockTitle'),
@@ -296,6 +329,9 @@ export class AdminUserDetailPage {
 
   /** For good: the user's name must be typed, like deleting a collection. */
   protected async remove(user: AdminUserDetail): Promise<void> {
+    if (this.busy()) {
+      return;
+    }
     const note = await this.confirm.confirmWithNote({
       title: translate('admin.user.deleteTitle'),
       message: translate('admin.user.deleteMessage', { userName: user.userName }),
@@ -332,6 +368,7 @@ export class AdminUserDetailPage {
     this.actionError.set(false);
     try {
       await firstValueFrom(action(), { defaultValue: undefined });
+      this.refocusActions = true;
       this.reloads.update((n) => n + 1);
     } catch {
       this.actionError.set(true);

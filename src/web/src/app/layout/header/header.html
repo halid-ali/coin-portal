@@ -27,7 +27,8 @@
           <a
             [routerLink]="item.path"
             routerLinkActive="!bg-brand-50 !text-brand-800 ring-1 ring-brand-200"
-            class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+            ariaCurrentWhenActive="page"
+            class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
           >
             <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: item.icon }" />
             {{ item.labelKey | transloco }}
@@ -44,12 +45,13 @@
         <!-- Desktop: account menu -->
         <div class="relative hidden sm:block" (click)="$event.stopPropagation()">
           <button
+            #userMenuButton
             type="button"
             (click)="toggleUserMenu()"
-            class="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 text-sm font-medium text-shade-700 transition-colors hover:bg-shade-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+            class="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 text-sm font-medium text-shade-700 transition-colors hover:bg-shade-100 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
             [attr.aria-expanded]="userMenuOpen()"
-            aria-haspopup="menu"
             aria-controls="user-menu"
+            [attr.aria-label]="('nav.accountMenu' | transloco) + ': ' + user.userName"
           >
             <span
               aria-hidden="true"
@@ -61,7 +63,7 @@
             <span class="hidden max-w-28 truncate md:inline">{{ user.userName }}</span>
             <svg
               viewBox="0 0 24 24"
-              class="size-4 text-shade-400 transition-transform"
+              class="size-4 text-shade-500 transition-transform"
               [class.rotate-180]="userMenuOpen()"
               fill="none"
               stroke="currentColor"
@@ -74,9 +76,9 @@
           </button>
 
           @if (userMenuOpen()) {
+            <!-- A disclosure panel with links (Tab moves through them), not an ARIA menu -->
             <div
               id="user-menu"
-              role="menu"
               class="absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-shade-200 bg-shade-0 p-1.5 shadow-lg"
             >
               <div class="border-b border-shade-100 px-3 py-2.5">
@@ -89,20 +91,18 @@
               @if (auth.isAdmin()) {
                 <a
                   routerLink="/admin"
-                  role="menuitem"
                   (click)="closeMenus()"
-                  class="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100"
+                  class="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100 focus-visible:bg-shade-100 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                 >
                   <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'admin' }" />
                   {{ 'nav.admin' | transloco }}
                 </a>
-                <div role="separator" class="my-1 border-t border-shade-100"></div>
+                <div class="my-1 border-t border-shade-100"></div>
               }
               <a
                 routerLink="/settings"
-                role="menuitem"
                 (click)="closeMenus()"
-                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100"
+                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100 focus-visible:bg-shade-100 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                 [class.mt-1]="!auth.isAdmin()"
               >
                 <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'settings' }" />
@@ -110,10 +110,9 @@
               </a>
               <button
                 type="button"
-                role="menuitem"
                 (click)="logout()"
-                [disabled]="loggingOut()"
-                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100 disabled:opacity-60"
+                [attr.aria-disabled]="loggingOut() ? 'true' : null"
+                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-shade-700 hover:bg-shade-100 focus-visible:bg-shade-100 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none aria-disabled:opacity-60"
               >
                 <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'logout' }" />
                 {{ (loggingOut() ? 'nav.loggingOut' : 'nav.logout') | transloco }}
@@ -126,6 +125,7 @@
           <a
             routerLink="/login"
             routerLinkActive="!text-brand-800"
+            ariaCurrentWhenActive="page"
             class="rounded-lg px-3 py-2 text-sm font-medium text-shade-600 hover:bg-shade-100 hover:text-shade-900"
             >{{ 'nav.login' | transloco }}</a
           >
@@ -137,6 +137,7 @@
 
       <!-- Mobile menu toggle -->
       <button
+        #menuButton
         type="button"
         (click)="toggleMenu()"
         class="rounded-lg p-2 text-shade-600 hover:bg-shade-100 sm:hidden"
@@ -164,7 +165,11 @@
 
   <!-- Mobile menu -->
   @if (menuOpen()) {
-    <div id="main-menu" class="border-t border-shade-200 bg-shade-0 px-4 py-3 sm:hidden">
+    <nav
+      id="main-menu"
+      class="border-t border-shade-200 bg-shade-0 px-4 py-3 sm:hidden"
+      [attr.aria-label]="'nav.main' | transloco"
+    >
       @if (auth.currentUser(); as user) {
         <div class="flex items-center gap-3 px-2 py-2">
           <span
@@ -186,6 +191,7 @@
               <a
                 [routerLink]="item.path"
                 routerLinkActive="!bg-brand-50 !text-brand-800"
+                ariaCurrentWhenActive="page"
                 (click)="closeMenus()"
                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
               >
@@ -203,6 +209,7 @@
               <a
                 routerLink="/admin"
                 routerLinkActive="!bg-brand-50 !text-brand-800"
+                ariaCurrentWhenActive="page"
                 (click)="closeMenus()"
                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
               >
@@ -217,6 +224,7 @@
             <a
               routerLink="/settings"
               routerLinkActive="!bg-brand-50 !text-brand-800"
+              ariaCurrentWhenActive="page"
               (click)="closeMenus()"
               class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
             >
@@ -228,7 +236,7 @@
             <button
               type="button"
               (click)="logout()"
-              [disabled]="loggingOut()"
+              [attr.aria-disabled]="loggingOut() ? 'true' : null"
               class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-shade-700 hover:bg-shade-100"
             >
               <ng-container *ngTemplateOutlet="navIcon; context: { $implicit: 'logout' }" />
@@ -243,6 +251,7 @@
               <a
                 [routerLink]="item.path"
                 routerLinkActive="!bg-brand-50 !text-brand-800"
+                ariaCurrentWhenActive="page"
                 (click)="closeMenus()"
                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-shade-700 hover:bg-shade-100"
               >
@@ -261,7 +270,7 @@
           }}</a>
         </div>
       }
-    </div>
+    </nav>
   }
 </header>
 

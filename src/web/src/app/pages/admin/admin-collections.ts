@@ -189,6 +189,9 @@ export class AdminCollections extends AdminListBase {
   }
 
   protected async hide(c: AdminCollection): Promise<void> {
+    if (this.busyId() !== null) {
+      return;
+    }
     const note = await this.confirm.confirmWithNote({
       title: translate('admin.collections.hideTitle'),
       message: translate('admin.collections.hideMessage', { name: c.name }),
@@ -202,6 +205,9 @@ export class AdminCollections extends AdminListBase {
   }
 
   protected async unhide(c: AdminCollection): Promise<void> {
+    if (this.busyId() !== null) {
+      return;
+    }
     const note = await this.confirm.confirmWithNote({
       title: translate('admin.collections.unhideTitle'),
       message: translate('admin.collections.unhideMessage', { name: c.name }),

@@ -44,20 +44,19 @@ const PREVIEW = {
         <legend class="sr-only">{{ 'settings.theme.title' | transloco }}</legend>
         <div class="grid max-w-lg grid-cols-3 gap-3 sm:gap-4">
           @for (mode of modes; track mode) {
-            <label class="group cursor-pointer has-disabled:cursor-wait">
+            <label class="group cursor-pointer">
               <input
                 type="radio"
                 name="theme"
                 class="peer sr-only"
                 [checked]="theme.preference() === mode"
-                [disabled]="saving()"
                 (change)="choose(mode)"
               />
               <span
                 class="relative block aspect-4/3 overflow-hidden rounded-lg ring-1 ring-shade-200
                        transition-shadow group-hover:ring-shade-300 peer-checked:ring-2
                        peer-checked:ring-brand-500 peer-focus-visible:ring-2
-                       peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2"
+                       peer-focus-visible:ring-focus peer-focus-visible:ring-offset-2"
                 aria-hidden="true"
               >
                 @if (mode === 'System') {
@@ -136,19 +135,15 @@ export class ThemeSettings {
 
   protected readonly modes = THEME_MODES;
   protected readonly previews = PREVIEW;
-  protected readonly saving = signal(false);
   protected readonly status = signal<'saved' | 'failed' | null>(null);
 
   protected async choose(mode: ThemeMode): Promise<void> {
-    this.saving.set(true);
     this.status.set(null);
     try {
       await this.preference.change(mode);
       this.status.set('saved');
     } catch {
       this.status.set('failed');
-    } finally {
-      this.saving.set(false);
     }
   }
 }

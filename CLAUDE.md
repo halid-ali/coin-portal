@@ -398,6 +398,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `ACCENT_COLORS` (`core/theme/accent.service.ts`), `index.html`'deki açılış betiği, `styles.css` bloğu,
   Ayarlar'daki renk örneği (`accent-settings.ts` `SWATCH`) ve `theme.accent.<değer>` çevirileri. Tercih temayla aynı
   modelde (`me` → `accent`, `AccentService`, `AccentPreference.change()`). Logo her zaman altın kalır.
+  Yeni renkte kontrast ölçülür: odak halkası (`--color-focus`, açıkta `accent-700`, koyuda `accent-400`)
+  zemine karşı en az 3:1, butonun yazısı (`accent-on-fill`) dolguya karşı en az 4,5:1.
+- **Klavye odağı:** odak halkaları `ring-focus` token'ıyla (`brand-500` değil; açık temada bazı renklerde
+  3:1'in altında). Meşgulken kontroller `disabled` olmaz (basılan buton odağı sayfanın başına düşürür):
+  `[attr.aria-disabled]` + işleyicide erken dönüş (bkz. `Pagination.go`, admin işlemleri); işlem
+  butonun yerini değiştiriyorsa odak bilinçli taşınır (`AdminUserDetail`). Açılır panellerde Esc odağı
+  açan butona geri verir; yarım ARIA `menu` deseni yerine link paneli (`aria-expanded`).
+  Form alanı kenarlığı bilerek `shade-300` kaldı (kullanıcı kararı, #35).
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
   `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu),
