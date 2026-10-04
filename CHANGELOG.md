@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-04
+
+### Added
+
+- **client:** Not found page for unknown addresses
+- **client:** Splash screen until the app starts
+- **client:** Page size above the admin lists
+
+### Fixed
+
+- **client:** Check the session before the data export download
+- **client:** Screen reader names for tables, pagination and symbols
+- **client:** New tab notice, tooltips and crop frame name
+- **client:** Respect reduced motion
+- **client:** Accessibility findings of the e2e scan
+
+### Changed
+
+- **api:** Project explore coins instead of loading whole owner rows
+- **client:** Load owner-only collection dialogs lazily
+- **client:** Wait for countries before a country-ordered coin list, lazy cover image
+- **client:** Cache Intl formatters per language
+- **client:** Restore the session and load the language in parallel at startup
+- **client:** Shared styles for destructive buttons and checkboxes
+
 ## [1.2.0] - 2026-10-04
 
 ### Added
