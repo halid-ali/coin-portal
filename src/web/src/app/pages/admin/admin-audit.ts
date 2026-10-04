@@ -54,6 +54,18 @@ import { AdminListBase } from './admin-list-base';
         @if (r.items.length === 0) {
           <p class="card text-sm text-shade-600">{{ 'admin.audit.empty' | transloco }}</p>
         } @else {
+          <!-- Above too (like the coin list): on phones only this one has the page size -->
+          <app-pagination
+            [page]="r.page"
+            [totalPages]="r.totalPages"
+            [totalCount]="r.totalCount"
+            [pageSize]="pageSizeValue()"
+            [options]="pageSizes"
+            [disabled]="loading()"
+            (pageChange)="goToPage($event)"
+            (pageSizeChange)="setPageSize($event)"
+          />
+
           <!-- Narrow screens: one card per entry -->
           <ul
             class="space-y-3 xl:hidden"
