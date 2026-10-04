@@ -3,8 +3,9 @@ import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { ACCOUNT_DELETED_STATE, ACCOUNT_EXPORT_URL } from '../../core/settings/settings.service';
+import { ACCOUNT_DELETED_STATE } from '../../core/settings/settings.service';
 import { DeleteAccountDialog } from './delete-account-dialog';
+import { ExportDownload } from './export-download';
 
 /**
  * Settings > Account: download one's data (a ZIP) and delete the account. Admins cannot delete
@@ -12,7 +13,7 @@ import { DeleteAccountDialog } from './delete-account-dialog';
  */
 @Component({
   selector: 'app-account-settings',
-  imports: [TranslocoPipe, DeleteAccountDialog],
+  imports: [TranslocoPipe, DeleteAccountDialog, ExportDownload],
   template: `
     <div class="space-y-6">
       <div class="card space-y-4">
@@ -25,7 +26,7 @@ import { DeleteAccountDialog } from './delete-account-dialog';
           </p>
         </div>
         <div>
-          <a [href]="exportUrl" download class="btn-secondary gap-2">
+          <a appExportDownload #exportLink="appExportDownload" class="btn-secondary gap-2">
             <svg
               viewBox="0 0 24 24"
               class="size-4.5"
@@ -40,6 +41,9 @@ import { DeleteAccountDialog } from './delete-account-dialog';
             </svg>
             {{ 'settings.account.export.button' | transloco }}
           </a>
+          @if (exportLink.error(); as key) {
+            <p role="alert" class="form-error">{{ key | transloco }}</p>
+          }
           <p class="form-hint">{{ 'settings.account.export.hint' | transloco }}</p>
         </div>
       </div>
@@ -76,7 +80,6 @@ export class AccountSettings {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly exportUrl = ACCOUNT_EXPORT_URL;
   protected readonly isAdmin = this.auth.isAdmin;
   protected readonly dialogOpen = signal(false);
 

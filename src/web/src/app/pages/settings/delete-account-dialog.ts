@@ -11,7 +11,8 @@ import {
 import { TranslocoPipe, translate } from '@jsverse/transloco';
 
 import { httpErrorMessage } from '../../core/http/problem-details';
-import { ACCOUNT_EXPORT_URL, SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../core/settings/settings.service';
+import { ExportDownload } from './export-download';
 
 let nextId = 0;
 
@@ -22,7 +23,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-delete-account-dialog',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, ExportDownload],
   template: `
     <dialog
       #dialog
@@ -63,10 +64,13 @@ let nextId = 0;
 
         <p class="text-sm text-shade-600">
           {{ 'settings.account.delete.exportFirst' | transloco }}
-          <a [href]="exportUrl" download class="link">{{
+          <a appExportDownload #exportLink="appExportDownload" class="link">{{
             'settings.account.export.button' | transloco
           }}</a>
         </p>
+        @if (exportLink.error(); as key) {
+          <p role="alert" class="form-error">{{ key | transloco }}</p>
+        }
 
         <div>
           <label [for]="titleId + '-password'" class="form-label">{{
@@ -108,7 +112,6 @@ export class DeleteAccountDialog {
   readonly closed = output<boolean>();
 
   protected readonly titleId = `delete-account-${++nextId}`;
-  protected readonly exportUrl = ACCOUNT_EXPORT_URL;
   protected readonly password = signal('');
   protected readonly error = signal<string | null>(null);
   protected readonly busy = signal(false);
