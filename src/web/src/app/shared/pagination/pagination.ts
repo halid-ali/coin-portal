@@ -33,8 +33,8 @@ let nextId = 0;
           type="button"
           class="btn-icon"
           [class.max-sm:hidden]="!bottom()"
-          [disabled]="disabled() || isFirst()"
-          (click)="pageChange.emit(1)"
+          [attr.aria-disabled]="disabled() || isFirst() ? 'true' : null"
+          (click)="go(1)"
           [attr.aria-label]="'pagination.first' | transloco"
           [title]="'pagination.first' | transloco"
         >
@@ -56,8 +56,8 @@ let nextId = 0;
         <button
           type="button"
           class="btn-icon"
-          [disabled]="disabled() || isFirst()"
-          (click)="pageChange.emit(page() - 1)"
+          [attr.aria-disabled]="disabled() || isFirst() ? 'true' : null"
+          (click)="go(page() - 1)"
           [attr.aria-label]="'pagination.previous' | transloco"
           [title]="'pagination.previous' | transloco"
         >
@@ -83,8 +83,8 @@ let nextId = 0;
         <button
           type="button"
           class="btn-icon"
-          [disabled]="disabled() || isLast()"
-          (click)="pageChange.emit(page() + 1)"
+          [attr.aria-disabled]="disabled() || isLast() ? 'true' : null"
+          (click)="go(page() + 1)"
           [attr.aria-label]="'pagination.next' | transloco"
           [title]="'pagination.next' | transloco"
         >
@@ -103,8 +103,8 @@ let nextId = 0;
           type="button"
           class="btn-icon"
           [class.max-sm:hidden]="!bottom()"
-          [disabled]="disabled() || isLast()"
-          (click)="pageChange.emit(totalPages())"
+          [attr.aria-disabled]="disabled() || isLast() ? 'true' : null"
+          (click)="go(totalPages())"
           [attr.aria-label]="'pagination.last' | transloco"
           [title]="'pagination.last' | transloco"
         >
@@ -133,7 +133,6 @@ let nextId = 0;
           [id]="selectId"
           #sizeSelect
           class="form-input w-auto py-1.5"
-          [disabled]="disabled()"
           (change)="pageSizeChange.emit(+sizeSelect.value)"
         >
           @for (option of options(); track option) {
@@ -154,6 +153,10 @@ export class Pagination {
   readonly pageSize = input.required<number>();
   /** Page sizes; 0 is shown as "all". */
   readonly options = input.required<readonly number[]>();
+  /**
+   * While a page loads. The buttons are aria-disabled, not disabled: a disabled button loses the
+   * keyboard focus (back to the page start) when it was the one just pressed.
+   */
   readonly disabled = input(false);
   /** Above or below the list; decides what phones keep (see above). */
   readonly placement = input<'top' | 'bottom'>('top');
@@ -167,6 +170,14 @@ export class Pagination {
   protected readonly bottom = computed(() => this.placement() === 'bottom');
   protected readonly isFirst = computed(() => this.page() <= 1);
   protected readonly isLast = computed(() => this.page() >= this.totalPages());
+
+  /** Ignores presses while loading or on a button that leads nowhere (aria-disabled). */
+  protected go(target: number): void {
+    if (this.disabled() || target < 1 || target > this.totalPages() || target === this.page()) {
+      return;
+    }
+    this.pageChange.emit(target);
+  }
 
   /** e.g. "11–20" */
   protected readonly range = computed(() => {

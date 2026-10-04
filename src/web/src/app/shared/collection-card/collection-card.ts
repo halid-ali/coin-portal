@@ -16,7 +16,7 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
     <a
       [routerLink]="link()"
       class="card group block h-full overflow-hidden p-0 transition-colors hover:border-brand-300
-             focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+             focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
     >
       <div class="relative aspect-video overflow-hidden bg-shade-100">
         @if (cover(); as src) {

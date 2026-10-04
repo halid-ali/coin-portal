@@ -16,7 +16,7 @@ import { ThemeService } from '../../core/theme/theme.service';
     <button
       type="button"
       class="rounded-lg p-2 text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900
-             focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+             focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
       [attr.aria-label]="labelKey() | transloco"
       [attr.title]="labelKey() | transloco"
       (click)="toggle()"

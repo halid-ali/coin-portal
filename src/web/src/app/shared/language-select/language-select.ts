@@ -34,13 +34,13 @@ let nextId = 0;
       type="button"
       class="flex items-center gap-2 rounded-lg border border-shade-300 bg-shade-0 py-1.5 pr-2 pl-2.5 text-sm
              text-shade-800 shadow-sm transition-colors hover:bg-shade-50 focus-visible:ring-2
-             focus-visible:ring-brand-500 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+             focus-visible:ring-focus focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
       aria-haspopup="listbox"
       [attr.aria-expanded]="open()"
       [attr.aria-controls]="listId"
       [attr.aria-label]="label() ? label() + ': ' + current().name : null"
       [disabled]="disabled()"
-      (click)="toggle()"
+      (click)="toggle($event)"
       (keydown.arrowdown)="openWithKeyboard($event)"
       (keydown.arrowup)="openWithKeyboard($event)"
     >
@@ -48,7 +48,7 @@ let nextId = 0;
       <span [attr.lang]="current().code">{{ current().name }}</span>
       <svg
         viewBox="0 0 24 24"
-        class="size-4 text-shade-400 transition-transform"
+        class="size-4 text-shade-500 transition-transform"
         [class.rotate-180]="open()"
         fill="none"
         stroke="currentColor"
@@ -81,9 +81,12 @@ let nextId = 0;
             [attr.aria-selected]="l.code === value()"
             class="flex cursor-pointer items-center gap-2 rounded-lg py-1.5 pr-2 pl-2.5 text-sm text-shade-700"
             [class.bg-shade-100]="i === active()"
+            [class.ring-2]="i === active() && keyboard()"
+            [class.ring-inset]="i === active() && keyboard()"
+            [class.ring-focus]="i === active() && keyboard()"
             [class.font-semibold]="l.code === value()"
             (click)="choose(l.code)"
-            (mouseenter)="active.set(i)"
+            (mouseenter)="hover(i)"
           >
             <app-flag [code]="l.code" />
             <span class="flex-1">{{ l.name }}</span>
@@ -124,6 +127,11 @@ export class LanguageSelect {
   protected readonly open = signal(false);
   /** Highlighted option (index), moved by the keyboard and the mouse. */
   protected readonly active = signal(0);
+  /**
+   * Moved by the keys: the highlight then also gets the focus ring (the list keeps the focus,
+   * the light hover background alone is hard to see). The mouse shows the hover background only.
+   */
+  protected readonly keyboard = signal(false);
   protected readonly current = computed(
     () => LANGUAGES.find((l) => l.code === this.value()) ?? LANGUAGES[0],
   );
@@ -141,21 +149,30 @@ export class LanguageSelect {
     effect(() => this.list()?.nativeElement.focus());
   }
 
-  protected toggle(): void {
+  protected toggle(event: MouseEvent): void {
     if (this.open()) {
       this.close();
     } else {
       this.show();
+      // Enter or Space on the button also clicks it, without a pointer (detail 0)
+      this.keyboard.set(event.detail === 0);
     }
   }
 
   protected openWithKeyboard(event: Event): void {
     event.preventDefault();
     this.show();
+    this.keyboard.set(true);
+  }
+
+  protected hover(index: number): void {
+    this.active.set(index);
+    this.keyboard.set(false);
   }
 
   protected onListKey(event: KeyboardEvent): void {
     const last = this.languages.length - 1;
+    this.keyboard.set(true);
     switch (event.key) {
       case 'ArrowDown':
         this.active.update((i) => (i >= last ? 0 : i + 1));

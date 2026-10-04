@@ -51,7 +51,7 @@ let nextId = 0;
           [disabled]="disabled()"
           (click)="choose()"
           class="flex size-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed
-                       border-shade-300 p-4 text-center text-shade-500 transition-colors hover:border-brand-400
+                       border-shade-300 p-4 text-center text-shade-600 transition-colors hover:border-brand-400
                        hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <svg

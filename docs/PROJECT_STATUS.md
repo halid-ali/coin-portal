@@ -1,6 +1,6 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, #26 hata mesajları ve oturum, #24 form erişilebilirliği, Tamamlananlar 54–57. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
+Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, #26 hata mesajları ve oturum, #24 form erişilebilirliği, #25 klavye ve kontrast, Tamamlananlar 54–58; sırada `v1.1.0`. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
 **onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
 https://github.com/halid-ali/coin-portal)
 
@@ -1031,6 +1031,26 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       (seçili `<option>` da `:checked` sayıldığı için "taşı" kutusu hep vurgulu görünüyordu).
     - Testler: yeni `field-a11y.spec`, `register.spec` (odak), `app.spec` (odak, atla linki).
       Tarayıcıda ve ekran okuyucuyla elle denenmedi.
+    - Kullanıcı isteği: "İçeriğe atla" linkine iç boşluk (`focus:not-sr-only` dolguyu sıfırlıyordu, dolgu
+      `focus:` varyantıyla verildi).
+58. **Klavye odağı ve kontrast** (`fix/a11y-keyboard-contrast`, #25, 2026-10-04):
+    - **Odak rengi:** yeni token `--color-focus` (açık temada `accent-700`, koyuda `accent-400`); tüm odak
+      halkaları ve tıklanan alanın kenarlığı bununla. Önce `brand-500` idi: Altın 2,2:1, Lime 2:1,
+      Camgöbeği 2,4:1 (3:1 gerekli). Kullanıcı önce/sonra önizlemesini (giriş formu, headless Edge) gördü ve onayladı.
+    - **Odak kaybı:** tema/renk radyoları ve dil seçici kayıt sırasında kilitlenmez (ayar istekleri #26'dan beri
+      sırayla gidiyor); sayfalama butonları `aria-disabled` (son sayfada da odak kalır); admin koleksiyon
+      işlemi tek buton (metni değişir), kullanıcı detayındaki işlemler `aria-disabled`, işlemden sonra odak ilk
+      işlem butonuna. Butonlara `aria-disabled` görünümü (`styles.css`).
+    - **Hesap menüsü:** butonun adı "Hesap menüsü: <kullanıcı adı>" (640–767 px'te adsızdı); yarım `role="menu"`
+      yerine link paneli; Esc menüyü kapatıp odağı butona verir (mobil menü de). Menü öğelerinde odak halkası.
+    - **Ekran okuyucu:** üst ve mobil menü linklerinde `aria-current="page"`; footer `contentinfo`, mobil menü `<nav>`.
+    - **Dil seçici:** klavyeyle gezilen seçenekte odak halkası (fareyle sadece arka plan, görünüm aynı).
+    - **Küçük kontrastlar:** placeholder `shade-500`, footer sürümü `shade-500`, fotoğraf/kapak boş-durum
+      metni `shade-600`, sıralama ve açılır ok ikonları `shade-500`, `btn-danger` hover `red-700`.
+    - **Ertelenen:** form alanı kenarlığı (`shade-300`, 1,5:1). `shade-400` önizlemesi kullanıcıya fazla koyu
+      geldi, mevcut hali korundu; seçenekler ve karar [#35](https://github.com/halid-ali/coin-portal/issues/35)'te
+      (Açık konular 21).
+    - Testler: yeni `pagination.spec`, `header.spec`. Tarayıcıda elle denenmedi (önizlemeler hariç).
 
 ## Yol haritası
 
@@ -1129,7 +1149,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları (Tamamlananlar 54; ek: boş koleksiyonda filtre kartı yok).
   - [x] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler (Tamamlananlar 55).
   - [x] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması (Tamamlananlar 57).
-  - [ ] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü.
+  - [x] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü (Tamamlananlar 58; kenarlık #35'e ayrıldı).
   - [x] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi (Tamamlananlar 56).
   - [ ] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları.
   - [ ] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri.
@@ -1156,7 +1176,7 @@ Tamamlananlar 51–53). Adaylar:
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
-  ~~#26~~ → ~~#24~~ → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
+  ~~#26~~ → ~~#24~~ → ~~#25~~ → **`v1.1.0`** (sıradaki) → #27 fotoğraf depolama →
   #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
@@ -1557,6 +1577,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
       müşteri sorumlu. Veritabanı yedeği panelden tek tıkla geri yüklenir. Kalan: `\private\photos`'un
       bu yedeğe dahil olduğu ve geri dönüşün nasıl yapıldığı panelde kontrol edilecek; ayrıca ara sıra
       kendi yedeğimiz (veritabanı yedeği + fotoğraf klasörü indirme) düşünülebilir.
+21. **Form alanı kenarlığının kontrastı** (2026-10-04, #25'ten ayrıldı,
+    [#35](https://github.com/halid-ali/coin-portal/issues/35)): `.form-input` kenarlığı `shade-300`, açık
+    temada 1,5:1 (WCAG 1.4.11 3:1). `shade-400` önizlemesi fazla koyu bulundu, kullanıcı mevcut hali korudu.
+    Seçenekler issue'da (koyu kenarlık, dolguyla ayrışma, sadece koyu temada). Karar kullanıcının.
 
 ## Yayın öncesi yapılacaklar
 

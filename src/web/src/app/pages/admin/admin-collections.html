@@ -222,26 +222,20 @@
   }
 </ng-template>
 
+<!-- One button that changes its label, and aria-disabled while busy: the keyboard focus stays on
+ it (a disabled or replaced button drops the focus to the page start) -->
 <ng-template #action let-c>
-  @if (c.moderationLockedAtUtc) {
-    <button
-      type="button"
-      class="btn-secondary px-3 py-1.5 text-sm whitespace-nowrap"
-      [disabled]="busyId() === c.id"
-      (click)="unhide(c)"
-    >
-      {{ 'admin.collections.unhide' | transloco }}
-    </button>
-  } @else {
-    <button
-      type="button"
-      class="btn-secondary px-3 py-1.5 text-sm whitespace-nowrap text-danger-700"
-      [disabled]="busyId() === c.id"
-      (click)="hide(c)"
-    >
-      {{ 'admin.collections.hide' | transloco }}
-    </button>
-  }
+  <button
+    type="button"
+    class="btn-secondary px-3 py-1.5 text-sm whitespace-nowrap"
+    [class.text-danger-700]="!c.moderationLockedAtUtc"
+    [attr.aria-disabled]="busyId() === c.id ? 'true' : null"
+    (click)="c.moderationLockedAtUtc ? unhide(c) : hide(c)"
+  >
+    {{
+      (c.moderationLockedAtUtc ? 'admin.collections.unhide' : 'admin.collections.hide') | transloco
+    }}
+  </button>
 </ng-template>
 
 <!-- The owner (links to their admin page); an admin owner gets the user list's badge, so hiding

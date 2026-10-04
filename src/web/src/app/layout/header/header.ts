@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -26,7 +26,7 @@ const NAV_ITEMS: readonly { path: string; labelKey: string; icon: string; public
     class: 'z-30 block sm:sticky sm:top-0',
     // Clicks inside the account menu stop propagation, so any document click closes it
     '(document:click)': 'userMenuOpen.set(false)',
-    '(document:keydown.escape)': 'closeMenus()',
+    '(document:keydown.escape)': 'closeOnEscape()',
   },
 })
 export class Header {
@@ -40,6 +40,8 @@ export class Header {
   protected readonly menuOpen = signal(false);
   protected readonly userMenuOpen = signal(false);
   protected readonly loggingOut = signal(false);
+  private readonly userMenuButton = viewChild<ElementRef<HTMLElement>>('userMenuButton');
+  private readonly menuButton = viewChild<ElementRef<HTMLElement>>('menuButton');
 
   constructor() {
     // Any navigation (including back/forward) closes the menus
@@ -69,7 +71,21 @@ export class Header {
     this.userMenuOpen.set(false);
   }
 
+  /** Escape closes an open menu and gives the focus back to its button (it was in the menu). */
+  protected closeOnEscape(): void {
+    const button = this.userMenuOpen()
+      ? this.userMenuButton()
+      : this.menuOpen()
+        ? this.menuButton()
+        : undefined;
+    this.closeMenus();
+    button?.nativeElement.focus();
+  }
+
   protected logout(): void {
+    if (this.loggingOut()) {
+      return;
+    }
     this.loggingOut.set(true);
     this.auth.logout().subscribe({
       next: () => {

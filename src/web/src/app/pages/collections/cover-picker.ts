@@ -37,7 +37,7 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
           [disabled]="disabled()"
           (click)="choose()"
           class="flex size-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-shade-300
-                       text-shade-500 transition-colors hover:border-brand-400 hover:text-brand-700 disabled:opacity-60"
+                       text-shade-600 transition-colors hover:border-brand-400 hover:text-brand-700 disabled:opacity-60"
         >
           <svg
             viewBox="0 0 24 24"

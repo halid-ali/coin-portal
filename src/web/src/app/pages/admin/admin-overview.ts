@@ -154,7 +154,7 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
               @for (tile of group.tiles; track tile.labelKey) {
                 @if (tile.link; as link) {
                   <a
-                    class="card block p-4 transition-colors hover:bg-shade-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                    class="card block p-4 transition-colors hover:bg-shade-50 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                     [routerLink]="link.path"
                     [queryParams]="link.queryParams"
                   >

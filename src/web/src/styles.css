@@ -42,6 +42,9 @@
   --color-primary: var(--accent-fill);
   --color-primary-hover: var(--accent-fill-hover);
   --color-on-primary: var(--accent-on-fill);
+  /* Keyboard focus ring: at least 3:1 against the surfaces with every accent (the 500 step is
+     not, e.g. amber 2.2:1 on white); the dark theme uses the light end */
+  --color-focus: var(--accent-700);
 
   --color-danger-50: var(--color-red-50);
   --color-danger-100: var(--color-red-100);
@@ -242,6 +245,7 @@
     --color-brand-800: var(--accent-300);
     --color-brand-900: var(--accent-200);
     --color-brand-950: var(--accent-100);
+    --color-focus: var(--accent-400);
 
     --color-danger-50: color-mix(in oklab, var(--color-red-400) 10%, var(--color-slate-900));
     --color-danger-100: color-mix(in oklab, var(--color-red-400) 18%, var(--color-slate-900));
@@ -345,7 +349,7 @@
 
   .form-input {
     @apply block w-full rounded-lg border border-shade-300 bg-shade-0 px-3 py-2 text-shade-900 shadow-sm
-      focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none;
+      placeholder:text-shade-500 focus:border-focus focus:ring-2 focus:ring-focus/30 focus:outline-none;
   }
 
   /* Native select with our own chevron, so the arrow sits inside the right padding */
@@ -378,26 +382,27 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-on-primary
-      hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none
-      disabled:cursor-not-allowed disabled:opacity-60;
+      hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:outline-none
+      disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-lg border border-shade-300 bg-shade-0 px-4 py-2 font-medium text-shade-700
       hover:bg-shade-50 focus-visible:ring-2 focus-visible:ring-shade-400 focus-visible:ring-offset-2 focus-visible:outline-none
-      disabled:cursor-not-allowed disabled:opacity-60;
+      disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60;
   }
 
   .btn-danger {
     @apply inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 font-medium text-white
-      hover:bg-red-500 focus-visible:ring-2 focus-visible:ring-danger-500 focus-visible:ring-offset-2 focus-visible:outline-none
-      disabled:cursor-not-allowed disabled:opacity-60;
+      hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-danger-500 focus-visible:ring-offset-2 focus-visible:outline-none
+      disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60;
   }
 
   .btn-icon {
     @apply inline-flex size-9 items-center justify-center rounded-lg border border-shade-300 bg-shade-0 text-shade-700
       hover:bg-shade-50 focus-visible:ring-2 focus-visible:ring-shade-400 focus-visible:ring-offset-2 focus-visible:outline-none
-      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-shade-0;
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-shade-0
+      aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:bg-shade-0;
   }
 
   .nav-link {

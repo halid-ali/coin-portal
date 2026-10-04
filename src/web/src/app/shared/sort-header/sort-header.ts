@@ -18,7 +18,7 @@ import { SortDirection } from '../../core/coins/coin.models';
   template: `
     <button
       type="button"
-      class="group -mx-1.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-1 font-medium transition-colors hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-brand-500/50 focus-visible:outline-none"
+      class="group -mx-1.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-1 font-medium transition-colors hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
       [class.text-shade-900]="direction()"
       [title]="hint() | transloco"
       (click)="toggle.emit()"
@@ -73,7 +73,7 @@ export class SortHeader {
   protected readonly iconClass = computed(() =>
     this.direction()
       ? 'bg-brand-100 text-brand-700'
-      : 'text-shade-400 group-hover:bg-shade-200/70 group-hover:text-shade-600',
+      : 'text-shade-500 group-hover:bg-shade-200/70 group-hover:text-shade-600',
   );
 
   /** Tooltip (translation key) describing what the next click does. */

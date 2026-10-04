@@ -18,7 +18,7 @@ export type CollectionView = 'list' | 'grid';
         <button
           type="button"
           class="inline-flex size-8 items-center justify-center rounded-md transition-colors
-                focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
           [class]="
             option.value === value()
               ? 'bg-brand-100 text-brand-800'
