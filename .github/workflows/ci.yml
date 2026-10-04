@@ -140,3 +140,66 @@ jobs:
 
       - name: Test
         run: npm exec --no -- ng test --watch=false
+
+  # The whole site in a browser (tests/e2e, Playwright): sign-up to coin with photo, share links,
+  # sessions, moderation, plus an axe accessibility scan of each page. server/start.mjs builds the
+  # client and the API and runs them on their own database in the SQL Server container
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: Ci_Tests_Passw0rd
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Ci_Tests_Passw0rd -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            src/web/package-lock.json
+            tests/e2e/package-lock.json
+
+      - name: Install
+        run: |
+          (cd src/web && npm ci)
+          (cd tests/e2e && npm ci)
+
+      # Playwright's own Chromium (locally the tests use the installed Edge)
+      - name: Install browser
+        working-directory: tests/e2e
+        run: npm exec --no -- playwright install --with-deps chromium
+
+      - name: Test
+        working-directory: tests/e2e
+        run: npm exec --no -- playwright test
+        env:
+          COINPORTAL_E2E_SQL: Server=localhost,1433;Database=CoinPortal_E2E;User Id=sa;Password=Ci_Tests_Passw0rd;TrustServerCertificate=True
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-report
+          path: |
+            tests/e2e/playwright-report
+            tests/e2e/test-results
+          if-no-files-found: ignore
