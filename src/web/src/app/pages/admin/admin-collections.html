@@ -75,6 +75,18 @@
     @if (r.items.length === 0) {
       <p class="card text-sm text-shade-600">{{ 'admin.collections.empty' | transloco }}</p>
     } @else {
+      <!-- Above too (like the coin list): on phones only this one has the page size -->
+      <app-pagination
+        [page]="r.page"
+        [totalPages]="r.totalPages"
+        [totalCount]="r.totalCount"
+        [pageSize]="pageSizeValue()"
+        [options]="pageSizes"
+        [disabled]="loading()"
+        (pageChange)="goToPage($event)"
+        (pageSizeChange)="setPageSize($event)"
+      />
+
       <!-- Narrow screens: cards -->
       <ul class="space-y-3 xl:hidden" [class.opacity-60]="loading()" [attr.aria-busy]="loading()">
         @for (c of r.items; track c.id) {
@@ -227,8 +239,8 @@
 <ng-template #action let-c>
   <button
     type="button"
-    class="btn-secondary px-3 py-1.5 text-sm whitespace-nowrap"
-    [class.text-danger-700]="!c.moderationLockedAtUtc"
+    class="px-3 py-1.5 text-sm whitespace-nowrap"
+    [class]="c.moderationLockedAtUtc ? 'btn-secondary' : 'btn-secondary-danger'"
     [attr.aria-disabled]="busyId() === c.id ? 'true' : null"
     (click)="c.moderationLockedAtUtc ? unhide(c) : hide(c)"
   >

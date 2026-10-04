@@ -63,6 +63,18 @@
     @if (r.items.length === 0) {
       <p class="card text-sm text-shade-600">{{ 'admin.users.empty' | transloco }}</p>
     } @else {
+      <!-- Above too (like the coin list): on phones only this one has the page size -->
+      <app-pagination
+        [page]="r.page"
+        [totalPages]="r.totalPages"
+        [totalCount]="r.totalCount"
+        [pageSize]="pageSizeValue()"
+        [options]="pageSizes"
+        [disabled]="loading()"
+        (pageChange)="goToPage($event)"
+        (pageSizeChange)="setPageSize($event)"
+      />
+
       <!-- Narrow screens: cards, each a link to the user -->
       <ul class="space-y-3 xl:hidden" [class.opacity-60]="loading()" [attr.aria-busy]="loading()">
         @for (u of r.items; track u.id) {

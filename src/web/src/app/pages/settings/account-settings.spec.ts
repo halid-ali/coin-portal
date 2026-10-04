@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -6,6 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { firstValueFrom } from 'rxjs';
 
+import { authInterceptor } from '../../core/auth/auth.interceptor';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserResponse } from '../../core/auth/auth.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
@@ -42,8 +43,9 @@ describe('AccountSettings', () => {
           { path: '', component: Home },
           { path: 'settings/account', component: AccountSettings },
           { path: 'blank', component: Blank },
+          { path: 'login', component: Blank },
         ]),
-        provideHttpClient(),
+        provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         provideTestTransloco(),
       ],
@@ -94,6 +96,55 @@ describe('AccountSettings', () => {
 
     const link = page().querySelector<HTMLAnchorElement>('a[download]')!;
     expect(link.getAttribute('href')).toBe('/api/settings/export');
+  });
+
+  describe('data export', () => {
+    let downloads: string[];
+
+    beforeEach(() => {
+      downloads = [];
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+        this: HTMLAnchorElement,
+      ) {
+        downloads.push(this.getAttribute('href')!);
+      });
+    });
+    afterEach(() => vi.restoreAllMocks());
+
+    async function clickExport(): Promise<void> {
+      await signIn();
+      await harness.navigateByUrl('/settings/account');
+      const link = page().querySelector<HTMLAnchorElement>('a[download]')!;
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+    }
+
+    it('checks the session, then downloads', async () => {
+      await clickExport();
+      expect(downloads).toEqual([]);
+
+      http.expectOne('/api/settings').flush({ language: null, theme: null, accent: null });
+      await vi.waitFor(() => expect(downloads).toEqual(['/api/settings/export']));
+    });
+
+    it('goes to the login page when the session has ended', async () => {
+      await clickExport();
+
+      http.expectOne('/api/settings').flush(null, { status: 401, statusText: 'Unauthorized' });
+      http.expectOne('/api/auth/antiforgery').flush(null);
+
+      await vi.waitFor(() => expect(TestBed.inject(Router).url).toMatch(/^\/login\?returnUrl=/));
+      expect(downloads).toEqual([]);
+    });
+
+    it('says why when it cannot start', async () => {
+      await clickExport();
+
+      http.expectOne('/api/settings').flush(null, { status: 503, statusText: 'Unavailable' });
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('[role=alert]')!.textContent).toContain('Beklenmeyen bir hata');
+      expect(downloads).toEqual([]);
+    });
   });
 
   it('keeps the dialog open with a message on a wrong password', async () => {

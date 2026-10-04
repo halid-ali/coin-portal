@@ -73,7 +73,8 @@
     "newCoin": "Coin ekle",
     "editCoin": "Coin'i düzenle",
     "settings": "Ayarlar",
-    "admin": "Yönetim"
+    "admin": "Yönetim",
+    "notFound": "Sayfa bulunamadı"
   },
   "nav": {
     "main": "Ana menü",
@@ -89,6 +90,11 @@
     "accountMenu": "Hesap menüsü",
     "skipToContent": "İçeriğe atla",
     "language": "Dil"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "message": "Bu adreste bir sayfa yok. Link yanlış yazılmış ya da eksik kopyalanmış olabilir; paylaşım linkiyse tamamını kopyaladığından emin ol.",
+    "home": "Ana sayfaya dön"
   },
   "home": {
     "accountDeleted": "Hesabın ve tüm verilerin silindi.",

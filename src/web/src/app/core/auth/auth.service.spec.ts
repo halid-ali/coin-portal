@@ -56,14 +56,13 @@ describe('AuthService', () => {
     return signedIn;
   }
 
-  it('restores the session first, then fetches a token bound to it', async () => {
+  it('restores the session and fetches its token at once', async () => {
     const started = auth.init();
 
-    // The token belongs to the user: it waits for the session
-    http.expectNone('/api/auth/antiforgery');
+    // Same cookie on both, so the token matches the session; the first paint waits for both
+    const token = http.expectOne('/api/auth/antiforgery');
     http.expectOne('/api/auth/me').flush(alice);
-    await settle();
-    http.expectOne('/api/auth/antiforgery').flush(null);
+    token.flush(null);
     await started;
 
     expect(auth.currentUser()?.userName).toBe('alice');
@@ -72,7 +71,6 @@ describe('AuthService', () => {
   it('starts signed out, also when the API is down', async () => {
     const started = auth.init();
     http.expectOne('/api/auth/me').flush(null, { status: 0, statusText: 'Unknown Error' });
-    await settle();
     http.expectOne('/api/auth/antiforgery').flush(null, { status: 0, statusText: 'Unknown Error' });
 
     await expect(started).resolves.toBeUndefined();

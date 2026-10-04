@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.2.0` yayında**, P1 bitti: ilk yarısı #22–#26 `v1.1.0`'da (Tamamlananlar
-54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). P2 başladı: #33 bitti (Tamamlananlar 66),
-sırada #32 → #31 → #34. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). P2 başladı: #33 ve #32 bitti (Tamamlananlar
+66–67), sırada #31 → #34. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1178,6 +1178,32 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       yeniden bakılır.
     - Testler: API 223 (Keşfet'te koleksiyon adı, sahip, yüz sırasıyla fotoğraflar), client 253 (sıralı liste
       ülkeleri bekler ve tek istek atar, ülke hatasında sırasız yüklenir, `settled`).
+67. **UX düzeltmeleri** (`fix/ux-polish`, #32, 2026-10-04; sadece client; kararlar kullanıcıyla):
+    - **404 sayfası:** `'**'` artık ana sayfaya yönlenmiyor; `pages/not-found` (başlık `titles.notFound`,
+      metin `notFound.*` dört dilde: adres yok, link eksik kopyalanmış olabilir; "Ana sayfaya dön" + "Keşfet'e
+      git"). Adres URL'de kalır. Sunucu bu adreslere SPA fallback ile 200 verdiği için sayfa açıkken
+      `<meta name="robots" content="noindex">` ekler, çıkınca kaldırır.
+    - **Açılış:** `me` ve antiforgery aynı anda (ikisi aynı cookie'yle gider, token `me`'nin döndüğü kullanıcıya
+      ait; reddedilen cookie ikisinde de anonim). Cihazın dil dosyası oturum beklenirken iner
+      (`LanguageService.preload`). `index.html`'de `<app-root>` içinde açılış ekranı (kullanıcı seçimi: ortada
+      logo): `.app-splash` (`styles.css`), 400 ms sonra belirir (hızlı açılışta görünmez), logo hafifçe atar
+      (`prefers-reduced-motion`'da atmaz), zemin ve yazı tema token'larıyla. Angular açılınca yerini alır.
+    - **"Verilerimi indir":** `ExportDownload` directive'i (`pages/settings/export-download.ts`, Ayarlar > Hesap
+      ve hesap silme penceresi). Tıklamada önce `GET api/settings` (oturum kontrolü): 401 interceptor'dan geçer
+      (oturum kapanır, giriş sayfası + `returnUrl`), başka hata linkin altında `role="alert"`; sonra ayrı bir
+      `<a download>` ile düz indirme (dosya yine sayfa belleğine girmez). Ctrl/orta tık tarayıcıda kalır.
+      Sınır aşımı (429) ve sunucu hatası yine tarayıcının indirme çubuğunda (kullanıcı kararı: iki adımlı
+      indirme gerekmez).
+    - **Admin listeleri:** üstte de sayfalama (coin listesi gibi); telefonda sayfa boyutu üsttekinde.
+    - **Yıkıcı butonlar:** ortak `btn-secondary-danger` (kırmızı yazı, üstüne gelince açık kırmızı zemin);
+      kırmızı dolgu (`btn-danger`) sadece onay penceresinin butonunda. Admin kullanıcı sayfasındaki "Kilitle"
+      ve Ayarlar'daki "Hesabımı sil" dolgudan bu stile geçti; diğer altı yer birleşti.
+    - **Onay kutuları:** `form-checkbox` (`accent-brand-500`); giriş ve kayıttaki kutular tarayıcı mavisi yerine
+      tema renginde.
+    - Görsel kontrol (headless Edge): açılış ekranı açık/koyu, 404 masaüstü, giriş sayfası telefonda, koleksiyon
+      ve Ayarlar > Hesap butonları. Admin sayfaları görülemedi (admin hesabı gerekir), kullanıcı bakar.
+    - Testler: client 259 (404: adres korunur, başlık, `noindex` girer/çıkar; dışa aktarma: önce oturum,
+      sonra indirme, 401'de giriş, hata mesajı; `preload`; açılışta iki istek birlikte).
 
 ## Yol haritası
 
@@ -1284,7 +1310,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce) (Tamamlananlar 64; testler Esc hatasını buldu).
 - **P2, planlı:**
   - [ ] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı.
-  - [ ] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi.
+  - [x] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi (Tamamlananlar 67).
   - [x] [#33](https://github.com/halid-ali/coin-portal/issues/33) S `fix/public-page-weight`: girişsiz sayfaların ağırlığı (Tamamlananlar 66).
   - [ ] [#34](https://github.com/halid-ali/coin-portal/issues/34) L `feat/e2e-playwright`: Playwright e2e (yol haritası 8b).
 
@@ -1296,7 +1322,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
-(Tamamlananlar 66) → #32 UX → #31 a11y → #34 e2e. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
+(Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → #31 a11y → #34 e2e. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
 bitti (#22–#30). Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
 
 - **Yayın sonrası küçük işler:**
@@ -1531,6 +1557,9 @@ Kararlar (2026-10-01, kullanıcıyla):
 - **Admin kendi hesabını silemez**, önce `Admin:UserIds`'ten çıkarılır (kilitlemedeki kuralla aynı; son
   admin'in kendini silmesini de önler).
 - **Silmeden sonra** ana sayfada bir kerelik bilgi mesajı.
+- **"Verilerimi indir" düz indirme kalır** (2026-10-04, #32): tıklamada önce oturum kontrol edilir; sınır
+  aşımı ve sunucu hatası tarayıcının indirme çubuğunda görünür. İki adımlı indirme (önce sunucuda hazırlama,
+  hatalar sitede) elendi: geçici dosya ve temizlik ister, sınır nadiren aşılır.
 - **Admin bir kullanıcıyı silerken** kullanıcı adını birebir yazar (koleksiyon silmedeki gibi); not isteğe
   bağlı. Admin'ler panelden silinemez.
 - **Denetim kaydı:** kayıtlar kalır, silinen kullanıcının adları (hedef, koleksiyon, admin olarak) silinir

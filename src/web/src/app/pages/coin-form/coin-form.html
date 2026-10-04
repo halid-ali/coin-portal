@@ -178,7 +178,7 @@
             id="isCommemorative"
             type="checkbox"
             formControlName="isCommemorative"
-            class="size-4 rounded border-shade-300 accent-brand-500"
+            class="form-checkbox"
           />
           <label for="isCommemorative" class="text-sm font-medium text-shade-700">{{
             'coin.field.commemorativeCoin' | transloco
@@ -232,7 +232,7 @@
         @if (isEdit()) {
           <button
             type="button"
-            class="btn-secondary text-danger-700 hover:bg-danger-50"
+            class="btn-secondary-danger"
             [disabled]="deleting() || submitting()"
             (click)="remove()"
           >
