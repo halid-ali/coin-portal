@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { TranslocoService } from '@jsverse/transloco';
 
 import { LanguageService } from './language.service';
 import { isLanguage, matchBrowserLanguage } from './languages';
@@ -32,6 +33,15 @@ describe('LanguageService', () => {
     expect(service.current()).toBe('de');
     expect(document.documentElement.lang).toBe('de');
     expect(service.deviceLanguage()).toBe('de');
+  });
+
+  it('preloads a language without switching to it', () => {
+    const service = TestBed.inject(LanguageService);
+    service.preload('bg');
+
+    expect(TestBed.inject(TranslocoService).getTranslation('bg')).not.toEqual({});
+    expect(service.current()).toBe('en');
+    expect(service.deviceLanguage()).not.toBe('bg');
   });
 });
 

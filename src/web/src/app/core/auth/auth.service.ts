@@ -39,10 +39,11 @@ export class AuthService {
    * Called once at startup (provideAppInitializer): restores the session from the
    * auth cookie and fetches an antiforgery token that matches that session.
    * Never throws, so the app still boots when the API is down.
+   * Both at once, as the first paint waits for them: they carry the same cookie, so the token
+   * belongs to the user that me returns (a rejected cookie is anonymous in both).
    */
   async init(): Promise<void> {
-    await this.loadMe();
-    await firstValueFrom(this.refreshAntiforgeryTokenQuietly());
+    await Promise.all([this.loadMe(), firstValueFrom(this.refreshAntiforgeryTokenQuietly())]);
   }
 
   /** Loads the current user from the API; resolves to null when not signed in. */

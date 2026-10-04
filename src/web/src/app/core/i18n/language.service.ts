@@ -32,6 +32,14 @@ export class LanguageService {
   }
 
   /**
+   * Starts downloading a language without switching to it (use() later finds it loaded).
+   * Failures are left to use().
+   */
+  preload(lang: Language): void {
+    this.transloco.load(lang).subscribe({ error: () => undefined });
+  }
+
+  /**
    * Loads the translations first, so the UI never shows raw keys, then switches. On a load
    * error (e.g. offline) the current language stays.
    */

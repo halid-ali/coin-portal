@@ -63,6 +63,9 @@ export const appConfig: ApplicationConfig = {
       const language = inject(LanguageService);
       const theme = inject(ThemeService);
       const accent = inject(AccentService);
+      // This device's language downloads while the session is restored; most accounts use it
+      const deviceLanguage = language.deviceLanguage();
+      language.preload(deviceLanguage);
       await auth.init();
       const savedTheme = auth.currentUser()?.theme;
       if (savedTheme) {
@@ -72,7 +75,7 @@ export const appConfig: ApplicationConfig = {
       if (savedAccent) {
         accent.use(savedAccent);
       }
-      await language.use(auth.currentUser()?.language ?? language.deviceLanguage());
+      await language.use(auth.currentUser()?.language ?? deviceLanguage);
     }),
   ],
 };
