@@ -63,7 +63,7 @@ import { ExportDownload } from './export-download';
           </p>
         } @else {
           <div>
-            <button type="button" class="btn-danger" (click)="dialogOpen.set(true)">
+            <button type="button" class="btn-secondary-danger" (click)="dialogOpen.set(true)">
               {{ 'settings.account.delete.button' | transloco }}
             </button>
           </div>

@@ -85,7 +85,7 @@ import { AdminStatusBadge } from './admin-status-badge';
                 @if (u.status !== 'Locked') {
                   <button
                     type="button"
-                    class="btn-danger"
+                    class="btn-secondary-danger"
                     [attr.aria-disabled]="busy() ? 'true' : null"
                     (click)="lock(u)"
                   >
@@ -107,7 +107,7 @@ import { AdminStatusBadge } from './admin-status-badge';
                 }
                 <button
                   type="button"
-                  class="btn-secondary text-danger-700"
+                  class="btn-secondary-danger"
                   [attr.aria-disabled]="busy() ? 'true' : null"
                   (click)="remove(u)"
                 >

@@ -239,8 +239,8 @@
 <ng-template #action let-c>
   <button
     type="button"
-    class="btn-secondary px-3 py-1.5 text-sm whitespace-nowrap"
-    [class.text-danger-700]="!c.moderationLockedAtUtc"
+    class="px-3 py-1.5 text-sm whitespace-nowrap"
+    [class]="c.moderationLockedAtUtc ? 'btn-secondary' : 'btn-secondary-danger'"
     [attr.aria-disabled]="busyId() === c.id ? 'true' : null"
     (click)="c.moderationLockedAtUtc ? unhide(c) : hide(c)"
   >

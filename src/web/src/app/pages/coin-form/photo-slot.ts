@@ -104,7 +104,7 @@ let nextId = 0;
         </button>
         <button
           type="button"
-          class="btn-secondary px-3 py-1.5 text-sm text-danger-700 hover:bg-danger-50"
+          class="btn-secondary-danger px-3 py-1.5 text-sm"
           [disabled]="disabled()"
           (click)="remove()"
         >
