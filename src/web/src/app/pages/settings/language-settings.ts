@@ -32,7 +32,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
         <span aria-live="polite">
           @if (status() === 'saved') {
             <span class="text-sm text-success-700"
-              >✓ {{ 'settings.language.saved' | transloco }}</span
+              ><span aria-hidden="true">✓</span> {{ 'settings.language.saved' | transloco }}</span
             >
           }
         </span>

@@ -42,13 +42,18 @@ describe('Register', () => {
 
     // The label reads as one sentence with both links inside it
     const label = page.querySelector('[formControlName=acceptTerms]')!.closest('label')!;
-    expect(label.textContent!.replace(/\s+/g, ' ').trim()).toBe(
+    const visible = label.cloneNode(true) as HTMLElement;
+    visible.querySelectorAll('.sr-only').forEach((e) => e.remove());
+    expect(visible.textContent!.replace(/\s+/g, ' ').trim()).toBe(
       'Bu sitenin gizlilik politikasını okudum ve kullanım şartlarını kabul ediyorum.',
     );
-    expect([...label.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual([
-      '/privacy',
-      '/terms',
-    ]);
+    const links = [...label.querySelectorAll('a')];
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/privacy', '/terms']);
+    // They open in a new tab (the form keeps its input), and screen readers are told so
+    for (const link of links) {
+      expect([link.target, link.rel]).toEqual(['_blank', 'noopener']);
+      expect(link.textContent).toContain('(yeni sekmede açılır)');
+    }
 
     submit();
     await fixture.whenStable();

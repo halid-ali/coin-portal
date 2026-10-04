@@ -39,6 +39,7 @@ import { PublicService } from '../../core/public/public.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { CoinPlaceholder } from '../../shared/coin-placeholder/coin-placeholder';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
+import { scrollToTop } from '../../shared/motion';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { SortHeader } from '../../shared/sort-header/sort-header';
@@ -493,7 +494,7 @@ export class Collection {
   protected goToPage(page: number): void {
     this.navigate({ page: page > 1 ? page : null });
     // The bottom pagination is far from the list start
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   }
 
   protected setPageSize(size: number): void {

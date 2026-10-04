@@ -103,7 +103,9 @@ const PREVIEW = {
 
       <p aria-live="polite" class="min-h-5">
         @if (status() === 'saved') {
-          <span class="text-sm text-success-700">✓ {{ 'settings.theme.saved' | transloco }}</span>
+          <span class="text-sm text-success-700"
+            ><span aria-hidden="true">✓</span> {{ 'settings.theme.saved' | transloco }}</span
+          >
         }
       </p>
 

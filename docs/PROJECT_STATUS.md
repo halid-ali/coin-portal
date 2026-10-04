@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.2.0` yayında**, P1 bitti: ilk yarısı #22–#26 `v1.1.0`'da (Tamamlananlar
-54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). P2 başladı: #33 ve #32 bitti (Tamamlananlar
-66–67), sırada #31 → #34. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). P2: #33, #32 ve #31 bitti (Tamamlananlar
+66–68), sırada #34 (e2e). Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -265,7 +265,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Vitest 39 test (+3 `ThemeService`), headless Edge ile iki temada ekran görüntüleri (giriş, Keşfet,
       Koleksiyonlarım, liste, ızgara, coin formu, Ayarlar, kullanıcı menüsü, mobil liste ve menü).
       Diyaloglar (onay, koleksiyon formu, kırpma) ve dil dropdown'ı koyu temada görsel olarak kontrol
-      edilmedi.
+      edilmedi (koleksiyon formu ve silme penceresi 2026-10-04'te bakıldı, Tamamlananlar 68).
 
 13. **Tema rengi (vurgu rengi)** (`feat/accent-color`, 2026-09-28; kararlar "Görünüm ve tema: kararlar"):
     - API: `AccentColor` enum (`Amber = 0`, `Teal`, `Blue`, `Indigo`, `Violet`, `Rose`, `Lime = 6`),
@@ -1204,6 +1204,32 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       ve Ayarlar > Hesap butonları. Admin sayfaları görülemedi (admin hesabı gerekir), kullanıcı bakar.
     - Testler: client 259 (404: adres korunur, başlık, `noindex` girer/çıkar; dışa aktarma: önce oturum,
       sonra indirme, 401'de giriş, hata mesajı; `preload`; açılışta iki istek birlikte).
+68. **Erişilebilirlik taraması** (`chore/a11y-sweep`, #31, 2026-10-04; sadece client, görünüm aynı):
+    - **Tablolar:** dört tabloda `sr-only` caption (koleksiyon adı / "Keşfet" / admin bölüm adı); `aria-sort`
+      sadece sıralı sütunda (önce her sütunda `none`); kısaltılmış başlıklar ("Commem.", "Год.", "Münzz.")
+      ekran okuyucuda tam ad (`SortHeader.fullLabel`, Darphane/Hatıra sütunlarında `sr-only`).
+    - **Sayfalama:** "2 / 3" yerine okunan metin "Sayfa 2, toplam 3" (`pagination.pageOf`); düz metindeki
+      `aria-current` kaldırıldı.
+    - **Semboller:** `coinList.addCoin`, `collections.new` ve `home.browseCollectors` metinlerinden `+`/`→`
+      çıktı, şablonda `aria-hidden`; geri linklerindeki `‹` ve kaydedildi `✓`'leri `aria-hidden`; boş hücrenin
+      `–`'i ekran okuyucuda "Yok" (`common.none`).
+    - **Yeni sekme:** kayıttaki gizlilik/şartlar linklerine `rel="noopener"`; o linkler, İletişim'deki kaynak ve
+      lisans linkleri ve admin koleksiyon linki ekran okuyucuya "yeni sekmede açılır" der (`common.opensNewTab`).
+    - **Tooltip:** ızgarada tam başlık kaplama butonunun/linkin `title`'ında (önce `<p>`'deydi, kaplama yüzünden
+      hiç çıkmıyordu); Keşfet tablosunda koleksiyon adı ekran okuyucuya linkin içinde.
+    - **Kırpma:** çerçevenin erişilebilir adı klavye kullanımını da söyler (`crop.frameLabel`: oklar taşır,
+      Shift + oklar boyutlandırır), görselin alt metni pencere başlığı.
+    - **Hareket:** sayfa değişiminde kaydırma `prefers-reduced-motion`'da anında (`shared/motion.ts`); ızgara ve
+      koleksiyon kartlarındaki büyütme `motion-safe:`.
+    - **Admin:** koleksiyon satırındaki Gizle/Kilidi kaldır butonunun adı koleksiyonu içerir ("Gizle: <ad>").
+    - **Yapılmadı (bilinçli):** geri linklerinin konum/biçim birliği (görünüm kararı, ayrı iş); görünürlük
+      rozetinin açıklaması ve admin'deki tam zaman damgası `title`'da kaldı (açıklama koleksiyon formunda,
+      tam zaman kullanıcı detayında görünür); orta nokta `·` ayraçlar; Genel bakış'taki `–`. Klavyeyle görseli
+      kaydırma (yakınlaştırınca) kütüphanede yok. Otomatik a11y taraması (`@axe-core/playwright`) #34'te.
+    - Görsel kontrol (headless Edge): ana sayfa, koleksiyon tablosu (koyu), koyu temada koleksiyon formu ve silme
+      penceresi; görünüm değişmedi.
+    - CLAUDE.md "Client kuralları"na "Ekran okuyucu ve hareket" kuralı eklendi.
+    - Testler: client 261 (sıralama başlığının tam adı, sayfa metni, kayıt linklerinin yeni sekme bilgisi).
 
 ## Yol haritası
 
@@ -1309,7 +1335,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları) (Tamamlananlar 63).
   - [x] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce) (Tamamlananlar 64; testler Esc hatasını buldu).
 - **P2, planlı:**
-  - [ ] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı.
+  - [x] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı (Tamamlananlar 68).
   - [x] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi (Tamamlananlar 67).
   - [x] [#33](https://github.com/halid-ali/coin-portal/issues/33) S `fix/public-page-weight`: girişsiz sayfaların ağırlığı (Tamamlananlar 66).
   - [ ] [#34](https://github.com/halid-ali/coin-portal/issues/34) L `feat/e2e-playwright`: Playwright e2e (yol haritası 8b).
@@ -1322,7 +1348,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
-(Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → #31 a11y → #34 e2e. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
+(Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → #34 e2e. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
 bitti (#22–#30). Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
 
 - **Yayın sonrası küçük işler:**

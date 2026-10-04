@@ -441,6 +441,15 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   butonun yerini değiştiriyorsa odak bilinçli taşınır (`AdminUserDetail`). Açılır panellerde Esc odağı
   açan butona geri verir; yarım ARIA `menu` deseni yerine link paneli (`aria-expanded`).
   Form alanı kenarlığı bilerek `shade-300` kaldı (kullanıcı kararı, #35).
+- **Ekran okuyucu ve hareket** (#31): tablolarda `<caption class="sr-only">` (sayfanın/bölümün adı).
+  Kısaltılmış etiket görünür kısa metin `aria-hidden` + `sr-only` tam ad (`th[appSortHeader]` `[fullLabel]`,
+  aynıysa tekrar okunmaz); `aria-sort` sadece sıralı sütunda. Dekoratif semboller (`+`, `→`, `‹`, `✓`, boş
+  hücrenin `–`'i) çeviri metnine yazılmaz, şablonda `<span aria-hidden="true">`; boş hücreye `sr-only`
+  `common.none`. "1 / 5" gibi sembollü metin `aria-hidden` + `sr-only` cümle (`pagination.pageOf`).
+  `target="_blank"` linki `rel="noopener"` + `sr-only` `common.opensNewTab`. Bilgi sadece `title`'da kalmaz
+  (dokunmatikte yok); `title` işaretçiyi alan elemana verilir (ızgaradaki kaplama butonu). Satır başına tekrar
+  eden butonun erişilebilir adı satırı içerir (`Gizle: <ad>`). Hareket: geçişler `motion-safe:`, sayfa başına
+  kaydırma `scrollToTop()` (`shared/motion.ts`, `prefers-reduced-motion`'da anında).
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `form-checkbox`, `alert-error`, `btn-primary`, `btn-secondary`,
   `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-danger` (kırmızı dolgu, sadece

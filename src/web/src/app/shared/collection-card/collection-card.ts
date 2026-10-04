@@ -25,7 +25,7 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
             alt=""
             loading="lazy"
             decoding="async"
-            class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
           />
         } @else {
           <div class="flex size-full items-center justify-center">

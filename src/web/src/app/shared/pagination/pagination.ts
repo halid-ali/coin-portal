@@ -73,11 +73,12 @@ let nextId = 0;
           </svg>
         </button>
 
-        <span
-          class="min-w-16 px-2 text-center text-sm font-medium text-shade-700"
-          aria-current="page"
-        >
-          {{ page() }} / {{ totalPages() }}
+        <span class="min-w-16 px-2 text-center text-sm font-medium text-shade-700">
+          <!-- "1 / 5" would be read as "1 slash 5" -->
+          <span aria-hidden="true">{{ page() }} / {{ totalPages() }}</span>
+          <span class="sr-only">{{
+            'pagination.pageOf' | transloco: { page: page(), total: totalPages() }
+          }}</span>
         </span>
 
         <button

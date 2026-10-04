@@ -141,13 +141,13 @@
         />
         <span>
           {{ 'register.privacyBefore' | transloco
-          }}<a routerLink="/privacy" target="_blank" class="link">{{
-            'register.privacyLink' | transloco
-          }}</a
+          }}<a routerLink="/privacy" target="_blank" rel="noopener" class="link"
+            >{{ 'register.privacyLink' | transloco
+            }}<span class="sr-only"> ({{ 'common.opensNewTab' | transloco }})</span></a
           >{{ 'register.termsBefore' | transloco
-          }}<a routerLink="/terms" target="_blank" class="link">{{
-            'register.termsLink' | transloco
-          }}</a
+          }}<a routerLink="/terms" target="_blank" rel="noopener" class="link"
+            >{{ 'register.termsLink' | transloco
+            }}<span class="sr-only"> ({{ 'common.opensNewTab' | transloco }})</span></a
           >{{ 'register.privacyAfter' | transloco }}
         </span>
       </label>

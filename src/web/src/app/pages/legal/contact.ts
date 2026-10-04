@@ -36,18 +36,16 @@ import { OPERATOR, SOURCE_URL } from '../../core/legal/operator';
         <div class="grid gap-x-6 gap-y-0.5 sm:grid-cols-[10rem_1fr]">
           <dt class="text-sm text-shade-500">{{ 'contact.source' | transloco }}</dt>
           <dd class="min-w-0">
-            <a
-              [href]="sourceUrl"
-              target="_blank"
-              rel="noopener"
-              class="link font-medium break-all"
-              >{{ sourceUrl }}</a
+            <a [href]="sourceUrl" target="_blank" rel="noopener" class="link font-medium break-all"
+              >{{ sourceUrl
+              }}<span class="sr-only"> ({{ 'common.opensNewTab' | transloco }})</span></a
             >
             <p class="form-hint">{{ 'contact.sourceHint' | transloco }}</p>
             @if (showLicenses) {
-              <a href="/3rdpartylicenses.txt" target="_blank" rel="noopener" class="link text-sm">{{
-                'contact.licenses' | transloco
-              }}</a>
+              <a href="/3rdpartylicenses.txt" target="_blank" rel="noopener" class="link text-sm"
+                >{{ 'contact.licenses' | transloco
+                }}<span class="sr-only"> ({{ 'common.opensNewTab' | transloco }})</span></a
+              >
             }
           </dd>
         </div>

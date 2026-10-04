@@ -96,6 +96,11 @@ import { AdminListBase } from './admin-list-base';
             [attr.aria-busy]="loading()"
           >
             <table class="w-full table-fixed text-left text-sm">
+              <caption class="sr-only">
+                {{
+                  'admin.nav.audit' | transloco
+                }}
+              </caption>
               <colgroup>
                 <col class="w-[175px]" />
                 <col class="w-[171px]" />

@@ -50,13 +50,13 @@
             @switch (mode()) {
               @case ('owner') {
                 <a routerLink="/collections" class="link text-sm"
-                  >‹ {{ 'nav.collections' | transloco }}</a
+                  ><span aria-hidden="true">‹</span> {{ 'nav.collections' | transloco }}</a
                 >
               }
               @case ('public') {
                 @if (header(); as h) {
                   <a [routerLink]="['/u', h.ownerUserName]" class="link text-sm"
-                    >‹ &#64;{{ h.ownerUserName }}</a
+                    ><span aria-hidden="true">‹</span> &#64;{{ h.ownerUserName }}</a
                   >
                 }
               }
@@ -199,7 +199,7 @@
               routerLink="/coins/new"
               [queryParams]="{ collection: collectionId() }"
               class="btn-primary"
-              >{{ 'coinList.addCoin' | transloco }}</a
+              ><span aria-hidden="true" class="mr-1">+</span>{{ 'coinList.addCoin' | transloco }}</a
             >
           </div>
         }
@@ -502,7 +502,7 @@
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
                       />
                     } @else {
                       <app-coin-placeholder class="size-full p-[24%] text-shade-300" />
@@ -515,10 +515,8 @@
                     }
                   </div>
                   <div class="space-y-1.5 p-3">
-                    <p
-                      class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900"
-                      [title]="coin.title"
-                    >
+                    <!-- The full title on hover: on the cover button or link above it, which gets the pointer -->
+                    <p class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900">
                       {{ coin.title }}
                     </p>
                     <div class="flex items-center gap-2 text-xs text-shade-600">
@@ -546,6 +544,7 @@
                       type="button"
                       class="absolute inset-0 cursor-zoom-in rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
                       [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                      [title]="coin.title"
                       (click)="viewerCoin.set(coin)"
                     ></button>
                   } @else if (!readOnly()) {
@@ -553,6 +552,7 @@
                       [routerLink]="['/coins', coin.id, 'edit']"
                       class="absolute inset-0 rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
                       [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                      [title]="coin.title"
                     ></a>
                   }
 
@@ -662,6 +662,13 @@
              shows them); edit: the 20 px icon. A new language means measuring again. -->
             <div class="card hidden overflow-x-auto p-0 lg:block">
               <table class="w-full table-fixed text-left text-sm">
+                <caption class="sr-only">
+                  @if (mode() === 'explore') {
+                    {{ 'coinList.exploreTitle' | transloco }}
+                  } @else {
+                    {{ header()?.name }}
+                  }
+                </caption>
                 <colgroup>
                   <col class="w-16" />
                   <col />
@@ -686,15 +693,18 @@
                         appSortHeader
                         class="px-3 py-2"
                         [label]="'coin.column.' + c.value | transloco"
+                        [fullLabel]="c.labelKey | transloco"
                         [direction]="sortDirection(c.value)"
                         (toggle)="sortBy(c.value)"
                       ></th>
                     }
                     <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
-                      {{ 'coin.column.MintMark' | transloco }}
+                      <span aria-hidden="true">{{ 'coin.column.MintMark' | transloco }}</span>
+                      <span class="sr-only">{{ 'coin.field.mintMark' | transloco }}</span>
                     </th>
                     <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
-                      {{ 'coin.column.Commemorative' | transloco }}
+                      <span aria-hidden="true">{{ 'coin.column.Commemorative' | transloco }}</span>
+                      <span class="sr-only">{{ 'coin.field.commemorative' | transloco }}</span>
                     </th>
                     @if (mode() === 'owner') {
                       <th scope="col" class="px-3 py-2">
@@ -737,10 +747,20 @@
                       </td>
                       <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
                       <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">
-                        {{ coin.mintMark ?? '–' }}
+                        @if (coin.mintMark) {
+                          {{ coin.mintMark }}
+                        } @else {
+                          <span aria-hidden="true">–</span>
+                          <span class="sr-only">{{ 'common.none' | transloco }}</span>
+                        }
                       </td>
                       <td class="truncate px-3 py-3">
-                        {{ coin.isCommemorative ? ('common.yes' | transloco) : '–' }}
+                        @if (coin.isCommemorative) {
+                          {{ 'common.yes' | transloco }}
+                        } @else {
+                          <span aria-hidden="true">–</span>
+                          <span class="sr-only">{{ 'common.none' | transloco }}</span>
+                        }
                       </td>
                       @if (mode() === 'owner') {
                         <td class="px-3 py-3 text-right">
@@ -772,7 +792,8 @@
                           <a
                             [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
                             class="link"
-                            >&#64;{{ coin.ownerUserName }}</a
+                            >&#64;{{ coin.ownerUserName
+                            }}<span class="sr-only"> · {{ coin.collectionName }}</span></a
                           >
                         </td>
                       }

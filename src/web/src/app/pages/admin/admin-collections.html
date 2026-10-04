@@ -126,6 +126,11 @@
         [attr.aria-busy]="loading()"
       >
         <table class="w-full table-fixed text-left text-sm">
+          <caption class="sr-only">
+            {{
+              'admin.nav.collections' | transloco
+            }}
+          </caption>
           <colgroup>
             <col />
             <col class="w-[175px]" />
@@ -227,7 +232,7 @@
       rel="noopener"
       class="link block truncate font-medium"
       [title]="'admin.collections.open' | transloco"
-      >{{ c.name }}</a
+      >{{ c.name }}<span class="sr-only"> ({{ 'common.opensNewTab' | transloco }})</span></a
     >
   } @else {
     <p class="truncate font-medium text-shade-900" [title]="c.name">{{ c.name }}</p>
@@ -243,6 +248,12 @@
     [class]="c.moderationLockedAtUtc ? 'btn-secondary' : 'btn-secondary-danger'"
     [attr.aria-disabled]="busyId() === c.id ? 'true' : null"
     (click)="c.moderationLockedAtUtc ? unhide(c) : hide(c)"
+    [attr.aria-label]="
+      ((c.moderationLockedAtUtc ? 'admin.collections.unhide' : 'admin.collections.hide')
+        | transloco) +
+      ': ' +
+      c.name
+    "
   >
     {{
       (c.moderationLockedAtUtc ? 'admin.collections.unhide' : 'admin.collections.hide') | transloco
