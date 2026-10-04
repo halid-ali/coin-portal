@@ -66,6 +66,70 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
 
     public Task DeleteOwnerAsync(string ownerId) => DeleteFolderAsync(OwnerFolder(ownerId));
 
+    public IReadOnlyList<StoredImage> ListImages()
+    {
+        var images = new List<StoredImage>();
+        if (!Directory.Exists(root))
+        {
+            return images;
+        }
+
+        // Owner folders are user ids, image folders GUIDs ("N"); .tmp and probe files do not match
+        foreach (var ownerFolder in Directory.EnumerateDirectories(root))
+        {
+            var ownerId = Path.GetFileName(ownerFolder);
+            if (!SafeSegment().IsMatch(ownerId))
+            {
+                continue;
+            }
+            foreach (var imageFolder in EnumerateDirectoriesOrNone(ownerFolder))
+            {
+                if (!Guid.TryParseExact(Path.GetFileName(imageFolder), "N", out var imageId))
+                {
+                    continue;
+                }
+                try
+                {
+                    // Adding a file updates the folder's time; moving the finished folder into place does not
+                    var info = new DirectoryInfo(imageFolder);
+                    var bytes = info.EnumerateFiles().Sum(f => f.Length);
+                    images.Add(new StoredImage(ownerId, imageId, bytes, info.LastWriteTimeUtc));
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    // Deleted while listing
+                }
+            }
+        }
+        return images;
+    }
+
+    public async Task<int> DeleteUnfinishedAsync(DateTime cutoffUtc)
+    {
+        var removed = 0;
+        foreach (var folder in EnumerateDirectoriesOrNone(Path.Combine(root, TempFolderName)))
+        {
+            if (Directory.GetLastWriteTimeUtc(folder) < cutoffUtc)
+            {
+                await DeleteFolderAsync(folder);
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    private static IEnumerable<string> EnumerateDirectoriesOrNone(string path)
+    {
+        try
+        {
+            return Directory.GetDirectories(path);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return [];
+        }
+    }
+
     public async Task<string> CheckWritableAsync()
     {
         Directory.CreateDirectory(root);

@@ -102,12 +102,16 @@ public class CoinPhotosController(
             // Not the request token: once the files exist, finish or clean up deliberately
             await db.SaveChangesAsync(CancellationToken.None);
         }
-        catch (DbUpdateException e)
+        catch (DbUpdateException e) when (ImageUploadExtensions.IsConcurrentChange(e))
         {
             await photoStorage.DeleteAsync(coin.OwnerId, photo.Id);
-            logger.LogWarning(e, "Saving photo {Side} of coin {CoinId} failed", side, coin.Id);
-            return this.CodedProblem("conflict", "The photo was changed at the same time. Try again.",
-                StatusCodes.Status409Conflict);
+            logger.LogWarning(e, "Photo {Side} of coin {CoinId} was changed at the same time", side, coin.Id);
+            return this.ChangedAtTheSameTime();
+        }
+        catch
+        {
+            await photoStorage.DeleteAsync(coin.OwnerId, photo.Id);
+            throw;
         }
 
         if (existing is not null)
@@ -141,6 +145,7 @@ public class CoinPhotosController(
     /// <summary>
     /// Serves one size as WebP. <paramref name="v"/> is the photo id from the coin response;
     /// an outdated one returns 404, so an immutable cache entry never holds another photo.
+    /// Without it the current photo is served, but not cached for good.
     /// Visible to the owner, to everyone for public collections, and with the share link
     /// secret (<paramref name="s"/>) for unlisted ones; anything else is a 404.
     /// </summary>
@@ -173,8 +178,7 @@ public class CoinPhotosController(
             return NotFound();
         }
 
-        // The URL changes with every upload (v), so the browser may keep it for good
-        Response.Headers.CacheControl = "private, max-age=31536000, immutable";
+        Response.Headers.CacheControl = ImageUploadExtensions.ImageCacheControl(v);
         return File(stream, "image/webp", lastModified: null,
             entityTag: new EntityTagHeaderValue($"\"{photo.Id:N}-{size}\""));
     }

@@ -125,8 +125,9 @@ public class ImageSharpImageProcessor(IOptions<PhotoOptions> options) : IImagePr
             image.Metadata.CicpProfile = null;
             return image;
         }
+        // NotSupportedException: a known format in a kind the decoder does not handle (lossless JPEG)
         catch (Exception e) when (e is UnknownImageFormatException or InvalidImageContentException
-                                      or ImageFormatException)
+                                      or ImageFormatException or NotSupportedException)
         {
             throw new InvalidImageException("The file is not a valid image.", e);
         }

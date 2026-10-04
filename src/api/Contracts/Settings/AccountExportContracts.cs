@@ -6,6 +6,10 @@ namespace CoinPortal.Api.Contracts.Settings;
 // moderation.json and the images under photos/ and covers/. Paths in the JSON are relative to the ZIP's root.
 
 /// <summary>account.json: everything stored about the user except security data (password hash, stamps).</summary>
+/// <param name="MissingImages">
+/// Images the account has whose file was not found on the server: the paths they would have in the
+/// ZIP. Normally empty; otherwise the export is incomplete.
+/// </param>
 public sealed record AccountExportFile(
     DateTime ExportedAtUtc,
     string UserName,
@@ -19,7 +23,8 @@ public sealed record AccountExportFile(
     AccentColor? Accent,
     DateTime? LastSignInAtUtc,
     DateTime? PreviousSignInAtUtc,
-    DateTime? LastSeenAtUtc);
+    DateTime? LastSeenAtUtc,
+    IReadOnlyList<string> MissingImages);
 
 /// <param name="Cover">Path of the cover image in the ZIP, or null.</param>
 /// <param name="ShareToken">The secret of the share link (link-only collections).</param>

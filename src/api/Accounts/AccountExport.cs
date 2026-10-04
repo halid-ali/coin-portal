@@ -15,7 +15,7 @@ namespace CoinPortal.Api.Accounts;
 /// every photo and cover. Built in a temporary file, not in
 /// memory (up to the photo quota, 300 MB); the file is deleted when the returned stream closes.
 /// </summary>
-public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
+public class AccountExport(AppDbContext db, IPhotoStorage photoStorage, ILogger<AccountExport> logger)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
@@ -59,11 +59,12 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
             using (var zip = new ZipArchive(file, ZipArchiveMode.Create, leaveOpen: true))
             {
                 var export = new List<CollectionExport>();
+                var missing = new List<string>();
                 foreach (var c in collections)
                 {
                     string? cover = null;
                     if (c.CoverImageId is { } coverId
-                        && await AddImageAsync(zip, user.Id, coverId, CoverImage.FileName, $"covers/{c.Id}.webp", ct))
+                        && await AddImageAsync(zip, user.Id, coverId, CoverImage.FileName, $"covers/{c.Id}.webp", missing, ct))
                     {
                         cover = $"covers/{c.Id}.webp";
                     }
@@ -75,7 +76,7 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
                         foreach (var photo in photoRows.OrderBy(p => p.Side))
                         {
                             var path = $"photos/{coin.Id}-{photo.Side.ToString().ToLowerInvariant()}.webp";
-                            if (await AddImageAsync(zip, user.Id, photo.Id, PhotoSize.Full.FileName(), path, ct))
+                            if (await AddImageAsync(zip, user.Id, photo.Id, PhotoSize.Full.FileName(), path, missing, ct))
                             {
                                 photos[photo.Side] = path;
                             }
@@ -93,7 +94,7 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
                 await AddJsonAsync(zip, "account.json", new AccountExportFile(DateTime.UtcNow, user.UserName!,
                     user.Email!, user.FirstName, user.LastName, user.BirthDate, user.CreatedAtUtc,
                     user.PreferredLanguage, user.PreferredTheme, user.PreferredAccent, user.LastSignInAtUtc,
-                    user.PreviousSignInAtUtc, user.LastSeenAtUtc), ct);
+                    user.PreviousSignInAtUtc, user.LastSeenAtUtc, missing), ct);
             }
             file.Position = 0;
             return file;
@@ -105,13 +106,16 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage)
         }
     }
 
-    // WebP is compressed already; a missing file (should not happen) is left out of the ZIP
+    // WebP is compressed already. A missing file (disk and database out of step, should not
+    // happen) is left out of the ZIP, listed in account.json and logged
     private async Task<bool> AddImageAsync(ZipArchive zip, string ownerId, Guid imageId, string fileName,
-        string path, CancellationToken ct)
+        string path, List<string> missing, CancellationToken ct)
     {
         await using var source = photoStorage.OpenRead(ownerId, imageId, fileName);
         if (source is null)
         {
+            logger.LogWarning("Image file missing in data export: {ImageId} {FileName}", imageId, fileName);
+            missing.Add(path);
             return false;
         }
         await using var target = zip.CreateEntry(path, CompressionLevel.NoCompression).Open();

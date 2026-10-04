@@ -27,8 +27,23 @@ public interface IPhotoStorage
     Task DeleteOwnerAsync(string ownerId);
 
     /// <summary>
+    /// Every stored image with its size and when it was written, for the orphan sweep
+    /// (<see cref="PhotoSweeper"/>). Entries this code did not create are skipped.
+    /// </summary>
+    IReadOnlyList<StoredImage> ListImages();
+
+    /// <summary>
+    /// Removes what uploads cut short left behind (a crash while writing), if written before
+    /// <paramref name="cutoffUtc"/>. Returns how many were removed. As DeleteAsync, never throws.
+    /// </summary>
+    Task<int> DeleteUnfinishedAsync(DateTime cutoffUtc);
+
+    /// <summary>
     /// Startup check: writes and removes a test entry, so a wrong setting stops the app instead of
     /// failing the first upload. Returns where the images are (for the log); throws if unusable.
     /// </summary>
     Task<string> CheckWritableAsync();
 }
+
+/// <summary>One image on disk: all its files together.</summary>
+public sealed record StoredImage(string OwnerId, Guid ImageId, long Bytes, DateTime WrittenAtUtc);

@@ -62,6 +62,8 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             {
                 ["ConnectionStrings:DefaultConnection"] = connectionString,
                 ["PhotoStorage:RootPath"] = PhotoRoot,
+                // Tests run the photo sweep themselves (PhotoSweepTests)
+                ["PhotoStorage:SweepIntervalHours"] = "0",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
                 // Console only, and ASP.NET Core's default key location
                 ["Logs:Path"] = "",

@@ -52,6 +52,19 @@ public static class TestImages
     /// <summary>Bytes that are no image at all.</summary>
     public static byte[] NotAnImage() => Encoding.UTF8.GetBytes("This is not an image, just text.");
 
+    /// <summary>
+    /// The header of a lossless JPEG (SOF3, 200x160, one component): a real JPEG kind that image
+    /// libraries recognize but do not decode.
+    /// </summary>
+    public static byte[] LosslessJpeg() =>
+    [
+        0xFF, 0xD8, // start of image
+        0xFF, 0xC3, 0x00, 0x0B, // SOF3, segment length 11
+        0x08, 0x00, 0xA0, 0x00, 0xC8, // 8 bit, height 160, width 200
+        0x01, 0x01, 0x11, 0x00, // one component: id 1, no subsampling, table 0
+        0xFF, 0xD9, // end of image
+    ];
+
     private static void WriteChunk(Stream stream, string type, byte[] data)
     {
         Span<byte> number = stackalloc byte[4];
