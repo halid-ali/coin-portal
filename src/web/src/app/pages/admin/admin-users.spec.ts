@@ -1,7 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 
 import { provideAdminTranslations } from '../../core/admin/admin-translations';
 import { AdminUser } from '../../core/admin/admin.models';
@@ -28,7 +29,10 @@ describe('AdminUsers', () => {
     await TestBed.configureTestingModule({
       imports: [AdminUsers],
       providers: [
-        provideRouter([]),
+        provideRouter(
+          [{ path: 'admin/users', component: AdminUsers }],
+          withComponentInputBinding(),
+        ),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideTestTransloco(),
@@ -71,5 +75,27 @@ describe('AdminUsers', () => {
     expect(text).toContain('Kilitli');
     expect(text).toContain('Hiç'); // never seen
     expect(text).toContain('5 MB');
+  });
+
+  it('goes to the last page when the page is past it, with the first of repeated params', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/admin/users?page=4&search=ayse&search=jonas');
+    const http = TestBed.inject(HttpTestingController);
+
+    const request = http.expectOne((r) => r.url === '/api/admin/users');
+    expect(request.request.params.get('search')).toBe('ayse');
+    request.flush({ items: [], page: 4, pageSize: 25, totalCount: 30, totalPages: 2 });
+    await harness.fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/admin/users?page=2&search=ayse&search=jonas');
+    const reload = http.expectOne((r) => r.url === '/api/admin/users');
+    expect(reload.request.params.get('page')).toBe('2');
+    reload.flush({
+      items: [user('ayse.yilmaz')],
+      page: 2,
+      pageSize: 25,
+      totalCount: 30,
+      totalPages: 2,
+    });
   });
 });

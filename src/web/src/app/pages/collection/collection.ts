@@ -1,21 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import {
-  Observable,
-  catchError,
-  combineLatest,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  of,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { Observable, catchError, combineLatest, of, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import {
@@ -42,6 +32,7 @@ import {
 } from '../../core/collections/collection.models';
 import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
 import { httpErrorMessage } from '../../core/http/problem-details';
+import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
@@ -52,6 +43,7 @@ import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { SortHeader } from '../../shared/sort-header/sort-header';
+import { SEARCH_MAX_LENGTH, normalizeSearch, syncSearchWithUrl } from '../../shared/url-search';
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
@@ -156,18 +148,18 @@ export class Collection {
   protected readonly collectors = signal<Collector[]>([]);
 
   // Query params, bound by withComponentInputBinding(); the URL is the single source of truth
-  readonly denomination = input<string>();
-  readonly countryCode = input<string>();
-  readonly year = input<string>();
-  readonly isCommemorative = input<string>();
-  readonly search = input<string>();
-  readonly sort = input<string>();
-  readonly dir = input<string>();
-  readonly page = input<string>();
-  readonly pageSize = input<string>();
-  readonly view = input<string>();
+  readonly denomination = input(undefined, { transform: firstQueryParam });
+  readonly countryCode = input(undefined, { transform: firstQueryParam });
+  readonly year = input(undefined, { transform: firstQueryParam });
+  readonly isCommemorative = input(undefined, { transform: firstQueryParam });
+  readonly search = input(undefined, { transform: firstQueryParam });
+  readonly sort = input(undefined, { transform: firstQueryParam });
+  readonly dir = input(undefined, { transform: firstQueryParam });
+  readonly page = input(undefined, { transform: firstQueryParam });
+  readonly pageSize = input(undefined, { transform: firstQueryParam });
+  readonly view = input(undefined, { transform: firstQueryParam });
   /** Explore: exact user name. */
-  readonly owner = input<string>();
+  readonly owner = input(undefined, { transform: firstQueryParam });
 
   /** List (table / cards) is the default and stays out of the URL. */
   protected readonly viewMode = computed<CollectionView>(() =>
@@ -206,7 +198,7 @@ export class Collection {
       year: toInt(this.year()),
       isCommemorative:
         commemorative === 'true' ? true : commemorative === 'false' ? false : undefined,
-      search: this.search()?.trim() || undefined,
+      search: normalizeSearch(this.search()) || undefined,
       sort: sort === 'Newest' ? undefined : sort,
       dir: dir === 'Desc' ? dir : undefined,
       // Country names are localized on the client, so the API gets the display order
@@ -248,12 +240,28 @@ export class Collection {
   });
 
   protected readonly result = signal<PagedResponse<ListedCoin> | null>(null);
+
+  /**
+   * An empty collection has nothing to search or filter, so the filter card (with the sort row)
+   * stays hidden; it shows once the collection is known to have coins. Filters already in the URL
+   * keep it, so they can still be changed.
+   */
+  protected readonly showFilters = computed(() => {
+    if (this.hasFilters()) {
+      return true;
+    }
+    if (this.mode() === 'explore') {
+      return (this.result()?.totalCount ?? 0) > 0;
+    }
+    return (this.header()?.coinCount ?? 0) > 0;
+  });
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
   /** Coin whose photos are shown fullscreen. */
   protected readonly viewerCoin = signal<ListedCoin | null>(null);
 
   protected readonly searchControl = new FormControl('', { nonNullable: true });
+  protected readonly searchMaxLength = SEARCH_MAX_LENGTH;
 
   constructor() {
     this.countryService.load();
@@ -305,26 +313,17 @@ export class Collection {
         takeUntilDestroyed(),
       )
       .subscribe((result) => {
+        // A page past the last one comes back empty (its last coin was deleted or moved, or an
+        // old link): go to the last page instead of "no coins yet" without paging
+        if (result && result.totalCount > 0 && result.page > result.totalPages) {
+          this.navigate({ page: result.totalPages > 1 ? result.totalPages : null }, true);
+          return;
+        }
         this.result.set(result);
         this.loading.set(false);
       });
 
-    // Keep the search box in sync with the URL (back/forward, "clear filters")
-    effect(() => {
-      const value = this.search() ?? '';
-      if (value !== this.searchControl.value) {
-        this.searchControl.setValue(value, { emitEvent: false });
-      }
-    });
-
-    this.searchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        map((value) => value.trim()),
-        distinctUntilChanged(),
-        takeUntilDestroyed(),
-      )
-      .subscribe((value) => this.setFilters({ search: value || null }));
+    syncSearchWithUrl(this.searchControl, this.search, (search) => this.setFilters({ search }));
   }
 
   private loadHeader(): Observable<unknown> {
@@ -501,22 +500,28 @@ export class Collection {
   }
 
   protected clearFilters(): void {
-    // Keep the chosen sort order and view
+    // Keep the chosen sort order, page size and view
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         sort: this.sort() ?? null,
         dir: this.dir() ?? null,
+        pageSize: this.pageSize() ?? null,
         view: this.view() ?? null,
       },
     });
   }
 
-  private navigate(params: Record<string, QueryParamValue>): void {
+  private navigate(params: Record<string, QueryParamValue>, replaceUrl = false): void {
     // Empty strings and nulls remove the param from the URL
     const queryParams = Object.fromEntries(
       Object.entries(params).map(([key, value]) => [key, value === '' ? null : value]),
     );
-    this.router.navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge' });
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl,
+    });
   }
 }

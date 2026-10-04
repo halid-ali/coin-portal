@@ -1,8 +1,6 @@
-import { Directive, computed, effect, inject, input } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Directive, computed, inject, input } from '@angular/core';
 import { NonNullableFormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 
 import {
   formatBytes,
@@ -12,7 +10,10 @@ import {
 } from '../../core/admin/admin-format';
 import { parseAdminPageSize, parsePage } from '../../core/admin/admin-list';
 import { ADMIN_DEFAULT_PAGE_SIZE, ADMIN_PAGE_SIZES } from '../../core/admin/admin.models';
+import { PagedResponse } from '../../core/coins/coin.models';
+import { firstQueryParam } from '../../core/http/query-params';
 import { LanguageService } from '../../core/i18n/language.service';
+import { SEARCH_MAX_LENGTH, normalizeSearch, syncSearchWithUrl } from '../../shared/url-search';
 
 export type QueryParamValue = string | number | boolean | null;
 
@@ -26,32 +27,31 @@ export abstract class AdminListBase {
   protected readonly route = inject(ActivatedRoute);
   protected readonly language = inject(LanguageService);
 
-  readonly search = input<string>();
-  readonly page = input<string>();
-  readonly pageSize = input<string>();
+  readonly search = input(undefined, { transform: firstQueryParam });
+  readonly page = input(undefined, { transform: firstQueryParam });
+  readonly pageSize = input(undefined, { transform: firstQueryParam });
 
+  protected readonly searchValue = computed(() => normalizeSearch(this.search()) || undefined);
   protected readonly pageNumber = computed(() => parsePage(this.page()));
   protected readonly pageSizeValue = computed(() => parseAdminPageSize(this.pageSize()));
   protected readonly pageSizes = ADMIN_PAGE_SIZES;
+  protected readonly searchMaxLength = SEARCH_MAX_LENGTH;
   protected readonly searchControl = inject(NonNullableFormBuilder).control('');
 
   constructor() {
-    // Keep the search box in sync with the URL (back/forward)
-    effect(() => {
-      const value = this.search() ?? '';
-      if (value !== this.searchControl.value) {
-        this.searchControl.setValue(value, { emitEvent: false });
-      }
-    });
+    syncSearchWithUrl(this.searchControl, this.search, (search) => this.setFilters({ search }));
+  }
 
-    this.searchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        map((value) => value.trim()),
-        distinctUntilChanged(),
-        takeUntilDestroyed(),
-      )
-      .subscribe((value) => this.setFilters({ search: value || null }));
+  /**
+   * A page past the last one (its last row was deleted, or an old link) comes back empty: go to
+   * the last page instead of showing an empty list without paging. True when it navigated.
+   */
+  protected leftPastLastPage(result: PagedResponse<unknown> | null): boolean {
+    if (!result || result.totalCount === 0 || result.page <= result.totalPages) {
+      return false;
+    }
+    this.navigate({ page: result.totalPages > 1 ? result.totalPages : null }, true);
+    return true;
   }
 
   /** Changing a filter or the sort goes back to page 1. */
@@ -69,12 +69,17 @@ export abstract class AdminListBase {
     this.setFilters({ pageSize: size === ADMIN_DEFAULT_PAGE_SIZE ? null : size });
   }
 
-  protected navigate(params: Record<string, QueryParamValue>): void {
+  protected navigate(params: Record<string, QueryParamValue>, replaceUrl = false): void {
     // Empty strings and nulls remove the param from the URL
     const queryParams = Object.fromEntries(
       Object.entries(params).map(([key, value]) => [key, value === '' ? null : value]),
     );
-    this.router.navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge' });
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl,
+    });
   }
 
   // Formatting in the UI language (templates re-render when it changes)

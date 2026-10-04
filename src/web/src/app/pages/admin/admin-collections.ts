@@ -15,6 +15,7 @@ import {
 } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { PagedResponse, SortDirection } from '../../core/coins/coin.models';
+import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -61,9 +62,9 @@ export class AdminCollections extends AdminListBase {
   private readonly admin = inject(AdminService);
   private readonly confirm = inject(ConfirmDialogService);
 
-  readonly show = input<string>();
-  readonly sort = input<string>();
-  readonly dir = input<string>();
+  readonly show = input(undefined, { transform: firstQueryParam });
+  readonly sort = input(undefined, { transform: firstQueryParam });
+  readonly dir = input(undefined, { transform: firstQueryParam });
 
   protected readonly showValues = SHOW_VALUES;
   protected readonly sorts = SORTS;
@@ -82,7 +83,7 @@ export class AdminCollections extends AdminListBase {
     const show = this.showValue();
     this.reloads();
     return {
-      search: this.search()?.trim() || undefined,
+      search: this.searchValue(),
       ...(show ? SHOW_FILTERS[show] : {}),
       sort: this.sortState().sort,
       dir: this.sortState().dir,
@@ -123,6 +124,9 @@ export class AdminCollections extends AdminListBase {
         takeUntilDestroyed(),
       )
       .subscribe((result) => {
+        if (this.leftPastLastPage(result)) {
+          return;
+        }
         this.result.set(result);
         this.loading.set(false);
       });
