@@ -1,7 +1,9 @@
 import {
   Component,
   ElementRef,
+  Injector,
   afterNextRender,
+  inject,
   input,
   output,
   signal,
@@ -70,7 +72,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
               [onlyScaleDown]="true"
               output="blob"
               (transformChange)="transform.set($event)"
-              (cropperReady)="ready.set(true)"
+              (cropperReady)="onReady()"
               (loadImageFailed)="failed.set(true)"
             />
           }
@@ -180,9 +182,24 @@ export class PhotoCropDialog {
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private readonly cropper = viewChild(ImageCropperComponent);
   private result: Blob | null = null;
+  private readonly injector = inject(Injector);
 
   constructor() {
     afterNextRender(() => this.dialog().nativeElement.showModal());
+  }
+
+  /**
+   * The library's crop frame is a focusable div with an aria-label but no role, where ARIA does not
+   * allow a name (axe: aria-prohibited-attr): a group may carry it. The library reports ready just
+   * before it renders the frame.
+   */
+  protected onReady(): void {
+    this.ready.set(true);
+    afterNextRender(
+      () =>
+        this.dialog().nativeElement.querySelector('.ngx-ic-cropper')?.setAttribute('role', 'group'),
+      { injector: this.injector },
+    );
   }
 
   // Keeps the position (translateH/V) from dragging, only the scale changes

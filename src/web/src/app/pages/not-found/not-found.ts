@@ -14,7 +14,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   host: { class: 'block' },
   template: `
     <div class="card mx-auto max-w-xl text-center">
-      <p class="text-5xl font-semibold text-shade-300" aria-hidden="true">404</p>
+      <p class="text-5xl font-semibold text-shade-500" aria-hidden="true">404</p>
       <h1 class="mt-2 text-xl font-semibold text-shade-900">{{ 'notFound.title' | transloco }}</h1>
       <p class="mt-2 text-shade-600">{{ 'notFound.message' | transloco }}</p>
       <div class="mt-6 flex flex-wrap justify-center gap-3">
