@@ -13,7 +13,8 @@ import { SortHeader } from './sort-header';
       <tr>
         <th
           appSortHeader
-          label="Yıl"
+          [label]="label()"
+          [fullLabel]="fullLabel()"
           [direction]="direction()"
           [firstDirection]="firstDirection()"
           [clearable]="clearable()"
@@ -24,6 +25,8 @@ import { SortHeader } from './sort-header';
   </table>`,
 })
 class Host {
+  readonly label = signal('Yıl');
+  readonly fullLabel = signal<string | null>(null);
   readonly direction = signal<SortDirection | null>(null);
   readonly firstDirection = signal<SortDirection>('Asc');
   readonly clearable = signal(true);
@@ -55,8 +58,8 @@ describe('SortHeader', () => {
 
   // aria-sort for screen readers; the tooltip says what the next click does
   it.each([
-    [null, {}, 'none', 'sort.ascending'],
-    [null, { firstDirection: 'Desc' as const }, 'none', 'sort.descending'],
+    [null, {}, null, 'sort.ascending'],
+    [null, { firstDirection: 'Desc' as const }, null, 'sort.descending'],
     ['Asc' as const, {}, 'ascending', 'sort.descending'],
     ['Desc' as const, {}, 'descending', 'sort.clear'],
     ['Desc' as const, { clearable: false }, 'descending', 'sort.ascending'],
@@ -66,6 +69,22 @@ describe('SortHeader', () => {
     expect(th.getAttribute('aria-sort')).toBe(ariaSort);
     expect(th.getAttribute('scope')).toBe('col');
     expect(button.title).toBe(translate(hint));
+  });
+
+  it('reads a shortened label out in full', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.label.set('Год.');
+    fixture.componentInstance.fullLabel.set('Година');
+    await fixture.whenStable();
+    const button = (fixture.nativeElement as HTMLElement).querySelector('button')!;
+
+    expect(button.querySelector('[aria-hidden=true]')!.textContent).toBe('Год.');
+    expect(button.querySelector('.sr-only')!.textContent).toBe('Година');
+
+    // The same text twice would be read twice
+    fixture.componentInstance.label.set('Година');
+    await fixture.whenStable();
+    expect(button.querySelector('.sr-only')).toBeNull();
   });
 
   it('reports a click to the parent, which sorts', async () => {

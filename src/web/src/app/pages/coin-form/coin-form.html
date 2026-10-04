@@ -4,7 +4,7 @@
       {{ (isEdit() ? 'coinForm.titleEdit' : 'coinForm.titleNew') | transloco }}
     </h1>
     <a [routerLink]="returnTree()" class="link text-sm"
-      >‹ {{ 'coinForm.backToCollection' | transloco }}</a
+      ><span aria-hidden="true">‹</span> {{ 'coinForm.backToCollection' | transloco }}</a
     >
   </div>
 

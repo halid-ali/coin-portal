@@ -27,7 +27,7 @@ import { CollectionFormDialog } from './collection-form-dialog';
           }
         </div>
         <button type="button" class="btn-primary" (click)="creating.set(true)">
-          {{ 'collections.new' | transloco }}
+          <span aria-hidden="true" class="mr-1">+</span>{{ 'collections.new' | transloco }}
         </button>
       </div>
 

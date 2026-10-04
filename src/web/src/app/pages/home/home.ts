@@ -36,9 +36,9 @@ import { ACCOUNT_DELETED_STATE } from '../../core/settings/settings.service';
           <a routerLink="/register" class="btn-primary">{{ 'home.registerFree' | transloco }}</a>
           <a routerLink="/login" class="btn-secondary">{{ 'nav.login' | transloco }}</a>
         </div>
-        <a routerLink="/explore" class="link mt-6 inline-block">{{
-          'home.browseCollectors' | transloco
-        }}</a>
+        <a routerLink="/explore" class="link mt-6 inline-block"
+          >{{ 'home.browseCollectors' | transloco }} <span aria-hidden="true">→</span></a
+        >
       }
     </section>
   `,

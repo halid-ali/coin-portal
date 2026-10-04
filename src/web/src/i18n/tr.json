@@ -21,6 +21,8 @@
     "choose": "Seç…",
     "optional": "İsteğe bağlı.",
     "goToExplore": "Keşfet'e git",
+    "opensNewTab": "yeni sekmede açılır",
+    "none": "Yok",
     "coinCount": {
       "one": "{{count}} coin",
       "other": "{{count}} coin"
@@ -103,7 +105,7 @@
     "goToCollections": "Koleksiyonlarıma git",
     "intro": "Coin'lerini fotoğraflarıyla kaydet, elinde olup olmadığını saniyeler içinde kontrol et ve koleksiyonunu arkadaşlarınla paylaş.",
     "registerFree": "Ücretsiz kayıt ol",
-    "browseCollectors": "Herkese açık koleksiyonları keşfet →"
+    "browseCollectors": "Herkese açık koleksiyonları keşfet"
   },
   "login": {
     "title": "Giriş yap",
@@ -220,7 +222,8 @@
     "previous": "Önceki sayfa",
     "next": "Sonraki sayfa",
     "last": "Son sayfa",
-    "perPage": "Sayfa başına"
+    "perPage": "Sayfa başına",
+    "pageOf": "Sayfa {{page}}, toplam {{total}}"
   },
   "coinList": {
     "notFoundOwn": "Koleksiyon bulunamadı. Silinmiş ya da sana ait olmayabilir.",
@@ -236,7 +239,7 @@
     "filtered": "(filtrelenmiş)",
     "sharedBy": "@{{userName}} paylaştı",
     "copyLink": "Linki kopyala",
-    "addCoin": "+ Coin ekle",
+    "addCoin": "Coin ekle",
     "sharedNotice": "Bu koleksiyon sana gizli bir linkle paylaşıldı; herkese açık listelerde görünmez.",
     "search": "Ara",
     "searchPlaceholder": "Başlık veya açıklama",
@@ -291,6 +294,7 @@
     }
   },
   "crop": {
+    "frameLabel": "Kırpma alanı. Ok tuşları taşır, Shift ve ok tuşları boyutunu değiştirir.",
     "title": "Fotoğrafı kırp",
     "hint": "Madeni parayı daireye ortala. Daireyi sürükleyip köşelerinden boyutlandırabilirsin; yakınlaştırınca fotoğrafı dairenin dışından tutup kaydırabilirsin.",
     "openFailed": "Fotoğraf açılamadı. Başka bir dosya dene.",
@@ -312,7 +316,7 @@
       "one": "{{count}} koleksiyon",
       "other": "{{count}} koleksiyon"
     },
-    "new": "+ Yeni koleksiyon",
+    "new": "Yeni koleksiyon",
     "loadError": "Koleksiyonlar yüklenemedi. Sayfayı yenileyip tekrar dene.",
     "empty": "Henüz koleksiyonun yok.",
     "createFirst": "İlk koleksiyonunu oluştur",

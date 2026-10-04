@@ -6,7 +6,7 @@ import { SortDirection } from '../../core/coins/coin.models';
 /**
  * Sortable table header cell: the label with a sort button right next to it.
  * The icon shows the current state (neutral, ascending, descending); the host
- * <th> gets aria-sort so screen readers announce the order.
+ * <th> gets aria-sort while it is the sorted column, so screen readers announce the order.
  */
 @Component({
   selector: 'th[appSortHeader]',
@@ -23,7 +23,13 @@ import { SortDirection } from '../../core/coins/coin.models';
       [title]="hint() | transloco"
       (click)="toggle.emit()"
     >
-      <span>{{ label() }}</span>
+      @if (fullLabel() && fullLabel() !== label()) {
+        <!-- A short column label is read out in full -->
+        <span aria-hidden="true">{{ label() }}</span>
+        <span class="sr-only">{{ fullLabel() }}</span>
+      } @else {
+        <span>{{ label() }}</span>
+      }
       <span
         class="inline-flex size-5 items-center justify-center rounded transition-colors"
         [class]="iconClass()"
@@ -56,6 +62,8 @@ import { SortDirection } from '../../core/coins/coin.models';
 })
 export class SortHeader {
   readonly label = input.required<string>();
+  /** What screen readers say instead of a shortened label (e.g. "Value" → "Denomination"). */
+  readonly fullLabel = input<string | null>(null);
   /** Null when the table is sorted by another column. */
   readonly direction = input<SortDirection | null>(null);
   /** What the first click on an inactive column does (only the tooltip; the parent sorts). */
@@ -66,7 +74,8 @@ export class SortHeader {
 
   protected readonly ariaSort = computed(() => {
     const dir = this.direction();
-    return dir === 'Asc' ? 'ascending' : dir === 'Desc' ? 'descending' : 'none';
+    // Only on the sorted column (ARIA): "none" on every other one is just noise
+    return dir === 'Asc' ? 'ascending' : dir === 'Desc' ? 'descending' : null;
   });
 
   // Active: amber badge; inactive: muted icon that lights up on hover

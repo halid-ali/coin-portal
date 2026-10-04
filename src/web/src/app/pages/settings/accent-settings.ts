@@ -81,7 +81,9 @@ const SWATCH: Record<AccentColor, string> = {
 
       <p aria-live="polite" class="min-h-5">
         @if (status() === 'saved') {
-          <span class="text-sm text-success-700">✓ {{ 'settings.accent.saved' | transloco }}</span>
+          <span class="text-sm text-success-700"
+            ><span aria-hidden="true">✓</span> {{ 'settings.accent.saved' | transloco }}</span
+          >
         }
       </p>
 

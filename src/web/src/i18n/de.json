@@ -21,6 +21,8 @@
     "choose": "Auswählen…",
     "optional": "Optional.",
     "goToExplore": "Zu „Entdecken“",
+    "opensNewTab": "öffnet in einem neuen Tab",
+    "none": "Keine Angabe",
     "coinCount": {
       "one": "{{count}} Münze",
       "other": "{{count}} Münzen"
@@ -103,7 +105,7 @@
     "goToCollections": "Zu meinen Sammlungen",
     "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine schon hast, und teile deine Sammlung mit Freunden.",
     "registerFree": "Kostenlos registrieren",
-    "browseCollectors": "Öffentliche Sammlungen entdecken →"
+    "browseCollectors": "Öffentliche Sammlungen entdecken"
   },
   "login": {
     "title": "Anmelden",
@@ -220,7 +222,8 @@
     "previous": "Vorherige Seite",
     "next": "Nächste Seite",
     "last": "Letzte Seite",
-    "perPage": "Pro Seite"
+    "perPage": "Pro Seite",
+    "pageOf": "Seite {{page}} von {{total}}"
   },
   "coinList": {
     "notFoundOwn": "Sammlung nicht gefunden. Sie wurde vielleicht gelöscht oder gehört dir nicht.",
@@ -236,7 +239,7 @@
     "filtered": "(gefiltert)",
     "sharedBy": "Geteilt von @{{userName}}",
     "copyLink": "Link kopieren",
-    "addCoin": "+ Münze hinzufügen",
+    "addCoin": "Münze hinzufügen",
     "sharedNotice": "Diese Sammlung wurde über einen privaten Link mit dir geteilt; sie erscheint in keiner öffentlichen Liste.",
     "search": "Suchen",
     "searchPlaceholder": "Titel oder Beschreibung",
@@ -291,6 +294,7 @@
     }
   },
   "crop": {
+    "frameLabel": "Zuschneidebereich. Pfeiltasten verschieben ihn, Umschalt und Pfeiltasten ändern seine Größe.",
     "title": "Foto zuschneiden",
     "hint": "Richte die Münze mittig im Kreis aus. Du kannst den Kreis verschieben und an den Ecken seine Größe ändern; nach dem Vergrößern kannst du das Foto außerhalb des Kreises greifen und verschieben.",
     "openFailed": "Das Foto konnte nicht geöffnet werden. Versuche es mit einer anderen Datei.",
@@ -312,7 +316,7 @@
       "one": "{{count}} Sammlung",
       "other": "{{count}} Sammlungen"
     },
-    "new": "+ Neue Sammlung",
+    "new": "Neue Sammlung",
     "loadError": "Deine Sammlungen konnten nicht geladen werden. Lade die Seite neu und versuche es erneut.",
     "empty": "Du hast noch keine Sammlungen.",
     "createFirst": "Erste Sammlung erstellen",

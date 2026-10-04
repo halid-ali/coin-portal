@@ -21,6 +21,8 @@
     "choose": "Select…",
     "optional": "Optional.",
     "goToExplore": "Go to Explore",
+    "opensNewTab": "opens in a new tab",
+    "none": "None",
     "coinCount": {
       "one": "{{count}} coin",
       "other": "{{count}} coins"
@@ -103,7 +105,7 @@
     "goToCollections": "Go to my collections",
     "intro": "Record your coins with photos, check in seconds whether you already have one, and share your collection with friends.",
     "registerFree": "Sign up for free",
-    "browseCollectors": "Explore public collections →"
+    "browseCollectors": "Explore public collections"
   },
   "login": {
     "title": "Sign in",
@@ -220,7 +222,8 @@
     "previous": "Previous page",
     "next": "Next page",
     "last": "Last page",
-    "perPage": "Per page"
+    "perPage": "Per page",
+    "pageOf": "Page {{page}} of {{total}}"
   },
   "coinList": {
     "notFoundOwn": "Collection not found. It may have been deleted or may not belong to you.",
@@ -236,7 +239,7 @@
     "filtered": "(filtered)",
     "sharedBy": "Shared by @{{userName}}",
     "copyLink": "Copy link",
-    "addCoin": "+ Add coin",
+    "addCoin": "Add coin",
     "sharedNotice": "This collection was shared with you through a private link; it doesn't appear in public lists.",
     "search": "Search",
     "searchPlaceholder": "Title or description",
@@ -291,6 +294,7 @@
     }
   },
   "crop": {
+    "frameLabel": "Crop area. Arrow keys move it, Shift and arrow keys resize it.",
     "title": "Crop photo",
     "hint": "Center the coin in the circle. Drag the circle and resize it from its corners; after zooming in, drag the photo from outside the circle to move it.",
     "openFailed": "The photo couldn't be opened. Try another file.",
@@ -312,7 +316,7 @@
       "one": "{{count}} collection",
       "other": "{{count}} collections"
     },
-    "new": "+ New collection",
+    "new": "New collection",
     "loadError": "Couldn't load your collections. Reload the page and try again.",
     "empty": "You don't have any collections yet.",
     "createFirst": "Create your first collection",

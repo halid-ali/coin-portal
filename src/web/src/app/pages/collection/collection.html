@@ -50,13 +50,13 @@
             @switch (mode()) {
               @case ('owner') {
                 <a routerLink="/collections" class="link text-sm"
-                  >‹ {{ 'nav.collections' | transloco }}</a
+                  ><span aria-hidden="true">‹</span> {{ 'nav.collections' | transloco }}</a
                 >
               }
               @case ('public') {
                 @if (header(); as h) {
                   <a [routerLink]="['/u', h.ownerUserName]" class="link text-sm"
-                    >‹ &#64;{{ h.ownerUserName }}</a
+                    ><span aria-hidden="true">‹</span> &#64;{{ h.ownerUserName }}</a
                   >
                 }
               }
@@ -199,7 +199,7 @@
               routerLink="/coins/new"
               [queryParams]="{ collection: collectionId() }"
               class="btn-primary"
-              >{{ 'coinList.addCoin' | transloco }}</a
+              ><span aria-hidden="true" class="mr-1">+</span>{{ 'coinList.addCoin' | transloco }}</a
             >
           </div>
         }
@@ -662,6 +662,13 @@
              shows them); edit: the 20 px icon. A new language means measuring again. -->
             <div class="card hidden overflow-x-auto p-0 lg:block">
               <table class="w-full table-fixed text-left text-sm">
+                <caption class="sr-only">
+                  @if (mode() === 'explore') {
+                    {{ 'coinList.exploreTitle' | transloco }}
+                  } @else {
+                    {{ header()?.name }}
+                  }
+                </caption>
                 <colgroup>
                   <col class="w-16" />
                   <col />
@@ -686,15 +693,18 @@
                         appSortHeader
                         class="px-3 py-2"
                         [label]="'coin.column.' + c.value | transloco"
+                        [fullLabel]="c.labelKey | transloco"
                         [direction]="sortDirection(c.value)"
                         (toggle)="sortBy(c.value)"
                       ></th>
                     }
                     <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
-                      {{ 'coin.column.MintMark' | transloco }}
+                      <span aria-hidden="true">{{ 'coin.column.MintMark' | transloco }}</span>
+                      <span class="sr-only">{{ 'coin.field.mintMark' | transloco }}</span>
                     </th>
                     <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
-                      {{ 'coin.column.Commemorative' | transloco }}
+                      <span aria-hidden="true">{{ 'coin.column.Commemorative' | transloco }}</span>
+                      <span class="sr-only">{{ 'coin.field.commemorative' | transloco }}</span>
                     </th>
                     @if (mode() === 'owner') {
                       <th scope="col" class="px-3 py-2">
@@ -737,10 +747,20 @@
                       </td>
                       <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
                       <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">
-                        {{ coin.mintMark ?? '–' }}
+                        @if (coin.mintMark) {
+                          {{ coin.mintMark }}
+                        } @else {
+                          <span aria-hidden="true">–</span>
+                          <span class="sr-only">{{ 'common.none' | transloco }}</span>
+                        }
                       </td>
                       <td class="truncate px-3 py-3">
-                        {{ coin.isCommemorative ? ('common.yes' | transloco) : '–' }}
+                        @if (coin.isCommemorative) {
+                          {{ 'common.yes' | transloco }}
+                        } @else {
+                          <span aria-hidden="true">–</span>
+                          <span class="sr-only">{{ 'common.none' | transloco }}</span>
+                        }
                       </td>
                       @if (mode() === 'owner') {
                         <td class="px-3 py-3 text-right">

@@ -27,6 +27,15 @@ describe('Pagination', () => {
     return { fixture, pages, button };
   }
 
+  it('reads the current page as words, not "2 / 3"', async () => {
+    const { fixture } = await create(2, 3);
+    const nav = (fixture.nativeElement as HTMLElement).querySelector('nav')!;
+
+    expect(nav.querySelector('nav > span > [aria-hidden=true]')!.textContent!.trim()).toBe('2 / 3');
+    expect(nav.querySelector('nav > span > .sr-only')!.textContent).toBe('Sayfa 2, toplam 3');
+    expect(nav.querySelector('[aria-current]')).toBeNull();
+  });
+
   it('moves between pages', async () => {
     const { pages, button } = await create(2, 3);
     button('Sonraki sayfa').click();
