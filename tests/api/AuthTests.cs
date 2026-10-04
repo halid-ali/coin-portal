@@ -1,7 +1,9 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using CoinPortal.Api.Contracts.Auth;
+using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Tests.Infrastructure;
 
@@ -172,7 +174,8 @@ public class AuthTests(CoinPortalFactory factory)
         }
         using var response = await client.LoginAsync(alice.UserName, TestUser.Password);
 
-        await response.ShouldHaveStatusAsync(HttpStatusCode.Locked);
+        // No code: "account_locked" would make the client say an administrator locked it
+        Assert.Null(await response.ReadProblemCodeAsync(HttpStatusCode.Locked));
     }
 
     [Fact]
@@ -227,6 +230,135 @@ public class AuthTests(CoinPortalFactory factory)
             withAntiforgeryToken: false);
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
+    }
+
+    // Not only JSON posts: every unsafe method and body type needs the token
+    [Theory]
+    [InlineData("uploadPhoto")]
+    [InlineData("deleteCoin")]
+    [InlineData("updateCollection")]
+    [InlineData("deleteCover")]
+    public async Task UnsafeRequests_OfEveryKind_WithoutAntiforgeryToken_AreRejected(string kind)
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        await alice.UploadCoverAsync(collection.Id);
+        var photo = new ByteArrayContent(TestImages.Png(200, 160));
+        photo.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        var (method, url, content) = kind switch
+        {
+            "uploadPhoto" => (HttpMethod.Put, $"/api/coins/{coin.Id}/photos/National",
+                (HttpContent?)new MultipartFormDataContent { { photo, "file", "photo.png" } }),
+            "deleteCoin" => (HttpMethod.Delete, $"/api/coins/{coin.Id}", null),
+            "updateCollection" => (HttpMethod.Put, $"/api/collections/{collection.Id}",
+                JsonContent.Create(new CollectionUpsertRequest { Name = "Renamed" })),
+            _ => (HttpMethod.Delete, $"/api/collections/{collection.Id}/cover", null),
+        };
+
+        using var response = await alice.Client.SendAsync(method, url, content, withAntiforgeryToken: false);
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
+        // Nothing happened
+        var after = await alice.Client.GetJsonAsync<CoinResponse>($"/api/coins/{coin.Id}");
+        Assert.Empty(after.Photos);
+        var collectionAfter = await alice.Client.GetJsonAsync<CollectionResponse>($"/api/collections/{collection.Id}");
+        Assert.Equal(collection.Name, collectionAfter.Name);
+        Assert.NotNull(collectionAfter.CoverImageId);
+    }
+
+    [Fact]
+    public async Task Cookies_CarryTheirSecurityFlags()
+    {
+        var alice = await factory.SignUpAsync();
+        using var http = CoinPortalFactory.CreateHttpClient(factory);
+
+        // The first token request sets both antiforgery cookies
+        using var antiforgery = await http.GetAsync("/api/auth/antiforgery");
+        var client = new ApiClient(http);
+        await client.RefreshAntiforgeryAsync();
+        using var login = await client.LoginAsync(alice.UserName, TestUser.Password);
+
+        await login.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        // Session and antiforgery cookie: out of reach of scripts; the token cookie is read by the
+        // client on purpose. All of them only over HTTPS.
+        Assert.Equal(["httponly", "samesite=lax", "secure"], Flags(login, "coinportal.auth"));
+        Assert.Equal(["httponly", "samesite=strict", "secure"], Flags(antiforgery, "coinportal.af"));
+        Assert.Equal(["samesite=strict", "secure"], Flags(antiforgery, "XSRF-TOKEN"));
+    }
+
+    // The security attributes of one Set-Cookie header (not its value, path or expiry)
+    private static string[] Flags(HttpResponseMessage response, string cookie) =>
+        response.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith(cookie + "="))
+            .Split(';').Skip(1)
+            .Select(a => a.Trim().ToLowerInvariant())
+            .Where(a => a is "httponly" or "secure" || a.StartsWith("samesite="))
+            .Order().ToArray();
+
+    [Theory]
+    [InlineData("Weakpassword", "PasswordRequiresDigit")]
+    [InlineData("short1A", "Password")]
+    [InlineData(null, "Password")]
+    public async Task Register_PasswordOutsideTheRules_IsRejected(string? password, string expectedKey)
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+        // null: one character over the limit of 100
+        var request = TestUser.NewRegisterRequest() with { Password = password ?? "Aa1" + new string('x', 98) };
+
+        using var response = await client.PostAsync("/api/auth/register", request);
+
+        Assert.Contains(expectedKey, await response.ReadValidationKeysAsync());
+    }
+
+    [Fact]
+    public async Task Register_UnknownLanguage_IsRejected()
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+
+        using var response = await client.PostAsync("/api/auth/register", TestUser.NewRegisterRequest("xx"));
+
+        Assert.Contains("Language", await response.ReadValidationKeysAsync());
+    }
+
+    // Days from today (UTC) of the 18th birthday; 18 years old exactly today is enough
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public async Task Register_AgeLimit_CountsFromTheUtcDate(int daysUntilEighteenth, bool accepted)
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var request = TestUser.NewRegisterRequest() with
+        {
+            BirthDate = today.AddDays(daysUntilEighteenth).AddYears(-18),
+        };
+
+        using var response = await client.PostAsync("/api/auth/register", request);
+
+        if (accepted)
+        {
+            await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        }
+        else
+        {
+            Assert.Equal(["BirthDate"], await response.ReadValidationKeysAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(-121 * 366)]
+    public async Task Register_FutureOrImplausibleBirthDate_IsRejected(int daysFromToday)
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+        var request = TestUser.NewRegisterRequest() with
+        {
+            BirthDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(daysFromToday),
+        };
+
+        using var response = await client.PostAsync("/api/auth/register", request);
+
+        Assert.Equal(["BirthDate"], await response.ReadValidationKeysAsync());
     }
 
     [Fact]

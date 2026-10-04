@@ -16,6 +16,13 @@ public static class ResponseAssertions
         }
     }
 
+    /// <summary>Sends a GET and checks only its status.</summary>
+    public static async Task ExpectStatusAsync(this ApiClient client, string url, HttpStatusCode expected)
+    {
+        using var response = await client.GetAsync(url);
+        await response.ShouldHaveStatusAsync(expected);
+    }
+
     /// <summary>Expects a 2xx response and reads its JSON body.</summary>
     public static async Task<T> ReadJsonAsync<T>(this HttpResponseMessage response)
     {

@@ -1,7 +1,7 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.1.0` yayında**, P1'in ilk yarısı: #22, #23, #26, #24, #25; Tamamlananlar
-54–59. P1'in ikinci yarısı: #27, #28 bitti (Tamamlananlar 61, 62), sırada #29. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59. P1'in ikinci yarısı: #27, #28, #29 bitti (Tamamlananlar 61–63), sırada #30. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1103,6 +1103,32 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Gizlilik ve şartlarda sadece terimler değişti, `PRIVACY_UPDATED`/`TERMS_UPDATED` aynı kaldı.
     - Testler: client 151 (+4: UTC yaş, `notBlank`, `integer`, parametreli mesaj; API metninin
       gösterilmediği test güncellendi). Tarayıcıda elle denenmedi.
+63. **API test boşlukları** (`chore/api-test-gaps`, #29, 2026-10-04; sadece testler, uygulama kodu değişmedi):
+    - **Güvenlik:** üç cookie'nin `HttpOnly`/`Secure`/`SameSite` bayrakları; token'sız multipart PUT, DELETE,
+      JSON PUT ve kapak DELETE → 400 (hiçbir şey değişmez); zayıf/101 karakter parola, bilinmeyen dil, yaş
+      sınırı (UTC bugün tam 18 kabul, bir gün eksik ret, gelecek ve 120+); geçici kilitte kod yok; hesap
+      silmede 5 yanlış parola → 423, hesap kalır; rol kaybı açık oturuma yeniden giriş olmadan yansır.
+    - **`ApiConventionsTests`** (yeni): route'lar `api/` altında, `api/admin` uçları `AdminControllerBase`'den,
+      girişsiz her uçta rate limit politikası, antiforgery'yi atlayan uç yok.
+    - **Fotoğraflar:** `file_too_large`, `quota_exceeded` (kota 1 bayt, ikinci host), GIF → biçim hatası;
+      EXIF yönü uygulanır ve çıktı WebP'de EXIF/XMP yok (elle yazılmış `eXIf` bölümlü PNG; temizleyen satır
+      kapatılınca test düştü); kapak değiştirme/silme/ikinci silme, başkasının fotoğrafını/kapağını silme 404;
+      `private` + 365 gün + `immutable` ve `ETag` → 304 (`s=`'li Unlisted adreste); başka bir Unlisted
+      koleksiyonun anahtarı açmaz; kilitli kullanıcının kapağı görünmez; `GET api/countries`.
+    - **Coin ve koleksiyon:** başkasının koleksiyonuna taşıma, alan anahtarlarıyla sınır testleri (başlık,
+      boş başlık, darphane, açıklama, adet 0/1000; koleksiyon adı ve açıklaması), yıl ve hatıra filtreleri,
+      başlık/nominal/yıl sıralamaları ikincil anahtarlarıyla, görünürlük verilmeyen güncelleme korur,
+      `moveTo` ile silmede kapak dosyası gider, coin fotoğrafı kalır.
+    - **Admin:** kullanıcı sıralamaları (kayıt, ad, son görülme, depolama; zamanlar `WithDbAsync` ile ayrık),
+      sayfalama, durum filtresi, geçersiz sorgu 400; koleksiyonlarda ada göre arama, ad/coin sayısı sıralaması,
+      `locked=false`, `OwnerLocked`; denetim kaydı sayfalaması; istatistikte kilitli/gizli sayısı önce/sonra farkı.
+    - **Sağlamlaştırma:** yükleme ve durum yardımcıları birleşti (`TestUser.UploadPhotoAsync`/`UploadCoverAsync`,
+      `ExpectStatusAsync`); dışa aktarma dosya adı `AccountExport.FileName` ile ayrıca test edilir.
+    - **İki aralıklı hata bulundu ve düzeltildi** (testlerde): paralel `CreateClient` factory'nin istemci
+      listesine null bırakıp koşunun sonunda tüm testleri "cleanup failure" yapıyordu (11 koşuda 1; artık kilitli
+      `CoinPortalFactory.CreateHttpClient`); #27'deki süpürme testi paralel bir süpürmenin `LastResult`'ı
+      değiştirmesine açıktı. Düzeltmeden sonra 8 tam koşu temiz.
+    - Testler: API 222 (önce 158).
 
 ## Yol haritası
 
@@ -1205,7 +1231,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi (Tamamlananlar 56).
   - [x] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları (Tamamlananlar 61; ek: admin panelinde disk istatistikleri).
   - [x] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri (Tamamlananlar 62).
-  - [ ] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları).
+  - [x] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları) (Tamamlananlar 63).
   - [ ] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce).
 - **P2, planlı:**
   - [ ] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı.
@@ -1221,7 +1247,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 Yeni sohbette kullanıcıyla seçilecek. **`v1.1.0` yayında** (2026-10-04, Tamamlananlar 59); P1'in kalan yarısı
-sırada (#27, #28 bitti, #29 ile devam). Adaylar:
+sırada (#27, #28, #29 bitti, #30 ile devam). Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
@@ -1229,7 +1255,7 @@ sırada (#27, #28 bitti, #29 ile devam). Adaylar:
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
-  ~~#28 çeviriler~~ → #29 API testleri → #30 client testleri → **`v1.2.0`**.
+  ~~#28 çeviriler~~ → ~~#29 API testleri~~ → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
 

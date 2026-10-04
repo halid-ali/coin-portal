@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Net;
 using System.Text.Json;
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
@@ -29,8 +30,10 @@ public class AccountTests(CoinPortalFactory factory)
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
         Assert.Equal("application/zip", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal($"coinvitrine-{alice.UserName}-{DateTime.UtcNow:yyyyMMdd}.zip",
-            response.Content.Headers.ContentDisposition?.FileName);
+        // The date part is tested on its own: around midnight it may differ from the test's clock
+        var fileName = response.Content.Headers.ContentDisposition?.FileName;
+        Assert.StartsWith($"coinvitrine-{alice.UserName}-", fileName);
+        Assert.EndsWith(".zip", fileName);
 
         using var zip = new ZipArchive(await response.Content.ReadAsStreamAsync());
         var names = zip.Entries.Select(e => e.FullName).Order().ToList();
@@ -66,6 +69,16 @@ public class AccountTests(CoinPortalFactory factory)
         Assert.DoesNotContain(@"\u00", everything);
         Assert.DoesNotContain(bob.UserName, everything);
         Assert.Contains("RIFF", System.Text.Encoding.ASCII.GetString(ReadBytes(zip, $"photos/{coin.Id}-national.webp")[..4]));
+    }
+
+    [Fact]
+    public void ExportFileName_HasTheUserNameAndTheUtcDate()
+    {
+        var user = new ApplicationUser { UserName = "ayse.yilmaz" };
+
+        var name = AccountExport.FileName(user, new DateTime(2026, 10, 4, 23, 59, 59, DateTimeKind.Utc));
+
+        Assert.Equal("coinvitrine-ayse.yilmaz-20261004.zip", name);
     }
 
     [Fact]
@@ -109,6 +122,30 @@ public class AccountTests(CoinPortalFactory factory)
         Assert.Equal("wrong_password", await response.ReadProblemCodeAsync());
         using var me = await alice.Client.GetAsync("/api/auth/me");
         await me.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Equal(1, await factory.WithDbAsync(db => db.Users.CountAsync(u => u.Id == alice.User.Id)));
+    }
+
+    [Fact]
+    public async Task Delete_FiveWrongPasswords_LockTheAccount_AndKeepIt()
+    {
+        var alice = await factory.SignUpAsync();
+
+        // Guessing the password here counts like failed sign-ins
+        for (var i = 0; i < 4; i++)
+        {
+            using var wrong = await alice.Client.DeleteAsync("/api/settings/account",
+                new DeleteAccountRequest("Wrongpass123"));
+            Assert.Equal("wrong_password", await wrong.ReadProblemCodeAsync());
+        }
+        using (var fifth = await alice.Client.DeleteAsync("/api/settings/account",
+                   new DeleteAccountRequest("Wrongpass123")))
+        {
+            await fifth.ShouldHaveStatusAsync(HttpStatusCode.Locked);
+        }
+        using var right = await alice.Client.DeleteAsync("/api/settings/account",
+            new DeleteAccountRequest(TestUser.Password));
+
+        await right.ShouldHaveStatusAsync(HttpStatusCode.Locked);
         Assert.Equal(1, await factory.WithDbAsync(db => db.Users.CountAsync(u => u.Id == alice.User.Id)));
     }
 
@@ -186,14 +223,8 @@ public class AccountTests(CoinPortalFactory factory)
     {
         var collection = await user.CreateCollectionAsync();
         var coin = await user.CreateCoinAsync(collection.Id, coinTitle);
-        using (var photo = await user.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", TestImages.Png(200, 200)))
-        {
-            await photo.ShouldHaveStatusAsync(HttpStatusCode.OK);
-        }
-        using (var cover = await user.Client.PutFileAsync($"/api/collections/{collection.Id}/cover", TestImages.Png(640, 360)))
-        {
-            await cover.ShouldHaveStatusAsync(HttpStatusCode.OK);
-        }
+        await user.UploadPhotoAsync(coin.Id);
+        await user.UploadCoverAsync(collection.Id);
         return (collection, coin);
     }
 

@@ -60,6 +60,14 @@ public sealed class ApiClient(HttpClient http) : IDisposable
 
     public Task<HttpResponseMessage> GetAsync(string url) => http.GetAsync(url);
 
+    /// <summary>A conditional GET: If-None-Match with the given entity tag.</summary>
+    public Task<HttpResponseMessage> GetIfNoneMatchAsync(string url, EntityTagHeaderValue etag)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.IfNoneMatch.Add(etag);
+        return http.SendAsync(request);
+    }
+
     public async Task<T> GetJsonAsync<T>(string url)
     {
         using var response = await http.GetAsync(url);

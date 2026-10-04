@@ -23,12 +23,8 @@ public class PhotoSweepTests(CoinPortalFactory factory)
         var alice = await factory.SignUpAsync();
         var collection = await alice.FirstCollectionAsync();
         var coin = await alice.CreateCoinAsync(collection.Id);
-        var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
-        using (var cover = await alice.Client.PutFileAsync($"/api/collections/{collection.Id}/cover", TestImages.Png(640, 360)))
-        {
-            await cover.ShouldHaveStatusAsync(HttpStatusCode.OK);
-        }
-        var coverId = (await factory.WithDbAsync(db => db.Collections.FindAsync(collection.Id).AsTask()))!.CoverImageId!.Value;
+        var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        var coverId = await alice.UploadCoverAsync(collection.Id);
         // A real photo, but written long ago: its row keeps it
         Directory.SetLastWriteTimeUtc(ImageFolder(alice.User.Id, photo.Id), LongAgo);
 
@@ -54,7 +50,8 @@ public class PhotoSweepTests(CoinPortalFactory factory)
         Assert.True(result.RemovedUnfinishedCount >= 1);
         Assert.True(result.ImageCount >= 3);
         Assert.True(result.DiskBytes > 0);
-        Assert.Same(result, Sweeper(factory).LastResult);
+        // AdminRoleTests may run a sweep at the same time: the last result is this one or newer
+        Assert.True(Sweeper(factory).LastResult!.CheckedAtUtc >= result.CheckedAtUtc);
     }
 
     [Fact]
@@ -62,7 +59,7 @@ public class PhotoSweepTests(CoinPortalFactory factory)
     {
         var alice = await factory.SignUpAsync();
         var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
-        var photo = await UploadAsync(alice, coin.Id, CoinSide.Common);
+        var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
         Directory.Delete(ImageFolder(alice.User.Id, photo.Id), recursive: true);
 
         var result = await Sweeper(factory).SweepAsync(CancellationToken.None);
@@ -91,13 +88,6 @@ public class PhotoSweepTests(CoinPortalFactory factory)
             Directory.SetLastWriteTimeUtc(folder, LongAgo);
         }
         return folder;
-    }
-
-    private static async Task<CoinPhotoResponse> UploadAsync(TestUser user, int coinId, CoinSide side)
-    {
-        using var response = await user.Client.PutFileAsync($"/api/coins/{coinId}/photos/{side}", TestImages.Png(200, 160));
-        var coin = await response.ReadJsonAsync<CoinResponse>();
-        return coin.Photos.Single(p => p.Side == side);
     }
 }
 

@@ -193,6 +193,89 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         await audit.ShouldHaveStatusAsync(HttpStatusCode.Forbidden);
     }
 
+    [Theory]
+    [InlineData("sort=Name&dir=Asc", "a,b,c")]
+    [InlineData("sort=Name&dir=Desc", "c,b,a")]
+    [InlineData("sort=CoinCount&dir=Desc", "b,c,a")]
+    [InlineData("sort=CoinCount&dir=Asc", "a,c,b")]
+    public async Task List_FindsByCollectionName_AndSortsByNameOrCoinCount(string query, string expected)
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var prefix = "c" + Guid.NewGuid().ToString("N")[..8];
+        // Name -> coins
+        foreach (var (name, coins) in new[] { ("b", 2), ("a", 0), ("c", 1) })
+        {
+            var collection = await alice.CreateCollectionAsync(prefix + name, CollectionVisibility.Public);
+            for (var i = 0; i < coins; i++)
+            {
+                await alice.CreateCoinAsync(collection.Id);
+            }
+        }
+
+        // The search finds collection names too, not only owners
+        var list = await ListAsync(admin, $"search={prefix}&{query}");
+
+        Assert.Equal(expected, string.Join(",", list.Items.Select(c => c.Name[prefix.Length..])));
+    }
+
+    [Fact]
+    public async Task List_ShowsWhetherHiddenAndWhetherTheOwnerIsLocked()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var hidden = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var shown = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{hidden.Id}/lock", new AdminLockRequest(null)))
+        {
+            await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+
+        var notHidden = await ListAsync(admin, $"search={alice.UserName}&locked=false");
+        Assert.Equal([shown.Id], notHidden.Items.Select(c => c.Id));
+        Assert.False(notHidden.Items[0].OwnerLocked);
+
+        using (var lockAlice = await admin.Client.PutAsync($"/api/admin/users/{alice.User.Id}/lock", new AdminLockRequest(null)))
+        {
+            await lockAlice.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        var all = await ListAsync(admin, $"search={alice.UserName}");
+        Assert.All(all.Items, c => Assert.True(c.OwnerLocked));
+    }
+
+    [Fact]
+    public async Task AuditLog_PagesNewestFirst()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        // Hidden, unlocked, shared again by the owner and hidden again: three entries
+        var url = $"/api/admin/collections/{collection.Id}/lock";
+        using (var hide = await admin.Client.PutAsync(url, new AdminLockRequest(null)))
+        {
+            await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        using (var unlock = await admin.Client.DeleteAsync(url))
+        {
+            await unlock.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        await alice.SetVisibilityAsync(collection, CollectionVisibility.Public);
+        using (var hideAgain = await admin.Client.PutAsync(url, new AdminLockRequest(null)))
+        {
+            await hideAgain.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+
+        var first = await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+            $"/api/admin/audit?collectionId={collection.Id}&pageSize=2");
+        var second = await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+            $"/api/admin/audit?collectionId={collection.Id}&pageSize=2&page=2");
+
+        Assert.Equal((3, 2), (first.TotalCount, first.TotalPages));
+        Assert.Equal([AuditAction.CollectionHidden, AuditAction.CollectionUnlocked],
+            first.Items.Select(e => e.Action));
+        Assert.Equal(AuditAction.CollectionHidden, Assert.Single(second.Items).Action);
+    }
+
     private static Task<PagedResponse<AdminCollectionResponse>> ListAsync(TestUser admin, string query) =>
         admin.Client.GetJsonAsync<PagedResponse<AdminCollectionResponse>>($"/api/admin/collections?{query}");
 }
