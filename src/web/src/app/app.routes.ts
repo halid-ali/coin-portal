@@ -121,5 +121,9 @@ export const routes: Routes = [
   { path: 'collection', pathMatch: 'full', redirectTo: 'collections' },
   { path: 'collection/new', redirectTo: 'coins/new' },
   { path: 'collection/:id/edit', redirectTo: 'coins/:id/edit' },
-  { path: '**', redirectTo: '' },
+  {
+    path: '**',
+    title: 'titles.notFound',
+    loadComponent: () => import('./pages/not-found/not-found').then((m) => m.NotFound),
+  },
 ];

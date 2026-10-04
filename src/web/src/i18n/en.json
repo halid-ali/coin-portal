@@ -73,7 +73,8 @@
     "newCoin": "Add coin",
     "editCoin": "Edit coin",
     "settings": "Settings",
-    "admin": "Admin"
+    "admin": "Admin",
+    "notFound": "Page not found"
   },
   "nav": {
     "main": "Main menu",
@@ -89,6 +90,11 @@
     "accountMenu": "Account menu",
     "skipToContent": "Skip to content",
     "language": "Language"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "There is no page at this address. The link may be mistyped or cut off; if it is a share link, make sure you copied all of it.",
+    "home": "Go to the home page"
   },
   "home": {
     "accountDeleted": "Your account and all your data have been deleted.",

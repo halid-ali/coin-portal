@@ -73,7 +73,8 @@
     "newCoin": "Münze hinzufügen",
     "editCoin": "Münze bearbeiten",
     "settings": "Einstellungen",
-    "admin": "Verwaltung"
+    "admin": "Verwaltung",
+    "notFound": "Seite nicht gefunden"
   },
   "nav": {
     "main": "Hauptmenü",
@@ -89,6 +90,11 @@
     "accountMenu": "Kontomenü",
     "skipToContent": "Zum Inhalt springen",
     "language": "Sprache"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "message": "Unter dieser Adresse gibt es keine Seite. Der Link ist vielleicht falsch geschrieben oder unvollständig; prüfe bei einem Freigabelink, ob du ihn ganz kopiert hast.",
+    "home": "Zur Startseite"
   },
   "home": {
     "accountDeleted": "Dein Konto und alle deine Daten wurden gelöscht.",
