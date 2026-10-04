@@ -32,7 +32,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
       #dialog
       [attr.aria-labelledby]="titleId"
       class="dialog-panel max-w-lg"
-      (cancel)="cropping() && $event.preventDefault()"
+      (cancel)="onCancel($event)"
       (close)="onClose()"
     >
       <div class="space-y-4 p-6">
@@ -212,6 +212,15 @@ export class PhotoCropDialog {
   protected close(): void {
     this.result = null;
     this.dialog().nativeElement.close();
+  }
+
+  // Escape is ignored while the photo is being cropped. A method on purpose: in the template,
+  // "busy() && $event.preventDefault()" returns false when idle, and a handler returning false
+  // makes Angular prevent the default, so Escape never closed the dialog
+  protected onCancel(event: Event): void {
+    if (this.cropping()) {
+      event.preventDefault();
+    }
   }
 
   // Single exit point: buttons and Escape both end up here

@@ -451,8 +451,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `stubModalDialogs()` (`shared/testing/dialogs.ts`), Esc için `pressEscape()`. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
 - **Pencere kapanış kuralları:** tek çıkış noktası `(close)` → `onClose()`; sonuç orada hesaplanır (Esc
-  butonlardan geçmez, kaydedilmiş bir şey varsa Esc'te de bildirilir). İstek sürerken Esc engellenir
-  (`(cancel)="busy() && $event.preventDefault()"`). Arka plan tıklaması sadece metin alanı olmayan
+  butonlardan geçmez, kaydedilmiş bir şey varsa Esc'te de bildirilir). İstek sürerken Esc engellenir:
+  `(cancel)="onCancel($event)"` + metotta `if (busy()) event.preventDefault()` (şablonda `busy() &&
+  $event.preventDefault()` yazılmaz, bkz. Bilinen tuzaklar). Her pencerenin Esc davranışı `pressEscape`
+  ile test edilir. Arka plan tıklaması sadece metin alanı olmayan
   pencereleri kapatır (onay, görüntüleyici) ve basış da arka planda başlamış olmalı (`pointerdown`).
   Kaydedilmemiş girdi: sayfada `HasUnsavedChanges` + rotada `canDeactivate: [unsavedChangesGuard]` +
   `beforeunload` (bkz. `CoinForm`), pencerede Esc `confirmDiscardChanges()` ile sorar; **Vazgeç
@@ -537,6 +539,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ters eğik çizgisiz, çift tırnaksız** olmalı (backtick kullan), yoksa Swagger sayfası boş kalır.
 - `.csproj` içindeki XML yorumlarında `--` kullanılamaz.
 - `@for` ile oluşan `<option>`'larda seçili değer `[selected]` ile verilir; `<select [value]>` güvenilir değil.
+- Şablondaki bir olay işleyicisi `false` döndürürse Angular olayın varsayılanını engeller: `(cancel)="x()
+  && $event.preventDefault()"` x yanlışken `false` döner ve Esc pencereyi **hiç** kapatmaz (2026-10-04'e
+  kadar kırpma, koleksiyon silme ve hesap silme pencerelerinde böyleydi). Koşullu engelleme metotta yapılır.
 - Kullanıcının API'si çalışırken `bin/` kilitli olur ve `dotnet build` kopyalamada takılır. Bu
   durumda ne yapılacağı "Çalışan uygulamalar" bölümünde. `dotnet ef migrations add` / `database update`
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
