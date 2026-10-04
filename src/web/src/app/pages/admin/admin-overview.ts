@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { formatBytes, formatRelative } from '../../core/admin/admin-format';
+import { formatBytes, formatNumber, formatRelative } from '../../core/admin/admin-format';
 import { AdminStats } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -51,8 +51,6 @@ interface TileGroup {
   tiles: readonly Tile[];
 }
 
-const number = (n: number, lang: string) => new Intl.NumberFormat(lang).format(n);
-
 /** Shown for the disk figures before the first photo sweep. */
 const NONE = '–';
 
@@ -65,25 +63,25 @@ const GROUPS: readonly TileGroup[] = [
         labelKey: 'admin.overview.users',
         icon: 'users',
         color: 'violet',
-        value: (s, l) => number(s.userCount, l),
+        value: (s, l) => formatNumber(s.userCount, l),
       },
       {
         labelKey: 'admin.overview.activeUsers',
         icon: 'active',
         color: 'emerald',
-        value: (s, l) => number(s.activeUsersLast30Days, l),
+        value: (s, l) => formatNumber(s.activeUsersLast30Days, l),
       },
       {
         labelKey: 'admin.overview.newUsers',
         icon: 'newUser',
         color: 'blue',
-        value: (s, l) => number(s.newUsersLast30Days, l),
+        value: (s, l) => formatNumber(s.newUsersLast30Days, l),
       },
       {
         labelKey: 'admin.overview.lockedUsers',
         icon: 'lock',
         color: 'red',
-        value: (s, l) => number(s.lockedUserCount, l),
+        value: (s, l) => formatNumber(s.lockedUserCount, l),
         link: { path: '../users', queryParams: { status: 'Locked' } },
       },
     ],
@@ -97,27 +95,27 @@ const GROUPS: readonly TileGroup[] = [
         hintKey: 'admin.overview.allCollectionsHint',
         icon: 'collections',
         color: 'orange',
-        value: (s, l) => number(s.collectionCount, l),
+        value: (s, l) => formatNumber(s.collectionCount, l),
       },
       {
         labelKey: 'admin.overview.publicCollections',
         icon: 'globe',
         color: 'emerald',
-        value: (s, l) => number(s.publicCollectionCount, l),
+        value: (s, l) => formatNumber(s.publicCollectionCount, l),
         link: { path: '../collections', queryParams: { show: 'public' } },
       },
       {
         labelKey: 'admin.overview.unlistedCollections',
         icon: 'link',
         color: 'sky',
-        value: (s, l) => number(s.unlistedCollectionCount, l),
+        value: (s, l) => formatNumber(s.unlistedCollectionCount, l),
         link: { path: '../collections', queryParams: { show: 'unlisted' } },
       },
       {
         labelKey: 'admin.overview.hiddenCollections',
         icon: 'hidden',
         color: 'red',
-        value: (s, l) => number(s.hiddenCollectionCount, l),
+        value: (s, l) => formatNumber(s.hiddenCollectionCount, l),
         link: { path: '../collections', queryParams: { show: 'hidden' } },
       },
     ],
@@ -129,13 +127,13 @@ const GROUPS: readonly TileGroup[] = [
         labelKey: 'admin.overview.coins',
         icon: 'coins',
         color: 'amber',
-        value: (s, l) => number(s.coinCount, l),
+        value: (s, l) => formatNumber(s.coinCount, l),
       },
       {
         labelKey: 'admin.overview.photos',
         icon: 'photo',
         color: 'pink',
-        value: (s, l) => number(s.photoCount, l),
+        value: (s, l) => formatNumber(s.photoCount, l),
       },
       {
         labelKey: 'admin.overview.storage',
@@ -172,7 +170,7 @@ const GROUPS: readonly TileGroup[] = [
         color: 'emerald',
         value: (s, l) =>
           s.diskCheck
-            ? number(s.diskCheck.removedImageCount + s.diskCheck.removedUnfinishedCount, l)
+            ? formatNumber(s.diskCheck.removedImageCount + s.diskCheck.removedUnfinishedCount, l)
             : NONE,
       },
       {
@@ -180,7 +178,7 @@ const GROUPS: readonly TileGroup[] = [
         hintKey: 'admin.overview.missingFilesHint',
         icon: 'missing',
         color: 'red',
-        value: (s, l) => (s.diskCheck ? number(s.diskCheck.missingImageCount, l) : NONE),
+        value: (s, l) => (s.diskCheck ? formatNumber(s.diskCheck.missingImageCount, l) : NONE),
       },
     ],
   },

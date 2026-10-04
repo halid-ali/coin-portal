@@ -14,7 +14,12 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { EMPTY, Observable, catchError, firstValueFrom, forkJoin, switchMap, tap } from 'rxjs';
 
-import { formatBytes, formatDateTime, formatRelative } from '../../core/admin/admin-format';
+import {
+  formatBytes,
+  formatDateTime,
+  formatNumber,
+  formatRelative,
+} from '../../core/admin/admin-format';
 import {
   ADMIN_NOTE_MAX_LENGTH,
   AdminAuditEntry,
@@ -390,6 +395,6 @@ export class AdminUserDetailPage {
   }
 
   protected count(value: number): string {
-    return new Intl.NumberFormat(this.language.current()).format(value);
+    return formatNumber(value, this.language.current());
   }
 }
