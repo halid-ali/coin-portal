@@ -14,6 +14,7 @@ import { ADMIN_DEFAULT_PAGE_SIZE, ADMIN_PAGE_SIZES } from '../../core/admin/admi
 import { PagedResponse } from '../../core/coins/coin.models';
 import { firstQueryParam } from '../../core/http/query-params';
 import { LanguageService } from '../../core/i18n/language.service';
+import { scrollToTop } from '../../shared/motion';
 import { SEARCH_MAX_LENGTH, normalizeSearch, syncSearchWithUrl } from '../../shared/url-search';
 
 export type QueryParamValue = string | number | boolean | null;
@@ -63,7 +64,7 @@ export abstract class AdminListBase {
   protected goToPage(page: number): void {
     this.navigate({ page: page > 1 ? page : null });
     // The bottom pagination is far from the list start
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   }
 
   protected setPageSize(size: number): void {
