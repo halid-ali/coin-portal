@@ -65,6 +65,26 @@ public class VisibilityTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task Explore_ListsCoinWithItsCollectionOwnerAndPhotos()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var coin = await alice.CreateCoinAsync(collection.Id, "Visible");
+        // Uploaded in reverse order: the list keeps the side order
+        var common = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
+        var national = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        var explore = await visitor.GetJsonAsync<PagedResponse<ExploreCoinResponse>>(
+            $"/api/public/coins?owner={alice.UserName}");
+
+        var item = Assert.Single(explore.Items);
+        Assert.Equal((coin.Id, collection.Id, collection.Name, alice.UserName),
+            (item.Id, item.CollectionId, item.CollectionName, item.OwnerUserName));
+        Assert.Equal([national, common], item.Photos);
+    }
+
+    [Fact]
     public async Task PublicResponses_CarryNoPersonalData()
     {
         var alice = await factory.SignUpAsync();

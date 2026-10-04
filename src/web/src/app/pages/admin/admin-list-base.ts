@@ -6,6 +6,7 @@ import {
   formatBytes,
   formatDate,
   formatDateTime,
+  formatNumber,
   formatRelative,
 } from '../../core/admin/admin-format';
 import { parseAdminPageSize, parsePage } from '../../core/admin/admin-list';
@@ -100,6 +101,6 @@ export abstract class AdminListBase {
   }
 
   protected count(value: number): string {
-    return new Intl.NumberFormat(this.language.current()).format(value);
+    return formatNumber(value, this.language.current());
   }
 }

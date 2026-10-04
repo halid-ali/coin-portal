@@ -5,7 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Observable, catchError, combineLatest, of, switchMap, tap } from 'rxjs';
+import { Observable, catchError, combineLatest, filter, of, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import {
@@ -200,6 +200,15 @@ export class Collection {
     };
   });
 
+  /**
+   * What the list loads; null while a sort waits for the countries (their display order goes to
+   * the API), so a cold start does not ask twice.
+   */
+  private readonly listQuery = computed(() => {
+    const query = this.query();
+    return query.sort && !this.countryService.settled() ? null : query;
+  });
+
   protected readonly hasFilters = computed(() => {
     const q = this.query();
     return !!(
@@ -282,8 +291,9 @@ export class Collection {
       .subscribe();
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
-    toObservable(this.query)
+    toObservable(this.listQuery)
       .pipe(
+        filter((query) => query !== null),
         tap(() => {
           this.loading.set(true);
           this.loadError.set(null);

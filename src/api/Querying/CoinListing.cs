@@ -78,17 +78,34 @@ public static class CoinListing
     public static async Task<PagedResponse<T>> ToPagedAsync<T>(this IQueryable<Coin> coins, CoinListQuery query,
         Func<Coin, T> map, CancellationToken ct)
     {
+        var (pageRows, page, totalCount) = await PageAsync(coins, query, ct);
+        var items = await pageRows.ToListAsync(ct);
+        return new PagedResponse<T>(items.Select(map).ToList(), page, query.PageSize, totalCount);
+    }
+
+    /// <summary>
+    /// Like the overload above, but the selector is translated to SQL after Skip/Take: related
+    /// rows (owner, collection) are read column by column instead of loaded whole with Include.
+    /// </summary>
+    public static async Task<PagedResponse<T>> ToPagedAsync<T>(this IQueryable<Coin> coins, CoinListQuery query,
+        Expression<Func<Coin, T>> selector, CancellationToken ct)
+    {
+        var (pageRows, page, totalCount) = await PageAsync(coins, query, ct);
+        var items = await pageRows.Select(selector).ToListAsync(ct);
+        return new PagedResponse<T>(items, page, query.PageSize, totalCount);
+    }
+
+    private static async Task<(IQueryable<Coin> Rows, int Page, int TotalCount)> PageAsync(
+        IQueryable<Coin> coins, CoinListQuery query, CancellationToken ct)
+    {
         var filtered = coins.ApplyFilters(query);
         var ordered = filtered.ApplySort(query);
         var totalCount = await filtered.CountAsync(ct);
 
-        var showAll = query.PageSize == 0;
-        var page = showAll ? 1 : query.Page;
-        var items = await (showAll
-                ? ordered
-                : ordered.Skip((page - 1) * query.PageSize).Take(query.PageSize))
-            .ToListAsync(ct);
-
-        return new PagedResponse<T>(items.Select(map).ToList(), page, query.PageSize, totalCount);
+        if (query.PageSize == 0)
+        {
+            return (ordered, 1, totalCount);
+        }
+        return (ordered.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize), query.Page, totalCount);
     }
 }

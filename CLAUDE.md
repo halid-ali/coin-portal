@@ -239,7 +239,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `Audit(...)` oradan gelir; admin olmayan 403, girişsiz 401). İstek/yanıt tipleri `Contracts/`
   altında, entity'ler dışarı açılmaz. Sayfalı genel listeler `Querying/Paging.ToPagedAsync` (sıralı
   sorgu + sayfadan sonra projeksiyon); EF'in üzerinde filtreleyip sıralayabilmesi için ara projeksiyon
-  record constructor değil member-init sınıf olur (bkz. `AdminUsersController.UserRow`).
+  record constructor değil member-init sınıf olur (bkz. `AdminUsersController.UserRow`). Coin listeleri
+  `CoinListing.ToPagedAsync`: ilişkili satırdan (sahip, koleksiyon) alan gereken liste `Include` yerine
+  `Expression` projeksiyonu verir (`ExploreCoinResponse.Projection`), kullanıcı satırının tamamı okunmaz.
 - **Görsel kütüphanesi sadece `IImageProcessor` arkasında** (`Photos/`, sözleşme arayüzün XML
   yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
   dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
@@ -484,6 +486,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   girişsiz de görünür); masaüstü ve mobil menü aynı listeyi kullanır.
 - Paylaşılan (Unlisted) koleksiyonda fotoğraf URL'lerine anahtar eklenir: `photoUrl(…, shareToken)`,
   `coverUrl(…, shareToken)`, `CoinThumb`/`PhotoViewer` `[shareToken]` input'u.
+- **Girişsiz sayfalar sahibe özel kodu indirmez:** koleksiyon sayfası salt okunur modlarda da kullanıldığı için
+  sahibe özel pencereler `@if (!readOnly())` + `@defer (when …; prefetch on idle)` içinde (form penceresi
+  kırpma kütüphanesini getirir). Yeni bir ağır, sahibe özel bileşen de böyle eklenir; `ng build` sonrası
+  sayfa chunk'ının onu sadece `import()` ile aldığı kontrol edilir.
 - Koleksiyon kartı `shared/collection-card`, görünürlük rozeti `shared/visibility-badge`. Kapak sadece
   yüklenen kapak (`coverImageId`); yoksa `CollectionPlaceholder` (`shared/collection-placeholder`).
 - Bir SVG içinde `id` (mask, clipPath) kullanan bileşenler her kopyaya ayrı id verir (sayaçla, bkz.
@@ -509,7 +515,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
     (anahtarın altında `one` / `other`, `Intl.PluralRules`), TS'te `translate()`. Anahtarlar alan/sayfa
     adıyla gruplu (`coinList.*`, `collectionForm.*`, ortaklar `common.*`, `errors.*`, `validation.*`).
   - `computed()` içinde çeviri yapılmaz (dil değişince yeniden hesaplanmaz): computed anahtar döner,
-    template çevirir. Dile bağlı `Intl` işleri `LanguageService.current()` signal'ını okur.
+    template çevirir. Dile bağlı `Intl` işleri `LanguageService.current()` signal'ını okur. Şablonda satır
+    başına çağrılan biçimlendiriciler `Intl` nesnesini `cachedIntl` (`core/i18n/intl-cache.ts`) ile alır
+    (her değişiklik tespitinde yeni nesne kurulmaz).
   - Enum etiketleri modelde tutulmaz, anahtar değerden türetilir: `coin.denomination.<değer>`,
     `coin.side.<değer>.label`, `visibility.<değer>.label`, `coin.sort.<sütun>.asc`.
   - Dil sırası: hesaptaki dil > bu tarayıcıdaki son seçim (`localStorage` `coinportal.language`) >

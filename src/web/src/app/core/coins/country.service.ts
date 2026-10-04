@@ -26,6 +26,12 @@ export class CountryService {
   private requested = false;
 
   /**
+   * True once the list has arrived or failed (then countries stays empty). A coin list sorted by
+   * country order waits for it, instead of asking twice (without, then with the order).
+   */
+  readonly settled = signal(false);
+
+  /**
    * Sorted by display name in the active language; re-sorted when the language changes (the
    * coin list sends this order to the API). Empty until load() completes.
    */
@@ -43,9 +49,15 @@ export class CountryService {
     this.requested = true;
 
     this.http.get<Country[]>('/api/countries').subscribe({
-      next: (list) => this.codes.set(list.map((c) => c.code)),
-      // Allow a retry on the next call
-      error: () => (this.requested = false),
+      next: (list) => {
+        this.codes.set(list.map((c) => c.code));
+        this.settled.set(true);
+      },
+      error: () => {
+        // Allow a retry on the next call
+        this.requested = false;
+        this.settled.set(true);
+      },
     });
   }
 

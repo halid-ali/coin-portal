@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
 
@@ -54,11 +55,12 @@ public sealed record ExploreCoinResponse(
     int Quantity,
     IReadOnlyList<CoinPhotoResponse> Photos)
 {
-    // Owner, Collection and Photos must be loaded
-    public static ExploreCoinResponse From(Coin c) => new(
+    // Translated to SQL: only the owner's user name and the collection's name are read, not the
+    // whole user row (password hash, email) of every listed coin
+    public static readonly Expression<Func<Coin, ExploreCoinResponse>> Projection = c => new(
         c.Id, c.CollectionId, c.Collection.Name, c.Owner.UserName!, c.Title, c.Description,
         c.Denomination, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity,
-        c.Photos.OrderBy(p => p.Side).Select(CoinPhotoResponse.From).ToList());
+        c.Photos.OrderBy(p => p.Side).Select(p => new CoinPhotoResponse(p.Side, p.Id)).ToList());
 }
 
 /// <summary>

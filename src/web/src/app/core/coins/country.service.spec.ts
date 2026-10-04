@@ -42,7 +42,10 @@ describe('CountryService', () => {
 
   it('loads once, and again after a failure', () => {
     countries.load();
+    expect(countries.settled()).toBe(false);
     http.expectOne('/api/countries').flush(null, { status: 500, statusText: 'Error' });
+    // Settled with no countries: a list sorted by their order does not wait forever
+    expect(countries.settled()).toBe(true);
 
     load();
     countries.load();

@@ -1,7 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.2.0` yayında**, P1 bitti: ilk yarısı #22–#26 `v1.1.0`'da (Tamamlananlar
-54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). Sırada yeni iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). P2 başladı: #33 bitti (Tamamlananlar 66),
+sırada #32 → #31 → #34. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1158,6 +1159,25 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     Package ~1 dk, kullanıcı onayı, Deploy 24 sn; canlı `/api/health` `1.2.0+31d2b08`, `/login` 200,
     `coinportal.runasp.net` 308. Release notları `.notes/release-v1.2.0.md`, kullanıcı onayıyla Claude
     `.notes/scripts/create-release.js` ile yayınladı ("latest").
+66. **Girişsiz sayfaların ağırlığı** (`fix/public-page-weight`, #33, 2026-10-04):
+    - **Kırpma kodu:** koleksiyon sayfasının düzenleme ve silme pencereleri `@if (!readOnly())` + `@defer (when …;
+      prefetch on idle)` içinde. Form penceresi kapak seçici üzerinden ngx-image-cropper'ı (~49 KB) getiriyordu;
+      artık Keşfet, `/u` ve `/s` sayfalarında inmiyor (derleme çıktısında sayfa chunk'ı pencereyi sadece
+      `import()` ile yüklüyor). Sahip modunda boşta önceden iner, pencere yine anında açılır.
+      `prefetch when !readOnly()` Angular uyarısı (NG8021) verdiği için `@if` + `on idle` seçildi.
+    - **Çift liste isteği:** `Newest` dışı sıralamada liste ülke listesini (`CountryService.settled`) bekliyor;
+      soğuk açılışta tek istek gider. Ülke listesi alınamazsa sıralama sırasız (ISO kodu) yapılır, sayfa takılmaz.
+    - **Kapak görseli:** başlıktaki kapak `loading="lazy"`; telefonda gizli olduğu için hiç inmiyor.
+    - **Keşfet sorgusu:** `Include(Owner/Collection)` yerine SQL projeksiyonu (`ExploreCoinResponse.Projection`,
+      `CoinListing.ToPagedAsync`'in `Expression` alan aşırı yüklemesi); kullanıcı satırının tamamı (parola özeti,
+      e-posta) artık okunmuyor. Yanıt aynı.
+    - **`Intl` önbelleği:** `core/i18n/intl-cache.ts` `cachedIntl(anahtar, oluştur)`; `plural` ve admin
+      biçimlendiricileri (`formatNumber` yeni, admin sayfalarındaki üç `new Intl.NumberFormat` ona geçti).
+    - **Bilinçli olarak yapılmadı:** tablo ve kartı `@if` ile tek render etmek (issue'da "gerekirse"): 10–50
+      satırda fark yok, gizli kopyadaki küçük resimler zaten inmiyor; "Tümü" ile çok büyük koleksiyonlarda
+      yeniden bakılır.
+    - Testler: API 223 (Keşfet'te koleksiyon adı, sahip, yüz sırasıyla fotoğraflar), client 253 (sıralı liste
+      ülkeleri bekler ve tek istek atar, ülke hatasında sırasız yüklenir, `settled`).
 
 ## Yol haritası
 
@@ -1265,7 +1285,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
 - **P2, planlı:**
   - [ ] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı.
   - [ ] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi.
-  - [ ] [#33](https://github.com/halid-ali/coin-portal/issues/33) S `fix/public-page-weight`: girişsiz sayfaların ağırlığı.
+  - [x] [#33](https://github.com/halid-ali/coin-portal/issues/33) S `fix/public-page-weight`: girişsiz sayfaların ağırlığı (Tamamlananlar 66).
   - [ ] [#34](https://github.com/halid-ali/coin-portal/issues/34) L `feat/e2e-playwright`: Playwright e2e (yol haritası 8b).
 
 Notlar: Issue'lar incelemenin ham bulgu kimliklerini (`api-auth-1` gibi) taşır; tam rapor lokal
@@ -1275,17 +1295,17 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); **P1 bitti**
-(#22–#30). Sırada P2 ("Aksiyon planı": #31 a11y, #32 UX, #33 girişsiz sayfaların ağırlığı, #34 e2e) ya da
-aşağıdaki diğer adaylar. Adaylar:
+**P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
+(Tamamlananlar 66) → #32 UX → #31 a11y → #34 e2e. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
+bitti (#22–#30). Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının. (`v1.1.0` ve `v1.2.0` sorunsuz.)
-  - `v1.2.0`'ın ilk yetim süpürmesinin sonucu (canlıda açılıştan 1 dk sonra): Yönetim > Genel bakış > Disk;
-    silinen klasörler logda (`Photo sweep: removing orphan image …`). Kullanıcı ilk girişte bakar.
-  - Esc düzeltmesi (Tamamlananlar 64) canlıda bir kez denenir (kırpma penceresi).
+  - ~~Yetim süpürmenin canlı sonucu~~ (kullanıcı 2026-10-04'te baktı, çalışıyor).
+  - Esc düzeltmesi (Tamamlananlar 64) canlıda bir kez denenir (kırpma penceresi). 2026-10-04: denenemedi,
+    şirket bilgisayarından site açılmıyor (Defender), telefonda Esc yok; masaüstü bir tarayıcıda bakılır.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
   ~~#28 çeviriler~~ → ~~#29 API testleri~~ → ~~#30 client testleri~~ → ~~**`v1.2.0`**~~ (2026-10-04).
