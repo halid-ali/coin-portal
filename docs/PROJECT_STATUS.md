@@ -1255,6 +1255,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Bir koşu derlemeyle ~1,5 dk. CLAUDE.md'de e2e kuralı ve komutları, README'de bölüm.
     - Not: CLAUDE.md'deki headless Edge `DOM.setFileInputFiles` tuzağı Playwright'ın dosya seçicisinde
       yaşanmadı (fotoğraf yükleme e2e'de çalışıyor).
+    - Push sonrası CI'da (Linux, Chromium) E2E ilk koşuda geçti; #31–#34 kapandı.
+70. **Dependabot: Angular 21.2.25** (`chore/deps-angular-21.2.25`, PR #36, 2026-10-04): yedi Angular paketi
+    21.2.24 → 21.2.25 (yama; düzeltme kullanmadığımız `platform-server`'da). Dependabot'un commit'i lokalde
+    cherry-pick ile alındı (PR GitHub'da merge edilmez; `main`'e girince Dependabot kapatır). `ng build`,
+    `ng test` (261) temiz; PR'da CI'ın üç işi de geçmişti. `npm audit`'teki tek konu yine `piscina`
+    (Açık konular 15). Tuzak: `ng serve` çalışırken `npm ci` `node_modules`'u yarım bıraktı (CLAUDE.md'ye
+    eklendi).
 
 ## Yol haritası
 

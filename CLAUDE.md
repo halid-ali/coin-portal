@@ -594,6 +594,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler
   (`--configuration` ile ayrı konfigürasyon işe yaramaz: Debug dışı her derleme ImageSharp lisansı ister).
   `dotnet test` de API projesini derler; API çalışırken `dotnet test -p:BaseOutputPath=<scratchpad>/testbin/`.
+- **`ng serve` çalışırken `src/web`'de `npm ci` yapılmaz:** `npm ci` önce `node_modules`'u siler,
+  `ng serve`'ün yüklediği yerel modül (`lightningcss…node`) kilitli olduğu için silme yarıda kalır (EPERM)
+  ve `node_modules` yarım kalır (2026-10-04). Paket güncellemesinden önce `ng serve` kullanıcıya sorularak
+  durdurulur, kurulumdan sonra yeniden başlatılır.
 - Cookie doğrulaması (dakikada bir) cookie'yi yeniler; ASP.NET Core cookie yazan yanıtı `no-cache`
   yapar. Yani kullanıcı başına dakikada bir yanıt (çoğu zaman bir fotoğraf) önbelleğe alınmaz; bilinen,
   küçük bir bedel.
