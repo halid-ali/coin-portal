@@ -1,6 +1,6 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, Tamamlananlar 54–55. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
+Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, #26 hata mesajları ve oturum, Tamamlananlar 54–56. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
 **onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
 https://github.com/halid-ali/coin-portal)
 
@@ -990,6 +990,29 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       kapanır ama kaydedilmiş sonuç yine bildirilir.
     - Testler: `confirm-dialog.spec` (arka plan, Enter, odak, DOM temizliği), yeni `unsaved-changes.spec`,
       `collection-form-dialog.spec`; `pressEscape()` test yardımcısı. Tarayıcıda elle denenmedi.
+56. **Hata mesajları, oturum ve ayar güncellemeleri** (`fix/client-auth-and-errors`, #26, 2026-10-04):
+    - **Ayarlar:** `SettingsService.update` istekleri sıraya koyar; biri uçtayken yapılan değişiklik (tema,
+      sonra renk; footer'dan dil) onun sonucuyla gider, birbirini ezmez. Başarısız olan sonrakileri durdurmaz.
+    - **Hata eşleme:** `applyServerErrors` kodlu problemi her durumda önce eşler (koleksiyon kaydında 403
+      `moderation_locked`, coin kaydında `coinForm.moveLocked`); kodlu ama bilinmeyen 400 "sayfayı yenile"
+      demez. `httpErrorKey`: 403 `errors.forbidden`, 423 `errors.locked` (yeni metinler). Register ortak
+      `applyServerErrors`'ı kullanır (Açık konular 9'daki madde kapandı).
+    - **Oturum:** süresi dolmuş oturumda Çıkış 401 alırsa çıkış başarılı sayılır (giriş sayfasına gitmez).
+      Antiforgery reddinde token yenilenip istek bir kez tekrar gönderilir (yeniden deneme XSRF başlığını
+      kendisi yazar: Angular'ın XSRF interceptor'ı bizimkinden önce çalışıyor). Token ve hesap dili yükleme
+      yan istekleri girişi/çıkışı/hesap silmeyi bozmaz. `guestGuard` girişliyken `returnUrl`'e gider
+      (`core/auth/return-url.ts` `safeReturnUrl`, login de kullanır).
+    - **Yükleme hataları:** koleksiyon başlığı ve profil sadece 404'te "bulunamadı" der, diğerlerinde gerçek
+      sebep (429, ağ, sunucu); coin listesi 429/ağ hatasını söyler. Coin formunda koleksiyon listesi
+      yüklenemezse "önce koleksiyon oluştur" yerine "Koleksiyonlar yüklenemedi". Admin kullanıcı detayı
+      yeniden yüklemede hata bayraklarını sıfırlar.
+    - **Küçükler:** dönüş adresi (`CollectionReturn`) sadece sahibin koleksiyon sayfasında hatırlanır (route
+      data; input ilk yayında henüz bağlı değildi, Keşfet `/collections/null` bırakıyordu). Fotoğraf
+      hatasında adres `/coins/:id/edit`. Link kopyalanamazsa "Kopyalanamadı" (telefonda ikon kırmızı,
+      ekran okuyucuya duyuru), pencerede de. Footer'dan dil kaydedilemezse kısa bir hata satırı (6 sn).
+    - Testler: yeni `auth.interceptor.spec`, `settings.service.spec`; `auth.guards.spec` (guestGuard),
+      `problem-details.spec`, `collection.spec` (sunucu hatası, dönüş adresi). API'nin antiforgery reddi
+      (`errors`/`code` yok) çalışan API'de doğrulandı. Tarayıcıda elle denenmedi.
 
 ## Yol haritası
 
@@ -1089,7 +1112,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler (Tamamlananlar 55).
   - [ ] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması.
   - [ ] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü.
-  - [ ] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi.
+  - [x] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi (Tamamlananlar 56).
   - [ ] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları.
   - [ ] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri.
   - [ ] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları).
@@ -1115,7 +1138,7 @@ Tamamlananlar 51–53). Adaylar:
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
-  #26 hata mesajları → #24 form erişilebilirliği → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
+  ~~#26~~ → #24 form erişilebilirliği → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
   #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
@@ -1425,8 +1448,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    - Karar verilecekler: watermark içeriği (yazı/logo), konum, saydamlık, sadece herkese açıklara mı.
 9. İleride: e-posta doğrulama ve şifre sıfırlama (e-postalar `PreferredLanguage` dilinde), kayıt formunda
    kullanıcı adı/e-posta müsaitlik kontrolü (kayıt ucunun e-postayı ele vermesini büyütür, bilinçli karar
-   gerekir), Register'ın da `applyServerErrors` kullanması (#26). Mobilde katlanabilir filtreler
-   2026-09-28'de yapıldı.
+   gerekir). Mobilde katlanabilir filtreler 2026-09-28'de, Register'ın ortak `applyServerErrors`'ı
+   kullanması 2026-10-04'te (#26) yapıldı.
 10. **Euro dışı, tedavülden kalkmış ve antika coin'ler (ileride, 2026-09-27'de kullanıcı istedi):**
     Birden fazla koleksiyon bunun için temel. Gerekecekler: koleksiyona bir "tür" alanı (Euro / diğer);
     nominalin genelleşmesi (şu an Euro değerleri enum'u, `CK_Coins_Denomination`), ülkenin genelleşmesi

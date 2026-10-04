@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, defer, firstValueFrom, from, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
 import { Language } from '../i18n/languages';
@@ -31,6 +31,8 @@ export const ACCOUNT_DELETED_STATE = { notice: 'accountDeleted' } as const;
 export class SettingsService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  /** The last queued update; the next one starts after it (see update). */
+  private queue: Promise<unknown> = Promise.resolve();
 
   get(): Observable<UserSettings> {
     return this.http.get<UserSettings>('/api/settings');
@@ -39,8 +41,19 @@ export class SettingsService {
   /**
    * Saves the given settings. The API replaces all of them, so the others are sent as the
    * current user has them. The current user is updated too, so the header and others agree.
+   * Updates go one after another: one started while another is on its way (theme, then accent)
+   * is sent once that one is saved, with its result, so neither overwrites the other.
    */
   update(changes: Partial<UserSettings>): Observable<UserSettings> {
+    return defer(() => {
+      const saved = this.queue.then(() => firstValueFrom(this.put(changes)));
+      // A failed update does not stop the ones after it
+      this.queue = saved.catch(() => undefined);
+      return from(saved);
+    });
+  }
+
+  private put(changes: Partial<UserSettings>): Observable<UserSettings> {
     const user = this.auth.currentUser();
     const settings: UserSettings = {
       language: user?.language ?? null,

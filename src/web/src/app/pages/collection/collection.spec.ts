@@ -5,6 +5,7 @@ import { Router, provideRouter, withComponentInputBinding } from '@angular/route
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import { Coin, PagedResponse } from '../../core/coins/coin.models';
+import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection as CoinCollection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { Collection } from './collection';
@@ -60,7 +61,10 @@ describe('Collection', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter(
-          [{ path: 'collections/:collectionId', component: Collection, data: { mode: 'owner' } }],
+          [
+            { path: 'collections/:collectionId', component: Collection, data: { mode: 'owner' } },
+            { path: 'u/:userName/:collectionId', component: Collection, data: { mode: 'public' } },
+          ],
           withComponentInputBinding(),
         ),
         provideHttpClient(),
@@ -159,5 +163,26 @@ describe('Collection', () => {
     const request = http.expectOne((r) => r.url === '/api/coins');
     expect(request.request.params.get('search')).toBe('a');
     request.flush(emptyPage(1, 0));
+  });
+
+  it('tells a server error apart from a missing collection', async () => {
+    await harness.navigateByUrl('/collections/5');
+    http.match('/api/countries').forEach((r) => r.flush([]));
+    http.expectOne('/api/collections/5').flush(null, { status: 500, statusText: 'Server Error' });
+    http.expectOne((r) => r.url === '/api/coins').flush(emptyPage(1, 0));
+    await harness.fixture.whenStable();
+
+    expect(page().textContent).toContain('Beklenmeyen bir hata');
+    expect(page().textContent).not.toContain('bulunamadı');
+  });
+
+  it('remembers only own collection pages as the way back from the coin form', async () => {
+    await open('/collections/5?page=2', 30, emptyPage(2, 30));
+    http.match((r) => r.url === '/api/coins').forEach((r) => r.flush(emptyPage(2, 30)));
+    expect(TestBed.inject(CollectionReturn).url()).toBe('/collections/5?page=2');
+
+    await harness.navigateByUrl('/u/elif.kaya/7');
+    expect(TestBed.inject(CollectionReturn).url()).toBe('/collections/5?page=2');
+    http.match(() => true).forEach((r) => r.flush(null, { status: 404, statusText: 'Not Found' }));
   });
 });

@@ -14,6 +14,7 @@
     "yes": "Ja",
     "copy": "Kopieren",
     "copied": "Kopiert",
+    "copyFailed": "Kopieren fehlgeschlagen",
     "change": "Ändern",
     "remove": "Entfernen",
     "undo": "Rückgängig",
@@ -34,6 +35,8 @@
   "errors": {
     "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung.",
     "unexpected": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "locked": "Das Konto ist vorübergehend gesperrt. Bitte versuche es später erneut.",
+    "forbidden": "Dazu bist du nicht berechtigt.",
     "requestRejected": "Die Anfrage konnte nicht bestätigt werden. Lade die Seite neu und versuche es erneut.",
     "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut.",
     "collectionLimit": "Ein Konto kann höchstens 50 Sammlungen haben. Lösche eine, um eine neue anzulegen.",

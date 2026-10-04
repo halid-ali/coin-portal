@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
@@ -5,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, of, switchMap, tap } from 'rxjs';
 
+import { httpErrorKey } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { PublicProfile } from '../../core/public/public.models';
@@ -26,6 +28,8 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
             'common.goToExplore' | transloco
           }}</a>
         </div>
+      } @else if (loadError(); as key) {
+        <div role="alert" class="alert-error">{{ key | transloco }}</div>
       } @else if (profile(); as p) {
         <div class="flex items-center gap-4">
           <span
@@ -75,6 +79,8 @@ export class Profile {
 
   protected readonly profile = signal<PublicProfile | null>(null);
   protected readonly notFound = signal(false);
+  /** Translation key when the profile could not be loaded for another reason than 404. */
+  protected readonly loadError = signal<string | null>(null);
 
   protected readonly initial = computed(
     () => this.profile()?.userName.charAt(0).toUpperCase() ?? '',
@@ -89,11 +95,17 @@ export class Profile {
         tap(() => {
           this.profile.set(null);
           this.notFound.set(false);
+          this.loadError.set(null);
         }),
         switchMap((userName) =>
           this.publicService.profile(userName).pipe(
-            catchError(() => {
-              this.notFound.set(true);
+            catchError((err: HttpErrorResponse) => {
+              if (err.status === 404) {
+                this.notFound.set(true);
+              } else {
+                // e.g. the rate limit of signed-out reads: not a missing profile
+                this.loadError.set(httpErrorKey(err));
+              }
               return of(null);
             }),
           ),

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -64,6 +64,15 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
         [label]="'nav.language' | transloco"
         (valueChange)="choose($event)"
       />
+
+      @if (saveFailed()) {
+        <p
+          role="alert"
+          class="order-last col-span-2 text-center text-xs text-danger-700 sm:col-span-3"
+        >
+          {{ 'settings.language.saveFailed' | transloco }}
+        </p>
+      }
     </div>
   `,
 })
@@ -75,11 +84,19 @@ export class Footer {
   // Shown only in release builds (see core/app-version.ts)
   protected readonly version = appVersion;
 
+  /** The chosen language could not be saved to the account; hidden again after a while. */
+  protected readonly saveFailed = signal(false);
+  private hideTimer: ReturnType<typeof setTimeout> | undefined;
+
   protected async choose(lang: Language): Promise<void> {
+    this.saveFailed.set(false);
     try {
       await this.preference.change(lang);
     } catch {
       // Not saved (e.g. offline): the language stays as it was, the dropdown shows it
+      this.saveFailed.set(true);
+      clearTimeout(this.hideTimer);
+      this.hideTimer = setTimeout(() => this.saveFailed.set(false), 6000);
     }
   }
 }

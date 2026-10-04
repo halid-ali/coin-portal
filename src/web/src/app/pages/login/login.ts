@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { safeReturnUrl } from '../../core/auth/return-url';
 import { httpErrorMessage } from '../../core/http/problem-details';
 import { errorMessage } from '../../shared/form-errors';
 
@@ -44,7 +45,7 @@ export class Login {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.router.navigateByUrl(this.safeReturnUrl());
+        this.router.navigateByUrl(safeReturnUrl(this.returnUrl()));
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
@@ -68,11 +69,5 @@ export class Login {
       default:
         return httpErrorMessage(err);
     }
-  }
-
-  /** Only allow app-internal paths to avoid open redirects. */
-  private safeReturnUrl(): string {
-    const url = this.returnUrl();
-    return url && url.startsWith('/') && !url.startsWith('//') ? url : '/';
   }
 }
