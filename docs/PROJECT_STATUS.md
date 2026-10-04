@@ -1055,7 +1055,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     açılışta migration uygulama (Tamamlananlar 53; kod v1.0.0'dan sonra yazılmıştı, canlıya ilk kez bu
     sürümle gitti). Migration yok, sunucu hazırlığı yok. Pipeline'ın ilk etiket push'uyla normal koşusu:
     Checks ~2 dk, Package ~1 dk, onay, Deploy 23 sn; canlı `/api/health` `1.1.0+c64eae8`, `/login` 200,
-    `coinportal.runasp.net` 308. Release notları `.notes/release-v1.1.0.md`.
+    `coinportal.runasp.net` 308. Release notları `.notes/release-v1.1.0.md` (bu sefer kullanıcı yayınladı;
+    sonraki sürümlerde Claude `.notes/scripts/create-release.js` ile yayınlar).
+60. **Dependabot: http-cache-semantics** (`fix/http-cache-semantics`, 2026-10-04): GHSA-ch52-4w7c-c8xp
+    (high, development; Angular CLI'ın paket indirme önbelleği, `pacote` → `make-fetch-happen`). 4.2.0 →
+    4.3.0 sadece lock dosyasında (aralık `^4.1.1` izin veriyor, `overrides` yok); 4.3.0 bugün çıktı ve uyarının
+    aralığı (≤ 4.2.0) dışında. `ng build`, `ng test` temiz. Kalan tek uyarı `piscina` (Açık konular 15).
 
 ## Yol haritası
 
@@ -1544,7 +1549,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (son 21.x) 5.3.2 ya da üstüyse `fix/` branch'inde Angular 21 paketleri (`ng update @angular/core@21
     @angular/cli@21`) yükseltilir, `ng build` + `ng test`. Elenen: npm `overrides` ile 5.3.2'yi zorlamak
     (A; çalışırdı ama Angular'ın resmi bağımlılığından sapma) ve Angular 22'yi şimdi yapmak (C; planlı,
-    büyük iş). Angular 22 yükseltmesi (Sıradaki adım 5) de bunu çözer.
+    büyük iş). Angular 22 yükseltmesi (Sıradaki adım 5) de bunu çözer. Son kontrol 2026-10-04: 21.2.24 hâlâ
+    5.2.0 getiriyor, karar aynen.
 
 16. **Kasıtlı giriş kilidi (bilinen risk, 2026-10-02, kullanıcı kararı):** kullanıcı adları herkese açık;
     biri 5 yanlış parolayla başkasının yeni girişini 10 dakika engelleyebilir ve bunu tekrarlayabilir.
