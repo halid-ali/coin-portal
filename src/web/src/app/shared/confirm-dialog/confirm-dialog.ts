@@ -45,6 +45,7 @@ let nextId = 0;
       [attr.aria-labelledby]="titleId"
       [attr.aria-describedby]="messageId"
       class="dialog-panel max-w-md"
+      (pointerdown)="onDialogPointerDown($event)"
       (click)="onDialogClick($event)"
       (close)="onClose()"
     >
@@ -89,8 +90,10 @@ let nextId = 0;
               type="text"
               class="form-input"
               autocomplete="off"
+              autofocus
               [value]="typed()"
               (input)="typed.set(typeInput.value)"
+              (keydown.enter)="typedMatches() && close(true)"
               #typeInput
             />
           </div>
@@ -118,8 +121,14 @@ let nextId = 0;
         }
 
         <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <!-- Cancel gets the initial focus, the safe choice for destructive actions -->
-          <button type="button" class="btn-secondary" autofocus (click)="close(false)">
+          <!-- Cancel gets the initial focus, the safe choice for destructive actions; with a name
+             to type, the field gets it -->
+          <button
+            type="button"
+            class="btn-secondary"
+            [attr.autofocus]="options().typeToConfirm ? null : ''"
+            (click)="close(false)"
+          >
             {{ options().cancelText ?? ('common.cancel' | transloco) }}
           </button>
           <button
@@ -154,6 +163,7 @@ export class ConfirmDialog {
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private result = false;
+  private pressedOnBackdrop = false;
 
   constructor() {
     afterNextRender(() => this.dialog().nativeElement.showModal());
@@ -169,9 +179,23 @@ export class ConfirmDialog {
     this.closed.emit(this.result);
   }
 
-  // A click on the <dialog> element itself (not its content) is a click on the backdrop
+  protected onDialogPointerDown(event: PointerEvent): void {
+    this.pressedOnBackdrop = event.target === this.dialog().nativeElement;
+  }
+
+  /**
+   * A click on the <dialog> element itself (not its content) is a click on the backdrop. It closes
+   * only when the press started there too (a text selection released outside the panel also
+   * targets the dialog) and never with a text field, whose input would be lost.
+   */
   protected onDialogClick(event: MouseEvent): void {
-    if (event.target === this.dialog().nativeElement) {
+    const options = this.options();
+    if (
+      event.target === this.dialog().nativeElement &&
+      this.pressedOnBackdrop &&
+      !options.note &&
+      !options.typeToConfirm
+    ) {
       this.close(false);
     }
   }

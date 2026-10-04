@@ -18,3 +18,13 @@ export function stubModalDialogs(): void {
     proto.close = Object.assign(close, { __stub: true });
   }
 }
+
+/**
+ * Escape on an open modal dialog, as a browser handles it: a cancelable `cancel` event, then
+ * close() unless a listener prevented it.
+ */
+export function pressEscape(dialog: HTMLDialogElement): void {
+  if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) {
+    dialog.close();
+  }
+}

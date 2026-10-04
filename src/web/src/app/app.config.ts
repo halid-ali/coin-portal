@@ -11,7 +11,12 @@ import {
   withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
-import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
+import {
+  TitleStrategy,
+  provideRouter,
+  withComponentInputBinding,
+  withRouterConfig,
+} from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
 
 import { routes } from './app.routes';
@@ -27,7 +32,13 @@ import { ThemeService } from './core/theme/theme.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      // A guard that cancels the browser's back button (unsaved changes) restores the history
+      // position instead of overwriting the previous entry
+      withRouterConfig({ canceledNavigationResolution: 'computed' }),
+    ),
     { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
     provideTransloco({
       config: {

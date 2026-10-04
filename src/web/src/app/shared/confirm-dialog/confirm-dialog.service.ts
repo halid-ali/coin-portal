@@ -37,6 +37,8 @@ export class ConfirmDialogService {
         const note = ref.instance.noteText();
         this.appRef.detachView(ref.hostView);
         ref.destroy();
+        // destroy() leaves a root component's host element in the DOM
+        ref.location.nativeElement.remove();
         resolve({ confirmed, note });
       });
 

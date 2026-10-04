@@ -30,6 +30,7 @@ import { errorMessage } from '../../shared/form-errors';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { ImageChange } from '../../shared/image-change';
+import { DISCARD_CHANGES_STATE, HasUnsavedChanges } from '../../shared/unsaved-changes';
 import { PhotoSlot } from './photo-slot';
 
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
@@ -37,8 +38,9 @@ import { PhotoSlot } from './photo-slot';
   selector: 'app-coin-form',
   imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, PhotoSlot, PhotoViewer],
   templateUrl: './coin-form.html',
+  host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
 })
-export class CoinForm implements OnInit {
+export class CoinForm implements OnInit, HasUnsavedChanges {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly coinService = inject(CoinService);
   private readonly countryService = inject(CountryService);
@@ -102,6 +104,10 @@ export class CoinForm implements OnInit {
     Common: signal<ImageChange | null>(null),
   };
   protected readonly viewerSide = signal<CoinSide | null>(null);
+  /** Router state of the Cancel link: it drops the changes without asking. */
+  protected readonly discardChanges = DISCARD_CHANGES_STATE;
+  /** Saved or deleted: the way back to the list does not ask about the form. */
+  private finished = false;
 
   protected readonly form = this.fb.group({
     collectionId: this.fb.control<number | null>(null, Validators.required),
@@ -211,6 +217,8 @@ export class CoinForm implements OnInit {
 
     this.coinId.set(coin.id);
     this.coin.set(coin);
+    // The fields are saved; failed photo changes stay pending
+    this.form.markAsPristine();
 
     const failures = await this.savePhotos(coin.id);
     this.submitting.set(false);
@@ -259,7 +267,23 @@ export class CoinForm implements OnInit {
   }
 
   private backToCollection(): void {
+    this.finished = true;
     this.router.navigateByUrl(this.returnTree());
+  }
+
+  /** Typed fields or a chosen photo not saved yet (unsavedChangesGuard asks before leaving). */
+  hasUnsavedChanges(): boolean {
+    return (
+      !this.finished &&
+      (this.form.dirty || COIN_SIDES.some((side) => this.photoChanges[side]() !== null))
+    );
+  }
+
+  /** Closing or reloading the tab: the browser shows its own warning (its text is fixed). */
+  protected onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
   }
 
   protected storedPhoto(side: CoinSide): CoinPhoto | undefined {

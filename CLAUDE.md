@@ -395,8 +395,16 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış
   metin ya da vazgeçilirse `null`. Geri alınamaz işlemde `typeToConfirm: { label, value }`: değer
   birebir yazılmadan onay butonu açılmaz. jsdom'da `showModal`/`close` yok: testlerde
-  `stubModalDialogs()` (`shared/testing/dialogs.ts`). Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
+  `stubModalDialogs()` (`shared/testing/dialogs.ts`), Esc için `pressEscape()`. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
+- **Pencere kapanış kuralları:** tek çıkış noktası `(close)` → `onClose()`; sonuç orada hesaplanır (Esc
+  butonlardan geçmez, kaydedilmiş bir şey varsa Esc'te de bildirilir). İstek sürerken Esc engellenir
+  (`(cancel)="busy() && $event.preventDefault()"`). Arka plan tıklaması sadece metin alanı olmayan
+  pencereleri kapatır (onay, görüntüleyici) ve basış da arka planda başlamış olmalı (`pointerdown`).
+  Kaydedilmemiş girdi: sayfada `HasUnsavedChanges` + rotada `canDeactivate: [unsavedChangesGuard]` +
+  `beforeunload` (bkz. `CoinForm`), pencerede Esc `confirmDiscardChanges()` ile sorar; **Vazgeç
+  sormaz** (kullanıcı kararı 2026-10-04; link `[state]="discardChanges"`). Kaydetme/silme sonrası
+  çıkış da sormaz.
 - Seçilen fotoğraf dosyasına boyut sınırı uygulanmaz (48–50 MP telefon fotoğrafları 10 MB'ı aşar);
   API'nin sınırları kırpılmış JPEG'e (en fazla 1600 px) uygulanır. Tür kararı cropper'da: sadece resim
   olmayan dosya önceden reddedilir, HEIC açılamazsa kırpma penceresi `crop.heicFailed` gösterir.

@@ -25,6 +25,12 @@
       "other": "{{count}} coin"
     }
   },
+  "unsaved": {
+    "title": "Kaydedilmemiş değişiklikler",
+    "message": "Yaptığın değişiklikler kaydedilmedi. Çıkarsan kaybolacaklar.",
+    "leave": "Kaydetmeden çık",
+    "stay": "Düzenlemeye devam et"
+  },
   "errors": {
     "network": "Sunucuya ulaşılamıyor. Bağlantını kontrol et.",
     "unexpected": "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",

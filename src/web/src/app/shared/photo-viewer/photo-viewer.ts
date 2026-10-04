@@ -30,6 +30,7 @@ let nextId = 0;
       [attr.aria-labelledby]="titleId"
       class="m-auto max-h-dvh w-full max-w-3xl bg-transparent p-4 text-white backdrop:bg-slate-950/85
              backdrop:backdrop-blur-sm"
+      (pointerdown)="pressedOnBackdrop = $event.target === dialog"
       (click)="onDialogClick($event)"
       (keydown.arrowleft)="step(-1)"
       (keydown.arrowright)="step(1)"
@@ -162,9 +163,12 @@ export class PhotoViewer {
     this.dialog().nativeElement.close();
   }
 
-  // Clicks outside the content (dialog padding or backdrop) close the viewer
+  protected pressedOnBackdrop = false;
+
+  // Clicks outside the content (dialog padding or backdrop) close the viewer, when the press
+  // started there too (not a drag that ends outside the photo)
   protected onDialogClick(event: MouseEvent): void {
-    if (event.target === this.dialog().nativeElement) {
+    if (event.target === this.dialog().nativeElement && this.pressedOnBackdrop) {
       this.close();
     }
   }

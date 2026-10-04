@@ -1,6 +1,6 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (P1 işleri başladı: #22 arama ve sayfalama, Tamamlananlar 54. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
+Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, Tamamlananlar 54–55. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
 **onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
 https://github.com/halid-ali/coin-portal)
 
@@ -971,6 +971,25 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       boşsa. URL'de filtre varsa kart kalır (değiştirilebilsin). Kart, coin sayısı bilinince görünür.
     - Testler: `url-search.spec`, `query-params.spec`, yeni `collection.spec` (boş koleksiyon, son sayfa,
       temizle, tekrarlanan param), `admin-users.spec`'e son sayfa testi. Tarayıcıda görsel kontrol yapılmadı.
+55. **Pencere kapanışı ve kaydedilmemiş değişiklikler** (`fix/dialog-close-and-unsaved`, #23, 2026-10-04):
+    koleksiyon penceresi sonucu tek yerde (`onClose`) hesaplar: Esc ile kapanınca da kaydedilmiş sonuç
+    (yeni paylaşım linki, kapağı başarısız yeni koleksiyon) bildirilir. İstek sürerken Esc koleksiyon,
+    silme ve kırpma pencerelerinde çalışmaz. Onay penceresi: arka plan tıklaması basış da arka planda
+    başladıysa kapatır (metin seçerken fare dışarıda bırakılınca kapanmaz; görüntüleyicide de), not ya da
+    ad yazılan onaylar arka planla hiç kapanmaz; ad yazılan alana odak ve Enter ile onay; kapanınca eleman
+    DOM'dan silinir (önceden body'de birikiyordu).
+    - **Kararlar (kullanıcı):** coin formunda kaydedilmemiş değişiklik (yazılan alan, bekleyen fotoğraf)
+      varken geri linki, menü ve tarayıcının geri tuşu sorar ("Kaydedilmemiş değişiklikler", "Kaydetmeden
+      çık" / "Düzenlemeye devam et"); **Vazgeç sormaz** (bilinçli seçim); sekme kapatma/yenilemede
+      tarayıcının kendi uyarısı. Koleksiyon penceresinde Esc sadece değişiklik varsa sorar.
+    - Uygulama: `shared/unsaved-changes.ts` (`HasUnsavedChanges`, `unsavedChangesGuard`,
+      `confirmDiscardChanges`, `DISCARD_CHANGES_STATE`); guard onay servisini dinamik import'la yükler (ilk
+      paket büyümedi). Router `canceledNavigationResolution: 'computed'`: guard'ın iptal ettiği geri tuşu
+      tarayıcı geçmişini bozmaz. Kayıt başarılıysa form `pristine` olur (kalan sadece başarısız fotoğraf/kapak).
+    - Bilinen sınır: Chrome, kullanıcı etkileşimi olmadan art arda ikinci Esc'i engelletmez; o durumda pencere
+      kapanır ama kaydedilmiş sonuç yine bildirilir.
+    - Testler: `confirm-dialog.spec` (arka plan, Enter, odak, DOM temizliği), yeni `unsaved-changes.spec`,
+      `collection-form-dialog.spec`; `pressEscape()` test yardımcısı. Tarayıcıda elle denenmedi.
 
 ## Yol haritası
 
@@ -1067,7 +1086,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10; Tamamlananlar 48).
 - **P1, ilk yayından hemen sonraki sürümler:**
   - [x] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları (Tamamlananlar 54; ek: boş koleksiyonda filtre kartı yok).
-  - [ ] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler.
+  - [x] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler (Tamamlananlar 55).
   - [ ] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması.
   - [ ] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü.
   - [ ] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi.
@@ -1095,7 +1114,7 @@ Tamamlananlar 51–53). Adaylar:
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
-- **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → #23 pencereler →
+- **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   #26 hata mesajları → #24 form erişilebilirliği → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
   #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ

@@ -35,6 +35,7 @@ let nextId = 0;
       #dialog
       [attr.aria-labelledby]="titleId"
       class="dialog-panel max-w-md"
+      (cancel)="deleting() && $event.preventDefault()"
       (close)="onClose()"
     >
       <div class="space-y-5 p-6">
