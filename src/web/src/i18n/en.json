@@ -84,6 +84,7 @@
     "logout": "Sign out",
     "loggingOut": "Signing out…",
     "toggleMenu": "Open or close the menu",
+    "skipToContent": "Skip to content",
     "language": "Language"
   },
   "home": {
@@ -216,6 +217,7 @@
     "notFoundOwn": "Collection not found. It may have been deleted or may not belong to you.",
     "backToCollections": "Back to my collections",
     "notFoundShared": "Collection not found. The link may be invalid, or the collection is no longer shared.",
+    "notFoundTitle": "Collection not found",
     "exploreTitle": "Explore",
     "exploreSubtitle": "Coins in public collections",
     "recordCount": {
@@ -379,6 +381,7 @@
   },
   "profile": {
     "notFound": "This user has no public collections, or the user doesn't exist.",
+    "notFoundTitle": "Profile not found",
     "publicCollectionCount": {
       "one": "{{count}} public collection",
       "other": "{{count}} public collections"

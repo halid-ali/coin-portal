@@ -1,3 +1,4 @@
+import { ElementRef, Injector, afterNextRender, inject } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { translate } from '@jsverse/transloco';
 
@@ -28,4 +29,19 @@ export function errorMessage(control: AbstractControl | null): string | null {
   if (e['max']) return translate('validation.max', { max: e['max'].max });
 
   return translate('validation.invalid');
+}
+
+/**
+ * For a form component's field initializer. The returned function, called after a submit with
+ * invalid fields (or field errors from the server), focuses the first invalid field once its
+ * error is rendered: a screen reader reads the field with its error (FieldA11y's
+ * aria-describedby) and keyboard users land where the problem is.
+ */
+export function injectFocusFirstInvalid(): () => void {
+  const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  const injector = inject(Injector);
+  return () =>
+    afterNextRender(() => host.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(), {
+      injector,
+    });
 }

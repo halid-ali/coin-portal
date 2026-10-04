@@ -343,6 +343,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   problem her durumda önce `messageKeys`'te aranır, ör. 403 `moderation_locked`). Yükleme hatalarında
   sadece 404 "bulunamadı" der; diğerleri `httpErrorKey(err)` (ağ, 403, 423, 429, beklenmeyen), signal
   çeviri anahtarını tutar.
+- **Form erişilebilirliği:** her alan `appField` (`shared/field-a11y.ts`; `aria-invalid`, `aria-required`,
+  `aria-describedby`), hata metni `id="<alanId>-error"`, ipucu `id="<alanId>-hint"`; formControlName'siz
+  alan kontrolü verir (`[appField]="form.controls.x"`). Geçersiz gönderimde ve sunucunun alan hatalarından
+  sonra `injectFocusFirstInvalid()` ile ilk hatalı alana odak. Hata kutuları `role="alert"`, yükleme
+  metinleri `role="status"`, yeniden yüklenen liste `[attr.aria-busy]`. Sayfa iskeletinde "İçeriğe atla"
+  linki; yol değişince (sorgu değil) sayfa başa kayar ve odak `main`'e geçer (`app.ts`).
 - Liste sayfalarında **URL tek doğruluk kaynağı**: filtre/sıralama/sayfa query param'larda,
   `withComponentInputBinding()` ile input'lara bağlı, varsayılanlar URL'e yazılmaz; yükleme
   `toObservable(query)` + `switchMap`. Query param input'ları `input(undefined, { transform:

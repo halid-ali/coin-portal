@@ -86,36 +86,39 @@ let nextId = 0;
                 <!-- Hidden by an admin: moving the coins would publish them again (API 403) -->
                 <p class="form-hint mt-0">{{ 'collectionDelete.lockedNoMove' | transloco }}</p>
               }
-              <label
+              <!-- The select sits next to the radio's label, not in it: a label names one control
+                 (in it, the options became part of the radio's name). Highlighted by the radio
+                 only: a selected option matches :checked too -->
+              <div
                 [hidden]="collection().moderationLocked"
-                class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-checked:border-brand-400 has-checked:bg-brand-50"
+                class="space-y-2 rounded-lg border border-shade-200 p-3 has-[input:checked]:border-brand-400 has-[input:checked]:bg-brand-50"
               >
-                <input
-                  type="radio"
-                  name="{{ titleId }}-mode"
-                  class="mt-1 accent-brand-500"
-                  [checked]="mode() === 'move'"
-                  (change)="mode.set('move')"
-                />
-                <span class="flex-1 space-y-2">
-                  <span class="block text-sm font-medium text-shade-900">{{
+                <label class="flex items-start gap-3">
+                  <input
+                    type="radio"
+                    name="{{ titleId }}-mode"
+                    class="mt-1 accent-brand-500"
+                    [checked]="mode() === 'move'"
+                    (change)="mode.set('move')"
+                  />
+                  <span class="text-sm font-medium text-shade-900">{{
                     'collectionDelete.moveTo' | transloco
                   }}</span>
-                  <select
-                    class="form-input py-1.5"
-                    #targetSelect
-                    [disabled]="mode() !== 'move'"
-                    [attr.aria-label]="'collectionDelete.moveTarget' | transloco"
-                    (change)="targetId.set(+targetSelect.value)"
-                  >
-                    @for (t of targets(); track t.id) {
-                      <option [value]="t.id" [selected]="t.id === targetId()">{{ t.name }}</option>
-                    }
-                  </select>
-                </span>
-              </label>
+                </label>
+                <select
+                  class="form-input ml-7 w-[calc(100%-1.75rem)] py-1.5"
+                  #targetSelect
+                  [disabled]="mode() !== 'move'"
+                  [attr.aria-label]="'collectionDelete.moveTarget' | transloco"
+                  (change)="targetId.set(+targetSelect.value)"
+                >
+                  @for (t of targets(); track t.id) {
+                    <option [value]="t.id" [selected]="t.id === targetId()">{{ t.name }}</option>
+                  }
+                </select>
+              </div>
               <label
-                class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-checked:border-danger-300 has-checked:bg-danger-50"
+                class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-[input:checked]:border-danger-300 has-[input:checked]:bg-danger-50"
               >
                 <input
                   type="radio"

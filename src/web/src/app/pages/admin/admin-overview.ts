@@ -142,7 +142,7 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
   imports: [NgTemplateOutlet, RouterLink, TranslocoPipe],
   template: `
     @if (loadError()) {
-      <p class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
+      <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
     } @else if (stats(); as s) {
       <div class="space-y-6">
         @for (group of groups; track group.titleKey) {

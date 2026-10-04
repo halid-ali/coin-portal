@@ -84,6 +84,7 @@
     "logout": "Çıkış yap",
     "loggingOut": "Çıkış yapılıyor…",
     "toggleMenu": "Menüyü aç/kapat",
+    "skipToContent": "İçeriğe atla",
     "language": "Dil"
   },
   "home": {
@@ -216,6 +217,7 @@
     "notFoundOwn": "Koleksiyon bulunamadı. Silinmiş ya da sana ait olmayabilir.",
     "backToCollections": "Koleksiyonlarıma dön",
     "notFoundShared": "Koleksiyon bulunamadı. Link geçersiz olabilir ya da koleksiyon artık paylaşılmıyor.",
+    "notFoundTitle": "Koleksiyon bulunamadı",
     "exploreTitle": "Keşfet",
     "exploreSubtitle": "Herkese açık koleksiyonlardaki coin'ler",
     "recordCount": {
@@ -379,6 +381,7 @@
   },
   "profile": {
     "notFound": "Bu kullanıcının herkese açık bir koleksiyonu yok ya da kullanıcı bulunamadı.",
+    "notFoundTitle": "Profil bulunamadı",
     "publicCollectionCount": {
       "one": "{{count}} herkese açık koleksiyon",
       "other": "{{count}} herkese açık koleksiyon"

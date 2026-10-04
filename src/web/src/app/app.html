@@ -1,6 +1,13 @@
 <div class="flex min-h-dvh flex-col bg-shade-50">
+  <!-- First in the tab order, visible only when focused: skips the header and its menu -->
+  <a
+    href="#main"
+    class="sr-only z-50 rounded-lg bg-shade-0 font-medium text-shade-900 shadow-lg ring-2 ring-brand-500 focus:not-sr-only focus:fixed focus:px-4 focus:py-2 focus:top-2 focus:left-2"
+    (click)="skipToMain($event)"
+    >{{ 'nav.skipToContent' | transloco }}</a
+  >
   <app-header />
-  <main class="page-container flex-1 py-8">
+  <main #main id="main" tabindex="-1" class="page-container flex-1 py-8 outline-none">
     <router-outlet />
   </main>
   <app-footer />

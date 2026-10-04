@@ -55,11 +55,15 @@
   </div>
 
   @if (actionError()) {
-    <p class="alert-error">{{ 'admin.actionFailed' | transloco }}</p>
+    <p role="alert" class="alert-error">{{ 'admin.actionFailed' | transloco }}</p>
+  }
+
+  @if (loading() && !result() && !loadError()) {
+    <p role="status" class="text-sm text-shade-500">{{ 'common.loading' | transloco }}</p>
   }
 
   @if (loadError()) {
-    <p class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
+    <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
   } @else if (result(); as r) {
     <p class="text-sm text-shade-500">
       {{ 'admin.collections.count' | plural: r.totalCount }}
@@ -72,7 +76,7 @@
       <p class="card text-sm text-shade-600">{{ 'admin.collections.empty' | transloco }}</p>
     } @else {
       <!-- Narrow screens: cards -->
-      <ul class="space-y-3 xl:hidden" [class.opacity-60]="loading()">
+      <ul class="space-y-3 xl:hidden" [class.opacity-60]="loading()" [attr.aria-busy]="loading()">
         @for (c of r.items; track c.id) {
           <li class="card p-4">
             <div class="flex items-start justify-between gap-3">
@@ -104,7 +108,11 @@
       <!-- Wide screens (xl): table; the collection column (name, owner below) takes the rest.
        Measured as in admin-users.html: status the "Само с връзка" badge with its icon; coins
        "Münzen" + icon; last change "Son değişiklik" + icon; action the "Entsperren" button. -->
-      <div class="card hidden overflow-x-auto p-0 xl:block" [class.opacity-60]="loading()">
+      <div
+        class="card hidden overflow-x-auto p-0 xl:block"
+        [class.opacity-60]="loading()"
+        [attr.aria-busy]="loading()"
+      >
         <table class="w-full table-fixed text-left text-sm">
           <colgroup>
             <col />

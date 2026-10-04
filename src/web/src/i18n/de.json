@@ -84,6 +84,7 @@
     "logout": "Abmelden",
     "loggingOut": "Wird abgemeldet…",
     "toggleMenu": "Menü öffnen oder schließen",
+    "skipToContent": "Zum Inhalt springen",
     "language": "Sprache"
   },
   "home": {
@@ -216,6 +217,7 @@
     "notFoundOwn": "Sammlung nicht gefunden. Sie wurde vielleicht gelöscht oder gehört dir nicht.",
     "backToCollections": "Zurück zu meinen Sammlungen",
     "notFoundShared": "Sammlung nicht gefunden. Der Link ist vielleicht ungültig, oder die Sammlung wird nicht mehr geteilt.",
+    "notFoundTitle": "Sammlung nicht gefunden",
     "exploreTitle": "Entdecken",
     "exploreSubtitle": "Münzen aus öffentlichen Sammlungen",
     "recordCount": {
@@ -379,6 +381,7 @@
   },
   "profile": {
     "notFound": "Dieser Nutzer hat keine öffentlichen Sammlungen, oder es gibt ihn nicht.",
+    "notFoundTitle": "Profil nicht gefunden",
     "publicCollectionCount": {
       "one": "{{count}} öffentliche Sammlung",
       "other": "{{count}} öffentliche Sammlungen"

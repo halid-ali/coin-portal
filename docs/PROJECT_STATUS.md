@@ -1,6 +1,6 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, #26 hata mesajları ve oturum, Tamamlananlar 54–56. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
+Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, #26 hata mesajları ve oturum, #24 form erişilebilirliği, Tamamlananlar 54–57. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
 **onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
 https://github.com/halid-ali/coin-portal)
 
@@ -1013,6 +1013,24 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Testler: yeni `auth.interceptor.spec`, `settings.service.spec`; `auth.guards.spec` (guestGuard),
       `problem-details.spec`, `collection.spec` (sunucu hatası, dönüş adresi). API'nin antiforgery reddi
       (`errors`/`code` yok) çalışan API'de doğrulandı. Tarayıcıda elle denenmedi.
+57. **Form erişilebilirliği** (`feat/form-accessibility`, #24, 2026-10-04):
+    - **Alanlar:** `appField` direktifi (`shared/field-a11y.ts`) alanı hata/ipucu metnine bağlar
+      (`aria-describedby` = `<id>-error <id>-hint`), `aria-invalid` (hata gösterildiği an) ve
+      `aria-required` (`Validators.required`'dan) verir. Kayıt, giriş, coin formu ve koleksiyon penceresi.
+      Geçersiz gönderimde ve sunucunun alan hatalarından sonra odak ilk hatalı alana gider, ekran okuyucu
+      alanı hatasıyla okur (`injectFocusFirstInvalid`, `shared/form-errors.ts`).
+    - **Durumlar:** admin hata kutuları `role="alert"`, yükleme metinleri `role="status"`, yeniden yüklenen
+      listeler `aria-busy`; admin listeleri ilk yüklemede "Yükleniyor…" gösterir; pencerede link kopyalama
+      duyurulur.
+    - **Başlıklar:** koleksiyon yüklenirken boş `<h1>` yok; "bulunamadı" durumlarında görsel olarak gizli
+      `<h1>` (`coinList.notFoundTitle`, `profile.notFoundTitle`; metin kartta zaten yazıyor).
+    - **Sayfa geçişi:** "İçeriğe atla" linki (sadece klavye odağında görünür, adrese `#main` eklemez); yol
+      değişince sayfa başa kayar (önceden yeni sayfa eski kaydırma konumunda açılıyordu) ve odak `main`'e
+      geçer. Sadece sorgu değişince (filtre, sayfa) ve ilk açılışta dokunulmaz; geri/ileri kaydırmayı korur.
+    - Silme penceresinde `<select>` radyonun `<label>`'ından çıktı; vurgulama `has-[input:checked]`
+      (seçili `<option>` da `:checked` sayıldığı için "taşı" kutusu hep vurgulu görünüyordu).
+    - Testler: yeni `field-a11y.spec`, `register.spec` (odak), `app.spec` (odak, atla linki).
+      Tarayıcıda ve ekran okuyucuyla elle denenmedi.
 
 ## Yol haritası
 
@@ -1110,7 +1128,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
 - **P1, ilk yayından hemen sonraki sürümler:**
   - [x] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları (Tamamlananlar 54; ek: boş koleksiyonda filtre kartı yok).
   - [x] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler (Tamamlananlar 55).
-  - [ ] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması.
+  - [x] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması (Tamamlananlar 57).
   - [ ] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü.
   - [x] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi (Tamamlananlar 56).
   - [ ] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları.
@@ -1138,7 +1156,7 @@ Tamamlananlar 51–53). Adaylar:
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
-  ~~#26~~ → #24 form erişilebilirliği → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
+  ~~#26~~ → ~~#24~~ → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
   #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
