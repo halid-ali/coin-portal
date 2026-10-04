@@ -1,0 +1,4 @@
+# Client and API builds, photos, logs and keys of the e2e site (server/start.mjs)
+.build/
+test-results/
+playwright-report/

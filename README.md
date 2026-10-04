@@ -40,7 +40,7 @@ it into the package's `wwwroot`; in development `ng serve` serves the client ins
 src/api/        ASP.NET Core API (project CoinPortal.Api)
 src/web/        Angular client
 tests/api/      API tests (xUnit v3, in-memory API against SQL Server)
-tests/e2e/      End-to-end tests (planned)
+tests/e2e/      End-to-end tests (Playwright, the whole site in a browser)
 docs/           Project status, decisions and dated reviews
 .config/        .NET local tools (dotnet-ef)
 ```
@@ -85,11 +85,19 @@ dotnet build
 dotnet test                  # API tests; needs LocalDB (or set COINPORTAL_TEST_SQL)
 cd src/web && npx ng test --watch=false
 cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
+cd tests/e2e && npm install && npx playwright test   # end-to-end, see below
 ```
 
 The API tests create a database of their own for each run (`CoinPortal_Tests_…`) and drop it at
 the end; the development database is not touched. To use another SQL Server, set
 `COINPORTAL_TEST_SQL` to a connection string without a database name.
+
+The end-to-end tests (`tests/e2e`, Playwright) drive the whole site in a browser: sign-up to a coin
+with a cropped photo, share links, sessions, moderation, and an accessibility scan (axe) of each
+page. `server/start.mjs` builds the client and the API and runs them together on port 5091 with a
+database of their own (`CoinPortal_E2E` on LocalDB, or `COINPORTAL_E2E_SQL`); the development API,
+`ng serve` and database are not touched. Locally the tests use the installed Microsoft Edge (no
+browser download), CI uses Playwright's Chromium. `npx playwright show-report` opens the last report.
 
 ## Image processing license
 
