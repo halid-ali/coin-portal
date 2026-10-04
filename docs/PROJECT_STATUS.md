@@ -1,16 +1,16 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (P1 işleri: #22 arama ve sayfalama, #23 pencereler ve kaydedilmemiş değişiklikler, #26 hata mesajları ve oturum, #24 form erişilebilirliği, #25 klavye ve kontrast, Tamamlananlar 54–58; sırada `v1.1.0`. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
-**onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
-https://github.com/halid-ali/coin-portal)
+Son güncelleme: 2026-10-04 (**`v1.1.0` yayında**, P1'in ilk yarısı: #22, #23, #26, #24, #25; Tamamlananlar
+54–59. Sırada #27. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+(Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket ve Release `v1.0.0` (2026-10-03, "latest"), canlıda `v1.0.0`.
+- Durum: `main` güncel ve temiz; son etiket ve Release `v1.1.0` (2026-10-04, "latest"), canlıda `v1.1.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.0.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.1.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -19,7 +19,7 @@ https://github.com/halid-ali/coin-portal)
   `curl -s -o /dev/null -w '%{http_code}' localhost:4200/`); API çalışıyorsa `bin/` kilitlidir, derleme ve
   test ayrı klasöre (`-p:BaseOutputPath=<scratchpad>/testbin/`).
 - İlk iş: kullanıcıyla sıradaki adımı seçmek ("Aksiyon planı", "Yol haritası" ve "Sıradaki adım"). İnceleme
-  işlerinin ayrıntısı GitHub issue'larında (#10–#34).
+  işlerinin ayrıntısı GitHub issue'larında (#10–#35).
 - Lokal admin: `src/api/appsettings.Development.json` → `Admin:UserIds` (API açılışta rolü verir).
 - 4200'deki `ng serve` 2026-09-29'dan beri sahipsiz bir süreçten çalışıyor olabilir (Tamamlananlar 31);
   `Port 4200 is already in use` görülürse önce o süreç kapatılır.
@@ -1051,6 +1051,11 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       geldi, mevcut hali korundu; seçenekler ve karar [#35](https://github.com/halid-ali/coin-portal/issues/35)'te
       (Açık konular 21).
     - Testler: yeni `pagination.spec`, `header.spec`. Tarayıcıda elle denenmedi (önizlemeler hariç).
+59. **`v1.1.0`** (`chore/release-v1.1.0`, 2026-10-04): P1'in ilk yarısı (Tamamlananlar 54–58) ve
+    açılışta migration uygulama (Tamamlananlar 53; kod v1.0.0'dan sonra yazılmıştı, canlıya ilk kez bu
+    sürümle gitti). Migration yok, sunucu hazırlığı yok. Pipeline'ın ilk etiket push'uyla normal koşusu:
+    Checks ~2 dk, Package ~1 dk, onay, Deploy 23 sn; canlı `/api/health` `1.1.0+c64eae8`, `/login` 200,
+    `coinportal.runasp.net` 308. Release notları `.notes/release-v1.1.0.md`.
 
 ## Yol haritası
 
@@ -1168,15 +1173,15 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **`v1.0.0` yayında** (https://coinvitrine.com, onaylı pipeline;
-Tamamlananlar 51–53). Adaylar:
+Yeni sohbette kullanıcıyla seçilecek. **`v1.1.0` yayında** (2026-10-04, Tamamlananlar 59); P1'in kalan yarısı
+sırada (#27 ile devam). Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
-  ~~#26~~ → ~~#24~~ → ~~#25~~ → **`v1.1.0`** (sıradaki) → #27 fotoğraf depolama →
+  ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → #27 fotoğraf depolama →
   #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
