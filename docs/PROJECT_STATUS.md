@@ -1,16 +1,16 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (**`v1.1.0` yayında**, P1'in ilk yarısı: #22, #23, #26, #24, #25; Tamamlananlar
-54–59. P1 bitti: ikinci yarısı #27, #28, #29, #30 (Tamamlananlar 61–64); sırada **`v1.2.0`**. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+Son güncelleme: 2026-10-04 (**`v1.2.0` yayında**, P1 bitti: ilk yarısı #22–#26 `v1.1.0`'da (Tamamlananlar
+54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). Sırada yeni iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket ve Release `v1.1.0` (2026-10-04, "latest"), canlıda `v1.1.0`.
+- Durum: `main` güncel ve temiz; son etiket ve Release `v1.2.0` (2026-10-04, "latest"), canlıda `v1.2.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.1.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.2.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -1153,6 +1153,11 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Not: `/\evil.example` gibi ters çizgili bir dönüş adresi `safeReturnUrl`'den geçer, ama iki kullanım yeri de
       Angular router (`navigateByUrl`/`parseUrl`), adresi uygulama içi yol olarak işler: açık yönlendirme değil.
     - Testler: client 251 (önce 151), 3 koşu temiz.
+65. **`v1.2.0`** (`chore/release-v1.2.0`, 2026-10-04): P1'in ikinci yarısı (Tamamlananlar 61–64) ve
+    http-cache-semantics (Tamamlananlar 60). Migration yok, sunucu hazırlığı yok. Pipeline: Checks ~2 dk,
+    Package ~1 dk, kullanıcı onayı, Deploy 24 sn; canlı `/api/health` `1.2.0+31d2b08`, `/login` 200,
+    `coinportal.runasp.net` 308. Release notları `.notes/release-v1.2.0.md`, kullanıcı onayıyla Claude
+    `.notes/scripts/create-release.js` ile yayınladı ("latest").
 
 ## Yol haritası
 
@@ -1270,16 +1275,20 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-Yeni sohbette kullanıcıyla seçilecek. **`v1.1.0` yayında** (2026-10-04, Tamamlananlar 59); P1'in kalan yarısı
-bitti (#27–#30, Tamamlananlar 61–64); sırada **`v1.2.0`** yayını. Adaylar:
+Yeni sohbette kullanıcıyla seçilecek. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); **P1 bitti**
+(#22–#30). Sırada P2 ("Aksiyon planı": #31 a11y, #32 UX, #33 girişsiz sayfaların ağırlığı, #34 e2e) ya da
+aşağıdaki diğer adaylar. Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
-    "Required reviewers"); karar kullanıcının.
+    "Required reviewers"); karar kullanıcının. (`v1.1.0` ve `v1.2.0` sorunsuz.)
+  - `v1.2.0`'ın ilk yetim süpürmesinin sonucu (canlıda açılıştan 1 dk sonra): Yönetim > Genel bakış > Disk;
+    silinen klasörler logda (`Photo sweep: removing orphan image …`). Kullanıcı ilk girişte bakar.
+  - Esc düzeltmesi (Tamamlananlar 64) canlıda bir kez denenir (kırpma penceresi).
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
-  ~~#28 çeviriler~~ → ~~#29 API testleri~~ → ~~#30 client testleri~~ → **`v1.2.0`**.
+  ~~#28 çeviriler~~ → ~~#29 API testleri~~ → ~~#30 client testleri~~ → ~~**`v1.2.0`**~~ (2026-10-04).
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
 
