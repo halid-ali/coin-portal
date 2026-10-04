@@ -338,7 +338,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ile forma uygulanır (400 anahtarları kontrol adlarıyla büyük/küçük harf duyarsız eşleşir).
 - Liste sayfalarında **URL tek doğruluk kaynağı**: filtre/sıralama/sayfa query param'larda,
   `withComponentInputBinding()` ile input'lara bağlı, varsayılanlar URL'e yazılmaz; yükleme
-  `toObservable(query)` + `switchMap`.
+  `toObservable(query)` + `switchMap`. Query param input'ları `input(undefined, { transform:
+  firstQueryParam })` (tekrarlanan param dizi gelir), arama kutusu `syncSearchWithUrl`
+  (`shared/url-search.ts`; URL'deki değerle karşılaştırır, `maxlength` `SEARCH_MAX_LENGTH`), son
+  sayfanın ötesindeki boş sayfa `replaceUrl` ile son sayfaya gider.
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
   listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;

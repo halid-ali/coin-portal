@@ -1,6 +1,6 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (**`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
+Son güncelleme: 2026-10-04 (P1 işleri başladı: #22 arama ve sayfalama, Tamamlananlar 54. **`v1.0.0` yayında**: https://coinvitrine.com, site adı **CoinVitrine**; ilk kez
 **onaylı yayın pipeline'ıyla** kuruldu (Tamamlananlar 51–53). Proje GitHub'da public:
 https://github.com/halid-ali/coin-portal)
 
@@ -921,7 +921,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `v=spf1 a mx include:spf.mailasp.net ~all`, DMARC `v=DMARC1; p=none`, `autodiscover` CNAME ve
       panelin ürettiği DKIM TXT'si (`uu8DF218F8F8D6440._domainkey`; destek talebi gerekmedi, panelde
       "Enable DKIM"). Test: Gmail'den gelen e-posta ulaştı, webmail'den cevap Gmail'de SPF, DKIM ve DMARC
-      `PASS`. Kutu yönlendirmesiz (yönlendirme SPF'i bozar); webmail https://webmail.monsterasp.net/.
+      `PASS`. Kutu yönlendirmesiz (yönlendirme SPF'i bozar); webmail https://webmail.monsterasp.net/,
+      gönderen adı "CoinVitrine" (kullanıcı 2026-10-04).
     - Dışa aktarma ZIP'i `coinvitrine-<kullanıcı>-<tarih>.zip`. README, CLAUDE.md güncellendi.
 52. **`v1.0.0`** (`chore/release-v1.0.0`, 2026-10-03): ilk gerçek yayın. Yeni ad ve alan adı, tek adres
     yönlendirmesi, işletmeci ve iletişim adresi, MonsterASP'a göre gizlilik metni (Tamamlananlar 51);
@@ -955,6 +956,21 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       API listesinden, taslaklar dahil aranıyor; paketi olan Release'e dokunulmuyor (yayınlanmış bir paket
       yeniden build ile değişmesin). Fazla taslak silindi (iki paket aynı commit'ten, sadece zip zamanları
       farklı; yayınlanan Release ilk koşunun paketini taşıyor, canlıdaki ikinci koşunun aynı kaynaklı build'i).
+54. **Arama ve sayfalama düzeltmeleri** (`fix/collection-search-paging`, #22, 2026-10-04; P1'in ilki):
+    arama kutusu ↔ URL eşlemesi ortak yardımcıda (`shared/url-search.ts` `syncSearchWithUrl`), koleksiyon
+    sayfası ve `AdminListBase` kullanıyor: yazılan terim önceki terimle değil URL'deki değerle karşılaştırılır
+    ("Filtreleri temizle" ya da geri tuşundan sonra aynı terim yeniden arar), URL'den gelen değer kutuyu sadece
+    kırpılmış metin farklıysa yazar (yazılırken sondaki boşluk silinmez, "2 euro" "2euro" olmaz). Arama
+    kutularında `maxlength` 100 (API sınırı, `SEARCH_MAX_LENGTH`), URL'deki uzun değer de kesilir. Son
+    sayfanın ötesindeki bir sayfa (son coin silinince ya da taşınınca, eski link) `replaceUrl` ile son sayfaya
+    gider (koleksiyon sayfası ve admin listeleri, `leftPastLastPage`). "Filtreleri temizle" sayfa başına
+    seçimini korur. Tekrarlanan query param'lar (`?search=a&search=b`) input transform `firstQueryParam`
+    (`core/http/query-params.ts`) ile ilk değere iner (önceden admin listesi çöküyordu).
+    - **Kullanıcı isteği (ek):** boş koleksiyonda arama/filtre kartı (sıralama satırıyla) gösterilmez
+      (`showFilters`): tek koleksiyon modlarında başlıktaki `coinCount` 0 ise, Keşfet'te filtresiz sonuç
+      boşsa. URL'de filtre varsa kart kalır (değiştirilebilsin). Kart, coin sayısı bilinince görünür.
+    - Testler: `url-search.spec`, `query-params.spec`, yeni `collection.spec` (boş koleksiyon, son sayfa,
+      temizle, tekrarlanan param), `admin-users.spec`'e son sayfa testi. Tarayıcıda görsel kontrol yapılmadı.
 
 ## Yol haritası
 
@@ -1050,7 +1066,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#20](https://github.com/halid-ali/coin-portal/issues/20) M `chore/docs-sync`: yayın kontrol listesi eksikleri ve eskimiş doküman satırları (Tamamlananlar 47).
   - [x] [#21](https://github.com/halid-ali/coin-portal/issues/21) L `chore/release-workflow`: `release.yml` ve yayın zinciri (yol haritası 10; Tamamlananlar 48).
 - **P1, ilk yayından hemen sonraki sürümler:**
-  - [ ] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları.
+  - [x] [#22](https://github.com/halid-ali/coin-portal/issues/22) M `fix/collection-search-paging`: arama kutusu ve sayfalama hataları (Tamamlananlar 54; ek: boş koleksiyonda filtre kartı yok).
   - [ ] [#23](https://github.com/halid-ali/coin-portal/issues/23) M `fix/dialog-close-and-unsaved`: Esc ile kapanan pencere, kaydedilmemiş değişiklikler.
   - [ ] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması.
   - [ ] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü.
@@ -1077,11 +1093,11 @@ Tamamlananlar 51–53). Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
-  - İsteğe bağlı: webmail'de gönderen adı "CoinVitrine" (şu an adres görünüyor).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
-- **P1 işleri** ("Aksiyon planı"): client hataları #22, #23, #26; erişilebilirlik #24, #25; fotoğraf depolama
-  #27; çeviriler #28; testler #29, #30.
+- **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → #23 pencereler →
+  #26 hata mesajları → #24 form erişilebilirliği → #25 klavye/kontrast → **`v1.1.0`** → #27 fotoğraf depolama →
+  #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
 

@@ -8,6 +8,7 @@ import { catchError, of, switchMap, tap } from 'rxjs';
 import { AUDIT_ACTIONS, AdminAuditEntry, AdminAuditQuery } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { PagedResponse } from '../../core/coins/coin.models';
+import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
 import { Pagination } from '../../shared/pagination/pagination';
 import { AdminListBase } from './admin-list-base';
@@ -152,7 +153,7 @@ import { AdminListBase } from './admin-list-base';
 export class AdminAudit extends AdminListBase {
   private readonly admin = inject(AdminService);
 
-  readonly action = input<string>();
+  readonly action = input(undefined, { transform: firstQueryParam });
 
   protected readonly actions = AUDIT_ACTIONS;
   protected readonly actionValue = computed(() => AUDIT_ACTIONS.find((a) => a === this.action()));
@@ -185,6 +186,9 @@ export class AdminAudit extends AdminListBase {
         takeUntilDestroyed(),
       )
       .subscribe((result) => {
+        if (this.leftPastLastPage(result)) {
+          return;
+        }
         this.result.set(result);
         this.loading.set(false);
       });

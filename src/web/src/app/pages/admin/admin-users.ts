@@ -14,6 +14,7 @@ import {
 } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { PagedResponse, SortDirection } from '../../core/coins/coin.models';
+import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
 import { Pagination } from '../../shared/pagination/pagination';
 import { SortHeader } from '../../shared/sort-header/sort-header';
@@ -46,9 +47,9 @@ const DEFAULT_SORT: AdminSortState<AdminUserSort> = { sort: 'CreatedAt', dir: 'D
 export class AdminUsers extends AdminListBase {
   private readonly admin = inject(AdminService);
 
-  readonly status = input<string>();
-  readonly sort = input<string>();
-  readonly dir = input<string>();
+  readonly status = input(undefined, { transform: firstQueryParam });
+  readonly sort = input(undefined, { transform: firstQueryParam });
+  readonly dir = input(undefined, { transform: firstQueryParam });
 
   protected readonly statuses = ADMIN_USER_STATUSES;
   protected readonly sorts = SORTS;
@@ -65,7 +66,7 @@ export class AdminUsers extends AdminListBase {
     ),
   );
   private readonly query = computed<AdminUserQuery>(() => ({
-    search: this.search()?.trim() || undefined,
+    search: this.searchValue(),
     status: this.statusValue(),
     sort: this.sortState().sort,
     dir: this.sortState().dir,
@@ -96,6 +97,9 @@ export class AdminUsers extends AdminListBase {
         takeUntilDestroyed(),
       )
       .subscribe((result) => {
+        if (this.leftPastLastPage(result)) {
+          return;
+        }
         this.result.set(result);
         this.loading.set(false);
       });
