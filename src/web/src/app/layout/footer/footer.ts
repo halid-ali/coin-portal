@@ -7,6 +7,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { Language } from '../../core/i18n/languages';
 import { LanguagePreference } from '../../core/settings/language-preference';
 import { LanguageSelect } from '../../shared/language-select/language-select';
+import { Logo } from '../../shared/logo/logo';
 
 /**
  * Site footer: logo on the left, copyright and the privacy/terms/contact links in the middle, language on
@@ -16,7 +17,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
  */
 @Component({
   selector: 'app-footer',
-  imports: [RouterLink, TranslocoPipe, LanguageSelect],
+  imports: [RouterLink, TranslocoPipe, LanguageSelect, Logo],
   host: {
     // The page's footer landmark (the host is the element in the page, not a <footer>)
     role: 'contentinfo',
@@ -28,12 +29,7 @@ import { LanguageSelect } from '../../shared/language-select/language-select';
       class="page-container grid grid-cols-2 items-center gap-x-6 gap-y-2 py-3 sm:grid-cols-[1fr_auto_1fr]"
     >
       <a routerLink="/" class="flex items-center gap-2 justify-self-start font-bold text-shade-900">
-        <span
-          aria-hidden="true"
-          class="grid size-8 place-items-center rounded-full bg-linear-to-br from-amber-300 to-amber-500 text-sm
-                 text-amber-950 shadow-sm ring-1 ring-amber-600/20"
-          >€</span
-        >
+        <app-logo class="size-8" />
         CoinVitrine
       </a>
 

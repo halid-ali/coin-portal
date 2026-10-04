@@ -432,15 +432,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (birincil butonun dolgusu ve yazısı); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema
   (`<html class="dark">`, `ThemeService`) sadece `styles.css`'teki değişkenleri değiştirir; template'e
   `dark:` ve düz palet (`slate-*`, `amber-*`, `bg-white`) yazılmaz. İstisna: iki temada aynı görünmesi
-  gerekenler (tehlike butonunun dolgusu, logo, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri)
+  gerekenler (tehlike butonunun dolgusu, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri)
   ve `dark:` kullanan iki yer: baş harf avatarı (header, profil) ve bayrak çerçevesi (`shared/flag`).
+  Logo (`shared/logo`) temaya göre değişir, kendi değişkenleriyle: `--logo-coin` / `--logo-sign` (açıkta
+  koyu para + altın €, koyuda altın para + koyu €; kullanıcı kararı 2026-10-04), tema rengine bağlı değil.
   Tema tercihi dil gibi hesapta (`me` → `theme`, `PUT api/settings`), değişiklik `ThemePreference.change()`.
 - **Vurgu rengi (tema rengi):** `brand` ve `primary` token'ları `--accent-*` değişkenlerinden gelir;
   her renk `styles.css`'te bir `:root[data-accent='…']` bloğu (amber varsayılan, attribute yok).
   Renk eklenirken birlikte değişenler: API `AccentColor` enum'u (+ check constraint, migration), client
   `ACCENT_COLORS` (`core/theme/accent.service.ts`), `index.html`'deki açılış betiği, `styles.css` bloğu,
   Ayarlar'daki renk örneği (`accent-settings.ts` `SWATCH`) ve `theme.accent.<değer>` çevirileri. Tercih temayla aynı
-  modelde (`me` → `accent`, `AccentService`, `AccentPreference.change()`). Logo her zaman altın kalır.
+  modelde (`me` → `accent`, `AccentService`, `AccentPreference.change()`). Logo tema rengine uymaz.
   Yeni renkte kontrast ölçülür: odak halkası (`--color-focus`, açıkta `accent-700`, koyuda `accent-400`)
   zemine karşı en az 3:1, butonun yazısı (`accent-on-fill`) dolguya karşı en az 4,5:1.
 - **Klavye odağı:** odak halkaları `ring-focus` token'ıyla (`brand-500` değil; açık temada bazı renklerde
@@ -491,8 +493,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Bekleyen görsel değişikliği tipi `ImageChange` (`shared/image-change.ts`); kapak da coin fotoğrafı gibi
   Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
   oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
-- Uygulama ikonları ve favicon header logosundan üretilir: `node scripts/make-icons.mjs` (`src/web`,
-  headless Edge) `public/icons/` ve `public/favicon.ico` yazar; logo değişince yeniden çalıştırılır.
+- Logo `shared/logo` (`<app-logo>`, inline SVG: dolu daire + uçları yuvarlak çizgilerle €; header ve
+  footer). Açılış ekranında `index.html`'de aynı çizimin kopyası var; ikisi birlikte değişir. Uygulama
+  ikonları ve favicon ondan üretilir: `node scripts/make-icons.mjs` (`src/web`, headless Edge; çizim ve
+  renkler betikte de yazılı) `public/icons/`, `public/favicon.ico` ve `public/favicon.svg` (tarayıcının
+  açık/koyu moduna göre renk değiştirir) yazar; logo değişince betik güncellenip yeniden çalıştırılır.
   Manifest `public/manifest.webmanifest`. Tarayıcı çubuğu rengi (`theme-color`) header'ın yüzeyi:
   `ThemeService` `THEME_COLORS` ve `index.html`'deki açılış betiği birlikte değişir.
 - **Gizlilik politikası** (`pages/legal/privacy.ts`, metin `privacy.*`) sitenin işlediği her kişisel

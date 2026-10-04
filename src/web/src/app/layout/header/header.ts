@@ -8,6 +8,7 @@ import { filter } from 'rxjs';
 import { UserResponse } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { Logo } from '../../shared/logo/logo';
 import { ThemeToggle } from '../../shared/theme-toggle/theme-toggle';
 
 /** Main navigation; public items are shown signed out too. Labels are translation keys. */
@@ -18,7 +19,7 @@ const NAV_ITEMS: readonly { path: string; labelKey: string; icon: string; public
 
 @Component({
   selector: 'app-header',
-  imports: [NgTemplateOutlet, RouterLink, RouterLinkActive, TranslocoPipe, ThemeToggle],
+  imports: [NgTemplateOutlet, RouterLink, RouterLinkActive, TranslocoPipe, Logo, ThemeToggle],
   templateUrl: './header.html',
   host: {
     // Sticky here, not on <header>: a sticky element cannot leave its parent, and this host is
