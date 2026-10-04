@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-04
+
+### Added
+
+- **api:** Apply pending migrations at startup when configured
+- **client:** Tie form errors to fields and manage focus between pages
+
+### Fixed
+
+- **client:** Fix search box and paging in coin and admin lists
+- **client:** Keep dialog results on Escape and warn about unsaved changes
+- **client:** Map coded errors, keep settings in step and recover the antiforgery token
+- **client:** Keep keyboard focus visible and in place
+
 ## [1.0.0] - 2026-10-03
 
 ### Added
