@@ -55,4 +55,44 @@ describe('Pagination', () => {
     button('Sonraki sayfa').click();
     expect(pages).toEqual([]);
   });
+
+  // page, page size, total -> the range shown next to the total
+  it.each([
+    [1, 25, 120, '1–25 / 120'],
+    [2, 25, 120, '26–50 / 120'],
+    [5, 25, 120, '101–120 / 120'],
+    [1, 0, 120, '1–120 / 120'], // "all" on one page
+    [1, 25, 0, '0 / 0'],
+  ])('page %i of %i per page with %i items shows %s', async (page, pageSize, total, expected) => {
+    const fixture = TestBed.createComponent(Pagination);
+    fixture.componentRef.setInput('page', page);
+    fixture.componentRef.setInput('totalPages', pageSize ? Math.ceil(total / pageSize) : 1);
+    fixture.componentRef.setInput('totalCount', total);
+    fixture.componentRef.setInput('pageSize', pageSize);
+    fixture.componentRef.setInput('options', [25, 50, 0]);
+    await fixture.whenStable();
+
+    const text = (fixture.nativeElement as HTMLElement).querySelector('span.whitespace-nowrap')!;
+    expect(text.textContent!.trim()).toBe(expected);
+  });
+
+  it('offers the page sizes, "all" by name, and reports a choice', async () => {
+    const fixture = TestBed.createComponent(Pagination);
+    fixture.componentRef.setInput('page', 1);
+    fixture.componentRef.setInput('totalPages', 5);
+    fixture.componentRef.setInput('totalCount', 120);
+    fixture.componentRef.setInput('pageSize', 25);
+    fixture.componentRef.setInput('options', [25, 50, 0]);
+    const sizes: number[] = [];
+    fixture.componentInstance.pageSizeChange.subscribe((size) => sizes.push(size));
+    await fixture.whenStable();
+    const select = (fixture.nativeElement as HTMLElement).querySelector('select')!;
+
+    expect([...select.options].map((o) => o.textContent!.trim())).toEqual(['25', '50', 'Tümü']);
+    expect(select.selectedIndex).toBe(0);
+    select.selectedIndex = 2;
+    select.dispatchEvent(new Event('change'));
+
+    expect(sizes).toEqual([0]);
+  });
 });

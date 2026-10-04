@@ -1,7 +1,7 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.1.0` yayında**, P1'in ilk yarısı: #22, #23, #26, #24, #25; Tamamlananlar
-54–59. P1'in ikinci yarısı: #27, #28, #29 bitti (Tamamlananlar 61–63), sırada #30. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59. P1 bitti: ikinci yarısı #27, #28, #29, #30 (Tamamlananlar 61–64); sırada **`v1.2.0`**. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1129,6 +1129,30 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `CoinPortalFactory.CreateHttpClient`); #27'deki süpürme testi paralel bir süpürmenin `LastResult`'ı
       değiştirmesine açıktı. Düzeltmeden sonra 8 tam koşu temiz.
     - Testler: API 222 (önce 158).
+64. **Client birim testleri** (`chore/client-unit-tests`, #30, 2026-10-04):
+    - **Testlerin bulduğu hata (düzeltildi, ayrı commit):** kırpma, koleksiyon silme ve hesap silme
+      pencerelerinde Esc pencereyi **hiç kapatmıyordu**. `(cancel)="busy() && $event.preventDefault()"` boştayken
+      `false` döner; Angular `false` döndüren şablon işleyicisinde olayın varsayılanını engeller. Artık metot
+      (`onCancel`), sadece meşgulken engeller; üç pencerenin Esc testleri var, CLAUDE.md kuralı ve "Bilinen
+      tuzaklar" düzeltildi. Tarayıcıda elle denenmedi (aynı olay yolu testte).
+    - **Çekirdek:** `AuthService` (önce `me`, sonra kullanıcıya bağlı token; girişte hesabın dil/tema/rengi;
+      token alınamasa da giriş; 401'li çıkış; süresi dolan oturum bir kez), tema/renk/dil tercihi (girişsiz
+      istek yok, diğer ayarlar korunur, kayıt başarısızsa geri döner; dil kayıttan sonra değişir), sayfa başlığı
+      (dil değişimi, sayfanın kendi başlığı korunur), ülke sıralaması (tr Almanya < Avusturya, en tersi),
+      `safeReturnUrl`.
+    - **Formlar:** giriş sayfası (401, admin kilidi, geçici kilit, 400, 429, ağ; parola temizlenir; dönüş adresi
+      sadece site içi), kayıt formunda sunucu hataları alanlarına ve Türkçe, hata eşleme tablosu (özellik adı,
+      `$.alan`, form kodu, `Password` öneki), doğrulayıcılar (parola gücü, kullanıcı adı kalıbı).
+    - **Paylaşılan:** dil seçici (klavye: oklar, Home/End, Enter/Space, Esc, odak), sıralama başlığı (`aria-sort`,
+      ipucu), fotoğraf görüntüleyici (oklar döngülü, tekerlek uçta durur, paylaşım anahtarı), sayfalama aralığı
+      ve sayfa boyutu, kırpma penceresi `stubModalDialogs`'a geçti (kullan, Vazgeç, Esc).
+    - **Sayfalar:** koleksiyon silme penceresi (ad birebir, varsayılan taşıma, Esc), admin kullanıcı detayı
+      (kilitle/kilidi aç/sil, iptal, hata; işlemden sonra odak ilk butona). Koleksiyon sayfasının URL
+      yardımcıları `collection-url.ts`'e, sıralama okuma `coin-sort.ts` `parseSort`'a taşındı (davranış aynı,
+      iki kopya birleşti).
+    - Not: `/\evil.example` gibi ters çizgili bir dönüş adresi `safeReturnUrl`'den geçer, ama iki kullanım yeri de
+      Angular router (`navigateByUrl`/`parseUrl`), adresi uygulama içi yol olarak işler: açık yönlendirme değil.
+    - Testler: client 251 (önce 151), 3 koşu temiz.
 
 ## Yol haritası
 
@@ -1232,7 +1256,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları (Tamamlananlar 61; ek: admin panelinde disk istatistikleri).
   - [x] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri (Tamamlananlar 62).
   - [x] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları) (Tamamlananlar 63).
-  - [ ] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce).
+  - [x] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce) (Tamamlananlar 64; testler Esc hatasını buldu).
 - **P2, planlı:**
   - [ ] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı.
   - [ ] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi.
@@ -1247,7 +1271,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 Yeni sohbette kullanıcıyla seçilecek. **`v1.1.0` yayında** (2026-10-04, Tamamlananlar 59); P1'in kalan yarısı
-sırada (#27, #28, #29 bitti, #30 ile devam). Adaylar:
+bitti (#27–#30, Tamamlananlar 61–64); sırada **`v1.2.0`** yayını. Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
@@ -1255,7 +1279,7 @@ sırada (#27, #28, #29 bitti, #30 ile devam). Adaylar:
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
-  ~~#28 çeviriler~~ → ~~#29 API testleri~~ → #30 client testleri → **`v1.2.0`**.
+  ~~#28 çeviriler~~ → ~~#29 API testleri~~ → ~~#30 client testleri~~ → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
 

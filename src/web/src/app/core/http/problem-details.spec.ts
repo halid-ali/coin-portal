@@ -94,4 +94,26 @@ describe('applyServerErrors', () => {
       server: 'Kayıt için en az 18 yaşında olmalısın.',
     });
   });
+
+  // Keys the API sends -> the control they belong to
+  it.each([
+    ['Name', {}, 'name'], // a property name, any case
+    ['$.birthDate', {}, 'birthDate'], // a JSON binding error
+    ['DuplicateName', { DuplicateName: 'name' }, 'name'], // a code mapped by the form
+    ['PasswordRequiresDigit', { Password: 'password' }, 'password'], // a code by its prefix
+  ])('maps %s to its control', (key, codeMap, control) => {
+    const form = new FormGroup({
+      name: new FormControl(''),
+      birthDate: new FormControl(''),
+      password: new FormControl(''),
+    });
+    const error = new HttpErrorResponse({ status: 400, error: { errors: { [key]: ['x'] } } });
+
+    expect(applyServerErrors(form, error, codeMap)).toEqual([]);
+
+    expect(Object.keys(form.controls).filter((name) => form.get(name)!.hasError('server'))).toEqual(
+      [control],
+    );
+    expect(form.get(control)!.touched).toBe(true);
+  });
 });

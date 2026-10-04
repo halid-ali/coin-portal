@@ -19,10 +19,9 @@ import {
   PAGE_SIZE_OPTIONS,
   PagedResponse,
   SortDirection,
-  isSortColumn,
   maxCoinYear,
 } from '../../core/coins/coin.models';
-import { DEFAULT_SORT, SortState, nextSort } from '../../core/coins/coin-sort';
+import { SortState, nextSort, parseSort } from '../../core/coins/coin-sort';
 import { CoinService, photoUrl, primaryPhoto } from '../../core/coins/coin.service';
 import { CollectionReturn } from '../../core/coins/collection-return';
 import { CountryService } from '../../core/coins/country.service';
@@ -47,6 +46,7 @@ import { SEARCH_MAX_LENGTH, normalizeSearch, syncSearchWithUrl } from '../../sha
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
+import { toInt, toPageSize } from './collection-url';
 import { CollectionView, ViewToggle } from './view-toggle';
 
 /**
@@ -66,20 +66,6 @@ type ListedCoin = Omit<Coin, 'updatedAtUtc'> &
 type CollectionHeader = CollectionSummary & { ownerUserName?: string };
 
 type QueryParamValue = string | number | boolean | null;
-
-function toInt(value: string | undefined): number | undefined {
-  const n = Number(value);
-  return value && Number.isInteger(n) ? n : undefined;
-}
-
-/** URL value -> API value: "all" is 0, unknown values fall back to the default. */
-function toPageSize(value: string | undefined): number {
-  if (value === 'all') {
-    return 0;
-  }
-  const n = toInt(value);
-  return n !== undefined && n !== 0 && PAGE_SIZE_OPTIONS.includes(n) ? n : DEFAULT_PAGE_SIZE;
-}
 
 /** Coin list with filters, sort, list/grid view and paging, in one of the modes above. */
 @Component({
@@ -181,13 +167,7 @@ export class Collection {
   protected readonly denominationLabel = denominationLabel;
 
   /** Sort from the URL; unknown values fall back to the default order. */
-  protected readonly sortState = computed<SortState>(() => {
-    const sort = this.sort();
-    if (!isSortColumn(sort)) {
-      return DEFAULT_SORT;
-    }
-    return { sort, dir: this.dir() === 'Desc' ? 'Desc' : 'Asc' };
-  });
+  protected readonly sortState = computed<SortState>(() => parseSort(this.sort(), this.dir()));
 
   protected readonly query = computed<CoinListQuery & { owner?: string }>(() => {
     const denomination = this.denomination();
@@ -489,9 +469,7 @@ export class Collection {
   /** Mobile select; values look like "Year:Desc", "Newest" for the default order. */
   protected setSortOption(value: string): void {
     const [sort, dir] = value.split(':');
-    this.applySort(
-      isSortColumn(sort) ? { sort, dir: dir === 'Desc' ? 'Desc' : 'Asc' } : DEFAULT_SORT,
-    );
+    this.applySort(parseSort(sort, dir));
   }
 
   private applySort({ sort, dir }: SortState): void {

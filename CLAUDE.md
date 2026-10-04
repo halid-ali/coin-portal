@@ -451,8 +451,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `stubModalDialogs()` (`shared/testing/dialogs.ts`), Esc için `pressEscape()`. Diğer pencereler (kırpma, görüntüleyici) `@if` ile eklenir,
   `afterNextRender` içinde `showModal()` açılır, `(closed)` ile kaldırılır.
 - **Pencere kapanış kuralları:** tek çıkış noktası `(close)` → `onClose()`; sonuç orada hesaplanır (Esc
-  butonlardan geçmez, kaydedilmiş bir şey varsa Esc'te de bildirilir). İstek sürerken Esc engellenir
-  (`(cancel)="busy() && $event.preventDefault()"`). Arka plan tıklaması sadece metin alanı olmayan
+  butonlardan geçmez, kaydedilmiş bir şey varsa Esc'te de bildirilir). İstek sürerken Esc engellenir:
+  `(cancel)="onCancel($event)"` + metotta `if (busy()) event.preventDefault()` (şablonda `busy() &&
+  $event.preventDefault()` yazılmaz, bkz. Bilinen tuzaklar). Her pencerenin Esc davranışı `pressEscape`
+  ile test edilir. Arka plan tıklaması sadece metin alanı olmayan
   pencereleri kapatır (onay, görüntüleyici) ve basış da arka planda başlamış olmalı (`pointerdown`).
   Kaydedilmemiş girdi: sayfada `HasUnsavedChanges` + rotada `canDeactivate: [unsavedChangesGuard]` +
   `beforeunload` (bkz. `CoinForm`), pencerede Esc `confirmDiscardChanges()` ile sorar; **Vazgeç
@@ -527,6 +529,13 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
     için `whenStable` beklemez, metin `vi.waitFor` ile beklenir (bkz. `admin-users.spec.ts`).
   - Ayarlar sayfası: soldaki bölüm menüsü `pages/settings/settings.ts` `SECTIONS`, her bölüm
     `settings.routes.ts` içinde bir alt rota.
+- **Client birim testleri** (Vitest + jsdom, kodun yanında `*.spec.ts`): çekirdek servisler (`core/`),
+  paylaşılan bileşenler (`shared/`), her pencere (Esc ve meşgulken davranış) ve formların sunucu hata
+  eşlemesi spec'iyle gelir. HTTP `HttpTestingController` ile (istek sırası `expectNone` ile de kontrol
+  edilir); onay penceresi gereken sayfada `ConfirmDialogService` taklit edilir (bkz.
+  `admin-user-detail.spec.ts`); bir işlemden sonraki yeniden yükleme birkaç adım sonra başladığı için istek
+  `vi.waitFor(() => http.expectOne(...))` ile beklenir. Sayfa içindeki saf mantık (URL değerlerini okuma vb.)
+  bileşenden ayrı bir dosyaya alınıp ayrıca test edilir (`collection-url.ts`, `coin-sort.ts` `parseSort`).
 - Prettier: `printWidth: 100`, `singleQuote`.
 
 ## Bilinen tuzaklar
@@ -537,6 +546,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ters eğik çizgisiz, çift tırnaksız** olmalı (backtick kullan), yoksa Swagger sayfası boş kalır.
 - `.csproj` içindeki XML yorumlarında `--` kullanılamaz.
 - `@for` ile oluşan `<option>`'larda seçili değer `[selected]` ile verilir; `<select [value]>` güvenilir değil.
+- Şablondaki bir olay işleyicisi `false` döndürürse Angular olayın varsayılanını engeller: `(cancel)="x()
+  && $event.preventDefault()"` x yanlışken `false` döner ve Esc pencereyi **hiç** kapatmaz (2026-10-04'e
+  kadar kırpma, koleksiyon silme ve hesap silme pencerelerinde böyleydi). Koşullu engelleme metotta yapılır.
 - Kullanıcının API'si çalışırken `bin/` kilitli olur ve `dotnet build` kopyalamada takılır. Bu
   durumda ne yapılacağı "Çalışan uygulamalar" bölümünde. `dotnet ef migrations add` / `database update`
   için API'yi durdurmak gerekmez: `BaseOutputPath=<scratchpad>/efbin/ dotnet ef …` başka klasöre derler

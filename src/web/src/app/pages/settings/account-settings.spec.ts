@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserResponse } from '../../core/auth/auth.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
-import { stubModalDialogs } from '../../shared/testing/dialogs';
+import { pressEscape, stubModalDialogs } from '../../shared/testing/dialogs';
 import { Home } from '../home/home';
 import { AccountSettings } from './account-settings';
 
@@ -109,6 +109,22 @@ describe('AccountSettings', () => {
 
     expect(dialog.querySelector('[role=alert]')!.textContent).toContain('Parola yanlış');
     expect(dialog.querySelector('dialog')!.open).toBe(true);
+  });
+
+  it('closes on Escape, but not while the account is being deleted', async () => {
+    await signIn();
+    let dialog = await openDialog();
+    pressEscape(dialog.querySelector('dialog')!);
+    await harness.fixture.whenStable();
+    expect(page().querySelector('app-delete-account-dialog')).toBeNull();
+
+    dialog = await openDialog();
+    await submit(dialog, 'Coinportal1');
+    const request = http.expectOne('/api/settings/account');
+    pressEscape(dialog.querySelector('dialog')!);
+    // The deletion would go on unseen
+    expect(dialog.querySelector('dialog')!.open).toBe(true);
+    request.flush({ code: 'wrong_password' }, { status: 400, statusText: 'Bad Request' });
   });
 
   it('signs out and tells the home page once the account is gone', async () => {
