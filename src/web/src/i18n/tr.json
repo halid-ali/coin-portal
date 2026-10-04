@@ -38,6 +38,7 @@
     "locked": "Hesap geçici olarak kilitlendi. Biraz sonra tekrar dene.",
     "forbidden": "Bu işlem için yetkin yok.",
     "requestRejected": "İstek doğrulanamadı. Sayfayı yenileyip tekrar dene.",
+    "invalidRequest": "Gönderilen bilgiler kabul edilmedi. Kontrol edip tekrar dene.",
     "rateLimited": "Kısa sürede çok fazla istek gönderildi. Biraz bekleyip tekrar dene.",
     "collectionLimit": "Bir hesapta en fazla 50 koleksiyon olabilir. Yenisini eklemek için birini sil.",
     "coinLimit": "Bir hesapta en fazla 10.000 coin olabilir."
@@ -47,7 +48,7 @@
     "email": "Geçerli bir e-posta adresi girin.",
     "minLength": "En az {{min}} karakter olmalı.",
     "maxLength": "En fazla {{max}} karakter olabilir.",
-    "pattern": "Sadece harf, rakam ve . _ - kullanılabilir.",
+    "pattern": "Sadece İngilizce harfler (ç, ğ, ı, ö, ş, ü olmadan), rakam ve . _ - kullanılabilir.",
     "minAge": "Kayıt için en az {{age}} yaşında olmalısın.",
     "futureDate": "Doğum tarihi gelecekte olamaz.",
     "maxAge": "Geçerli bir doğum tarihi girin.",
@@ -55,6 +56,7 @@
     "passwordMismatch": "Parolalar eşleşmiyor.",
     "min": "En az {{min}} olmalı.",
     "max": "En fazla {{max}} olabilir.",
+    "integer": "Tam sayı olmalı.",
     "invalid": "Geçersiz değer."
   },
   "titles": {
@@ -69,7 +71,7 @@
     "profile": "Profil",
     "sharedCollection": "Paylaşılan koleksiyon",
     "newCoin": "Coin ekle",
-    "editCoin": "Coini düzenle",
+    "editCoin": "Coin'i düzenle",
     "settings": "Ayarlar",
     "admin": "Yönetim"
   },
@@ -93,9 +95,9 @@
     "headline": "Euro coin koleksiyonun, her yerde yanında",
     "welcome": "Hoş geldin, {{name}}!",
     "goToCollections": "Koleksiyonlarıma git",
-    "intro": "Coinlerini fotoğraflarıyla kaydet, elinde olup olmadığını saniyeler içinde kontrol et ve koleksiyonunu arkadaşlarınla paylaş.",
+    "intro": "Coin'lerini fotoğraflarıyla kaydet, elinde olup olmadığını saniyeler içinde kontrol et ve koleksiyonunu arkadaşlarınla paylaş.",
     "registerFree": "Ücretsiz kayıt ol",
-    "browseCollectors": "Diğer koleksiyonculara göz at →"
+    "browseCollectors": "Herkese açık koleksiyonları keşfet →"
   },
   "login": {
     "title": "Giriş yap",
@@ -121,7 +123,7 @@
     "firstName": "İsim",
     "lastName": "Soyisim",
     "userName": "Kullanıcı adı",
-    "userNameHint": "3-20 karakter; harf, rakam ve . _ -",
+    "userNameHint": "3–20 karakter; İngilizce harf (ç, ğ, ı, ö, ş, ü yok), rakam ve . _ -",
     "email": "E-posta",
     "birthDate": "Doğum tarihi",
     "birthDateHint": "Kayıt için en az {{age}} yaşında olmalısın.",
@@ -134,7 +136,7 @@
     "loginLink": "Giriş yap",
     "duplicateEmail": "Bu e-posta adresiyle zaten bir hesap var.",
     "duplicateUserName": "Bu kullanıcı adı alınmış.",
-    "invalidUserName": "Kullanıcı adında sadece harf, rakam ve . _ - kullanılabilir."
+    "invalidUserName": "Kullanıcı adında sadece İngilizce harfler (ç, ğ, ı, ö, ş, ü olmadan), rakam ve . _ - kullanılabilir."
   },
   "coin": {
     "denomination": {
@@ -240,12 +242,12 @@
     "loadError": "Coin'ler yüklenemedi. Sayfayı yenileyip tekrar dene.",
     "noMatches": "Filtrelere uyan coin bulunamadı.",
     "empty": "Bu koleksiyonda henüz coin yok.",
-    "addFirstCoin": "İlk coinini ekle",
+    "addFirstCoin": "İlk coin'ini ekle",
     "noPublicCollections": "Henüz herkese açık bir koleksiyon yok."
   },
   "coinForm": {
     "titleNew": "Coin ekle",
-    "titleEdit": "Coini düzenle",
+    "titleEdit": "Coin'i düzenle",
     "backToCollection": "Koleksiyona dön",
     "notFound": "Coin bulunamadı. Silinmiş ya da sana ait olmayabilir.",
     "loadError": "Coin yüklenemedi. Sayfayı yenileyip tekrar dene.",
@@ -257,8 +259,12 @@
     "mintMarkHint": "İsteğe bağlı, örn. A, D, F, G, J",
     "photosHint": "İsteğe bağlı. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
     "photosFailed": "Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:",
-    "deleteTitle": "Coini sil",
-    "deleteMessage": "\"{{title}}\" koleksiyonundan kalıcı olarak silinecek. Bu işlem geri alınamaz."
+    "deleteTitle": "Coin'i sil",
+    "deleteMessage": "\"{{title}}\" adlı coin koleksiyonundan kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "errors": {
+      "unknownCollection": "Seçilen koleksiyon bulunamadı; silinmiş olabilir. Sayfayı yenileyip başka bir koleksiyon seç.",
+      "unknownCountry": "Bilinmeyen ülke."
+    }
   },
   "photo": {
     "viewLarge": "{{side}} büyük göster",

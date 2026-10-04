@@ -24,9 +24,10 @@ import { CountryService } from '../../core/coins/country.service';
 import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
-import { applyServerErrors } from '../../core/http/problem-details';
+import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { denominationLabel, suggestTitle } from '../../shared/coin-format';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
+import { integerValidator } from '../../shared/validators';
 import { FieldA11y } from '../../shared/field-a11y';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
@@ -113,12 +114,22 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   /** Saved or deleted: the way back to the list does not ask about the form. */
   private finished = false;
 
+  /** The API's save errors -> messages (its own are English and never shown). */
+  private readonly saveMessageKeys: Record<string, MessageKey> = {
+    moderation_locked: 'coinForm.moveLocked',
+    // Deleted in another tab since the list was loaded
+    CollectionId: 'coinForm.errors.unknownCollection',
+    CountryCode: 'coinForm.errors.unknownCountry',
+    Year: { key: 'validation.max', params: { max: this.maxYear } },
+  };
+
   protected readonly form = this.fb.group({
     collectionId: this.fb.control<number | null>(null, Validators.required),
     denomination: this.fb.control<Denomination | ''>('', Validators.required),
     countryCode: ['', Validators.required],
     year: this.fb.control<number | null>(null, [
       Validators.required,
+      integerValidator,
       Validators.min(COIN_LIMITS.minYear),
       Validators.max(this.maxYear),
     ]),
@@ -127,7 +138,12 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     isCommemorative: [false],
     quantity: [
       1,
-      [Validators.required, Validators.min(1), Validators.max(COIN_LIMITS.maxQuantity)],
+      [
+        Validators.required,
+        integerValidator,
+        Validators.min(1),
+        Validators.max(COIN_LIMITS.maxQuantity),
+      ],
     ],
     description: ['', Validators.maxLength(COIN_LIMITS.descriptionMaxLength)],
   });
@@ -215,9 +231,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     } catch (err) {
       this.submitting.set(false);
       const error = err as HttpErrorResponse;
-      this.formErrors.set(
-        applyServerErrors(this.form, error, {}, { moderation_locked: 'coinForm.moveLocked' }),
-      );
+      this.formErrors.set(applyServerErrors(this.form, error, {}, this.saveMessageKeys));
       this.focusFirstInvalid();
       return;
     }

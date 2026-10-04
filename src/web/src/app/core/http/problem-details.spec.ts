@@ -61,13 +61,37 @@ describe('applyServerErrors', () => {
     expect(applyServerErrors(form, coded)[0]).toContain('Beklenmeyen bir hata');
   });
 
-  it('puts field errors on the matching controls', () => {
+  it('puts field errors on the matching controls, never in the API wording', () => {
     const form = new FormGroup({ name: new FormControl('') });
     const error = new HttpErrorResponse({
       status: 400,
-      error: { errors: { Name: ['The Name field is required.'], Other: ['Something else.'] } },
+      error: {
+        errors: {
+          Name: ['The Name field is required.'],
+          Other: ['Something else.'],
+          More: ['And more.'],
+        },
+      },
     });
-    expect(applyServerErrors(form, error)).toEqual(['Something else.']);
-    expect(form.controls.name.errors).toEqual({ server: 'The Name field is required.' });
+    // Unknown keys: generic messages in the UI language, the general one only once
+    expect(applyServerErrors(form, error)).toEqual([translate('errors.invalidRequest')]);
+    expect(form.controls.name.errors).toEqual({ server: translate('validation.invalid') });
+  });
+
+  it('shows the message given for a key, with its parameters', () => {
+    const form = new FormGroup({ birthDate: new FormControl('') });
+    const error = new HttpErrorResponse({
+      status: 400,
+      error: { errors: { BirthDate: ['You must be at least 18 years old.'] } },
+    });
+    applyServerErrors(
+      form,
+      error,
+      {},
+      { BirthDate: { key: 'validation.minAge', params: { age: 18 } } },
+    );
+    expect(form.controls.birthDate.errors).toEqual({
+      server: 'Kayıt için en az 18 yaşında olmalısın.',
+    });
   });
 });

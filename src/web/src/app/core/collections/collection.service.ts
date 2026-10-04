@@ -115,6 +115,8 @@ export function collectionErrorMessage(err: HttpErrorResponse): string {
 export const COLLECTION_ERROR_CODES = { DuplicateName: 'name' } as const;
 export const COLLECTION_ERROR_MESSAGE_KEYS = {
   DuplicateName: 'collections.errors.duplicateName',
+  // Only spaces: the form checks "required", the API trims first
+  Name: 'validation.required',
   // 403 when the collection was hidden by an admin while the form was open
   moderation_locked: 'collections.errors.moderation_locked',
 } as const;

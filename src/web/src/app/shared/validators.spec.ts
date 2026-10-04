@@ -1,13 +1,39 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { ageOn, minimumAgeValidator, passwordMatchValidator } from './validators';
+import {
+  ageOn,
+  integerValidator,
+  latestBirthDate,
+  minimumAgeValidator,
+  notBlankValidator,
+  passwordMatchValidator,
+} from './validators';
 
 describe('validators', () => {
-  const today = new Date(2026, 8, 27); // 2026-09-27
+  const today = new Date(Date.UTC(2026, 8, 27)); // 2026-09-27
 
   it('ageOn counts full years only', () => {
     expect(ageOn('2008-09-27', today)).toBe(18);
     expect(ageOn('2008-09-28', today)).toBe(17);
+  });
+
+  it('uses the UTC date, as the API does', () => {
+    // 01:30 on the 28th in Turkey (UTC+3) is still the 27th in UTC
+    const turkishNight = new Date('2026-09-27T22:30:00Z');
+    expect(ageOn('2008-09-28', turkishNight)).toBe(17);
+    expect(latestBirthDate(18, turkishNight)).toBe('2008-09-27');
+  });
+
+  it('notBlankValidator treats only spaces as missing', () => {
+    expect(notBlankValidator(new FormControl('   '))).toEqual({ required: true });
+    expect(notBlankValidator(new FormControl(' Ali '))).toBeNull();
+    expect(notBlankValidator(new FormControl(''))).toBeNull();
+  });
+
+  it('integerValidator rejects fractions', () => {
+    expect(integerValidator(new FormControl(2006.5))?.['integer']).toBe(true);
+    expect(integerValidator(new FormControl(2006))).toBeNull();
+    expect(integerValidator(new FormControl(null))).toBeNull();
   });
 
   it('minimumAgeValidator rejects under-age and future dates', () => {

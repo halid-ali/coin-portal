@@ -104,7 +104,7 @@ describe('Collection', () => {
     expect(page().querySelector('#search')).toBeNull();
     expect(page().querySelector('#denomination')).toBeNull();
     expect(page().textContent).toContain('Bu koleksiyonda henüz coin yok.');
-    expect(page().textContent).toContain('İlk coinini ekle');
+    expect(page().textContent).toContain("İlk coin'ini ekle");
   });
 
   it('shows search and filters when the collection has coins', async () => {

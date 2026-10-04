@@ -38,6 +38,7 @@
     "locked": "The account is locked for now. Please try again later.",
     "forbidden": "You are not allowed to do this.",
     "requestRejected": "The request could not be verified. Reload the page and try again.",
+    "invalidRequest": "The details you sent were not accepted. Check them and try again.",
     "rateLimited": "Too many requests in a short time. Wait a moment and try again.",
     "collectionLimit": "An account can have at most 50 collections. Delete one to add a new one.",
     "coinLimit": "An account can have at most 10,000 coins."
@@ -47,7 +48,7 @@
     "email": "Enter a valid email address.",
     "minLength": "Must be at least {{min}} characters.",
     "maxLength": "Can be at most {{max}} characters.",
-    "pattern": "Only letters, digits and . _ - are allowed.",
+    "pattern": "Only English letters (a–z, no accents), digits and . _ - are allowed.",
     "minAge": "You must be at least {{age}} years old to sign up.",
     "futureDate": "The date of birth can't be in the future.",
     "maxAge": "Enter a valid date of birth.",
@@ -55,6 +56,7 @@
     "passwordMismatch": "The passwords don't match.",
     "min": "Must be at least {{min}}.",
     "max": "Can be at most {{max}}.",
+    "integer": "Must be a whole number.",
     "invalid": "Invalid value."
   },
   "titles": {
@@ -95,7 +97,7 @@
     "goToCollections": "Go to my collections",
     "intro": "Record your coins with photos, check in seconds whether you already have one, and share your collection with friends.",
     "registerFree": "Sign up for free",
-    "browseCollectors": "Browse other collectors →"
+    "browseCollectors": "Explore public collections →"
   },
   "login": {
     "title": "Sign in",
@@ -121,7 +123,7 @@
     "firstName": "First name",
     "lastName": "Last name",
     "userName": "Username",
-    "userNameHint": "3–20 characters; letters, digits and . _ -",
+    "userNameHint": "3–20 characters; English letters (a–z), digits and . _ -",
     "email": "Email",
     "birthDate": "Date of birth",
     "birthDateHint": "You must be at least {{age}} years old to sign up.",
@@ -134,7 +136,7 @@
     "loginLink": "Sign in",
     "duplicateEmail": "There is already an account with this email address.",
     "duplicateUserName": "This username is taken.",
-    "invalidUserName": "Usernames can only contain letters, digits and . _ -"
+    "invalidUserName": "Usernames can only contain English letters (a–z), digits and . _ -"
   },
   "coin": {
     "denomination": {
@@ -258,16 +260,20 @@
     "photosHint": "Optional. Changes are applied when you press Save; Cancel discards them all.",
     "photosFailed": "The coin was saved, but some photos couldn't be saved:",
     "deleteTitle": "Delete coin",
-    "deleteMessage": "\"{{title}}\" will be permanently deleted from your collection. This can't be undone."
+    "deleteMessage": "\"{{title}}\" will be permanently deleted from your collection. This can't be undone.",
+    "errors": {
+      "unknownCollection": "The selected collection was not found; it may have been deleted. Reload the page and choose another one.",
+      "unknownCountry": "Unknown country."
+    }
   },
   "photo": {
-    "viewLarge": "Show {{side}} larger",
+    "viewLarge": "Enlarge: {{side}}",
     "choose": "Choose photo",
     "fileHint": "JPG or PNG",
     "willUpload": "Uploaded when you save",
     "willDelete": "Deleted when you save",
     "willRemove": "Removed when you save",
-    "cropTitle": "Crop {{side}} photo",
+    "cropTitle": "Crop photo: {{side}}",
     "errors": {
       "file_missing": "The photo file couldn't be sent.",
       "file_too_large": "Photos can be at most {{mb}} MB.",
@@ -481,24 +487,24 @@
     },
     "data": {
       "title": "What data we process",
-      "i1": "Account details: your first and last name, user name, e-mail address, date of birth and password. The password is only stored as a one-way hash.",
+      "i1": "Account details: your first and last name, username, email address, date of birth and password. The password is only stored as a one-way hash.",
       "i2": "Preferences and times: your language, theme and color choices; when you signed up, signed in and last used the site.",
       "i3": "Your content: collections, coin details and the photos you upload. All extra information in photos (EXIF), including the location, is removed on upload.",
       "i4": "Technical records: the server logs the address, time and result of each request and keeps them for 30 days. Search terms in the address, the user filter of Explore and the keys of share links are not written to the log. Your IP address is only recorded when a request limit is exceeded. The hosting provider also writes the IP address, time, address, result and browser details of each request to its own server logs and keeps them for 6 months.",
-      "i5": "E-mails: the e-mails you send us and your e-mail address."
+      "i5": "Emails: the emails you send us and your email address."
     },
     "purposes": {
       "title": "Why we process it (legal basis)",
       "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the minimum age of 18.",
       "i2": "To keep the site safe: technical records, request limits, the temporary lock after failed sign-ins and moderation against abuse (Art. 6(1)(f) GDPR, legitimate interest).",
       "i3": "To run the site, as totals: for example the number of accounts that used the site in the last 30 days. These numbers are not used to assess individuals (Art. 6(1)(f) GDPR, legitimate interest).",
-      "i4": "To answer the e-mails you send us: your e-mail address and message (Art. 6(1)(f) GDPR, legitimate interest).",
+      "i4": "To answer the emails you send us: your email address and message (Art. 6(1)(f) GDPR, legitimate interest).",
       "p1": "Your data is not sold, not used for advertising or profiling, and not processed for any other purpose."
     },
     "visibility": {
       "title": "Who can see it",
-      "p1": "Collections are private by default; only you can see them. If you share a collection publicly or with a link, that collection, its coins and photos are visible together with your user name. Your name, e-mail address and date of birth are never shown to others.",
-      "p2": "For moderation, the site's administrators can see your user name, e-mail address, first and last name, when you signed up, last signed in and last used the site, whether your account is locked, the number of your collections, coins and photos, the storage you use, and the content you share (including the link of collections you share by link); they cannot see your private collections. Administrators' actions (locking, hiding, deleting) are recorded in an audit log with their time and the reason the administrator wrote."
+      "p1": "Collections are private by default; only you can see them. If you share a collection publicly or with a link, that collection, its coins and photos are visible together with your username. Your name, email address and date of birth are never shown to others.",
+      "p2": "For moderation, the site's administrators can see your username, email address, first and last name, when you signed up, last signed in and last used the site, whether your account is locked, the number of your collections, coins and photos, the storage you use, and the content you share (including the link of collections you share by link); they cannot see your private collections. Administrators' actions (locking, hiding, deleting) are recorded in an audit log with their time and the reason the administrator wrote."
     },
     "cookies": {
       "title": "Cookies and browser storage",
@@ -509,15 +515,15 @@
     },
     "hosting": {
       "title": "Hosting",
-      "p1": "The site runs on servers of MonsterASP.NET s.r.o. (Prague, Czech Republic) in data centers in the European Union; the data and the e-mails sent to our contact address are stored there. The provider processes the data only on our behalf and on our instructions (a data processing agreement under Art. 28 GDPR). Your data is not shared with anyone else."
+      "p1": "The site runs on servers of MonsterASP.NET s.r.o. (Prague, Czech Republic) in data centers in the European Union; the data and the emails sent to our contact address are stored there. The provider processes the data only on our behalf and on our instructions (a data processing agreement under Art. 28 GDPR). Your data is not shared with anyone else."
     },
     "retention": {
       "title": "How long we keep it",
-      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. The hosting provider backs up the site's files, the database and the mailboxes every day and keeps the backups for 21 days, so deleted data remains in them for up to 21 days. The provider's server logs are deleted after 6 months. E-mails you send us are kept as long as needed to answer your request and then deleted."
+      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. The hosting provider backs up the site's files, the database and the mailboxes every day and keeps the backups for 21 days, so deleted data remains in them for up to 21 days. The provider's server logs are deleted after 6 months. Emails you send us are kept as long as needed to answer your request and then deleted."
     },
     "rights": {
       "title": "Your rights",
-      "p1": "You have the right to access your data, to have it corrected or deleted, to restrict or object to its processing, and to data portability. You can download all your data as a ZIP file (including the administrators' records about your account and collections) and delete your account yourself in Settings > Account. To correct your name, e-mail address or date of birth, and for anything else, write to the e-mail address above.",
+      "p1": "You have the right to access your data, to have it corrected or deleted, to restrict or object to its processing, and to data portability. You can download all your data as a ZIP file (including the administrators' records about your account and collections) and delete your account yourself in Settings > Account. To correct your name, email address or date of birth, and for anything else, write to the email address above.",
       "p2": "If you think your data is processed unlawfully, you can complain to a data protection supervisory authority."
     },
     "age": {
@@ -560,7 +566,7 @@
     },
     "objection": {
       "title": "Objections",
-      "p1": "To object to a decision, write to the e-mail address on the contact page; your objection will be reviewed and you will be told the outcome."
+      "p1": "To object to a decision, write to the email address on the contact page; your objection will be reviewed and you will be told the outcome."
     },
     "ending": {
       "title": "Ending your account",
@@ -575,7 +581,7 @@
     "title": "Contact",
     "intro": "CoinVitrine is a non-commercial site, built and run by one person as a hobby.",
     "operator": "Run by",
-    "email": "E-mail",
+    "email": "Email",
     "emailHint": "For questions, bug reports, reports of inappropriate content and requests about your data.",
     "source": "Source code",
     "sourceHint": "The project is open source; you can report bugs there too.",

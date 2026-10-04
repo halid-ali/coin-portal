@@ -273,7 +273,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   hatalarda ProblemDetails'e makine kodu eklenir (`this.CodedProblem(code, title)`, ör.
   `invalid_image`, `last_collection`). Alan hatalarında ise
   ModelState anahtarı kod olur (ör. `DuplicateName`), client `applyServerErrors`'ın codeMap /
-  messageKeys parametreleriyle alana eşler ve çevirir. API'nin kullanıcı adına ürettiği içerik
+  messageKeys parametreleriyle alana eşler ve çevirir (`MessageKey`: anahtar ya da anahtar + parametre).
+  **API'nin İngilizce mesajı hiç gösterilmez:** messageKeys'te olmayan alan hatası `validation.invalid`,
+  alana bağlanmayan `errors.invalidRequest` olur; yeni bir sunucu hatası kullanıcıya bir şey anlatmalıysa
+  formun messageKeys'ine eklenir. Client kuralı API'yle aynı günü kullanır: yaş ve en büyük coin yılı UTC
+  tarihinden (`ageOn`, `maxCoinYear`). API'nin kullanıcı adına ürettiği içerik
   (ilk koleksiyonun adı, `Collection.DefaultNameFor(lang)`) kullanıcının diline göre yazılır.
 - Dil listesi iki yerde, birlikte değişir: `Localization/SupportedLanguages` ve client
   `core/i18n/languages.ts`. Kullanıcının dili `ApplicationUser.PreferredLanguage` (null = seçmedi),

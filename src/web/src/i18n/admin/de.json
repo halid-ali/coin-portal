@@ -97,7 +97,7 @@
     "unlockTemporaryMessage": "Die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen endet; @{{userName}} kann sich sofort anmelden.",
     "delete": "Benutzer löschen",
     "deleteTitle": "Benutzer endgültig löschen",
-    "deleteMessage": "Das Konto von @{{userName}} wird sofort mit allen Sammlungen, Münzen, Fotos und geteilten Links gelöscht. Das kann nicht rückgängig gemacht werden. Im Protokoll erscheint der Benutzer als „Gelöschter Benutzer“.",
+    "deleteMessage": "Das Konto von @{{userName}} wird sofort mit allen Sammlungen, Münzen, Fotos und Links zum Teilen gelöscht. Das kann nicht rückgängig gemacht werden. Im Protokoll erscheint der Benutzer als „Gelöschter Benutzer“.",
     "deleteTypeName": "Gib zur Bestätigung den Benutzernamen ein:",
     "adminNote": "Admins können im Panel nicht gesperrt oder gelöscht werden; sie werden aus der Konfiguration entfernt.",
     "history": "Verlauf",
@@ -124,7 +124,7 @@
     "hide": "Ausblenden",
     "unhide": "Entsperren",
     "hideTitle": "Sammlung ausblenden",
-    "hideMessage": "„{{name}}“ wird privat, der Freigabelink wird entfernt, und der Besitzer kann sie erst nach Aufhebung der Sperre wieder teilen.",
+    "hideMessage": "„{{name}}“ wird privat, der Link zum Teilen wird entfernt, und der Besitzer kann sie erst nach Aufhebung der Sperre wieder teilen.",
     "unhideTitle": "Sperre aufheben",
     "unhideMessage": "„{{name}}“ bleibt privat; der Besitzer kann sie bei Bedarf wieder teilen.",
     "column": {
