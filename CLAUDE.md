@@ -67,7 +67,9 @@ terminallerinde sürekli çalışır halde tutuyor.
   Debug (Dependabot ve fork'lar secret görmez). Dependabot haftalık, gruplu; npm ve NuGet'te major sürüm
   önermez (onlar planlı iş, Angular için `ng update`). `ci.yml` `workflow_call` ile `release.yml`'den de
   çağrılır (`ref` girdisi etiketin commit'i; çağrıldığında `github.workflow` "Release" olur, deneme
-  paketi atlanır, concurrency grubu adı ayrı tutar).
+  paketi atlanır, concurrency grubu adı ayrı tutar). E2E: ayrı iş (`tests/e2e`, Playwright'ın Chromium'u,
+  kendi SQL Server container'ı); etiket yayınında da koşar, kırık bir akış yayına geçemez; hata olursa
+  rapor artefaktı `e2e-report`.
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
@@ -131,6 +133,12 @@ cd src/web && ng build
 cd src/web && ng test --watch=false               # Vitest + jsdom
 cd src/web && npx prettier --check "src/**/*.{ts,html,css}"
 
+# End-to-end (tests/e2e): builds client + API, runs them on 5091 with database CoinPortal_E2E
+cd tests/e2e && npm install && npx playwright test
+cd tests/e2e && npx playwright test tests/sharing.spec.ts   # one file
+cd tests/e2e && E2E_SKIP_BUILD=1 npx playwright test       # reuse the last build
+cd tests/e2e && npx playwright show-report                 # last report (axe results attached)
+
 # Changelog and version (repo root)
 npx git-cliff@2.14.2 --bumped-version                 # suggested next version
 npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md     # regenerate for a release
@@ -158,7 +166,7 @@ src/web/src/app/        core/{admin,auth,coins,collections,public,http,i18n,lega
                         layout/{header,footer}/ + page-width.service, pages/ (+ admin/)
 src/web/src/i18n/       en.json, tr.json, de.json, bg.json (çeviriler); admin/<dil>.json (panelin scope'u)
 tests/api/              API testleri (CoinPortal.Api.Tests: xUnit v3 + WebApplicationFactory), Infrastructure/
-tests/e2e/              (planlı) Playwright. Angular unit testleri kodun yanında kalır.
+tests/e2e/              Playwright (server/, support/, tests/). Angular unit testleri kodun yanında kalır.
 docs/                   PROJECT_STATUS.md (yaşayan durum), reviews/ (tarihli değerlendirmeler)
 .config/                dotnet-tools.json (dotnet-ef local tool)
 ```
@@ -556,6 +564,19 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `vi.waitFor(() => http.expectOne(...))` ile beklenir. Sayfa içindeki saf mantık (URL değerlerini okuma vb.)
   bileşenden ayrı bir dosyaya alınıp ayrıca test edilir (`collection-url.ts`, `coin-sort.ts` `parseSort`).
 - Prettier: `printWidth: 100`, `singleQuote`.
+- **E2E testleri** (`tests/e2e`, Playwright, #34): bütün site tarayıcıda. `server/start.mjs` client'ı ve
+  API'yi `tests/e2e/.build`'e derler (çalışan dev API'nin `bin/` kilidine takılmaz), API'yi Development'ta
+  5091'de, `CoinPortal_E2E` veritabanıyla (açılışta migration), client'ı `--webroot` ile sunar (tek origin,
+  SPA fallback); rate limit'ler yüksek. Admin: betik önce API'yi 5191'de açıp `e2e-admin`'i kaydeder ya da
+  girer, Id'sini `Admin__UserIds__0` ile verip 5091'de yeniden başlatır (Playwright 5091'i bekler, hazırlık
+  ayrı portta olmalı). Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
+  dizüstünde zaman aşımı yapar); CI'da Chromium. Arayüz İngilizce (`locale: 'en-US'`), seçiciler rol ve
+  görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`), girişli tarayıcı
+  `user.browser(browser)`. Her sayfa `expectAccessible(page, ad)` (axe, WCAG 2.1 AA): **ciddi ve kritik
+  bulgu testi kırar** (kullanıcı kararı 2026-10-04), azı raporda; tarama animasyonlar bitince yapılır
+  (yarı saydam pencere yanlış kontrast verir). Mobil kart listesi ve masaüstü tablo ikisi de DOM'da:
+  metin seçicilerinde `.filter({ visible: true })`. Yeni bir kritik akış ya da sayfa e2e testiyle ve
+  `expectAccessible` ile gelir.
 
 ## Bilinen tuzaklar
 

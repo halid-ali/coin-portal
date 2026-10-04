@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.2.0` yayında**, P1 bitti: ilk yarısı #22–#26 `v1.1.0`'da (Tamamlananlar
-54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). P2: #33, #32 ve #31 bitti (Tamamlananlar
-66–68), sırada #34 (e2e). Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). **P2 bitti** (#31–#34, Tamamlananlar
+66–69; yayınlanmadı). Sırada yeni iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1230,6 +1230,31 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       penceresi; görünüm değişmedi.
     - CLAUDE.md "Client kuralları"na "Ekran okuyucu ve hareket" kuralı eklendi.
     - Testler: client 261 (sıralama başlığının tam adı, sayfa metni, kayıt linklerinin yeni sekme bilgisi).
+69. **E2E testleri** (`feat/e2e-playwright`, #34, yol haritası 8b, 2026-10-04; kararlar kullanıcıyla):
+    - **`tests/e2e`** ayrı npm paketi (`@playwright/test` 1.63, `@axe-core/playwright` 4.13). `server/start.mjs`
+      client'ı ve API'yi `.build/`'e derler, API'yi 5091'de `CoinPortal_E2E` veritabanıyla ve client'ı
+      `--webroot`'tan sunarak başlatır (canlıdaki gibi tek site); dev API, `ng serve` ve dev veritabanı
+      etkilenmez. Admin için önce 5191'de `e2e-admin` açılır, Id'si ayarla verilip API yeniden başlar.
+    - **Akışlar (7 test):** kayıt → yeni koleksiyon → coin + fotoğraf (dosya seçici, kırpma, Kaydet'te yükleme)
+      → tablo, ızgara/liste, sıralama ve filtre URL'de; Unlisted link girişsiz → link yenileme → eski link
+      "bulunamadı", yenisi açılır; 404 sayfası; "Beni hatırla" (14 günlük cookie / oturum cookie'si); düşen
+      oturum → giriş → `returnUrl` ile geri; admin kilidi (paylaşılan koleksiyon gizlenir, giriş "kilitlendi"
+      der); admin koleksiyon gizleme (ziyaretçide 404, sahipte "Hidden" rozeti). Açık oturumun bir dakika
+      içinde düşmesi API testlerinde (orada cookie her istekte doğrulanır); e2e'de beklemek bir dakika sürerdi.
+    - **axe taraması** her sayfada (kayıt, giriş, coin formu, kırpma, koleksiyon, paylaşılan koleksiyon,
+      düzenleme penceresi, 404, admin kullanıcı ve koleksiyonlar): ciddi/kritik bulgu testi kırar (kullanıcı
+      kararı), azı rapora eklenir. **Bulduğu iki gerçek sorun düzeltildi:** kırpma çerçevesinin
+      `aria-label`'ı rolsüz `div`'de geçersizdi (#31'de eklenmişti; kırpıcı çizildikten sonra `role="group"`
+      verilir), 404 sayfasındaki dekoratif "404" yazısının kontrastı 1.48'di (`shade-300` → `shade-500`).
+      Pencere açılış animasyonu sürerken ölçülen kontrast yanlış çıkıyordu; tarama animasyonları bekler.
+    - **CI:** `ci.yml`'de ayrı "E2E" işi (paralel; Chromium kurulumu, kendi SQL Server container'ı, hata olursa
+      `e2e-report` artefaktı); `release.yml` `ci.yml`'i çağırdığı için etiket yayınında da koşar (kullanıcı
+      kararı). Dependabot `tests/e2e` npm paketlerini de izler. **CI'daki ilk koşusu push'tan sonra
+      görülecek** (Linux'ta denenmedi).
+    - Lokalde: 7/7, `--repeat-each=3` ile 21/21 (4 worker; varsayılan worker sayısında dizüstü yetişmiyor).
+      Bir koşu derlemeyle ~1,5 dk. CLAUDE.md'de e2e kuralı ve komutları, README'de bölüm.
+    - Not: CLAUDE.md'deki headless Edge `DOM.setFileInputFiles` tuzağı Playwright'ın dosya seçicisinde
+      yaşanmadı (fotoğraf yükleme e2e'de çalışıyor).
 
 ## Yol haritası
 
@@ -1278,7 +1303,7 @@ mağaza için TWA.
   - [x] 9f. `feat/privacy-contact`: gizlilik + iletişim sayfaları, footer linkleri, kayıtta zorunlu kutu
         (Tamamlananlar 33). İşletmeci adı ve e-posta yayın öncesi doldurulacak.
   - [x] `v0.3.0` yayını ve push (2026-10-01, Tamamlananlar 34).
-- [ ] 8b. `tests/e2e` (Playwright; #34).
+- [x] 8b. `tests/e2e` (Playwright; #34, 2026-10-04, Tamamlananlar 69).
 - [x] 10. ~~ImageSharp kararı~~ (Community lisansı, 2026-09-30) → ~~CI Release~~ → `release.yml` (#21,
       2026-10-02, Tamamlananlar 48; ilk gerçek koşusu bir sonraki etikette).
 - [ ] 11. ~~Hosting seçimi~~ (MonsterASP.NET, 2026-10-02; `v0.4.0` canlıda, Tamamlananlar 50) →
@@ -1338,7 +1363,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#31](https://github.com/halid-ali/coin-portal/issues/31) M `chore/a11y-sweep`: kalan erişilebilirlik ayrıntıları, CLAUDE.md'ye a11y kuralı (Tamamlananlar 68).
   - [x] [#32](https://github.com/halid-ali/coin-portal/issues/32) M `fix/ux-polish`: 404 sayfası, açılış iskeleti, indirme hata geri bildirimi (Tamamlananlar 67).
   - [x] [#33](https://github.com/halid-ali/coin-portal/issues/33) S `fix/public-page-weight`: girişsiz sayfaların ağırlığı (Tamamlananlar 66).
-  - [ ] [#34](https://github.com/halid-ali/coin-portal/issues/34) L `feat/e2e-playwright`: Playwright e2e (yol haritası 8b).
+  - [x] [#34](https://github.com/halid-ali/coin-portal/issues/34) L `feat/e2e-playwright`: Playwright e2e (yol haritası 8b; Tamamlananlar 69).
 
 Notlar: Issue'lar incelemenin ham bulgu kimliklerini (`api-auth-1` gibi) taşır; tam rapor lokal
 `.notes/reviews/2026-10-02-full-review.md`. Bilgi seviyesindeki 89 bulgu doğrulanmadı ve hiçbir işe
@@ -1348,7 +1373,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
-(Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → #34 e2e. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
+(Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
+(Tamamlananlar 69). **P2 bitti, henüz yayınlanmadı:** sıradaki ilk iş yeni bir sürüm (`v1.3.0` önerisi
+git-cliff'ten; #31–#34 + "Yayın" akışı) ya da yeni bir özellik, kullanıcıyla. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
 bitti (#22–#30). Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
 
 - **Yayın sonrası küçük işler:**
@@ -1361,7 +1388,7 @@ bitti (#22–#30). Diğer adaylar (Angular 22, profil düzenleme, logo, watermar
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
   ~~#28 çeviriler~~ → ~~#29 API testleri~~ → ~~#30 client testleri~~ → ~~**`v1.2.0`**~~ (2026-10-04).
-- **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
+- ~~**8b** e2e (#34)~~ (Tamamlananlar 69). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
 
 Alt adımlar ve kullanıcı kararları "Yol haritası"nda. Panel için kullanıcının bir sonraki geri bildirimleri de
@@ -1662,7 +1689,7 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    parola repoda ve lokal notlarda yok (Tamamlananlar 50).
 6. ~~**Yayında SPA fallback**~~ (kapandı 2026-10-01): `SpaHosting`, Tamamlananlar 28.
 7. ~~**Backend testleri yok.**~~ (kapandı 2026-09-30): `tests/api`, Tamamlananlar 22. e2e testleri
-   (Playwright) yol haritasında 8b.
+   (Playwright) 2026-10-04'te geldi (yol haritası 8b, Tamamlananlar 69).
 8. **Fotoğraflara watermark (ileride, 2026-09-27'de konuşuldu):** Paylaşım 2026-09-27'den beri var, yani
    fotoğrafları başkaları da görebiliyor; karar bekliyor (Sıradaki adım 1). Kütüphane ImageSharp kaldı.
    - Önerilen yol: sunucuda, **hazır bir PNG** (yazı veya logo) yarı saydam olarak köşeye basılır. Bunun
