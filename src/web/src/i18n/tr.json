@@ -14,6 +14,7 @@
     "yes": "Evet",
     "copy": "Kopyala",
     "copied": "Kopyalandı",
+    "copyFailed": "Kopyalanamadı",
     "change": "Değiştir",
     "remove": "Kaldır",
     "undo": "Geri al",
@@ -34,6 +35,8 @@
   "errors": {
     "network": "Sunucuya ulaşılamıyor. Bağlantını kontrol et.",
     "unexpected": "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",
+    "locked": "Hesap geçici olarak kilitlendi. Biraz sonra tekrar dene.",
+    "forbidden": "Bu işlem için yetkin yok.",
     "requestRejected": "İstek doğrulanamadı. Sayfayı yenileyip tekrar dene.",
     "rateLimited": "Kısa sürede çok fazla istek gönderildi. Biraz bekleyip tekrar dene.",
     "collectionLimit": "Bir hesapta en fazla 50 koleksiyon olabilir. Yenisini eklemek için birini sil.",

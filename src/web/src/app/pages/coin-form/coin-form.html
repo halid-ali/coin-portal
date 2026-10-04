@@ -53,6 +53,8 @@
             ) {
               <p class="form-hint">{{ 'coinForm.moveHint' | transloco }}</p>
             }
+          } @else if (collectionsError()) {
+            <p class="alert-error">{{ 'collections.loadError' | transloco }}</p>
           } @else {
             <p class="alert-error">
               {{ 'coinForm.needCollection' | transloco }}

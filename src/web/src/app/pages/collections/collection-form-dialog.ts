@@ -174,7 +174,14 @@ let nextId = 0;
                     class="btn-secondary shrink-0 px-3 py-1.5 text-sm"
                     (click)="copy(url)"
                   >
-                    {{ (copied() ? 'common.copied' : 'common.copy') | transloco }}
+                    {{
+                      (copied()
+                        ? 'common.copied'
+                        : copyFailed()
+                          ? 'common.copyFailed'
+                          : 'common.copy'
+                      ) | transloco
+                    }}
                   </button>
                 </div>
                 @if (saved()?.visibility === 'Unlisted') {
@@ -244,6 +251,7 @@ export class CollectionFormDialog {
 
   protected readonly visibilityOptions = VISIBILITIES;
   protected readonly copied = signal(false);
+  protected readonly copyFailed = signal(false);
   protected readonly regenerating = signal(false);
   private readonly chosenVisibility = toSignal(this.form.controls.visibility.valueChanges, {
     initialValue: this.form.controls.visibility.value,
@@ -378,7 +386,9 @@ export class CollectionFormDialog {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     } catch {
-      // Clipboard not allowed (e.g. insecure context): the field is selectable anyway
+      // Clipboard not allowed (e.g. insecure context): say so, the field is selectable anyway
+      this.copyFailed.set(true);
+      setTimeout(() => this.copyFailed.set(false), 3000);
     }
   }
 

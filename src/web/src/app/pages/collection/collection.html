@@ -13,6 +13,8 @@
         }}</a>
       }
     </div>
+  } @else if (headerError(); as key) {
+    <div role="alert" class="alert-error">{{ key | transloco }}</div>
   } @else {
     @if (mode() === 'explore') {
       <div>
@@ -104,6 +106,7 @@
                   viewBox="0 0 24 24"
                   class="size-5 shrink-0"
                   [class.text-success-600]="copied()"
+                  [class.text-danger-600]="copyFailed()"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="1.8"
@@ -120,11 +123,20 @@
                   }
                 </svg>
                 <span class="hidden md:inline">{{
-                  (copied() ? 'common.copied' : 'coinList.copyLink') | transloco
+                  (copied()
+                    ? 'common.copied'
+                    : copyFailed()
+                      ? 'common.copyFailed'
+                      : 'coinList.copyLink'
+                  ) | transloco
                 }}</span>
               </button>
               <span class="sr-only" aria-live="polite">{{
-                copied() ? ('common.copied' | transloco) : ''
+                copied()
+                  ? ('common.copied' | transloco)
+                  : copyFailed()
+                    ? ('common.copyFailed' | transloco)
+                    : ''
               }}</span>
             }
             <button
@@ -427,8 +439,8 @@
     }
 
     <!-- Results -->
-    @if (loadError()) {
-      <div role="alert" class="alert-error">{{ 'coinList.loadError' | transloco }}</div>
+    @if (loadError(); as key) {
+      <div role="alert" class="alert-error">{{ key | transloco }}</div>
     } @else if (result(); as r) {
       @if (r.items.length === 0) {
         <div class="card text-center">

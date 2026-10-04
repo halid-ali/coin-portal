@@ -187,6 +187,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Native mobil gerekirse önce cookie'yi koruyan yol denenir (`docs/reviews/2026-09-29-project-direction.md`).
 - CSRF: antiforgery, header `X-XSRF-TOKEN`; client `GET /api/auth/antiforgery` ile okunabilir
   `XSRF-TOKEN` cookie'si alır (açılışta ve her login/register/logout sonrası, token kullanıcıya bağlı).
+  Token yenileme yan istektir, başarısızlığı girişi/çıkışı bozmaz; antiforgery reddi (yazma isteğine
+  `errors`'suz ve `code`'suz 400) `authInterceptor`'da token yenilenip **bir kez** tekrar denenir. Bu
+  yüzden API'de gövdesiz/kodsuz bir 400 yeni bir anlamda kullanılmaz (`CodedProblem` ya da
+  `ValidationProblem`).
 - Yayın hedefi: tek site, Windows hosting. `dotnet publish` Angular'ı da derleyip paketin `wwwroot`'una
   koyar (`.csproj` `PublishWebClient`); API onu `Hosting/SpaHosting` ile sunar: client adreslerine
   `index.html` (fallback), `/api/…` altında bilinmeyen adres 404, hash'li dosyalar `immutable`, diğerleri
@@ -335,7 +339,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Angular 20+ adlandırma (`login.ts`, class `Login`), standalone, zoneless, durum signal'larla,
   `inject()`. Sayfalar `loadComponent` ile lazy.
 - Formlar `NonNullableFormBuilder` ile Reactive Forms. Sunucu hataları `applyServerErrors(form, err)`
-  ile forma uygulanır (400 anahtarları kontrol adlarıyla büyük/küçük harf duyarsız eşleşir).
+  ile forma uygulanır (400 anahtarları kontrol adlarıyla büyük/küçük harf duyarsız eşleşir; kodlu
+  problem her durumda önce `messageKeys`'te aranır, ör. 403 `moderation_locked`). Yükleme hatalarında
+  sadece 404 "bulunamadı" der; diğerleri `httpErrorKey(err)` (ağ, 403, 423, 429, beklenmeyen), signal
+  çeviri anahtarını tutar.
 - Liste sayfalarında **URL tek doğruluk kaynağı**: filtre/sıralama/sayfa query param'larda,
   `withComponentInputBinding()` ile input'lara bağlı, varsayılanlar URL'e yazılmaz; yükleme
   `toObservable(query)` + `switchMap`. Query param input'ları `input(undefined, { transform:

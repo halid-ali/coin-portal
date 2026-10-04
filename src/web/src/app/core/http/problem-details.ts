@@ -63,9 +63,16 @@ const CODE_MESSAGE_KEYS: Record<string, string> = {
   coin_limit: 'errors.coinLimit',
 };
 
+/** The machine code of a coded problem (`this.CodedProblem(code, …)` in the API), if any. */
+export function problemCode(error: HttpErrorResponse): string | undefined {
+  return (error.error as { code?: string } | null)?.code ?? undefined;
+}
+
 /**
  * Applies a failed save response to a reactive form: field errors become a 'server'
  * error on the matching control, everything else is returned as general messages.
+ * A coded problem of any status is looked up first: in `messageKeys` (the form's own codes,
+ * e.g. 403 moderation_locked), then in the account-wide limits.
  */
 export function applyServerErrors(
   form: FormGroup,
@@ -73,11 +80,12 @@ export function applyServerErrors(
   codeMap: Record<string, string> = {},
   messageKeys: Record<string, string> = {},
 ): string[] {
-  const code = (error.error as { code?: string } | null)?.code;
-  if (code && CODE_MESSAGE_KEYS[code]) {
-    return [translate(CODE_MESSAGE_KEYS[code])];
+  const code = problemCode(error);
+  const codeKey = code && (messageKeys[code] ?? CODE_MESSAGE_KEYS[code]);
+  if (codeKey) {
+    return [translate(codeKey)];
   }
-  if (error.status !== 400) {
+  if (error.status !== 400 || code) {
     return [httpErrorMessage(error)];
   }
 
@@ -97,15 +105,27 @@ export function applyServerErrors(
   return general;
 }
 
-/** Generic message for a failed request that has no more specific one. */
-export function httpErrorMessage(error: HttpErrorResponse): string {
+/**
+ * Translation key of the generic message for a failed request that has no more specific one.
+ * A key, so a signal can hold it and the template translates it in the current language.
+ */
+export function httpErrorKey(error: HttpErrorResponse): string {
   switch (error.status) {
     case 0:
-      return translate('errors.network');
+      return 'errors.network';
+    case 403:
+      return 'errors.forbidden';
+    case 423:
+      return 'errors.locked';
     case 429:
       // The API's rate limits (sign-in, sign-up, signed-out reads)
-      return translate('errors.rateLimited');
+      return 'errors.rateLimited';
     default:
-      return translate('errors.unexpected');
+      return 'errors.unexpected';
   }
+}
+
+/** Generic message for a failed request that has no more specific one. */
+export function httpErrorMessage(error: HttpErrorResponse): string {
+  return translate(httpErrorKey(error));
 }

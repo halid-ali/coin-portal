@@ -2,10 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, translate } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { httpErrorMessage, mapValidationProblem } from '../../core/http/problem-details';
+import { applyServerErrors } from '../../core/http/problem-details';
 import { errorMessage } from '../../shared/form-errors';
 import {
   USER_NAME_PATTERN,
@@ -89,35 +89,10 @@ export class Register {
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        this.applyServerErrors(err);
+        this.formErrors.set(
+          applyServerErrors(this.form, err, IDENTITY_CODE_MAP, IDENTITY_MESSAGE_KEYS),
+        );
       },
     });
-  }
-
-  private applyServerErrors(err: HttpErrorResponse): void {
-    if (err.status !== 400) {
-      this.formErrors.set([httpErrorMessage(err)]);
-      return;
-    }
-
-    const mapped = mapValidationProblem(
-      err,
-      Object.keys(this.form.controls),
-      IDENTITY_CODE_MAP,
-      IDENTITY_MESSAGE_KEYS,
-    );
-
-    for (const [name, message] of Object.entries(mapped.fields)) {
-      const control = this.form.get(name);
-      control?.setErrors({ ...control.errors, server: message });
-      control?.markAsTouched();
-    }
-
-    const general = mapped.general;
-    if (!general.length && !Object.keys(mapped.fields).length) {
-      // A 400 without a problem body usually means the antiforgery check failed
-      general.push(translate('errors.requestRejected'));
-    }
-    this.formErrors.set(general);
   }
 }

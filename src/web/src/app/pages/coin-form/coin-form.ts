@@ -57,6 +57,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
 
   /** The user's collections for the select; null while loading. */
   protected readonly collections = signal<Collection[] | null>(null);
+  /** The collections could not be loaded (not the same as having none). */
+  protected readonly collectionsError = signal(false);
 
   /**
    * Every way back to the list: the exact collection page the user came from, otherwise the
@@ -141,7 +143,10 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
           control.setValue(list.find((c) => c.id === wanted)?.id ?? list[0]?.id ?? null);
         }
       },
-      error: () => this.collections.set([]),
+      error: () => {
+        this.collectionsError.set(true);
+        this.collections.set([]);
+      },
     });
 
     // In create mode, fill the title from denomination/country/year until the user edits it
@@ -208,9 +213,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       this.submitting.set(false);
       const error = err as HttpErrorResponse;
       this.formErrors.set(
-        (error.error as { code?: string } | null)?.code === 'moderation_locked'
-          ? [translate('coinForm.moveLocked')]
-          : applyServerErrors(this.form, error),
+        applyServerErrors(this.form, error, {}, { moderation_locked: 'coinForm.moveLocked' }),
       );
       return;
     }
@@ -227,8 +230,11 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       return;
     }
 
-    // The coin exists now: a retry must update it, not create another one
-    this.location.replaceState(`/collection/${coin.id}/edit`);
+    // The coin exists now: a retry must update it, not create another one. The address follows
+    // without a navigation, which would recreate the form and drop the pending photos
+    this.location.replaceState(
+      this.router.serializeUrl(this.router.createUrlTree(['/coins', coin.id, 'edit'])),
+    );
     this.formErrors.set([translate('coinForm.photosFailed'), ...failures]);
   }
 

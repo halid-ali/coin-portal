@@ -31,7 +31,7 @@ import {
   CollectionSummary,
 } from '../../core/collections/collection.models';
 import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
-import { httpErrorMessage } from '../../core/http/problem-details';
+import { httpErrorKey, httpErrorMessage } from '../../core/http/problem-details';
 import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
@@ -130,6 +130,8 @@ export class Collection {
   /** Header data of the shown collection in any single-collection mode; null while loading. */
   protected readonly header = signal<CollectionHeader | null>(null);
   protected readonly notFound = signal(false);
+  /** Translation key when the collection could not be loaded for another reason than 404. */
+  protected readonly headerError = signal<string | null>(null);
   protected readonly collectionCover = computed(() => {
     const header = this.header();
     return header ? coverUrl(header, this.shareToken()) : null;
@@ -144,6 +146,7 @@ export class Collection {
     return collection && user ? shareLink(collection, user.userName) : null;
   });
   protected readonly copied = signal(false);
+  protected readonly copyFailed = signal(false);
   /** Explore user filter. */
   protected readonly collectors = signal<Collector[]>([]);
 
@@ -256,7 +259,8 @@ export class Collection {
     return (this.header()?.coinCount ?? 0) > 0;
   });
   protected readonly loading = signal(true);
-  protected readonly loadError = signal(false);
+  /** Translation key when the coin list could not be loaded. */
+  protected readonly loadError = signal<string | null>(null);
   /** Coin whose photos are shown fullscreen. */
   protected readonly viewerCoin = signal<ListedCoin | null>(null);
 
@@ -266,11 +270,12 @@ export class Collection {
   constructor() {
     this.countryService.load();
 
-    // The coin form returns to this exact list (collection, view, filters, sort, page)
+    // The coin form returns to this exact list (collection, view, filters, sort, page). The route
+    // data, not the mode input: inputs are bound after this first, synchronous emission
     combineLatest([this.route.paramMap, this.route.queryParams])
       .pipe(takeUntilDestroyed())
       .subscribe(([params, queryParams]) => {
-        if (this.mode() !== 'owner') {
+        if (this.route.snapshot.data['mode'] !== 'owner') {
           return;
         }
         this.collectionReturn.remember(
@@ -289,6 +294,7 @@ export class Collection {
           this.collection.set(null);
           this.header.set(null);
           this.notFound.set(false);
+          this.headerError.set(null);
         }),
         switchMap(() => this.loadHeader()),
         takeUntilDestroyed(),
@@ -300,12 +306,15 @@ export class Collection {
       .pipe(
         tap(() => {
           this.loading.set(true);
-          this.loadError.set(false);
+          this.loadError.set(null);
         }),
         switchMap((query) =>
           this.loadCoins(query).pipe(
-            catchError(() => {
-              this.loadError.set(true);
+            catchError((err: HttpErrorResponse) => {
+              // A rate limit or a lost connection says so; the rest is "could not be loaded"
+              this.loadError.set(
+                err.status === 0 || err.status === 429 ? httpErrorKey(err) : 'coinList.loadError',
+              );
               return of(null);
             }),
           ),
@@ -327,8 +336,13 @@ export class Collection {
   }
 
   private loadHeader(): Observable<unknown> {
-    const notFound = () => {
-      this.notFound.set(true);
+    // Only a 404 means missing (or not shared); a server error or a rate limit says what it is
+    const notFound = (err: HttpErrorResponse) => {
+      if (err.status === 404) {
+        this.notFound.set(true);
+      } else {
+        this.headerError.set(httpErrorKey(err));
+      }
       return of(null);
     };
     switch (this.mode()) {
@@ -430,7 +444,9 @@ export class Collection {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     } catch {
-      // Clipboard not allowed; the edit dialog shows the link as selectable text
+      // Clipboard not allowed: say so; the edit dialog shows the link as selectable text
+      this.copyFailed.set(true);
+      setTimeout(() => this.copyFailed.set(false), 3000);
     }
   }
 

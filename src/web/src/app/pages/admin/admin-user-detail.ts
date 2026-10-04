@@ -2,7 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
-import { EMPTY, Observable, catchError, firstValueFrom, forkJoin, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, firstValueFrom, forkJoin, switchMap, tap } from 'rxjs';
 
 import { formatBytes, formatDateTime, formatRelative } from '../../core/admin/admin-format';
 import {
@@ -237,6 +237,15 @@ export class AdminUserDetailPage {
   constructor() {
     toObservable(computed(() => [this.id(), this.reloads()] as const))
       .pipe(
+        // A reload after an action keeps the page; another user (back/forward) starts empty
+        tap(([id]) => {
+          this.notFound.set(false);
+          this.loadError.set(false);
+          if (this.user()?.id !== id) {
+            this.user.set(null);
+            this.history.set([]);
+          }
+        }),
         switchMap(([id]) =>
           forkJoin({
             user: this.admin.user(id),

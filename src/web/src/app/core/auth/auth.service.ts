@@ -1,6 +1,17 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, firstValueFrom, forkJoin, from, map, switchMap, tap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  firstValueFrom,
+  forkJoin,
+  from,
+  map,
+  of,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 
 import { LanguageService } from '../i18n/language.service';
 import { AccentService } from '../theme/accent.service';
@@ -31,9 +42,7 @@ export class AuthService {
    */
   async init(): Promise<void> {
     await this.loadMe();
-    await firstValueFrom(this.refreshXsrfToken()).catch((err) =>
-      console.warn('Could not fetch antiforgery token', err),
-    );
+    await firstValueFrom(this.refreshAntiforgeryTokenQuietly());
   }
 
   /** Loads the current user from the API; resolves to null when not signed in. */
@@ -65,16 +74,22 @@ export class AuthService {
 
   logout(): Observable<void> {
     return this.http.post<void>(`${API}/logout`, null).pipe(
+      // The session was already over (cookie expired, account locked): signed out all the same
+      catchError((err: unknown) =>
+        err instanceof HttpErrorResponse && err.status === 401
+          ? of(undefined)
+          : throwError(() => err),
+      ),
       tap(() => this.user.set(null)),
       // The old token was bound to the signed-in user, get an anonymous one
-      switchMap(() => this.refreshXsrfToken()),
+      switchMap(() => this.refreshAntiforgeryTokenQuietly()),
     );
   }
 
   /** Signed out by deleting the account (SettingsService.deleteAccount): like logout, without the request. */
   afterAccountDeleted(): Observable<void> {
     this.user.set(null);
-    return this.refreshXsrfToken();
+    return this.refreshAntiforgeryTokenQuietly();
   }
 
   /** Keeps the current user in step after a change elsewhere (e.g. the settings page). */
@@ -88,15 +103,29 @@ export class AuthService {
       return;
     }
     this.user.set(null);
-    this.refreshXsrfToken().subscribe({ error: () => undefined });
+    this.refreshAntiforgeryTokenQuietly().subscribe();
   }
 
   /**
    * Asks the API to issue a fresh XSRF-TOKEN cookie. Antiforgery tokens are bound
    * to the user identity, so this must run after every sign-in and sign-out.
    */
-  private refreshXsrfToken(): Observable<void> {
+  refreshAntiforgeryToken(): Observable<void> {
     return this.http.get<void>(`${API}/antiforgery`);
+  }
+
+  /**
+   * The token refresh after a sign-in or sign-out is a side request: when it fails, the main
+   * action still succeeded. The next write request is then rejected once and retried with a
+   * fresh token (authInterceptor).
+   */
+  private refreshAntiforgeryTokenQuietly(): Observable<void> {
+    return this.refreshAntiforgeryToken().pipe(
+      catchError((err: unknown) => {
+        console.warn('Could not fetch antiforgery token', err);
+        return of(undefined);
+      }),
+    );
   }
 
   /** The account's saved language, theme and accent win over the ones chosen on this device. */
@@ -108,7 +137,12 @@ export class AuthService {
     if (user.accent) {
       this.accent.use(user.accent);
     }
-    const language = user.language ? this.language.use(user.language) : Promise.resolve();
-    return forkJoin([this.refreshXsrfToken(), from(language)]).pipe(map(() => user));
+    // Neither side request undoes the sign-in: without the account's language the current one stays
+    const language = user.language
+      ? this.language.use(user.language).catch((err: unknown) => {
+          console.warn('Could not load the account language', err);
+        })
+      : Promise.resolve();
+    return forkJoin([this.refreshAntiforgeryTokenQuietly(), from(language)]).pipe(map(() => user));
   }
 }
