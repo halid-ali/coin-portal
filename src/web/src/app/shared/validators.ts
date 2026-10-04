@@ -1,16 +1,23 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-/** Same rule as the API: letters, digits and . _ - (no @ so login can tell it from an email). */
+/**
+ * Same rule as the API: English letters (no accents), digits and . _ - (no @ so login can tell
+ * it from an email).
+ */
 export const USER_NAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 
 const MAX_AGE = 120;
 
-/** Age in full years on the given day for an ISO date string (yyyy-MM-dd). */
+/**
+ * Age in full years for an ISO date string (yyyy-MM-dd), on the UTC date of `today`: the API
+ * checks the age against the UTC date, so both agree also around midnight (Turkey is UTC+3).
+ */
 export function ageOn(birthDate: string, today: Date = new Date()): number {
   const [year, month, day] = birthDate.split('-').map(Number);
-  let age = today.getFullYear() - year;
+  let age = today.getUTCFullYear() - year;
   const hadBirthday =
-    today.getMonth() + 1 > month || (today.getMonth() + 1 === month && today.getDate() >= day);
+    today.getUTCMonth() + 1 > month ||
+    (today.getUTCMonth() + 1 === month && today.getUTCDate() >= day);
   if (!hadBirthday) {
     age--;
   }
@@ -19,9 +26,28 @@ export function ageOn(birthDate: string, today: Date = new Date()): number {
 
 /** Latest allowed birth date (yyyy-MM-dd) for the given minimum age, used as the input's max. */
 export function latestBirthDate(minAge: number, today: Date = new Date()): string {
-  const d = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+  const d = new Date(
+    Date.UTC(today.getUTCFullYear() - minAge, today.getUTCMonth(), today.getUTCDate()),
+  );
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+/**
+ * "required" also for a value of only spaces: the API's [Required] rejects it, Angular's
+ * Validators.required does not.
+ */
+export function notBlankValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value as string | null;
+  return value && !value.trim() ? { required: true } : null;
+}
+
+/** Whole numbers only (a number input also takes 2006.5). Empty values are left to "required". */
+export function integerValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value as number | string | null;
+  return value === null || value === '' || Number.isInteger(Number(value))
+    ? null
+    : { integer: true };
 }
 
 /** Mirrors [MinimumAge] on the API: rejects future dates, under-age and implausible ages. */

@@ -98,7 +98,7 @@
     "delete": "Delete user",
     "deleteTitle": "Delete the user for good",
     "deleteMessage": "@{{userName}}'s account is deleted right away with all their collections, coins, photos and share links. This cannot be undone. The audit log will show them as \"Deleted user\".",
-    "deleteTypeName": "Type the user name to confirm:",
+    "deleteTypeName": "Type the username to confirm:",
     "adminNote": "Admins cannot be locked or deleted in the panel; they are removed from the configuration.",
     "history": "History",
     "noHistory": "No entries about this user."
@@ -125,7 +125,7 @@
     "unhide": "Unlock",
     "hideTitle": "Hide collection",
     "hideMessage": "\"{{name}}\" is made private, its share link is removed, and the owner cannot share it again until the lock is lifted.",
-    "unhideTitle": "Lift lock",
+    "unhideTitle": "Unlock collection",
     "unhideMessage": "\"{{name}}\" stays private; the owner can share it again if they want.",
     "column": {
       "collection": "Collection",
@@ -153,7 +153,7 @@
       "UserUnlocked": "User unlocked",
       "UserDeleted": "User deleted",
       "CollectionHidden": "Collection hidden",
-      "CollectionUnlocked": "Collection lock lifted"
+      "CollectionUnlocked": "Collection unlocked"
     },
     "column": {
       "time": "Time",

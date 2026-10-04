@@ -8,6 +8,16 @@ interface ValidationProblem {
   errors?: Record<string, string[]>;
 }
 
+/**
+ * The message to show for an error key or code: a translation key, or a key with its
+ * parameters (e.g. the minimum age).
+ */
+export type MessageKey = string | { key: string; params: Record<string, unknown> };
+
+function translateKey(message: MessageKey): string {
+  return typeof message === 'string' ? translate(message) : translate(message.key, message.params);
+}
+
 export interface MappedErrors {
   /** Messages keyed by form control name. */
   fields: Record<string, string>;
@@ -19,17 +29,18 @@ export interface MappedErrors {
  * Maps a 400 ValidationProblem to form controls.
  * Keys can be DTO property names ("Email", "$.birthDate") or ASP.NET Core
  * Identity error codes ("DuplicateEmail", "PasswordRequiresDigit").
+ * The API's own messages are English and never shown: a key without an entry in `messageKeys`
+ * gets a generic message ("invalid value" on a field, "not accepted" otherwise).
  *
  * @param controlNames form control names, matched case-insensitively
  * @param codeMap Identity error code -> control name
- * @param messageKeys error code -> translation key of the message to show instead of the
- *   API's (English) one
+ * @param messageKeys error key or code -> message to show
  */
 export function mapValidationProblem(
   error: HttpErrorResponse,
   controlNames: string[],
   codeMap: Record<string, string> = {},
-  messageKeys: Record<string, string> = {},
+  messageKeys: Record<string, MessageKey> = {},
 ): MappedErrors {
   const result: MappedErrors = { fields: {}, general: [] };
   const problem = error.error as ValidationProblem | null;
@@ -38,8 +49,8 @@ export function mapValidationProblem(
     return result;
   }
 
-  for (const [rawKey, messages] of Object.entries(problem.errors)) {
-    const message = messageKeys[rawKey] ? translate(messageKeys[rawKey]) : messages[0];
+  for (const rawKey of Object.keys(problem.errors)) {
+    const known = messageKeys[rawKey];
     const key = rawKey.replace(/^\$\./, '').toLowerCase();
 
     const control =
@@ -48,9 +59,12 @@ export function mapValidationProblem(
       controlNames.find((name) => name.toLowerCase() === key);
 
     if (control && !result.fields[control]) {
-      result.fields[control] = message;
+      result.fields[control] = known ? translateKey(known) : translate('validation.invalid');
     } else if (!control) {
-      result.general.push(message);
+      const message = known ? translateKey(known) : translate('errors.invalidRequest');
+      if (!result.general.includes(message)) {
+        result.general.push(message);
+      }
     }
   }
 
@@ -78,12 +92,12 @@ export function applyServerErrors(
   form: FormGroup,
   error: HttpErrorResponse,
   codeMap: Record<string, string> = {},
-  messageKeys: Record<string, string> = {},
+  messageKeys: Record<string, MessageKey> = {},
 ): string[] {
   const code = problemCode(error);
   const codeKey = code && (messageKeys[code] ?? CODE_MESSAGE_KEYS[code]);
   if (codeKey) {
-    return [translate(codeKey)];
+    return [translateKey(codeKey)];
   }
   if (error.status !== 400 || code) {
     return [httpErrorMessage(error)];

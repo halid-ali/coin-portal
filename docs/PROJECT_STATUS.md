@@ -1,7 +1,7 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.1.0` yayında**, P1'in ilk yarısı: #22, #23, #26, #24, #25; Tamamlananlar
-54–59. P1'in ikinci yarısı: #27 bitti (Tamamlananlar 61), sırada #28. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59. P1'in ikinci yarısı: #27, #28 bitti (Tamamlananlar 61, 62), sırada #29. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1083,6 +1083,26 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       kontrol edilmedi"); `GET api/admin/stats` → `diskCheck`. "Depolama" kutusuna "veritabanına göre" ipucu.
     - Testler: API 158 (+8: `PhotoSweepTests`, paralel yükleme, `v`'siz önbellek, lossless JPEG, dışa
       aktarmada eksik dosya, admin `diskCheck`), client 147. Panel tarayıcıda elle denenmedi.
+62. **Çeviriler ve terimler** (`fix/i18n-wording`, #28, 2026-10-04; sadece client):
+    - **API'nin İngilizce mesajı hiç gösterilmez:** `mapValidationProblem` messageKeys'te olmayan alan
+      hatasına `validation.invalid`, alana bağlanmayana `errors.invalidRequest` yazar (önce API metni
+      olduğu gibi çıkıyordu). messageKeys parametre de alır (`MessageKey`, ör. yaş).
+    - **Kayıt formu:** doğum tarihi, şartlar, kullanıcı adı, ad/soyad, e-posta, parola (Identity kodları
+      dahil) için kendi mesajları; parolaya 100 karakter sınırı, sadece boşluklu ad/soyad reddedilir
+      (`notBlankValidator`). Yaş UTC tarihinden (`ageOn`, `latestBirthDate`): Türkiye'de 18. yaş gününün
+      00:00–03:00'ünde form kabul edip API reddediyordu.
+    - **Coin formu:** silinmiş koleksiyon, bilinmeyen ülke, yıl sınırı çevrildi; yıl ve adet tam sayı
+      (`integerValidator`, `validation.integer`); en büyük yıl UTC'den (`maxCoinYear`). Koleksiyon adı
+      sadece boşluksa "zorunlu".
+    - **Metinler:** kullanıcı adı kuralı "İngilizce harfler" (TR/EN; DE "ohne Umlaute und ß"); TR coin'i,
+      coin'lerini, ilk coin'ini ve net silme onayı; EN "username"/"email" her yerde, koleksiyon kilidi
+      "Unlock collection"/"Collection unlocked", "Crop photo: …"/"Enlarge: …"; ana sayfa linki Keşfet'i
+      anlatır ("Herkese açık koleksiyonları keşfet →", 4 dil); DE "Link zum Teilen", "Hellgrün"; BG
+      butonlarda tekil emir, "евромонети", "заключвани", "Използвано място", "публични: N", "частни",
+      "Настройки и часове", "Зелено" (genişlik ölçümü "Çok dilli destek: kararlar"da).
+    - Gizlilik ve şartlarda sadece terimler değişti, `PRIVACY_UPDATED`/`TERMS_UPDATED` aynı kaldı.
+    - Testler: client 151 (+4: UTC yaş, `notBlank`, `integer`, parametreli mesaj; API metninin
+      gösterilmediği test güncellendi). Tarayıcıda elle denenmedi.
 
 ## Yol haritası
 
@@ -1184,7 +1204,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü (Tamamlananlar 58; kenarlık #35'e ayrıldı).
   - [x] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi (Tamamlananlar 56).
   - [x] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları (Tamamlananlar 61; ek: admin panelinde disk istatistikleri).
-  - [ ] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri.
+  - [x] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri (Tamamlananlar 62).
   - [ ] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları).
   - [ ] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce).
 - **P2, planlı:**
@@ -1201,7 +1221,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 Yeni sohbette kullanıcıyla seçilecek. **`v1.1.0` yayında** (2026-10-04, Tamamlananlar 59); P1'in kalan yarısı
-sırada (#27 bitti, #28 ile devam). Adaylar:
+sırada (#27, #28 bitti, #29 ile devam). Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
@@ -1209,7 +1229,7 @@ sırada (#27 bitti, #28 ile devam). Adaylar:
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
   ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
-  #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
+  ~~#28 çeviriler~~ → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
 
@@ -1293,7 +1313,13 @@ Kararlar (2026-09-28, kullanıcıyla):
     (Запази, Изтрий, Отказ). Номинал, национална страна / обща страна (ECB, BNB), знак на монетния двор,
     възпоменателна монета; sentler "1 цент / 2–50 цента" (ECB ve BNB kullanımı; "стотинка" Bulgar
     paralarında yazıyor ama tüm ülkelerin coin'leri için "цент" daha tarafsız), link için "връзка".
-  - İngilizce: national side / common side (ECB), Denomination (tabloda "Value"), Link only.
+  - İngilizce: national side / common side (ECB), Denomination (tabloda "Value"), Link only; "username",
+    "email" (tire yok, ayrı yazılmaz; 2026-10-04).
+  - Türkçe: "coin"in ekleri kesmeyle (coin'ler, coin'i; okunduğu gibi yazılmayan yabancı sözcük),
+    kullanıcı adı kuralı "İngilizce harfler (ç, ğ, ı, ö, ş, ü olmadan)" (2026-10-04, #28).
+  - Almanca paylaşım linki tek terimle "Link zum Teilen" (2026-10-04). Renk adları renk olarak
+    ("Hellgrün", meyve adı "Limette" değil); Bulgarca Lime "Зелено" (TR "Yeşil" gibi; "Светлозелено"
+    renk kartının sütununa sığmıyordu: 78,6 px, en geniş sığan "Тюркоазено" 68,6 px).
 - **Çeviri kontrolü:** kullanıcı şu an anadili konuşan birine kontrol ettiremiyor, Claude'a güveniyor.
   Yayından önce Almanca ve Bulgarca metinlerin bir anadil konuşanına gösterilmesi önerilir (Açık konular 12).
 
@@ -1539,8 +1565,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
       ("Год.", "Знак", "Възпом."), "тайна връзка" (gizli link).
     - Kullanıcının yazdığı içerik (coin başlıkları, koleksiyon adları) çevrilmez. Otomatik başlık önerisi
       o anki dilde üretilir (ör. "2 € · Deutschland · 2006"); dev seed içeriği Türkçe.
-    - Identity'nin bazı parola hataları (client doğrulamasının yakalamadıkları) API'den İngilizce gelir ve
-      öyle gösterilir; client doğrulaması aynı kuralları uyguladığı için pratikte görünmez.
+    - ~~Identity'nin bazı parola hataları API'den İngilizce gelir ve öyle gösterilir~~ (kapandı 2026-10-04,
+      #28): API'nin İngilizce mesajı artık hiç gösterilmez (Tamamlananlar 62).
+    - #28'de (2026-10-04) inceleme bulgularıyla düzeltilenler: BG buton kipi tekil emre çekildi,
+      "евромонети", kilit için "заключ-", depolama terimi; DE "Link zum Teilen". Anadil kontrolü hâlâ yok.
     - Yeni bir dil eklemek: `SupportedLanguages` + `languages.ts` + `src/i18n/<dil>.json` +
       `Collection.DefaultNameFor`; test dosya eşliğini kontrol eder. Tablo başlıklarını ölç.
 

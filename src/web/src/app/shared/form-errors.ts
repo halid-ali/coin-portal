@@ -27,6 +27,7 @@ export function errorMessage(control: AbstractControl | null): string | null {
   if (e['passwordMismatch']) return translate('validation.passwordMismatch');
   if (e['min']) return translate('validation.min', { min: e['min'].min });
   if (e['max']) return translate('validation.max', { max: e['max'].max });
+  if (e['integer']) return translate('validation.integer');
 
   return translate('validation.invalid');
 }

@@ -38,6 +38,7 @@
     "locked": "Das Konto ist vorübergehend gesperrt. Bitte versuche es später erneut.",
     "forbidden": "Dazu bist du nicht berechtigt.",
     "requestRejected": "Die Anfrage konnte nicht bestätigt werden. Lade die Seite neu und versuche es erneut.",
+    "invalidRequest": "Die gesendeten Angaben wurden nicht angenommen. Prüfe sie und versuche es erneut.",
     "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut.",
     "collectionLimit": "Ein Konto kann höchstens 50 Sammlungen haben. Lösche eine, um eine neue anzulegen.",
     "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben."
@@ -47,7 +48,7 @@
     "email": "Gib eine gültige E-Mail-Adresse ein.",
     "minLength": "Mindestens {{min}} Zeichen.",
     "maxLength": "Höchstens {{max}} Zeichen.",
-    "pattern": "Erlaubt sind nur Buchstaben ohne Umlaute, Ziffern und . _ -",
+    "pattern": "Erlaubt sind nur Buchstaben ohne Umlaute und ß, Ziffern und . _ -",
     "minAge": "Für die Registrierung musst du mindestens {{age}} Jahre alt sein.",
     "futureDate": "Das Geburtsdatum darf nicht in der Zukunft liegen.",
     "maxAge": "Gib ein gültiges Geburtsdatum ein.",
@@ -55,6 +56,7 @@
     "passwordMismatch": "Die Passwörter stimmen nicht überein.",
     "min": "Mindestens {{min}}.",
     "max": "Höchstens {{max}}.",
+    "integer": "Muss eine ganze Zahl sein.",
     "invalid": "Ungültiger Wert."
   },
   "titles": {
@@ -95,7 +97,7 @@
     "goToCollections": "Zu meinen Sammlungen",
     "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine schon hast, und teile deine Sammlung mit Freunden.",
     "registerFree": "Kostenlos registrieren",
-    "browseCollectors": "Andere Sammler entdecken →"
+    "browseCollectors": "Öffentliche Sammlungen entdecken →"
   },
   "login": {
     "title": "Anmelden",
@@ -121,7 +123,7 @@
     "firstName": "Vorname",
     "lastName": "Nachname",
     "userName": "Benutzername",
-    "userNameHint": "3–20 Zeichen; Buchstaben ohne Umlaute, Ziffern und . _ -",
+    "userNameHint": "3–20 Zeichen; Buchstaben ohne Umlaute und ß, Ziffern und . _ -",
     "email": "E-Mail-Adresse",
     "birthDate": "Geburtsdatum",
     "birthDateHint": "Für die Registrierung musst du mindestens {{age}} Jahre alt sein.",
@@ -134,7 +136,7 @@
     "loginLink": "Anmelden",
     "duplicateEmail": "Mit dieser E-Mail-Adresse gibt es bereits ein Konto.",
     "duplicateUserName": "Dieser Benutzername ist bereits vergeben.",
-    "invalidUserName": "Benutzernamen dürfen nur Buchstaben ohne Umlaute, Ziffern und . _ - enthalten."
+    "invalidUserName": "Benutzernamen dürfen nur Buchstaben ohne Umlaute und ß, Ziffern und . _ - enthalten."
   },
   "coin": {
     "denomination": {
@@ -258,7 +260,11 @@
     "photosHint": "Optional. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
     "photosFailed": "Die Münze wurde gespeichert, aber einige Fotos konnten nicht gespeichert werden:",
     "deleteTitle": "Münze löschen",
-    "deleteMessage": "„{{title}}“ wird endgültig aus deiner Sammlung gelöscht. Das kann nicht rückgängig gemacht werden."
+    "deleteMessage": "„{{title}}“ wird endgültig aus deiner Sammlung gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "errors": {
+      "unknownCollection": "Die gewählte Sammlung wurde nicht gefunden; vielleicht wurde sie gelöscht. Lade die Seite neu und wähle eine andere.",
+      "unknownCountry": "Unbekanntes Land."
+    }
   },
   "photo": {
     "viewLarge": "{{side}} vergrößern",
@@ -417,11 +423,11 @@
       },
       "delete": {
         "title": "Konto löschen",
-        "description": "Dein Konto und alle deine Sammlungen, Münzen, Fotos und geteilten Links werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
+        "description": "Dein Konto und alle deine Sammlungen, Münzen, Fotos und Links zum Teilen werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
         "button": "Mein Konto löschen",
         "adminNote": "Administratorkonten können hier nicht gelöscht werden. Um dein Konto zu löschen, musst du zuerst aus den Administratoren (Admin:UserIds) entfernt werden.",
         "dialogTitle": "Konto endgültig löschen",
-        "dialogMessage": "Dein Konto und alles darin wird sofort gelöscht: Sammlungen, Münzen, Fotos und geteilte Links. Das kann nicht rückgängig gemacht werden.",
+        "dialogMessage": "Dein Konto und alles darin wird sofort gelöscht: Sammlungen, Münzen, Fotos und Links zum Teilen. Das kann nicht rückgängig gemacht werden.",
         "exportFirst": "Vielleicht möchtest du vorher deine Daten herunterladen:",
         "password": "Dein Passwort zur Bestätigung",
         "confirm": "Mein Konto löschen",
@@ -461,7 +467,7 @@
       "Indigo": "Indigo",
       "Violet": "Violett",
       "Rose": "Rosé",
-      "Lime": "Limette"
+      "Lime": "Hellgrün"
     },
     "toDark": "Zum dunklen Farbschema wechseln",
     "toLight": "Zum hellen Farbschema wechseln"
@@ -484,7 +490,7 @@
       "i1": "Kontodaten: Vor- und Nachname, Benutzername, E-Mail-Adresse, Geburtsdatum und dein Passwort. Das Passwort wird nur als nicht umkehrbarer Hash gespeichert.",
       "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
       "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
-      "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Freigabelinks werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch der Hosting-Anbieter schreibt IP-Adresse, Zeitpunkt, Adresse, Ergebnis und Browserangaben jeder Anfrage in seine eigenen Serverprotokolle und bewahrt sie 6 Monate auf.",
+      "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Links zum Teilen werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch der Hosting-Anbieter schreibt IP-Adresse, Zeitpunkt, Adresse, Ergebnis und Browserangaben jeder Anfrage in seine eigenen Serverprotokolle und bewahrt sie 6 Monate auf.",
       "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse."
     },
     "purposes": {

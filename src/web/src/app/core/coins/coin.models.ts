@@ -52,9 +52,12 @@ export const COIN_LIMITS = {
   maxQuantity: 999,
 } as const;
 
-/** Mints sometimes release next year's coins in December. */
+/**
+ * Mints sometimes release next year's coins in December. The UTC year, as in the API, so both
+ * agree on New Year's Eve.
+ */
 export function maxCoinYear(now = new Date()): number {
-  return now.getFullYear() + 1;
+  return now.getUTCFullYear() + 1;
 }
 
 export interface Coin {
