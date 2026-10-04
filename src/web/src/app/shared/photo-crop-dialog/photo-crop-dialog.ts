@@ -32,6 +32,7 @@ const INITIAL_TRANSFORM: ImageTransform = { scale: 1, translateUnit: 'px' };
       #dialog
       [attr.aria-labelledby]="titleId"
       class="dialog-panel max-w-lg"
+      (cancel)="cropping() && $event.preventDefault()"
       (close)="onClose()"
     >
       <div class="space-y-4 p-6">

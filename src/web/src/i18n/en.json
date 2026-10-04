@@ -25,6 +25,12 @@
       "other": "{{count}} coins"
     }
   },
+  "unsaved": {
+    "title": "Unsaved changes",
+    "message": "Your changes have not been saved. They will be lost if you leave.",
+    "leave": "Leave without saving",
+    "stay": "Keep editing"
+  },
   "errors": {
     "network": "Can't reach the server. Check your connection.",
     "unexpected": "Something went wrong. Please try again.",

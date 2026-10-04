@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { provideAdminTranslations } from './core/admin/admin-translations';
 import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guards';
 import { PageWidthData } from './layout/page-width.service';
+import { unsavedChangesGuard } from './shared/unsaved-changes';
 
 // Titles are translation keys, see TranslatedTitleStrategy (no title: just the app name)
 export const routes: Routes = [
@@ -88,11 +89,13 @@ export const routes: Routes = [
         // ?collection=<id> preselects the collection
         path: 'new',
         title: 'titles.newCoin',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./pages/coin-form/coin-form').then((m) => m.CoinForm),
       },
       {
         path: ':id/edit',
         title: 'titles.editCoin',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./pages/coin-form/coin-form').then((m) => m.CoinForm),
       },
     ],

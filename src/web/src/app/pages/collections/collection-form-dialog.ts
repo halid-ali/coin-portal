@@ -31,6 +31,7 @@ import {
   shareLink,
 } from '../../core/collections/collection.service';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { confirmDiscardChanges } from '../../shared/unsaved-changes';
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { photoErrorMessage } from '../../core/coins/photo-errors';
 import { applyServerErrors } from '../../core/http/problem-details';
@@ -53,6 +54,7 @@ let nextId = 0;
       #dialog
       [attr.aria-labelledby]="titleId"
       class="dialog-panel max-w-lg"
+      (cancel)="onCancel($event)"
       (close)="onClose()"
     >
       <form [formGroup]="form" (ngSubmit)="save()" novalidate class="space-y-5 p-6">
@@ -272,7 +274,6 @@ export class CollectionFormDialog {
   });
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
-  private result: Collection | null = null;
 
   constructor() {
     afterNextRender(() => {
@@ -325,6 +326,8 @@ export class CollectionFormDialog {
       }
       this.saved.set(collection);
       this.savedAny = true;
+      // The fields are saved; only a failed cover change is still pending
+      this.form.markAsPristine();
 
       const coverError = await this.saveCover(collection);
       if (coverError) {
@@ -333,7 +336,6 @@ export class CollectionFormDialog {
         return;
       }
 
-      this.result = this.saved();
       this.dialog().nativeElement.close();
     } finally {
       this.saving.set(false);
@@ -411,13 +413,33 @@ export class CollectionFormDialog {
     }
   }
 
+  /** Cancel button: leaves without a question, the user chose to drop the changes. */
   protected close(): void {
-    this.result = this.savedAny ? this.saved() : null;
     this.dialog().nativeElement.close();
   }
 
-  // Single exit point: buttons and Escape both end up here
+  /**
+   * Escape: ignored while a request runs (it would finish unseen), asks first when there is
+   * unsaved input. Chrome lets a page stop Escape only after a user interaction, so a second
+   * Escape in a row may still close; whatever was saved is reported anyway (onClose).
+   */
+  protected async onCancel(event: Event): Promise<void> {
+    if (this.saving() || this.regenerating()) {
+      event.preventDefault();
+      return;
+    }
+    if (!this.form.dirty && this.coverChange() === null) {
+      return;
+    }
+    event.preventDefault();
+    if (await confirmDiscardChanges(this.confirmDialog)) {
+      this.close();
+    }
+  }
+
+  // Single exit point: buttons and Escape all end up here. Whatever was saved (a create whose
+  // cover failed, a new share link) is reported even when the dialog is cancelled afterwards.
   protected onClose(): void {
-    this.closed.emit(this.result);
+    this.closed.emit(this.savedAny ? this.saved() : null);
   }
 }

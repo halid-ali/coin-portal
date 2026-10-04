@@ -25,6 +25,12 @@
       "other": "{{count}} Münzen"
     }
   },
+  "unsaved": {
+    "title": "Ungespeicherte Änderungen",
+    "message": "Deine Änderungen wurden nicht gespeichert. Sie gehen verloren, wenn du jetzt gehst.",
+    "leave": "Ohne Speichern verlassen",
+    "stay": "Weiter bearbeiten"
+  },
   "errors": {
     "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung.",
     "unexpected": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",

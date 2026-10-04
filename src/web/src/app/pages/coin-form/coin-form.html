@@ -234,7 +234,9 @@
           <span></span>
         }
         <div class="flex flex-col-reverse gap-3 sm:flex-row">
-          <a [routerLink]="returnTree()" class="btn-secondary">{{ 'common.cancel' | transloco }}</a>
+          <a [routerLink]="returnTree()" [state]="discardChanges" class="btn-secondary">{{
+            'common.cancel' | transloco
+          }}</a>
           <button type="submit" class="btn-primary" [disabled]="submitting() || deleting()">
             {{ (submitting() ? 'common.saving' : 'common.save') | transloco }}
           </button>
