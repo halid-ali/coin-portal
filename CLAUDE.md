@@ -172,7 +172,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Eski `/collection…` adresleri yönlendirilir.
   Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`; `adminGuard`).
   Girişsiz: `/privacy`, `/terms`, `/contact` (yasal sayfalar), `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
-  koleksiyon), `/s/:token` (sadece linkle). Koleksiyon sayfası tek bileşen, route data `mode`
+  koleksiyon), `/s/:token` (sadece linkle). Bilinmeyen adres `NotFound` (`'**'`, adres korunur,
+  `noindex`). Koleksiyon sayfası tek bileşen, route data `mode`
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
 - Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
   Unlisted iken var; başka görünürlüğe geçince silinir) / `Public`.
@@ -441,8 +442,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   açan butona geri verir; yarım ARIA `menu` deseni yerine link paneli (`aria-expanded`).
   Form alanı kenarlığı bilerek `shade-300` kaldı (kullanıcı kararı, #35).
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
-  `form-input`, `form-error`, `form-hint`, `alert-error`, `btn-primary`, `btn-secondary`, `btn-danger`,
-  `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış animasyonu),
+  `form-input`, `form-error`, `form-hint`, `form-checkbox`, `alert-error`, `btn-primary`, `btn-secondary`,
+  `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-danger` (kırmızı dolgu, sadece
+  onay penceresinin butonu), `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış
+  animasyonu), `app-splash` (`index.html`'deki açılış ekranı),
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
   dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
   `color-mix` ile, koyu tema ayarı da `styles.css`'te). Yeni ortak stil gerekirse buraya eklenir.
@@ -507,8 +510,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   listeler `AdminListBase`'ten (URL'deki arama/sayfa, gecikmeli arama, biçimlendirme), API
   `core/admin/admin.service.ts`, tarih/göreli zaman/bayt `core/admin/admin-format.ts` (dile göre `Intl`).
   Giriş noktası avatar menüsünde en üstte "Yönetim" + ayırıcı (mobil menüde de), `AuthService.isAdmin`.
-  Satırdaki yıkıcı butonlar ikincil stilde (`btn-secondary` + `text-danger-700`), kırmızı dolgu onay
-  penceresinde.
+  Satırdaki yıkıcı butonlar `btn-secondary-danger`, kırmızı dolgu onay penceresinde.
 - Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan, aktif dilde üretilir (`CountryService`).
 - **i18n (Transloco, `@jsverse/transloco`):**
   - Template'te `{{ 'anahtar' | transloco }}`, sayıya bağlı metinde `{{ 'anahtar' | plural: n }}`
