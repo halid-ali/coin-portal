@@ -108,15 +108,13 @@ public class PublicController(AppDbContext db) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<PagedResponse<ExploreCoinResponse>> Explore([FromQuery] ExploreQuery query, CancellationToken ct)
     {
-        var coins = db.Coins.AsNoTracking()
-            .Include(c => c.Photos).Include(c => c.Owner).Include(c => c.Collection)
-            .Where(CollectionAccess.IsPublic<Coin>(c => c.Collection));
+        var coins = db.Coins.AsNoTracking().Where(CollectionAccess.IsPublic<Coin>(c => c.Collection));
         if (!string.IsNullOrWhiteSpace(query.Owner))
         {
             var owner = query.Owner.Trim();
             coins = coins.Where(c => c.Owner.UserName == owner);
         }
-        return await coins.ToPagedAsync(query, ExploreCoinResponse.From, ct);
+        return await coins.ToPagedAsync(query, ExploreCoinResponse.Projection, ct);
     }
 
     // Tokens are fixed-length base64url; anything else cannot match
