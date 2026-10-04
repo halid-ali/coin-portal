@@ -19,11 +19,7 @@ public class AdminUsersTests(CoinPortalFactory factory)
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
         var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
-        using (var upload = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National",
-                   TestImages.Png(200, 200)))
-        {
-            await upload.ShouldHaveStatusAsync(HttpStatusCode.OK);
-        }
+        await alice.UploadPhotoAsync(coin.Id);
 
         var byName = await ListAsync(admin, $"search={alice.UserName}");
         var byEmail = await ListAsync(admin, $"search={alice.User.Email}");
@@ -37,24 +33,103 @@ public class AdminUsersTests(CoinPortalFactory factory)
         Assert.NotNull(row.LastSeenAtUtc);
     }
 
-    [Fact]
-    public async Task List_SortsAndPages()
+    // Users a, b, c: created a, c, b (oldest first); last seen a, then b, c never; storage c > b > a
+    [Theory]
+    [InlineData("", "b,c,a")] // newest account first
+    [InlineData("sort=CreatedAt&dir=Asc", "a,c,b")]
+    [InlineData("sort=UserName&dir=Asc", "a,b,c")]
+    [InlineData("sort=UserName&dir=Desc", "c,b,a")]
+    [InlineData("sort=LastSeen&dir=Desc", "a,b,c")]
+    [InlineData("sort=Storage&dir=Desc", "c,b,a")]
+    [InlineData("sort=Storage&dir=Asc", "a,b,c")]
+    public async Task List_SortsByEachColumn(string query, string expected)
     {
         var admin = await factory.SignUpAdminAsync();
-        var prefix = "s" + Guid.NewGuid().ToString("N")[..8];
-        foreach (var suffix in new[] { "b", "c", "a" })
+        var prefix = await SignUpThreeAsync();
+
+        var list = await ListAsync(admin, $"search={prefix}&{query}");
+
+        Assert.Equal(expected, string.Join(",", list.Items.Select(u => u.UserName[prefix.Length..])));
+    }
+
+    [Fact]
+    public async Task List_Pages()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var prefix = await SignUpThreeAsync();
+
+        var page = await ListAsync(admin, $"search={prefix}&sort=UserName&dir=Desc&pageSize=2&page=2");
+
+        Assert.Equal((3, 2), (page.TotalCount, page.TotalPages));
+        Assert.Equal(prefix + "a", Assert.Single(page.Items).UserName);
+    }
+
+    [Fact]
+    public async Task List_FiltersByStatus()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var prefix = await SignUpThreeAsync();
+        var b = (await ListAsync(admin, $"search={prefix}b")).Items.Single();
+        using (var lockB = await admin.Client.PutAsync($"/api/admin/users/{b.Id}/lock", new AdminLockRequest(null)))
         {
-            await factory.SignUpAsync(userName: prefix + suffix);
+            await lockB.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         }
 
-        var asc = await ListAsync(admin, $"search={prefix}&sort=UserName&dir=Asc");
-        var desc = await ListAsync(admin, $"search={prefix}&sort=UserName&dir=Desc&pageSize=2&page=2");
-        var newest = await ListAsync(admin, $"search={prefix}");
+        var locked = await ListAsync(admin, $"search={prefix}&status=Locked");
+        var active = await ListAsync(admin, $"search={prefix}&status=Active&sort=UserName&dir=Asc");
 
-        Assert.Equal([prefix + "a", prefix + "b", prefix + "c"], asc.Items.Select(u => u.UserName));
-        Assert.Equal((3, 2), (desc.TotalCount, desc.TotalPages));
-        Assert.Equal(prefix + "a", Assert.Single(desc.Items).UserName);
-        Assert.Equal(prefix + "a", newest.Items[0].UserName); // newest account first by default
+        Assert.Equal([prefix + "b"], locked.Items.Select(u => u.UserName));
+        Assert.Equal(AdminUserStatus.Locked, locked.Items[0].Status);
+        Assert.Equal([prefix + "a", prefix + "c"], active.Items.Select(u => u.UserName));
+    }
+
+    [Theory]
+    [InlineData("sort=Email")]
+    [InlineData("status=Banned")]
+    [InlineData("dir=Up")]
+    [InlineData("pageSize=101")]
+    public async Task List_InvalidQuery_IsRejected(string query)
+    {
+        var admin = await factory.SignUpAdminAsync();
+
+        await admin.Client.ExpectStatusAsync($"/api/admin/users?{query}", HttpStatusCode.BadRequest);
+    }
+
+    // Three users with a fresh name prefix; times set directly, so the order never rests on how
+    // fast they signed up
+    private async Task<string> SignUpThreeAsync()
+    {
+        var prefix = "s" + Guid.NewGuid().ToString("N")[..8];
+        var users = new Dictionary<string, TestUser>();
+        foreach (var suffix in new[] { "a", "b", "c" })
+        {
+            users[suffix] = await factory.SignUpAsync(userName: prefix + suffix);
+        }
+        foreach (var (suffix, photos) in new[] { ("b", 1), ("c", 2) })
+        {
+            var coin = await users[suffix].CreateCoinAsync((await users[suffix].FirstCollectionAsync()).Id);
+            await users[suffix].UploadPhotoAsync(coin.Id, CoinSide.National);
+            if (photos == 2)
+            {
+                await users[suffix].UploadPhotoAsync(coin.Id, CoinSide.Common);
+            }
+        }
+        var now = DateTime.UtcNow;
+        await factory.WithDbAsync(async db =>
+        {
+            var rows = await db.Users.Where(u => u.UserName!.StartsWith(prefix)).ToListAsync();
+            foreach (var user in rows)
+            {
+                (user.CreatedAtUtc, user.LastSeenAtUtc) = user.UserName![prefix.Length..] switch
+                {
+                    "a" => (now.AddDays(-3), now.AddHours(-1)),
+                    "b" => (now.AddDays(-1), now.AddHours(-2)),
+                    _ => (now.AddDays(-2), (DateTime?)null),
+                };
+            }
+            return await db.SaveChangesAsync();
+        });
+        return prefix;
     }
 
     [Fact]
@@ -115,12 +190,8 @@ public class AdminUsersTests(CoinPortalFactory factory)
         var shown = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
         var linked = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
         var coin = await alice.CreateCoinAsync(shown.Id);
-        Guid photoId;
-        using (var upload = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National",
-                   TestImages.Png(200, 200)))
-        {
-            photoId = (await upload.ReadJsonAsync<CoinResponse>()).Photos.Single().Id;
-        }
+        var photoId = (await alice.UploadPhotoAsync(coin.Id)).Id;
+        var coverId = await alice.UploadCoverAsync(shown.Id);
         using var visitor = await factory.CreateAnonymousClientAsync();
         string[] urls =
         [
@@ -128,13 +199,13 @@ public class AdminUsersTests(CoinPortalFactory factory)
             $"/api/public/users/{alice.UserName}",
             $"/api/public/shared/{linked.ShareToken}",
             $"/api/coins/{coin.Id}/photos/National/Thumb?v={photoId}",
+            $"/api/collections/{shown.Id}/cover?v={coverId}",
         ];
 
         using (await admin.Client.PutAsync($"/api/admin/users/{alice.User.Id}/lock", new AdminLockRequest(null))) { }
         foreach (var url in urls)
         {
-            using var response = await visitor.GetAsync(url);
-            await response.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+            await visitor.ExpectStatusAsync(url, HttpStatusCode.NotFound);
         }
         Assert.Empty((await visitor.GetJsonAsync<PagedResponse<ExploreCoinResponse>>(
             $"/api/public/coins?owner={alice.UserName}")).Items);
@@ -145,8 +216,7 @@ public class AdminUsersTests(CoinPortalFactory factory)
         using (await admin.Client.DeleteAsync($"/api/admin/users/{alice.User.Id}/lock")) { }
         foreach (var url in urls)
         {
-            using var response = await visitor.GetAsync(url);
-            await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            await visitor.ExpectStatusAsync(url, HttpStatusCode.OK);
         }
     }
 

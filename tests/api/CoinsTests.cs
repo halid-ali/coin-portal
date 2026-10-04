@@ -42,6 +42,20 @@ public class CoinsTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task Update_ToAnotherUsersCollection_IsRejected()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
+        var bobsCollection = await bob.FirstCollectionAsync();
+
+        using var response = await alice.Client.PutAsync($"/api/coins/{coin.Id}", TestUser.NewCoin(bobsCollection.Id));
+
+        Assert.Equal(["CollectionId"], await response.ReadValidationKeysAsync());
+        Assert.Empty((await bob.Client.GetJsonAsync<PagedResponse<CoinResponse>>("/api/coins")).Items);
+    }
+
+    [Fact]
     public async Task Update_ToAnotherOwnCollection_MovesTheCoin()
     {
         var alice = await factory.SignUpAsync();
@@ -73,10 +87,11 @@ public class CoinsTests(CoinPortalFactory factory)
         Assert.Equal("A", coin.MintMark);
     }
 
+    // The client maps the errors to its fields by these keys
     [Theory]
-    [InlineData("XX", 2006)] // not a euro issuer
-    [InlineData("DE", 1998)] // before the euro
-    public async Task Create_InvalidCountryOrYear_IsRejected(string countryCode, int year)
+    [InlineData("XX", 2006, "CountryCode")] // not a euro issuer
+    [InlineData("DE", 1998, "Year")] // before the euro
+    public async Task Create_InvalidCountryOrYear_IsRejected(string countryCode, int year, string key)
     {
         var alice = await factory.SignUpAsync();
         var collection = await alice.FirstCollectionAsync();
@@ -84,7 +99,33 @@ public class CoinsTests(CoinPortalFactory factory)
         using var response = await alice.Client.PostAsync("/api/coins",
             TestUser.NewCoin(collection.Id, countryCode: countryCode, year: year));
 
-        await response.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
+        Assert.Equal([key], await response.ReadValidationKeysAsync());
+    }
+
+    [Theory]
+    [InlineData("title", "Title")]
+    [InlineData("blankTitle", "Title")]
+    [InlineData("mintMark", "MintMark")]
+    [InlineData("description", "Description")]
+    [InlineData("noQuantity", "Quantity")]
+    [InlineData("tooMany", "Quantity")]
+    public async Task Create_OutsideTheLimits_IsRejected(string field, string key)
+    {
+        var alice = await factory.SignUpAsync();
+        var request = TestUser.NewCoin((await alice.FirstCollectionAsync()).Id);
+        switch (field)
+        {
+            case "title": request.Title = new string('x', Coin.TitleMaxLength + 1); break;
+            case "blankTitle": request.Title = "   "; break;
+            case "mintMark": request.MintMark = new string('A', Coin.MintMarkMaxLength + 1); break;
+            case "description": request.Description = new string('x', Coin.DescriptionMaxLength + 1); break;
+            case "noQuantity": request.Quantity = 0; break;
+            default: request.Quantity = 1000; break;
+        }
+
+        using var response = await alice.Client.PostAsync("/api/coins", request);
+
+        Assert.Equal([key], await response.ReadValidationKeysAsync());
     }
 
     [Fact]
@@ -143,6 +184,52 @@ public class CoinsTests(CoinPortalFactory factory)
         Assert.Single(secondPage.Items);
         Assert.Equal(2, secondPage.TotalPages);
         Assert.Equal(3, all.Items.Count);
+    }
+
+    [Fact]
+    public async Task List_FiltersByYearAndCommemorative()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        await alice.CreateCoinAsync(collection.Id, "Regular 2006", year: 2006);
+        await alice.CreateCoinAsync(collection.Id, "Regular 2015", year: 2015);
+        var commemorative = TestUser.NewCoin(collection.Id, "Commemorative 2015", year: 2015);
+        commemorative.IsCommemorative = true;
+        using (var created = await alice.Client.PostAsync("/api/coins", commemorative))
+        {
+            await created.ShouldHaveStatusAsync(HttpStatusCode.Created);
+        }
+
+        var of2015 = await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>("/api/coins?year=2015");
+        var commemoratives = await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>("/api/coins?isCommemorative=true");
+        var regularOf2015 = await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>(
+            "/api/coins?year=2015&isCommemorative=false");
+
+        Assert.Equal(["Commemorative 2015", "Regular 2015"], of2015.Items.Select(c => c.Title).Order());
+        Assert.Equal("Commemorative 2015", Assert.Single(commemoratives.Items).Title);
+        Assert.Equal("Regular 2015", Assert.Single(regularOf2015.Items).Title);
+    }
+
+    // Ties: Denomination by country, then year; Year by country, then the larger denomination first
+    [Theory]
+    [InlineData("sort=Title", "A,B,C,D")]
+    [InlineData("sort=Title&dir=Desc", "D,C,B,A")]
+    [InlineData("sort=Denomination", "C,A,D,B")]
+    [InlineData("sort=Denomination&dir=Desc", "B,A,D,C")]
+    [InlineData("sort=Year", "B,D,A,C")]
+    [InlineData("sort=Year&dir=Desc", "A,C,B,D")]
+    public async Task List_SortsByEachColumn_WithItsTieBreakers(string query, string expected)
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        await alice.CreateCoinAsync(collection.Id, "A", "DE", 2015, Denomination.Euro1);
+        await alice.CreateCoinAsync(collection.Id, "B", "AT", 2006, Denomination.Euro2);
+        await alice.CreateCoinAsync(collection.Id, "C", "DE", 2015, Denomination.Cent10);
+        await alice.CreateCoinAsync(collection.Id, "D", "FR", 2006, Denomination.Euro1);
+
+        var page = await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>("/api/coins?" + query);
+
+        Assert.Equal(expected, string.Join(",", page.Items.Select(c => c.Title)));
     }
 
     [Fact]

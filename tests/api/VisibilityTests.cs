@@ -103,6 +103,7 @@ public class VisibilityTests(CoinPortalFactory factory)
         var token = collection.ShareToken!;
 
         using var byId = await visitor.GetAsync($"/api/public/collections/{collection.Id}");
+        using var coinsById = await visitor.GetAsync($"/api/public/collections/{collection.Id}/coins");
         using var profile = await visitor.GetAsync($"/api/public/users/{alice.UserName}");
         var shared = await visitor.GetJsonAsync<PublicCollectionResponse>($"/api/public/shared/{token}");
         var coins = await visitor.GetJsonAsync<PagedResponse<CoinResponse>>($"/api/public/shared/{token}/coins");
@@ -110,6 +111,7 @@ public class VisibilityTests(CoinPortalFactory factory)
         using var shortToken = await visitor.GetAsync($"/api/public/shared/{token[..^1]}");
 
         await byId.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await coinsById.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
         await profile.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
         Assert.Equal(collection.Id, shared.Id);
         Assert.Single(coins.Items);

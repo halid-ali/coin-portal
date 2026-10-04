@@ -112,13 +112,28 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
     /// <param name="host">This factory or a host derived from it (<see cref="WithSettings"/>).</param>
     public static async Task<ApiClient> CreateAnonymousClientAsync(WebApplicationFactory<Program> host)
     {
-        var client = new ApiClient(host.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            BaseAddress = new Uri("https://localhost"),
-            AllowAutoRedirect = false,
-        }));
+        var client = new ApiClient(CreateHttpClient(host));
         await client.RefreshAntiforgeryAsync();
         return client;
+    }
+
+    private static readonly Lock ClientsLock = new();
+
+    /// <summary>
+    /// A plain client of the host at https://localhost, without redirects. One at a time: the
+    /// factory keeps its clients in a list that is not thread-safe, and tests run in parallel; two
+    /// at once could leave a null in it, and disposing the factory then fails every test.
+    /// </summary>
+    public static HttpClient CreateHttpClient(WebApplicationFactory<Program> host)
+    {
+        lock (ClientsLock)
+        {
+            return host.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                BaseAddress = new Uri("https://localhost"),
+                AllowAutoRedirect = false,
+            });
+        }
     }
 
     /// <summary>

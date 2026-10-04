@@ -146,6 +146,27 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     }
 
     [Fact]
+    public async Task Upload_OverTheQuota_IsQuotaExceeded_AndStoresNothing()
+    {
+        await using var host = factory.WithSettings(new Dictionary<string, string?>
+        {
+            ["PhotoStorage:UserQuotaBytes"] = "1",
+        });
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+        var user = await client.RegisterAsync(TestUser.NewRegisterRequest());
+        var collection = Assert.Single(await client.GetJsonAsync<List<CollectionResponse>>("/api/collections"));
+        using var created = await client.PostAsync("/api/coins", TestUser.NewCoin(collection.Id));
+        var coin = await created.ReadJsonAsync<Contracts.Coins.CoinResponse>();
+
+        using var photo = await client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", TestImages.Png(200, 160));
+        using var cover = await client.PutFileAsync($"/api/collections/{collection.Id}/cover", TestImages.Png(640, 360));
+
+        Assert.Equal("quota_exceeded", await photo.ReadProblemCodeAsync());
+        Assert.Equal("quota_exceeded", await cover.ReadProblemCodeAsync());
+        Assert.False(Directory.Exists(Path.Combine(factory.PhotoRoot, user.Id)));
+    }
+
+    [Fact]
     public async Task ImageReads_AreLimitedForSignedOutClients()
     {
         await using var host = factory.WithSettings(new Dictionary<string, string?>

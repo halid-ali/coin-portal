@@ -42,8 +42,21 @@ public class AdminRoleTests(CoinPortalFactory factory)
         // A new cookie reflects the change
         alice = await alice.SignInAgainAsync();
         bob = await bob.SignInAgainAsync();
-        await ExpectStatusAsync(alice.Client, HttpStatusCode.Forbidden);
-        await ExpectStatusAsync(bob.Client, HttpStatusCode.OK);
+        await alice.Client.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.Forbidden);
+        await bob.Client.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RoleChange_ReachesAnOpenSession_WithoutSigningInAgain()
+    {
+        var alice = await factory.SignUpAdminAsync();
+        await alice.Client.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.OK);
+
+        // The cookie is checked against the database (in tests on every request, in the app once
+        // a minute), so the open session loses the role
+        await factory.SyncAdminsAsync();
+
+        await alice.Client.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -53,9 +66,9 @@ public class AdminRoleTests(CoinPortalFactory factory)
         var alice = await factory.SignUpAsync();
         var admin = await factory.SignUpAdminAsync();
 
-        await ExpectStatusAsync(visitor, HttpStatusCode.Unauthorized);
-        await ExpectStatusAsync(alice.Client, HttpStatusCode.Forbidden);
-        await ExpectStatusAsync(admin.Client, HttpStatusCode.OK);
+        await visitor.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.Unauthorized);
+        await alice.Client.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.Forbidden);
+        await admin.Client.ExpectStatusAsync("/api/admin/stats", HttpStatusCode.OK);
     }
 
     [Fact]
@@ -66,11 +79,7 @@ public class AdminRoleTests(CoinPortalFactory factory)
         var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
         await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
         var coin = await alice.CreateCoinAsync(collection.Id);
-        using (var upload = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National",
-                   TestImages.Png(200, 200)))
-        {
-            await upload.ShouldHaveStatusAsync(HttpStatusCode.OK);
-        }
+        await alice.UploadPhotoAsync(coin.Id);
 
         var stats = await admin.Client.GetJsonAsync<AdminStatsResponse>("/api/admin/stats");
 
@@ -83,6 +92,23 @@ public class AdminRoleTests(CoinPortalFactory factory)
         Assert.True(stats.CoinCount >= 1);
         Assert.True(stats.PhotoCount >= 1);
         Assert.True(stats.StorageBytes > 0);
+    }
+
+    [Fact]
+    public async Task Stats_CountLockedUsersAndHiddenCollections()
+    {
+        // Only admin tests lock and hide, and they run one after another: the difference is exact
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var before = await admin.Client.GetJsonAsync<AdminStatsResponse>("/api/admin/stats");
+
+        using (await admin.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest(null))) { }
+        using (await admin.Client.PutAsync($"/api/admin/users/{alice.User.Id}/lock", new AdminLockRequest(null))) { }
+        var after = await admin.Client.GetJsonAsync<AdminStatsResponse>("/api/admin/stats");
+
+        Assert.Equal(before.LockedUserCount + 1, after.LockedUserCount);
+        Assert.Equal(before.HiddenCollectionCount + 1, after.HiddenCollectionCount);
     }
 
     [Fact]
@@ -101,10 +127,4 @@ public class AdminRoleTests(CoinPortalFactory factory)
 
     private static async Task<IReadOnlyList<string>> RolesAsync(TestUser user) =>
         (await user.Client.GetJsonAsync<UserResponse>("/api/auth/me")).Roles;
-
-    private static async Task ExpectStatusAsync(ApiClient client, HttpStatusCode expected)
-    {
-        using var response = await client.GetAsync("/api/admin/stats");
-        await response.ShouldHaveStatusAsync(expected);
-    }
 }

@@ -63,6 +63,23 @@ public sealed record TestUser(ApiClient Client, UserResponse User)
         return await response.ReadJsonAsync<CoinResponse>();
     }
 
+    /// <summary>Uploads a photo of one side (a 200x160 PNG unless given) and returns it.</summary>
+    public async Task<CoinPhotoResponse> UploadPhotoAsync(int coinId, CoinSide side = CoinSide.National,
+        byte[]? image = null)
+    {
+        using var response = await Client.PutFileAsync($"/api/coins/{coinId}/photos/{side}",
+            image ?? TestImages.Png(200, 160));
+        return (await response.ReadJsonAsync<CoinResponse>()).Photos.Single(p => p.Side == side);
+    }
+
+    /// <summary>Uploads a cover (a 640x360 PNG unless given) and returns its id.</summary>
+    public async Task<Guid> UploadCoverAsync(int collectionId, byte[]? image = null)
+    {
+        using var response = await Client.PutFileAsync($"/api/collections/{collectionId}/cover",
+            image ?? TestImages.Png(640, 360));
+        return (await response.ReadJsonAsync<CollectionCoverImageResponse>()).CoverImageId;
+    }
+
     public static CoinUpsertRequest NewCoin(int collectionId, string title = "Test coin",
         string countryCode = "DE", int year = 2006, Denomination denomination = Denomination.Euro2) => new()
         {

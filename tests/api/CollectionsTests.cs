@@ -2,6 +2,7 @@ using System.Net;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Contracts.Common;
+using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
 
 namespace CoinPortal.Api.Tests;
@@ -76,6 +77,43 @@ public class CollectionsTests(CoinPortalFactory factory)
         Assert.Contains("DuplicateName", await response.ReadValidationKeysAsync());
     }
 
+    [Theory]
+    [InlineData("blankName", "Name")]
+    [InlineData("longName", "Name")]
+    [InlineData("longDescription", "Description")]
+    public async Task Create_OutsideTheLimits_IsRejected(string field, string key)
+    {
+        var alice = await factory.SignUpAsync();
+        var request = new CollectionUpsertRequest
+        {
+            Name = field switch
+            {
+                "blankName" => "   ",
+                "longName" => new string('x', Collection.NameMaxLength + 1),
+                _ => "Fine",
+            },
+            Description = field == "longDescription" ? new string('x', Collection.DescriptionMaxLength + 1) : null,
+        };
+
+        using var response = await alice.Client.PostAsync("/api/collections", request);
+
+        Assert.Equal([key], await response.ReadValidationKeysAsync());
+    }
+
+    [Fact]
+    public async Task Update_WithoutVisibility_KeepsIt()
+    {
+        var alice = await factory.SignUpAsync();
+        var shared = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Unlisted);
+
+        using var response = await alice.Client.PutAsync($"/api/collections/{shared.Id}",
+            new CollectionUpsertRequest { Name = "Renamed" });
+
+        var updated = await response.ReadJsonAsync<CollectionResponse>();
+        Assert.Equal(("Renamed", CollectionVisibility.Unlisted, shared.ShareToken),
+            (updated.Name, updated.Visibility, updated.ShareToken));
+    }
+
     [Fact]
     public async Task Create_NameOfAnotherUsersCollection_IsAllowed()
     {
@@ -106,12 +144,18 @@ public class CollectionsTests(CoinPortalFactory factory)
         var target = await alice.FirstCollectionAsync();
         var doomed = await alice.CreateCollectionAsync();
         var coin = await alice.CreateCoinAsync(doomed.Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id);
+        var cover = await alice.UploadCoverAsync(doomed.Id);
 
         using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?moveTo={target.Id}");
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         var moved = await alice.Client.GetJsonAsync<CoinResponse>($"/api/coins/{coin.Id}");
         Assert.Equal(target.Id, moved.CollectionId);
+        // The coin keeps its photo; the cover goes with the collection
+        Assert.Equal(photo.Id, Assert.Single(moved.Photos).Id);
+        Assert.True(Directory.Exists(Path.Combine(factory.PhotoRoot, alice.User.Id, photo.Id.ToString("N"))));
+        Assert.False(Directory.Exists(Path.Combine(factory.PhotoRoot, alice.User.Id, cover.ToString("N"))));
     }
 
     [Fact]

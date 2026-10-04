@@ -49,6 +49,83 @@ public static class TestImages
         return png.ToArray();
     }
 
+    /// <summary>
+    /// PNG with an eXIf chunk: orientation 6 (the camera was turned, rotate 90° clockwise to show)
+    /// and a GPS position, like a phone photo. The API must apply the orientation and drop both.
+    /// </summary>
+    public static byte[] PngWithExif(int width, int height)
+    {
+        var png = Png(width, height);
+        // Little-endian TIFF: header, IFD0 (Orientation, GPS IFD pointer), GPS IFD (latitude ref)
+        byte[] exif =
+        [
+            0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, // "II", 42, IFD0 at 8
+            0x02, 0x00, // two entries
+            0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, // Orientation SHORT 6
+            0x25, 0x88, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00, 0x26, 0x00, 0x00, 0x00, // GPS IFD LONG at 38
+            0x00, 0x00, 0x00, 0x00, // no next IFD
+            0x01, 0x00, // GPS IFD: one entry
+            0x01, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00, 0x00, (byte)'N', 0x00, 0x00, 0x00, // GPSLatitudeRef "N"
+            0x00, 0x00, 0x00, 0x00,
+        ];
+        // After IHDR (8 signature + 25 chunk bytes), before the image data
+        using var result = new MemoryStream();
+        result.Write(png, 0, 33);
+        WriteChunk(result, "eXIf", exif);
+        result.Write(png, 33, png.Length - 33);
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// GIF header and a tiny frame, claiming the given size: identifiable as a GIF of that size,
+    /// so only its format is wrong for the API.
+    /// </summary>
+    public static byte[] Gif(int width, int height)
+    {
+        var gif = new List<byte>();
+        gif.AddRange("GIF89a"u8.ToArray());
+        gif.AddRange([(byte)width, (byte)(width >> 8), (byte)height, (byte)(height >> 8)]);
+        gif.AddRange([0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF]); // 2-color table
+        gif.AddRange([0x2C, 0x00, 0x00, 0x00, 0x00]); // image at 0,0
+        gif.AddRange([(byte)width, (byte)(width >> 8), (byte)height, (byte)(height >> 8), 0x00]);
+        gif.AddRange([0x02, 0x02, 0x44, 0x01, 0x00, 0x3B]); // a few pixels of data, end
+        return gif.ToArray();
+    }
+
+    /// <summary>
+    /// Size and chunk names of a WebP file (RIFF container), e.g. to check that no EXIF or XMP
+    /// chunk was written.
+    /// </summary>
+    public static (int Width, int Height, IReadOnlyList<string> Chunks) ReadWebp(byte[] webp)
+    {
+        Assert.Equal("RIFF", Encoding.ASCII.GetString(webp, 0, 4));
+        Assert.Equal("WEBP", Encoding.ASCII.GetString(webp, 8, 4));
+        var chunks = new List<string>();
+        (int, int)? size = null;
+        for (var at = 12; at + 8 <= webp.Length;)
+        {
+            var name = Encoding.ASCII.GetString(webp, at, 4);
+            var length = BinaryPrimitives.ReadInt32LittleEndian(webp.AsSpan(at + 4));
+            var data = webp.AsSpan(at + 8, length);
+            chunks.Add(name);
+            size ??= name switch
+            {
+                // Canvas size minus one, 24 bits each
+                "VP8X" => ((data[4] | data[5] << 8 | data[6] << 16) + 1, (data[7] | data[8] << 8 | data[9] << 16) + 1),
+                // Lossy key frame: 3 bytes tag, 3 bytes start code, then 14-bit width and height
+                "VP8 " => (BinaryPrimitives.ReadUInt16LittleEndian(data[6..]) & 0x3FFF,
+                    BinaryPrimitives.ReadUInt16LittleEndian(data[8..]) & 0x3FFF),
+                // Lossless: signature byte, then 14-bit width and height minus one
+                "VP8L" => ((data[1] | (data[2] & 0x3F) << 8) + 1,
+                    ((data[2] >> 6 | data[3] << 2 | (data[4] & 0x0F) << 10)) + 1),
+                _ => null,
+            };
+            at += 8 + length + (length & 1);
+        }
+        Assert.NotNull(size);
+        return (size.Value.Item1, size.Value.Item2, chunks);
+    }
+
     /// <summary>Bytes that are no image at all.</summary>
     public static byte[] NotAnImage() => Encoding.UTF8.GetBytes("This is not an image, just text.");
 

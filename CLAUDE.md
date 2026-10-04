@@ -353,6 +353,18 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `[Collection(AdminCollection.Name)]` içinde. Test sunucusu ham istek adresini (`RawTarget`) vermez:
   istek logu orada sorgu dizesini yazmaz (Kestrel ve IIS'te yazar), sorgudaki değerlerin log maskesi
   uçtan uca test edilemez.
+  **Yapısal kurallar `ApiConventionsTests`'te** (uygulamanın tüm controller action'ları üzerinden): route
+  `api/` ile başlar, `api/admin` uçları `AdminControllerBase`'den gelir, girişsiz erişilebilen her uç bir rate
+  limit politikası taşır, hiçbir uç antiforgery'yi atlamaz; yeni bir yapısal kural oraya eklenir.
+  **İstemci sadece `CoinPortalFactory.CreateHttpClient` / `CreateAnonymousClientAsync` ile açılır**
+  (kilitli): factory istemcileri thread-safe olmayan bir listede tutar, paralel `CreateClient` listeye null
+  bırakır ve kapanışta bütün koşu "cleanup failure" ile düşer. Paylaşılan durum paralel testlerle
+  değişir: site geneli sayılarda alt sınır ya da (admin koleksiyonunda) önce/sonra farkı, singleton
+  sonuçlarda (`PhotoSweeper.LastResult`) "bu ya da daha yenisi" kontrol edilir; sıralama testleri
+  zamanları `WithDbAsync` ile ayrık ayarlar. Yardımcılar: `TestUser.UploadPhotoAsync` / `UploadCoverAsync`,
+  `client.ExpectStatusAsync(url, durum)`, `GetIfNoneMatchAsync`, `TestImages` (PNG, EXIF'li PNG, GIF,
+  lossless JPEG başlığı, `ReadWebp` boyut ve bölüm adları). 400'lerde durumdan başka ModelState anahtarı da
+  kontrol edilir (`ReadValidationKeysAsync`): client hataları bu anahtarlarla alana eşler.
 
 ## Client kuralları
 

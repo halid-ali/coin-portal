@@ -1,6 +1,8 @@
 using System.Net;
+using System.Text.Json;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
+using CoinPortal.Api.Contracts.Countries;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +19,7 @@ public class PhotosTests(CoinPortalFactory factory)
         var alice = await factory.SignUpAsync();
         var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
 
-        var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
+        var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
         using var thumb = await alice.Client.GetAsync($"/api/coins/{coin.Id}/photos/National/Thumb?v={photo.Id}");
 
         await thumb.ShouldHaveStatusAsync(HttpStatusCode.OK);
@@ -31,7 +33,7 @@ public class PhotosTests(CoinPortalFactory factory)
         var alice = await factory.SignUpAsync();
         var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
         var coin = await alice.CreateCoinAsync(collection.Id);
-        var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
+        var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
         // Signed out: in tests every signed-in request renews the cookie (zero validation interval),
         // and a response that sets a cookie is marked no-cache
         using var visitor = await factory.CreateAnonymousClientAsync();
@@ -43,13 +45,115 @@ public class PhotosTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task Images_AreCachedPrivately_AndRevalidateWithTheirETag()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id);
+        var cover = await alice.UploadCoverAsync(collection.Id);
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        // The share key is in the address: "private" keeps shared caches (a proxy, a CDN) from
+        // storing it
+        foreach (var url in new[]
+                 {
+                     $"/api/coins/{coin.Id}/photos/National/Thumb?v={photo.Id}&s={collection.ShareToken}",
+                     $"/api/collections/{collection.Id}/cover?v={cover}&s={collection.ShareToken}",
+                 })
+        {
+            using var first = await visitor.GetAsync(url);
+            await first.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            var cache = first.Headers.CacheControl!;
+            Assert.True(cache.Private);
+            Assert.Equal(TimeSpan.FromDays(365), cache.MaxAge);
+            Assert.Contains(cache.Extensions, e => e.Name == "immutable");
+            using var second = await visitor.GetIfNoneMatchAsync(url, first.Headers.ETag!);
+
+            await second.ShouldHaveStatusAsync(HttpStatusCode.NotModified);
+        }
+    }
+
+    [Fact]
+    public async Task Upload_TooLargeFile_IsFileTooLarge()
+    {
+        var alice = await factory.SignUpAsync();
+        var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
+
+        // One byte over PhotoStorage:MaxUploadBytes (10 MB): rejected before it is read as an image
+        using var response = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National",
+            new byte[10 * 1024 * 1024 + 1]);
+
+        Assert.Equal("file_too_large", await response.ReadProblemCodeAsync());
+    }
+
+    [Fact]
+    public async Task Upload_Gif_IsRejected_ForItsFormat()
+    {
+        var alice = await factory.SignUpAsync();
+        var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
+
+        using var response = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National",
+            TestImages.Gif(200, 200), "photo.gif", "image/gif");
+
+        Assert.Equal("invalid_image", await response.ReadProblemCodeAsync());
+        // Large enough otherwise: the format is the reason
+        Assert.Contains("JPEG and PNG", await ProblemTitleAsync(response));
+    }
+
+    [Fact]
+    public async Task Upload_AppliesTheExifOrientation_AndDropsAllMetadata()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+
+        // 640x360 turned by 90°: a 360x640 picture, its 16:9 cover is 360 wide
+        var cover = await alice.UploadCoverAsync(collection.Id, TestImages.PngWithExif(640, 360));
+        using var response = await alice.Client.GetAsync($"/api/collections/{collection.Id}/cover?v={cover}");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        var (width, height, chunks) = TestImages.ReadWebp(await response.Content.ReadAsByteArrayAsync());
+        Assert.Equal(360, width);
+        Assert.True(height < width);
+        // No EXIF (orientation, GPS position) and no XMP in what others download
+        Assert.DoesNotContain("EXIF", chunks);
+        Assert.DoesNotContain("XMP ", chunks);
+    }
+
+    [Fact]
+    public async Task Cover_Replace_RemovesTheOldFile_AndDelete_RemovesTheCover()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        var first = await alice.UploadCoverAsync(collection.Id);
+
+        var second = await alice.UploadCoverAsync(collection.Id);
+
+        Assert.Empty(StoredFiles(alice, first));
+        await alice.Client.ExpectStatusAsync($"/api/collections/{collection.Id}/cover?v={first}", HttpStatusCode.NotFound);
+        Assert.Equal(second, (await alice.Client.GetJsonAsync<CollectionResponse>($"/api/collections/{collection.Id}")).CoverImageId);
+
+        using (var delete = await alice.Client.DeleteAsync($"/api/collections/{collection.Id}/cover"))
+        {
+            await delete.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        Assert.Empty(StoredFiles(alice, second));
+        Assert.Null((await alice.Client.GetJsonAsync<CollectionResponse>($"/api/collections/{collection.Id}")).CoverImageId);
+        // It no longer counts against the quota
+        Assert.Equal(0, await factory.WithDbAsync(db => db.Collections
+            .Where(c => c.Id == collection.Id).Select(c => c.CoverSizeBytes).SingleAsync()));
+        using var again = await alice.Client.DeleteAsync($"/api/collections/{collection.Id}/cover");
+        await again.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task ImagesWithoutVersion_AreRevalidated()
     {
         var alice = await factory.SignUpAsync();
         var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
         var coin = await alice.CreateCoinAsync(collection.Id);
-        await UploadAsync(alice, coin.Id, CoinSide.National);
-        await UploadCoverAsync(alice, collection.Id);
+        await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        await alice.UploadCoverAsync(collection.Id);
         using var visitor = await factory.CreateAnonymousClientAsync();
 
         // The same address serves the next image too, so it must not be kept for good
@@ -103,9 +207,9 @@ public class PhotosTests(CoinPortalFactory factory)
     {
         var alice = await factory.SignUpAsync();
         var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
-        var first = await UploadAsync(alice, coin.Id, CoinSide.Common);
+        var first = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
 
-        var second = await UploadAsync(alice, coin.Id, CoinSide.Common);
+        var second = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
         using var oldVersion = await alice.Client.GetAsync($"/api/coins/{coin.Id}/photos/Common/Thumb?v={first.Id}");
 
         Assert.NotEqual(first.Id, second.Id);
@@ -118,8 +222,8 @@ public class PhotosTests(CoinPortalFactory factory)
     {
         var alice = await factory.SignUpAsync();
         var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
-        var national = await UploadAsync(alice, coin.Id, CoinSide.National);
-        var common = await UploadAsync(alice, coin.Id, CoinSide.Common);
+        var national = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        var common = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
 
         using var deletePhoto = await alice.Client.DeleteAsync($"/api/coins/{coin.Id}/photos/National");
         await deletePhoto.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
@@ -138,14 +242,14 @@ public class PhotosTests(CoinPortalFactory factory)
         await alice.FirstCollectionAsync();
         var doomed = await alice.CreateCollectionAsync();
         var coin = await alice.CreateCoinAsync(doomed.Id);
-        var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
-        var cover = await UploadCoverAsync(alice, doomed.Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        var cover = await alice.UploadCoverAsync(doomed.Id);
 
         using var response = await alice.Client.DeleteAsync($"/api/collections/{doomed.Id}?deleteCoins=true");
 
         await response.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         Assert.Empty(StoredFiles(alice, photo.Id));
-        Assert.Empty(StoredFiles(alice, cover.CoverImageId));
+        Assert.Empty(StoredFiles(alice, cover));
     }
 
     [Theory]
@@ -159,17 +263,19 @@ public class PhotosTests(CoinPortalFactory factory)
         var bob = await factory.SignUpAsync();
         var collection = await alice.FirstCollectionAsync();
         var coin = await alice.CreateCoinAsync(collection.Id);
-        var photo = await UploadAsync(alice, coin.Id, CoinSide.National);
-        var cover = await UploadCoverAsync(alice, collection.Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        var cover = await alice.UploadCoverAsync(collection.Id);
         collection = await alice.SetVisibilityAsync(collection, visibility);
         // A valid-looking secret for the collections that have none
         var link = collection.ShareToken ?? new string('A', Collection.ShareTokenLength);
+        // The key of another link-only collection opens only that one
+        var otherKey = (await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted)).ShareToken;
         using var visitor = await factory.CreateAnonymousClientAsync();
 
         foreach (var url in new[]
                  {
                      $"/api/coins/{coin.Id}/photos/National/Preview?v={photo.Id}",
-                     $"/api/collections/{collection.Id}/cover?v={cover.CoverImageId}",
+                     $"/api/collections/{collection.Id}/cover?v={cover}",
                  })
         {
             var linked = url + "&s=" + link;
@@ -177,6 +283,7 @@ public class PhotosTests(CoinPortalFactory factory)
             await ExpectVisibleAsync(visitor, url, visibleWithoutLink);
             await ExpectVisibleAsync(bob.Client, url, visibleWithoutLink);
             await ExpectVisibleAsync(visitor, linked, visibleWithLink);
+            await ExpectVisibleAsync(visitor, url + "&s=" + otherKey, visibleWithoutLink);
         }
     }
 
@@ -227,40 +334,48 @@ public class PhotosTests(CoinPortalFactory factory)
     }
 
     [Fact]
-    public async Task OtherUsersCoinOrCollection_CannotReceiveImages()
+    public async Task OtherUsersCoinOrCollection_CannotReceiveOrLoseImages()
     {
         var alice = await factory.SignUpAsync();
         var bob = await factory.SignUpAsync();
         var collection = await alice.FirstCollectionAsync();
         var coin = await alice.CreateCoinAsync(collection.Id);
+        var existing = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
+        var existingCover = await alice.UploadCoverAsync(collection.Id);
 
         using var photo = await bob.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", Photo);
         using var cover = await bob.Client.PutFileAsync($"/api/collections/{collection.Id}/cover",
             TestImages.Png(640, 360));
+        using var deletePhoto = await bob.Client.DeleteAsync($"/api/coins/{coin.Id}/photos/Common");
+        using var deleteCover = await bob.Client.DeleteAsync($"/api/collections/{collection.Id}/cover");
 
         await photo.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
         await cover.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await deletePhoto.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await deleteCover.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        Assert.NotEmpty(StoredFiles(alice, existing.Id));
+        Assert.NotEmpty(StoredFiles(alice, existingCover));
     }
 
-    private static async Task<CoinPhotoResponse> UploadAsync(TestUser user, int coinId, CoinSide side)
+    [Fact]
+    public async Task Countries_AreListedForEveryone_ByCode()
     {
-        using var response = await user.Client.PutFileAsync($"/api/coins/{coinId}/photos/{side}", Photo);
-        var coin = await response.ReadJsonAsync<CoinResponse>();
-        return coin.Photos.Single(p => p.Side == side);
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        var countries = await visitor.GetJsonAsync<List<CountryResponse>>("/api/countries");
+
+        Assert.Contains(countries, c => c.Code == "DE");
+        Assert.Equal(countries.Select(c => c.Code).Order(StringComparer.Ordinal), countries.Select(c => c.Code));
     }
 
-    private static async Task<CollectionCoverImageResponse> UploadCoverAsync(TestUser user, int collectionId)
+    private static async Task<string?> ProblemTitleAsync(HttpResponseMessage response)
     {
-        using var response = await user.Client.PutFileAsync($"/api/collections/{collectionId}/cover",
-            TestImages.Png(640, 360));
-        return await response.ReadJsonAsync<CollectionCoverImageResponse>();
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return json.RootElement.GetProperty("title").GetString();
     }
 
-    private static async Task ExpectVisibleAsync(ApiClient client, string url, bool visible)
-    {
-        using var response = await client.GetAsync(url);
-        await response.ShouldHaveStatusAsync(visible ? HttpStatusCode.OK : HttpStatusCode.NotFound);
-    }
+    private static Task ExpectVisibleAsync(ApiClient client, string url, bool visible) =>
+        client.ExpectStatusAsync(url, visible ? HttpStatusCode.OK : HttpStatusCode.NotFound);
 
     // Storage layout: {root}/{ownerId}/{imageId:N}/{file}.webp
     private string[] StoredFiles(TestUser user, Guid imageId)
