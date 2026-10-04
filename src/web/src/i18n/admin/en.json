@@ -25,7 +25,18 @@
     "content": "Content",
     "coins": "Coins",
     "photos": "Photos",
-    "storage": "Storage"
+    "storage": "Storage",
+    "storageHint": "per database, as the quota counts",
+    "disk": "Disk",
+    "lastCheck": "Last check: {{time}}",
+    "notCheckedYet": "Not checked yet (a minute after startup, then daily)",
+    "sweepSkipped": "The last check removed nothing: most images on disk have no database record. This points to a wrong database or photo folder setting; see the logs.",
+    "diskBytes": "On disk",
+    "diskBytesHint": "actual size of the files",
+    "removedFiles": "Cleaned up",
+    "removedFilesHint": "folders without a record, last check",
+    "missingFiles": "Missing files",
+    "missingFilesHint": "record without a file"
   },
   "status": {
     "Active": "Active",

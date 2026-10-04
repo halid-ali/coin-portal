@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 
 namespace CoinPortal.Api.Contracts.Admin;
 
@@ -12,7 +13,8 @@ namespace CoinPortal.Api.Contracts.Admin;
 /// <param name="NewUsersLast30Days">Registered within the last 30 days.</param>
 /// <param name="LockedUserCount">Locked by an admin (not the temporary lockout).</param>
 /// <param name="HiddenCollectionCount">Hidden and locked by an admin.</param>
-/// <param name="StorageBytes">Stored image bytes: all sizes of all coin photos plus covers.</param>
+/// <param name="StorageBytes">Stored image bytes: all sizes of all coin photos plus covers (the database's sizes, as the quota counts).</param>
+/// <param name="DiskCheck">The last photo sweep since the app started; null before the first one.</param>
 public sealed record AdminStatsResponse(
     int UserCount,
     int ActiveUsersLast30Days,
@@ -24,7 +26,31 @@ public sealed record AdminStatsResponse(
     int HiddenCollectionCount,
     int CoinCount,
     int PhotoCount,
-    long StorageBytes);
+    long StorageBytes,
+    AdminDiskCheckResponse? DiskCheck);
+
+/// <summary>
+/// What the photo sweep (PhotoSweeper) found on disk: the real size, folders it removed because
+/// no row refers to them, and rows whose files are missing.
+/// </summary>
+/// <param name="RemovedImageCount">Image folders without a row, removed by this sweep.</param>
+/// <param name="RemovedUnfinishedCount">Unfinished uploads removed by this sweep.</param>
+/// <param name="MissingImageCount">Images with a row but no file.</param>
+/// <param name="RemovalSkipped">Most images had no row (a wrong setting?): nothing was removed.</param>
+public sealed record AdminDiskCheckResponse(
+    DateTime CheckedAtUtc,
+    int ImageCount,
+    long DiskBytes,
+    int RemovedImageCount,
+    long RemovedBytes,
+    int RemovedUnfinishedCount,
+    int MissingImageCount,
+    bool RemovalSkipped)
+{
+    public static AdminDiskCheckResponse From(PhotoSweepResult r) => new(r.CheckedAtUtc, r.ImageCount,
+        r.DiskBytes, r.RemovedImageCount, r.RemovedBytes, r.RemovedUnfinishedCount, r.MissingImageCount,
+        r.RemovalSkipped);
+}
 
 /// <summary>Active, temporarily locked out after failed sign-ins, or locked by an admin.</summary>
 public enum AdminUserStatus

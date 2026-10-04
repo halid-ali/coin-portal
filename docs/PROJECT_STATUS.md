@@ -1,7 +1,7 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.1.0` yayında**, P1'in ilk yarısı: #22, #23, #26, #24, #25; Tamamlananlar
-54–59. Sırada #27. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+54–59. P1'in ikinci yarısı: #27 bitti (Tamamlananlar 61), sırada #28. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1061,6 +1061,28 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     (high, development; Angular CLI'ın paket indirme önbelleği, `pacote` → `make-fetch-happen`). 4.2.0 →
     4.3.0 sadece lock dosyasında (aralık `^4.1.1` izin veriyor, `overrides` yok); 4.3.0 bugün çıktı ve uyarının
     aralığı (≤ 4.2.0) dışında. `ng build`, `ng test` temiz. Kalan tek uyarı `piscina` (Açık konular 15).
+61. **Fotoğraf depolamanın sağlamlığı** (`fix/photo-storage-robustness`, #27, 2026-10-04):
+    - **Yetim süpürme** (`Photos/PhotoSweeper` + `PhotoSweepService`): açılıştan 1 dk sonra ve 24 saatte bir
+      (`PhotoStorage:SweepIntervalHours`, 0 = kapalı). 1 saatten eski `.tmp` artıklarını ve veritabanında
+      kaydı olmayan görsel klasörlerini siler (silinmiş hesapların klasörleri dahil, her biri Warning), kaydı
+      olup dosyası olmayanları sayar. Güvenlik: görsellerin yarısından fazlası (ve 10'dan çoğu) kayıtsızsa
+      hiçbir şey silmez, Error loglar (yanlış bağlantı dizesi ya da klasör). MonsterASP boşta kalan uygulamayı
+      durdurabildiği için açılıştaki koşu da önemli.
+    - **Yükleme hataları:** coin fotoğrafında kayıt hangi hatayla düşerse düşsün yeni dosya silinir; 409
+      `conflict` sadece concurrency hatası ve unique ihlalinde, diğer veritabanı hataları 500.
+    - **Kapak yarışı:** kapak yükleme ve silme koşullu `ExecuteUpdate` ("kapak hâlâ okuduğum kapaksa");
+      kaybeden istek dosyasını silip 409 `conflict` döner (client zaten çeviriyor). Test eski kodda 3/3 düştü.
+    - Lossless JPEG gibi çözülemeyen türler (`NotSupportedException`) 500 yerine 400 `invalid_image`
+      (`TestImages.LosslessJpeg`, elle yazılmış SOF3 başlığı).
+    - Eksik kapak dosyası artık Warning logu; dışa aktarma eksik dosyaları loglar ve `account.json`'da
+      `missingImages` listeler. `v`'siz görsel isteği `private, no-cache` (önce 1 yıl `immutable`).
+    - Kotanın yaklaşık olduğu CLAUDE.md'ye yazıldı (aynı anda yüklemeler birkaç görsel aşabilir; bilinçli).
+    - **Admin paneli** (kullanıcı isteği, issue'da isteğe bağlıydı): Genel bakış'ta yeni "Disk" grubu: diskteki
+      gerçek boyut, son temizlikte silinen, eksik dosya, "Son kontrol: … önce"; temizlik güvenlik nedeniyle
+      durduysa uyarı. Kaynak son süpürmenin sonucu (bellekte, API yeniden başlayınca ilk koşuya kadar "Henüz
+      kontrol edilmedi"); `GET api/admin/stats` → `diskCheck`. "Depolama" kutusuna "veritabanına göre" ipucu.
+    - Testler: API 158 (+8: `PhotoSweepTests`, paralel yükleme, `v`'siz önbellek, lossless JPEG, dışa
+      aktarmada eksik dosya, admin `diskCheck`), client 147. Panel tarayıcıda elle denenmedi.
 
 ## Yol haritası
 
@@ -1161,7 +1183,7 @@ Bittiğinde satırın kutusu işaretlenir. Etiketler `P0`–`P2` + konu; P0'lar 
   - [x] [#24](https://github.com/halid-ali/coin-portal/issues/24) M `feat/form-accessibility`: form hatalarının ekran okuyucuya bağlanması (Tamamlananlar 57).
   - [x] [#25](https://github.com/halid-ali/coin-portal/issues/25) M `fix/a11y-keyboard-contrast`: odak halkası kontrastı, odak kaybı, hesap menüsü (Tamamlananlar 58; kenarlık #35'e ayrıldı).
   - [x] [#26](https://github.com/halid-ali/coin-portal/issues/26) M `fix/client-auth-and-errors`: birbirini ezen ayar güncellemeleri, kodlu hataların eşlenmesi (Tamamlananlar 56).
-  - [ ] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları.
+  - [x] [#27](https://github.com/halid-ali/coin-portal/issues/27) M `fix/photo-storage-robustness`: yetim fotoğraf klasörleri, yükleme hata yolları (Tamamlananlar 61; ek: admin panelinde disk istatistikleri).
   - [ ] [#28](https://github.com/halid-ali/coin-portal/issues/28) M `fix/i18n-wording`: arayüze sızan İngilizce sunucu mesajları, terim düzeltmeleri.
   - [ ] [#29](https://github.com/halid-ali/coin-portal/issues/29) L `chore/api-test-gaps`: API test boşlukları (cookie bayrakları, antiforgery, fotoğraf kodları).
   - [ ] [#30](https://github.com/halid-ali/coin-portal/issues/30) L `chore/client-unit-tests`: client birim testleri (Angular 22'den önce).
@@ -1179,14 +1201,14 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 Yeni sohbette kullanıcıyla seçilecek. **`v1.1.0` yayında** (2026-10-04, Tamamlananlar 59); P1'in kalan yarısı
-sırada (#27 ile devam). Adaylar:
+sırada (#27 bitti, #28 ile devam). Adaylar:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
     "Required reviewers"); karar kullanıcının.
 - **P1 işleri** ("Aksiyon planı"; sıra kullanıcıyla 2026-10-04'te kararlaştırıldı): ~~#22~~ → ~~#23~~ →
-  ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → #27 fotoğraf depolama →
+  ~~#26~~ → ~~#24~~ → ~~#25~~ → ~~**`v1.1.0`**~~ (2026-10-04) → ~~#27 fotoğraf depolama~~ →
   #28 çeviriler → #29 API testleri → #30 client testleri → **`v1.2.0`**.
 - **8b** e2e (#34). **Açık konular 15** (`piscina`): 2026-10-02'de Angular 21'in son sürümü (21.2.24) hâlâ
   5.2.0 getiriyor; çözüm Angular 22 yükseltmesi (Node ön koşuluyla, aşağıda 5).
@@ -1436,7 +1458,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
   full en fazla 1600x1600.
 - **Sunum API üzerinden:** `GET api/coins/{id}/photos/{side}/{size}`, coin ile aynı erişim kuralı
   (sahibi, herkese açık koleksiyonlarda herkes, linkle paylaşılanlarda `s=` anahtarıyla; `CollectionAccess`). URL'de sürüm anahtarı (`?v=`),
-  `Cache-Control: private, max-age=31536000, immutable`. `wwwroot` altından statik sunum yok.
+  `Cache-Control: private, max-age=31536000, immutable` (`v`'siz istek `private, no-cache`). `wwwroot`
+  altından statik sunum yok.
 - **Yükleme akışı:**
   - Client ngx-image-cropper ile 1:1 kırpar, en fazla 1600x1600'e küçültüp multipart gönderir.
   - Server client'a güvenmez: görseli ImageSharp ile açarak doğrular (uzantı/content-type'a bakmaz),
@@ -1445,10 +1468,12 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
   - Dosyalar önce `.tmp` altına yazılır ve tek bir yeniden adlandırmayla yerine taşınır; sonra veritabanı
     satırı kaydedilir, kayıt başarısızsa yeni klasör silinir. Değiştirilen fotoğrafın eski dosyaları satır
     kaydedildikten sonra silinir. Fotoğraf veya coin silinince dosyalar satırdan sonra silinir; silinemeyen
-    klasör Error logu (Tamamlananlar 38, yetim süpürmesi #27). Antiforgery multipart isteklerde de geçerli.
+    klasör Error logu (Tamamlananlar 38); geride kalanları günlük yetim süpürmesi siler (Tamamlananlar 61).
+    Antiforgery multipart isteklerde de geçerli.
 - **Sınırlar (yapılandırılabilir):** yükleme başına 10 MB (2026-10-01'den beri kırpılmış JPEG'e
   uygulanır, seçilen dosyaya değil; Tamamlananlar 29), kaynak en fazla 4000x4000 piksel ve aynı anda iki
-  görsel (2026-10-02, Tamamlananlar 42; önce ~6000x6000), **kullanıcı başına 300 MB**. Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir.
+  görsel (2026-10-02, Tamamlananlar 42; önce ~6000x6000), **kullanıcı başına 300 MB**. Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir
+  (yaklaşık: aynı anda yüklemeler birkaç görsel aşabilir).
   (Üç boyut birlikte ~250-350 KB, yani kota ~1000 fotoğraf.)
 - **Görsel işleme kütüphanesi:** SixLabors ImageSharp 4.1.2 (tamamen managed, native bağımlılığı yok).
   Lisansı Six Labors Split License: yıllık geliri 1 milyon doların altındaki kullanıcılar için Apache 2.0.

@@ -3,6 +3,7 @@ using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Tests;
 
@@ -39,6 +40,62 @@ public class PhotosTests(CoinPortalFactory factory)
 
         await thumb.ShouldHaveStatusAsync(HttpStatusCode.OK);
         Assert.Contains("immutable", thumb.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task ImagesWithoutVersion_AreRevalidated()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        await UploadAsync(alice, coin.Id, CoinSide.National);
+        await UploadCoverAsync(alice, collection.Id);
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        // The same address serves the next image too, so it must not be kept for good
+        using var photo = await visitor.GetAsync($"/api/coins/{coin.Id}/photos/National/Thumb");
+        using var cover = await visitor.GetAsync($"/api/collections/{collection.Id}/cover");
+
+        foreach (var response in new[] { photo, cover })
+        {
+            await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            Assert.True(response.Headers.CacheControl?.NoCache);
+            Assert.DoesNotContain("immutable", response.Headers.CacheControl?.ToString());
+        }
+    }
+
+    [Fact]
+    public async Task ParallelUploads_LeaveNoFileWithoutARow()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        var coin = await alice.CreateCoinAsync(collection.Id);
+
+        // Two tabs saving at once: each upload either wins or reports a conflict, and every file
+        // on disk belongs to the image the database holds
+        var responses = await Task.WhenAll(Enumerable.Range(0, 4).SelectMany(_ => new[]
+        {
+            alice.Client.PutFileAsync($"/api/collections/{collection.Id}/cover", TestImages.Png(640, 360)),
+            alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", Photo),
+        }));
+
+        foreach (var response in responses)
+        {
+            Assert.Contains(response.StatusCode, new[] { HttpStatusCode.OK, HttpStatusCode.Conflict });
+            if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                Assert.Equal("conflict", await response.ReadProblemCodeAsync(HttpStatusCode.Conflict));
+            }
+            response.Dispose();
+        }
+        var stored = await factory.WithDbAsync(async db => new[]
+        {
+            (await db.Collections.SingleAsync(c => c.Id == collection.Id)).CoverImageId!.Value,
+            (await db.CoinPhotos.SingleAsync(p => p.CoinId == coin.Id)).Id,
+        });
+        var folders = Directory.GetDirectories(Path.Combine(factory.PhotoRoot, alice.User.Id))
+            .Select(f => Guid.ParseExact(Path.GetFileName(f), "N"));
+        Assert.Equal(stored.Order(), folders.Order());
     }
 
     [Fact]
@@ -124,14 +181,21 @@ public class PhotosTests(CoinPortalFactory factory)
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Upload_InvalidImage_IsRejected(bool tooSmall)
+    [InlineData("notAnImage")]
+    [InlineData("tooSmall")]
+    [InlineData("losslessJpeg")]
+    public async Task Upload_InvalidImage_IsRejected(string kind)
     {
         var alice = await factory.SignUpAsync();
         var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
-        // Below 150 px on one side, or no image at all (whatever the file name says)
-        var bytes = tooSmall ? TestImages.Png(149, 400) : TestImages.NotAnImage();
+        // No image at all (whatever the file name says), below 150 px on one side, or a JPEG kind
+        // the image library does not decode
+        var bytes = kind switch
+        {
+            "notAnImage" => TestImages.NotAnImage(),
+            "tooSmall" => TestImages.Png(149, 400),
+            _ => TestImages.LosslessJpeg(),
+        };
 
         using var response = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", bytes);
 

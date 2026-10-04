@@ -37,4 +37,11 @@ public class PhotoOptions
     /// <summary>Lossy WebP quality, 0-100.</summary>
     [Range(1, 100)]
     public int WebpQuality { get; set; } = 80;
+
+    /// <summary>
+    /// Hours between two orphan sweeps (PhotoSweeper); the first runs a minute after start. 0 turns
+    /// the background sweep off (tests run it directly).
+    /// </summary>
+    [Range(0, 168)]
+    public int SweepIntervalHours { get; set; } = 24;
 }

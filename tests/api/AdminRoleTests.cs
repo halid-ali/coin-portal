@@ -3,7 +3,9 @@ using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Tests.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoinPortal.Api.Tests;
 
@@ -81,6 +83,20 @@ public class AdminRoleTests(CoinPortalFactory factory)
         Assert.True(stats.CoinCount >= 1);
         Assert.True(stats.PhotoCount >= 1);
         Assert.True(stats.StorageBytes > 0);
+    }
+
+    [Fact]
+    public async Task Stats_ShowTheLastPhotoSweep()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var sweep = await factory.Services.GetRequiredService<PhotoSweeper>().SweepAsync(CancellationToken.None);
+
+        var stats = await admin.Client.GetJsonAsync<AdminStatsResponse>("/api/admin/stats");
+
+        // PhotoSweepTests may have run another sweep since
+        Assert.NotNull(stats.DiskCheck);
+        Assert.True(stats.DiskCheck.CheckedAtUtc >= sweep.CheckedAtUtc);
+        Assert.False(stats.DiskCheck.RemovalSkipped);
     }
 
     private static async Task<IReadOnlyList<string>> RolesAsync(TestUser user) =>

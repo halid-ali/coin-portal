@@ -128,6 +128,9 @@ builder.Services.AddOptions<PhotoOptions>()
 builder.Services.AddSingleton<IPhotoStorage, FileSystemPhotoStorage>();
 builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
 builder.Services.AddScoped<PhotoQuota>();
+// Removes image folders no row refers to (PhotoStorage:SweepIntervalHours)
+builder.Services.AddSingleton<PhotoSweeper>();
+builder.Services.AddHostedService<PhotoSweepService>();
 
 // Account export (ZIP) and deletion, for the user (Settings) and admins
 builder.Services.AddScoped<AccountExport>();

@@ -1,9 +1,11 @@
 using CoinPortal.Api.Photos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Controllers;
 
-/// <summary>Shared steps of the image upload endpoints (coin photos, collection covers).</summary>
+/// <summary>Shared steps of the image endpoints (coin photos, collection covers).</summary>
 public static class ImageUploadExtensions
 {
     // Hard transport limit for [RequestSizeLimit]; PhotoOptions.MaxUploadBytes is checked in code
@@ -35,4 +37,28 @@ public static class ImageUploadExtensions
     public static ObjectResult QuotaExceeded(this ControllerBase controller, long limitBytes) =>
         controller.CodedProblem("quota_exceeded",
             $"Photo storage limit of {limitBytes / (1024.0 * 1024):0.##} MB reached.");
+
+    /// <summary>
+    /// Cache-Control of a served image. With the version (v, the image id) the URL changes with
+    /// every upload, so the browser may keep it for good; without it the same URL serves the next
+    /// image too, so the browser revalidates (the ETag makes that a 304).
+    /// </summary>
+    public static string ImageCacheControl(Guid? version) =>
+        version is null ? "private, no-cache" : "private, max-age=31536000, immutable";
+
+    /// <summary>
+    /// 409 "conflict": another request changed the same image at the same time (the client asks
+    /// the user to try again).
+    /// </summary>
+    public static ObjectResult ChangedAtTheSameTime(this ControllerBase controller) =>
+        controller.CodedProblem("conflict", "The image was changed at the same time. Try again.",
+            StatusCodes.Status409Conflict);
+
+    /// <summary>
+    /// True if a save failed because another request got there first: the replaced row was gone
+    /// already, or the same side was added twice (unique index). Anything else (the database is
+    /// unreachable, a timeout) is a real error, not a conflict.
+    /// </summary>
+    public static bool IsConcurrentChange(DbUpdateException e) =>
+        e is DbUpdateConcurrencyException || e.InnerException is SqlException { Number: 2601 or 2627 };
 }

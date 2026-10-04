@@ -1,13 +1,17 @@
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Controllers.Admin;
 
-/// <summary>Site-wide numbers for the panel's overview. Counts only, no content.</summary>
+/// <summary>
+/// Site-wide numbers for the panel's overview. Counts only, no content. The disk figures come from
+/// the last photo sweep (it walks the folder), not from this request.
+/// </summary>
 [Route("api/admin/stats")]
-public class AdminStatsController(AppDbContext db) : AdminControllerBase
+public class AdminStatsController(AppDbContext db, PhotoSweeper photoSweeper) : AdminControllerBase
 {
     [HttpGet]
     public async Task<AdminStatsResponse> Get(CancellationToken ct)
@@ -31,6 +35,7 @@ public class AdminStatsController(AppDbContext db) : AdminControllerBase
             CoinCount: await db.Coins.CountAsync(ct),
             PhotoCount: await db.CoinPhotos.CountAsync(ct),
             StorageBytes: await db.CoinPhotos.SumAsync(p => p.SizeBytes, ct)
-                + await db.Collections.SumAsync(c => c.CoverSizeBytes, ct));
+                + await db.Collections.SumAsync(c => c.CoverSizeBytes, ct),
+            DiskCheck: photoSweeper.LastResult is { } sweep ? AdminDiskCheckResponse.From(sweep) : null);
     }
 }

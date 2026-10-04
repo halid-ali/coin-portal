@@ -27,7 +27,8 @@ public class CollectionCoversController(
     IImageProcessor imageProcessor,
     IPhotoStorage photoStorage,
     PhotoQuota photoQuota,
-    IOptions<PhotoOptions> photoOptions) : ControllerBase
+    IOptions<PhotoOptions> photoOptions,
+    ILogger<CollectionCoversController> logger) : ControllerBase
 {
     private string CurrentUserId => userManager.GetUserId(User)!;
 
@@ -38,6 +39,7 @@ public class CollectionCoversController(
     [ProducesResponseType<CollectionCoverImageResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CollectionCoverImageResponse>> Upload(
         int collectionId, IFormFile? file, CancellationToken ct)
     {
@@ -77,18 +79,23 @@ public class CollectionCoversController(
         var coverId = Guid.NewGuid();
         await photoStorage.SaveAsync(collection.OwnerId, coverId,
             new Dictionary<string, byte[]> { [CoverImage.FileName] = cover }, ct);
+        int updated;
         try
         {
-            collection.CoverImageId = coverId;
-            collection.CoverSizeBytes = cover.Length;
-            collection.UpdatedAtUtc = DateTime.UtcNow;
+            // Only if the cover is still the one read above: of two uploads at the same time one
+            // wins, the other removes its file (it would be in no row) and reports a conflict.
             // Not the request token: once the file exists, finish or clean up deliberately
-            await db.SaveChangesAsync(CancellationToken.None);
+            updated = await SetCoverAsync(collection.Id, oldCoverId, coverId, cover.Length, CancellationToken.None);
         }
         catch
         {
             await photoStorage.DeleteAsync(collection.OwnerId, coverId);
             throw;
+        }
+        if (updated == 0)
+        {
+            await photoStorage.DeleteAsync(collection.OwnerId, coverId);
+            return this.ChangedAtTheSameTime();
         }
 
         if (oldCoverId is { } old)
@@ -103,6 +110,7 @@ public class CollectionCoversController(
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int collectionId, CancellationToken ct)
     {
         var collection = await FindOwnedAsync(collectionId, ct);
@@ -111,10 +119,11 @@ public class CollectionCoversController(
             return NotFound();
         }
 
-        collection.CoverImageId = null;
-        collection.CoverSizeBytes = 0;
-        collection.UpdatedAtUtc = DateTime.UtcNow;
-        await db.SaveChangesAsync(ct);
+        // Only if no upload replaced it meanwhile; that cover's file would be left in no row
+        if (await SetCoverAsync(collection.Id, coverId, null, 0, ct) == 0)
+        {
+            return this.ChangedAtTheSameTime();
+        }
         await photoStorage.DeleteAsync(collection.OwnerId, coverId);
 
         return NoContent();
@@ -122,7 +131,8 @@ public class CollectionCoversController(
 
     /// <summary>
     /// Serves the cover as WebP. <paramref name="v"/> is the cover id from the collection
-    /// response; an outdated one returns 404, so an immutable cache entry is never stale.
+    /// response; an outdated one returns 404, so an immutable cache entry is never stale (without
+    /// it the current cover is served, but not cached for good).
     /// Same visibility rules as coin photos (owner, public, or share link secret <paramref name="s"/>).
     /// </summary>
     [HttpGet]
@@ -149,12 +159,26 @@ public class CollectionCoversController(
         var stream = photoStorage.OpenRead(cover.OwnerId, cover.CoverImageId, CoverImage.FileName);
         if (stream is null)
         {
+            logger.LogWarning("Cover file missing: {CoverImageId}", cover.CoverImageId);
             return NotFound();
         }
 
-        Response.Headers.CacheControl = "private, max-age=31536000, immutable";
+        Response.Headers.CacheControl = ImageUploadExtensions.ImageCacheControl(v);
         return File(stream, "image/webp", lastModified: null,
             entityTag: new EntityTagHeaderValue($"\"{cover.CoverImageId:N}\""));
+    }
+
+    // Conditional on the current cover (null: none); returns 0 if it changed meanwhile
+    private Task<int> SetCoverAsync(int collectionId, Guid? expected, Guid? coverId, long sizeBytes,
+        CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        return db.Collections
+            .Where(c => c.Id == collectionId && c.CoverImageId == expected)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(c => c.CoverImageId, coverId)
+                .SetProperty(c => c.CoverSizeBytes, sizeBytes)
+                .SetProperty(c => c.UpdatedAtUtc, now), ct);
     }
 
     private Task<Collection?> FindOwnedAsync(int id, CancellationToken ct)

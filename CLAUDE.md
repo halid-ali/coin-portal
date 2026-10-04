@@ -148,8 +148,8 @@ API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-da
 ```
 src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+ Admin/), Contracts/{Admin,
                         Auth,Coins,Collections,Countries,Common,Public,Settings}/, Data/ (entities,
-                        AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage + image
-                        processing), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
+                        AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage, image
+                        processing, orphan sweep), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
                         Validation/, Localization/, Accounts/ (hesap silme, veri dışa aktarma),
                         Hosting/ (Serilog, DataProtection, rate limiter,
                         client'ın wwwroot'tan sunulması), App_Data/{photos,logs,keys} (gitignored)
@@ -244,11 +244,25 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
   dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
   (`ProcessCoverAsync`, 16:9) aynı sözleşmede. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır
-  (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte.
-- Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar.
+  (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte; **yaklaşık**:
+  kontrolle kayıt arasında kilit yok, aynı anda yapılan yüklemeler kotayı birkaç görsel (her biri en fazla
+  ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
+- Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar
+  (`v`'siz istek `private, no-cache`, `ImageUploadExtensions.ImageCacheControl`).
+  Yüklemede önce dosya yazılır, sonra satır; kayıt **hangi sebeple olursa olsun** başarısızsa yeni dosya
+  silinir. 409 `conflict` sadece gerçek eşzamanlılıkta (`IsConcurrentChange`: concurrency hatası ya da
+  unique ihlali; kapakta koşullu `ExecuteUpdate` 0 satır), diğer veritabanı hataları 500.
   Coin veya fotoğraf silinince dosyalar DB kaydından sonra silinir. Dosya silme hata fırlatmaz: kısa
   aralıklarla yeniden dener, kalan klasörü Error seviyesinde (yoluyla) loglar; okuma silmeyi engellemez
   (`FileShare.Delete`).
+- **Yetim süpürme** (`Photos/PhotoSweeper`, `PhotoSweepService`): açılıştan bir dakika sonra ve
+  `PhotoStorage:SweepIntervalHours`'te bir (24; 0 = kapalı; testlerde kapalı, testler doğrudan çağırır)
+  `.tmp` artıklarını ve veritabanında kaydı olmayan, `MinAge`'den (1 saat; yükleme dosyayı satırdan önce
+  yazar) eski görsel klasörlerini siler, her birini Warning ile loglar; kaydı olup dosyası olmayanları
+  sayar (silmez). Görsellerin yarısından fazlası (ve 10'dan çoğu) kayıtsızsa hiçbir şey silmez, Error
+  loglar (yanlış veritabanı ya da klasör ayarı). Son sonuç bellekte, admin paneli Genel bakış > Disk'te.
+  **Yeni bir görsel türü eklenirse süpürmenin bilinen görseller sorgusuna da girer**, yoksa dosyaları
+  bir saat sonra silinir.
 - **Kim neyi görebilir tek yerde:** `Querying/CollectionAccess` — `CanView` (sahip, herkese açık, ya da
   Unlisted + doğru `s=` anahtarı; sahibi admin kilitliyse sadece sahip), `IsPublic` ve `IsShared`
   (PublicController). Fotoğraf ve kapak GET'leri `CanView` kullanır (`[AllowAnonymous]`).
@@ -293,6 +307,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   admin'in silmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)
   eklenince ikisi de güncellenir:** kullanıcı satırından cascade ile silinmeli (olmuyorsa
   `AccountDeletion` transaction'ında elle) ve dışa aktarmada yer almalı; testleri `AccountTests`'te.
+  Yeni bir görsel dosyası ayrıca `PhotoSweeper`'a girer. Dışa aktarmada dosyası bulunamayan görsel
+  atlanır, loglanır ve `account.json` `missingImages`'te listelenir.
   Denetim kaydı gibi FK'sız ad anlık görüntüleri silmede boşaltılır.
 - Site klasörü dışında tutulacak yollar ayardan: `PhotoStorage:RootPath`, `Logs:Path`,
   `DataProtection:KeysPath` (anahtarlar Windows'ta DPAPI ile şifreli, `DataProtection:Dpapi`); hepsinin

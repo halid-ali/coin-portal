@@ -43,6 +43,7 @@ public class AccountTests(CoinPortalFactory factory)
         Assert.Equal((alice.UserName, alice.User.Email, "Test", "User"),
             (account.UserName, account.Email, account.FirstName, account.LastName));
         Assert.Equal(new DateOnly(1990, 1, 1), account.BirthDate);
+        Assert.Empty(account.MissingImages);
 
         var collections = Read<List<CollectionExport>>(zip, "collections.json");
         var exported = Assert.Single(collections, c => c.Id == collection.Id);
@@ -65,6 +66,24 @@ public class AccountTests(CoinPortalFactory factory)
         Assert.DoesNotContain(@"\u00", everything);
         Assert.DoesNotContain(bob.UserName, everything);
         Assert.Contains("RIFF", System.Text.Encoding.ASCII.GetString(ReadBytes(zip, $"photos/{coin.Id}-national.webp")[..4]));
+    }
+
+    [Fact]
+    public async Task Export_ListsImagesWhoseFileIsMissing()
+    {
+        var alice = await factory.SignUpAsync();
+        var (collection, coin) = await FillAsync(alice);
+        var photoId = (await alice.Client.GetJsonAsync<Contracts.Coins.CoinResponse>($"/api/coins/{coin.Id}")).Photos[0].Id;
+        // Disk and database out of step (a restored backup, a folder removed by hand)
+        Directory.Delete(Path.Combine(factory.PhotoRoot, alice.User.Id, photoId.ToString("N")), recursive: true);
+
+        using var response = await alice.Client.GetAsync("/api/settings/export");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        using var zip = new ZipArchive(await response.Content.ReadAsStreamAsync());
+        Assert.Equal([$"photos/{coin.Id}-national.webp"], Read<AccountExportFile>(zip, "account.json").MissingImages);
+        Assert.Null(zip.GetEntry($"photos/{coin.Id}-national.webp"));
+        Assert.NotNull(zip.GetEntry($"covers/{collection.Id}.webp"));
     }
 
     [Fact]
