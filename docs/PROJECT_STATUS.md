@@ -1,17 +1,17 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (**`v1.2.0` yayında**, P1 bitti: ilk yarısı #22–#26 `v1.1.0`'da (Tamamlananlar
-54–59), ikinci yarısı #27–#30 `v1.2.0`'da (Tamamlananlar 61–65). **P2 bitti** (#31–#34, Tamamlananlar
-66–69; yayınlanmadı). Sırada yeni iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+Son güncelleme: 2026-10-04 (**`v1.3.0` yayında**: P2 (#31–#34, Tamamlananlar 66–69) ve Angular 21.2.25
+(Tamamlananlar 70), yayın Tamamlananlar 71. P1 `v1.1.0` ve `v1.2.0`'da (Tamamlananlar 54–65). Sırada yeni
+iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket ve Release `v1.2.0` (2026-10-04, "latest"), canlıda `v1.2.0`.
+- Durum: `main` güncel ve temiz; son etiket ve Release `v1.3.0` (2026-10-04, "latest"), canlıda `v1.3.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.2.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.3.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -1262,6 +1262,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     `ng test` (261) temiz; PR'da CI'ın üç işi de geçmişti. `npm audit`'teki tek konu yine `piscina`
     (Açık konular 15). Tuzak: `ng serve` çalışırken `npm ci` `node_modules`'u yarım bıraktı (CLAUDE.md'ye
     eklendi).
+71. **`v1.3.0`** (`chore/release-v1.3.0`, 2026-10-04): P2 (Tamamlananlar 66–69) ve Angular 21.2.25
+    (Tamamlananlar 70). Migration yok, sunucu hazırlığı yok. Pipeline: Checks artık E2E işiyle (API, Web, E2E
+    paralel; geçti), Package, kullanıcı onayı, Deploy; canlı `/api/health` `1.3.0+cc0326c`, `/login` 200,
+    bilinmeyen adres 200 (SPA, 404 sayfası), `coinportal.runasp.net` 308. Kullanıcı telefonda 404 sayfasını ve
+    tema renkli onay kutusunu doğruladı. Release notları `.notes/release-v1.3.0.md`, kullanıcı onayıyla Claude
+    `.notes/scripts/create-release.js` ile yayınladı ("latest").
 
 ## Yol haritası
 
@@ -1381,14 +1387,13 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
-(Tamamlananlar 69). **P2 bitti, henüz yayınlanmadı:** sıradaki ilk iş yeni bir sürüm (`v1.3.0` önerisi
-git-cliff'ten; #31–#34 + "Yayın" akışı) ya da yeni bir özellik, kullanıcıyla. **`v1.2.0` yayında** (2026-10-04, Tamamlananlar 65); P1
-bitti (#22–#30). Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
+(Tamamlananlar 69). **P2 bitti ve `v1.3.0` ile yayında** (2026-10-04, Tamamlananlar 71); P1 `v1.1.0` ve
+`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
-    "Required reviewers"); karar kullanıcının. (`v1.1.0` ve `v1.2.0` sorunsuz.)
+    "Required reviewers"); karar kullanıcının. (`v1.1.0`, `v1.2.0` ve `v1.3.0` sorunsuz.)
   - ~~Yetim süpürmenin canlı sonucu~~ (kullanıcı 2026-10-04'te baktı, çalışıyor).
   - Esc düzeltmesi (Tamamlananlar 64) canlıda bir kez denenir (kırpma penceresi). 2026-10-04: denenemedi,
     şirket bilgisayarından site açılmıyor (Defender), telefonda Esc yok; masaüstü bir tarayıcıda bakılır.
