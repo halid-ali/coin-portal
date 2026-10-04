@@ -808,17 +808,25 @@
     />
   }
 
-  @if (editing() && collection(); as c) {
-    <app-collection-form-dialog [collection]="c" (closed)="onEdited($event)" />
-  }
+  <!-- Owner-only dialogs load lazily: the form pulls in the image cropper, which the read-only
+   modes (explore, public, shared) never need. The owner prefetches them, so they open at once -->
+  @if (!readOnly()) {
+    @defer (when editing(); prefetch on idle) {
+      @if (editing() && collection(); as c) {
+        <app-collection-form-dialog [collection]="c" (closed)="onEdited($event)" />
+      }
+    }
 
-  @if (deleteTargets(); as all) {
-    @if (collection(); as c) {
-      <app-collection-delete-dialog
-        [collection]="freshOf(all, c)"
-        [collections]="all"
-        (closed)="onDeleted($event)"
-      />
+    @defer (when deleteTargets(); prefetch on idle) {
+      @if (deleteTargets(); as all) {
+        @if (collection(); as c) {
+          <app-collection-delete-dialog
+            [collection]="freshOf(all, c)"
+            [collections]="all"
+            (closed)="onDeleted($event)"
+          />
+        }
+      }
     }
   }
 </section>
