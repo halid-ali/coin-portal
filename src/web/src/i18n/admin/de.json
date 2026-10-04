@@ -25,7 +25,18 @@
     "content": "Inhalte",
     "coins": "Münzen",
     "photos": "Fotos",
-    "storage": "Speicher"
+    "storage": "Speicher",
+    "storageHint": "laut Datenbank, wie das Kontingent zählt",
+    "disk": "Festplatte",
+    "lastCheck": "Letzte Prüfung: {{time}}",
+    "notCheckedYet": "Noch nicht geprüft (eine Minute nach dem Start, dann täglich)",
+    "sweepSkipped": "Die letzte Prüfung hat nichts gelöscht: Für die meisten Bilder auf der Festplatte gibt es keinen Datensatz. Das deutet auf eine falsche Einstellung für Datenbank oder Fotoordner hin; siehe Logs.",
+    "diskBytes": "Auf der Festplatte",
+    "diskBytesHint": "tatsächliche Größe der Dateien",
+    "removedFiles": "Bereinigt",
+    "removedFilesHint": "Ordner ohne Datensatz, letzte Prüfung",
+    "missingFiles": "Fehlende Dateien",
+    "missingFilesHint": "Datensatz ohne Datei"
   },
   "status": {
     "Active": "Aktiv",

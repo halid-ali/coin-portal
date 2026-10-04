@@ -25,7 +25,18 @@
     "content": "İçerik",
     "coins": "Coin",
     "photos": "Fotoğraf",
-    "storage": "Depolama"
+    "storage": "Depolama",
+    "storageHint": "veritabanına göre, kotanın saydığı",
+    "disk": "Disk",
+    "lastCheck": "Son kontrol: {{time}}",
+    "notCheckedYet": "Henüz kontrol edilmedi (açılıştan bir dakika sonra, sonra günde bir)",
+    "sweepSkipped": "Son kontrol hiçbir şey silmedi: diskteki görsellerin çoğunun veritabanında kaydı yok. Bu, yanlış bir veritabanı ya da fotoğraf klasörü ayarına işaret eder; loglara bak.",
+    "diskBytes": "Diskte",
+    "diskBytesHint": "dosyaların gerçek boyutu",
+    "removedFiles": "Temizlenen",
+    "removedFilesHint": "kaydı olmayan klasörler, son kontrolde",
+    "missingFiles": "Eksik dosya",
+    "missingFilesHint": "kaydı var, dosyası yok"
   },
   "status": {
     "Active": "Aktif",

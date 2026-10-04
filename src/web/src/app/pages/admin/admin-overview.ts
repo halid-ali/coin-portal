@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { formatBytes } from '../../core/admin/admin-format';
+import { formatBytes, formatRelative } from '../../core/admin/admin-format';
 import { AdminStats } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -20,7 +20,9 @@ type TileIcon =
   | 'hidden'
   | 'coins'
   | 'photo'
-  | 'storage';
+  | 'storage'
+  | 'cleanup'
+  | 'missing';
 
 /**
  * Hue of the icon circle (styles.css stat-icon-<color>): fixed per meaning, not the accent color,
@@ -40,10 +42,22 @@ interface Tile {
   link?: { path: string; queryParams: Record<string, string> };
 }
 
+interface TileGroup {
+  titleKey: string;
+  /** Small print next to the title, as a translation key and its parameters. */
+  note?: (stats: AdminStats, lang: string) => { key: string; params?: Record<string, string> };
+  /** A warning under the tiles (translation key), or null. */
+  alert?: (stats: AdminStats) => string | null;
+  tiles: readonly Tile[];
+}
+
 const number = (n: number, lang: string) => new Intl.NumberFormat(lang).format(n);
 
+/** Shown for the disk figures before the first photo sweep. */
+const NONE = '–';
+
 /** Groups of tiles; the counts come from GET api/admin/stats. */
-const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
+const GROUPS: readonly TileGroup[] = [
   {
     titleKey: 'admin.overview.users',
     tiles: [
@@ -125,9 +139,48 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
       },
       {
         labelKey: 'admin.overview.storage',
+        hintKey: 'admin.overview.storageHint',
         icon: 'storage',
         color: 'indigo',
         value: (s, l) => formatBytes(s.storageBytes, l),
+      },
+    ],
+  },
+  {
+    // Measured by the API's photo sweep (a minute after it starts, then daily), not on request
+    titleKey: 'admin.overview.disk',
+    note: (s, l) =>
+      s.diskCheck
+        ? {
+            key: 'admin.overview.lastCheck',
+            params: { time: formatRelative(s.diskCheck.checkedAtUtc, l) },
+          }
+        : { key: 'admin.overview.notCheckedYet' },
+    alert: (s) => (s.diskCheck?.removalSkipped ? 'admin.overview.sweepSkipped' : null),
+    tiles: [
+      {
+        labelKey: 'admin.overview.diskBytes',
+        hintKey: 'admin.overview.diskBytesHint',
+        icon: 'storage',
+        color: 'indigo',
+        value: (s, l) => (s.diskCheck ? formatBytes(s.diskCheck.diskBytes, l) : NONE),
+      },
+      {
+        labelKey: 'admin.overview.removedFiles',
+        hintKey: 'admin.overview.removedFilesHint',
+        icon: 'cleanup',
+        color: 'emerald',
+        value: (s, l) =>
+          s.diskCheck
+            ? number(s.diskCheck.removedImageCount + s.diskCheck.removedUnfinishedCount, l)
+            : NONE,
+      },
+      {
+        labelKey: 'admin.overview.missingFiles',
+        hintKey: 'admin.overview.missingFilesHint',
+        icon: 'missing',
+        color: 'red',
+        value: (s, l) => (s.diskCheck ? number(s.diskCheck.missingImageCount, l) : NONE),
       },
     ],
   },
@@ -135,7 +188,8 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
 
 /**
  * Admin > Overview: site-wide numbers, each tile with an icon of what it counts; the locked,
- * public, link-only and hidden tiles open the filtered lists.
+ * public, link-only and hidden tiles open the filtered lists. The disk group shows the API's last
+ * photo sweep: the real size on disk, leftovers it removed, records whose file is missing.
  */
 @Component({
   selector: 'app-admin-overview',
@@ -147,9 +201,15 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
       <div class="space-y-6">
         @for (group of groups; track group.titleKey) {
           <section>
-            <h2 class="mb-2 text-sm font-semibold text-shade-500">
-              {{ group.titleKey | transloco }}
-            </h2>
+            <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-3">
+              <h2 class="text-sm font-semibold text-shade-500">
+                {{ group.titleKey | transloco }}
+              </h2>
+              @if (group.note) {
+                @let note = group.note(s, language.current());
+                <p class="text-xs text-shade-500">{{ note.key | transloco: note.params }}</p>
+              }
+            </div>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
               @for (tile of group.tiles; track tile.labelKey) {
                 @if (tile.link; as link) {
@@ -171,6 +231,9 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
                 }
               }
             </div>
+            @if (group.alert && group.alert(s); as alertKey) {
+              <p role="alert" class="alert-error mt-3">{{ alertKey | transloco }}</p>
+            }
           </section>
         }
       </div>
@@ -248,6 +311,15 @@ const GROUPS: readonly { titleKey: string; tiles: readonly Tile[] }[] = [
                 <!-- disk drive -->
                 <rect x="3" y="13" width="18" height="7" rx="2" />
                 <path d="M5.5 13 8 5h8l2.5 8M7 16.5h.01M10 16.5h.01" />
+              }
+              @case ('cleanup') {
+                <!-- trash can -->
+                <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5" />
+              }
+              @case ('missing') {
+                <!-- photo, struck through -->
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M3 3l18 18" />
               }
             }
           </svg>

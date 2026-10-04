@@ -14,7 +14,26 @@ export interface AdminStats {
   hiddenCollectionCount: number;
   coinCount: number;
   photoCount: number;
+  /** Image bytes as the database (and the quota) counts them. */
   storageBytes: number;
+  /** The last photo sweep since the API started; null before the first one. */
+  diskCheck: AdminDiskCheck | null;
+}
+
+/**
+ * What the photo sweep found on disk: the real size, folders without a record it removed, and
+ * records whose file is missing.
+ */
+export interface AdminDiskCheck {
+  checkedAtUtc: string;
+  imageCount: number;
+  diskBytes: number;
+  removedImageCount: number;
+  removedBytes: number;
+  removedUnfinishedCount: number;
+  missingImageCount: number;
+  /** Most images had no record (a wrong setting?), so nothing was removed. */
+  removalSkipped: boolean;
 }
 
 /** Active, temporarily locked out after failed sign-ins, or locked by an admin. */
