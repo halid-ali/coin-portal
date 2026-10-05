@@ -29,36 +29,73 @@ let nextId = 0;
     '(focusout)': 'onFocusOut($event)',
   },
   template: `
-    <button
-      #trigger
-      type="button"
-      class="flex items-center gap-2 rounded-lg border border-shade-300 bg-shade-0 py-1.5 pr-2 pl-2.5 text-sm
-             text-shade-800 shadow-sm transition-colors hover:bg-shade-50 focus-visible:ring-2
-             focus-visible:ring-focus focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
-      aria-haspopup="listbox"
-      [attr.aria-expanded]="open()"
-      [attr.aria-controls]="listId"
-      [attr.aria-label]="label() ? label() + ': ' + current().name : null"
-      [disabled]="disabled()"
-      (click)="toggle($event)"
-      (keydown.arrowdown)="openWithKeyboard($event)"
-      (keydown.arrowup)="openWithKeyboard($event)"
-    >
-      <app-flag [code]="current().code" />
-      <span [attr.lang]="current().code">{{ current().name }}</span>
-      <svg
-        viewBox="0 0 24 24"
-        class="size-4 text-shade-500 transition-transform"
-        [class.rotate-180]="open()"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        aria-hidden="true"
+    @if (iconOnly()) {
+      <!-- Navbar button (like the theme button): the languages icon, the name only for screen readers -->
+      <button
+        #trigger
+        type="button"
+        class="rounded-lg p-2 text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900
+               focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none
+               disabled:cursor-wait disabled:opacity-60"
+        [class.bg-shade-100]="open()"
+        [class.text-shade-900]="open()"
+        aria-haspopup="listbox"
+        [attr.aria-expanded]="open()"
+        [attr.aria-controls]="listId"
+        [attr.aria-label]="label() + ': ' + current().name"
+        [attr.title]="label()"
+        [disabled]="disabled()"
+        (click)="toggle($event)"
+        (keydown.arrowdown)="openWithKeyboard($event)"
+        (keydown.arrowup)="openWithKeyboard($event)"
       >
-        <path d="m6 9 6 6 6-6" />
-      </svg>
-    </button>
+        <svg
+          viewBox="0 0 24 24"
+          class="size-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <!-- a character and a Latin A: "languages" -->
+          <path d="M3 5.5h11M8.5 3v2.5M5 9.5c1.5 3 4 5.5 7 7M12 5.5c-.8 4.2-3.4 8-7.5 10.5" />
+          <path d="m13 21 4-9 4 9M14.4 18h5.2" />
+        </svg>
+      </button>
+    } @else {
+      <button
+        #trigger
+        type="button"
+        class="flex items-center gap-2 rounded-lg border border-shade-300 bg-shade-0 py-1.5 pr-2 pl-2.5 text-sm
+               text-shade-800 shadow-sm transition-colors hover:bg-shade-50 focus-visible:ring-2
+               focus-visible:ring-focus focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+        aria-haspopup="listbox"
+        [attr.aria-expanded]="open()"
+        [attr.aria-controls]="listId"
+        [attr.aria-label]="label() ? label() + ': ' + current().name : null"
+        [disabled]="disabled()"
+        (click)="toggle($event)"
+        (keydown.arrowdown)="openWithKeyboard($event)"
+        (keydown.arrowup)="openWithKeyboard($event)"
+      >
+        <app-flag [code]="current().code" />
+        <span [attr.lang]="current().code">{{ current().name }}</span>
+        <svg
+          viewBox="0 0 24 24"
+          class="size-4 text-shade-500 transition-transform"
+          [class.rotate-180]="open()"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    }
 
     @if (open()) {
       <ul
@@ -120,6 +157,8 @@ export class LanguageSelect {
   /** Which edges of button and list line up; 'end' keeps the list inside at the right edge. */
   readonly align = input<'start' | 'end'>('start');
   readonly disabled = input(false);
+  /** Only the languages icon on the button (navbar on phones); the list is the same. */
+  readonly iconOnly = input(false);
   readonly valueChange = output<Language>();
 
   protected readonly languages = LANGUAGES;

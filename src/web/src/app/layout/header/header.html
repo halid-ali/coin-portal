@@ -35,6 +35,18 @@
 
     <!-- Right side: theme button (everyone, every width), then account or sign-in links -->
     <div class="ml-auto flex items-center gap-2">
+      @if (!auth.currentUser()) {
+        <!-- Phones, signed out: the languages at a glance (the footer with its selector is at the
+             end of the page there); signed in, the language is in the settings -->
+        <app-language-select
+          class="sm:hidden"
+          align="end"
+          [iconOnly]="true"
+          [value]="language.current()"
+          [label]="'nav.language' | transloco"
+          (valueChange)="chooseLanguage($event)"
+        />
+      }
       <app-theme-toggle />
 
       @if (auth.currentUser(); as user) {

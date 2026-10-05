@@ -1,8 +1,9 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-04 (**`v1.3.0` yayında**: P2 (#31–#34, Tamamlananlar 66–69) ve Angular 21.2.25
+Son güncelleme: 2026-10-05 (**`v1.3.0` yayında**: P2 (#31–#34, Tamamlananlar 66–69) ve Angular 21.2.25
 (Tamamlananlar 70), yayın Tamamlananlar 71. P1 `v1.1.0` ve `v1.2.0`'da (Tamamlananlar 54–65). Yeni logo
-`feat/logo`'da commit'lendi, merge ve yayın bekliyor (Tamamlananlar 72). Sırada yeni iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+(`feat/logo`, Tamamlananlar 72) ve yeni ana sayfa (`feat/home-page`, onun üstünde, Tamamlananlar 73)
+2026-10-05'te `main`'e alındı, push ve yayın bekliyor; kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1283,6 +1284,36 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       çizgileriyle (içi boş) € ve halka: "çok çizgi dolu". Sonuç: küçük boyda okunan sade düz logo.
     - Doğrulama: `ng build`, `ng test` (261), Prettier; headless Edge'de iki temada header/footer ve
       üretilen ikonlar kontrol edildi. Kullanıcı localhost'ta baktı.
+73. **Yeni ana sayfa** (`feat/home-page`, 2026-10-04; `feat/logo`'nun üstünde): taslaklar kullanıcıyla
+    (A4 girişsiz, U1 girişli, telefon görünümleri; lokal `.notes/designs/home/`).
+    - **Girişsiz (`HomeWelcome`):** slogan, açıklama, yan yana kayıt/giriş butonları (sığmazsa alt alta,
+      yazı kırılmaz; 4 dilde 360 px'te ölçüldü), "ücretsiz · reklam yok · verilerin senin" satırı, çizgi
+      paralı albüm çizimi (`LineCoin`, `stat-icon` renkli kutular), ikonlu üç özellik kartı, 1-2-3 adım
+      (numaralar logo renkleriyle), "Ücretsiz. Reklamsız." bandı (iki temada ters renkli: `shade-900`).
+      Ücretsiz/reklamsız vurgusu kullanıcı isteği.
+    - **Girişli (`HomeDashboard`):** karşılama + "Coin ekle", "Bu coin bende var mı?" (bütün
+      koleksiyonlarda arar, 300 ms gecikmeli, en fazla 5 sonuç + "ve N sonuç daha", yoksa "Koleksiyonunda
+      yok"), sayılar (coin, koleksiyon, ülke, hatıra), son eklenen 5 coin (telefonda yana kayan şerit), ilk 5
+      koleksiyon + "Yeni koleksiyon" (form penceresi `@defer`), herkese açık koleksiyonu varsa profil linki
+      ve kopyalama. Taslaktaki "Tümü →" linki yok (bütün coin'leri listeleyen sayfa yok).
+    - **API:** `GET api/coins/summary` (coin, ülke, hatıra sayısı; sadece kendi verisi). Arama artık
+      kelime kelime (`CoinListing.SearchTerms`, her kelime başlıkta ya da açıklamada; en fazla 6): eski
+      tek parça arama "almanya 2006"yı "2 € · Almanya · 2006"da bulmuyordu. Koleksiyon sayfası ve Keşfet de
+      bundan yararlanıyor.
+    - Metinler 4 dilde (Türkçe taslaktan; İngilizce, Almanca, Bulgarca Claude'un; kullanıcı gözden
+      geçirebilir). `home.headline` ve `home.goToCollections` kaldırıldı.
+    - **Telefonda dil butonu** (kullanıcı isteği, 2026-10-05): girişsiz ziyaretçinin header'ında tema
+      butonunun yanında "文A" ikonu; footer'daki listenin aynısını açar (`LanguageSelect` `iconOnly`).
+      Telefonda footer sayfanın sonunda kaldığı için çok dil desteği ilk ekranda görünmüyordu. Girişli
+      kullanıcıda yok (dil Ayarlar'da, hesaba kayıtlı), masaüstünde yok (footer yapışkan, hep görünür).
+    - Testler: API (kelime kelime arama, özet: sahiplik, boş hesap, girişsiz 401), client (`home.spec`,
+      `home-dashboard.spec`, header ve dil seçici), e2e `home.spec.ts` (iki hal, telefonda dil değiştirme;
+      axe). Axe albümdeki küçük yazıların kontrastını yakaladı (nötr renge çekildi). Toplam: API 225,
+      client 270, e2e 10; Prettier, `ng build` temiz;
+      kırpma kütüphanesi ana sayfa paketine statik girmiyor. Ekran görüntüleriyle iki tema, masaüstü/telefon,
+      Almanca ve Bulgarca kontrol edildi (5090'da ayrı API ile).
+    - **Saklanan taslak:** 8 euro coin'i için açık kutulu çizgi ikonlar (`.notes/designs/coin-icons/`):
+      kullanıcı beğendi, "küçük kusurlar var, başka bir zaman kullanacağız".
 
 ## Yol haritası
 
@@ -1403,7 +1434,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
 (Tamamlananlar 69). **P2 bitti ve `v1.3.0` ile yayında** (2026-10-04, Tamamlananlar 71); P1 `v1.1.0` ve
-`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo bitti (Tamamlananlar 72):
+`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti (Tamamlananlar 72–73), kullanıcı başka görsel düzenlemeler de yapacak (2026-10-04); ikisi `main`'de (2026-10-05), push ve yayın (`v1.4.0` adayı) bekliyor. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).

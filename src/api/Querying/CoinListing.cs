@@ -35,15 +35,26 @@ public static class CoinListing
         {
             coins = coins.Where(c => c.IsCommemorative == isCommemorative);
         }
-        if (!string.IsNullOrWhiteSpace(query.Search))
+        // Every word must appear in the title or the description, in any order: "almanya 2006"
+        // finds "2 € · Almanya · 2006". SQL Server's default collation is case-insensitive.
+        foreach (var term in SearchTerms(query.Search))
         {
-            // SQL Server default collation is case-insensitive
-            var term = query.Search.Trim();
             coins = coins.Where(c => c.Title.Contains(term)
                 || (c.Description != null && c.Description.Contains(term)));
         }
         return coins;
     }
+
+    /// <summary>At most this many words of a search are used (each one is a condition).</summary>
+    public const int MaxSearchTerms = 6;
+
+    /// <summary>The distinct words of a search, split on white space.</summary>
+    public static IEnumerable<string> SearchTerms(string? search) =>
+        string.IsNullOrWhiteSpace(search)
+            ? []
+            : search.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(MaxSearchTerms);
 
     /// <summary>
     /// The chosen column follows the direction; tie-breakers keep a fixed direction.

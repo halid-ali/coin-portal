@@ -99,3 +99,27 @@ describe('LanguageSelect', () => {
     expect(fixture.componentInstance.chosen).toEqual([]);
   });
 });
+
+@Component({
+  imports: [LanguageSelect],
+  template: `<app-language-select label="Dil" [iconOnly]="true" [value]="'tr'" />`,
+})
+class IconHost {}
+
+describe('LanguageSelect (icon only)', () => {
+  it('shows only the icon, names the language for screen readers and lists all languages', async () => {
+    const fixture = TestBed.createComponent(IconHost);
+    await fixture.whenStable();
+    const page = fixture.nativeElement as HTMLElement;
+    const button = page.querySelector<HTMLButtonElement>('button')!;
+
+    expect(button.textContent?.trim()).toBe('');
+    expect(button.getAttribute('aria-label')).toBe('Dil: Türkçe');
+    expect(button.getAttribute('title')).toBe('Dil');
+
+    button.click();
+    await fixture.whenStable();
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(page.querySelectorAll('[role=option]')).toHaveLength(4);
+  });
+});

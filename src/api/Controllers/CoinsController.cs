@@ -47,6 +47,18 @@ public class CoinsController(
         return await coins.ToPagedAsync(query, CoinResponse.From, ct);
     }
 
+    /// <summary>Counts over all of the user's collections, for the home page.</summary>
+    [HttpGet("summary")]
+    public async Task<CoinSummaryResponse> Summary(CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        var coins = db.Coins.Where(c => c.OwnerId == userId);
+        return new CoinSummaryResponse(
+            await coins.CountAsync(ct),
+            await coins.Select(c => c.CountryCode).Distinct().CountAsync(ct),
+            await coins.CountAsync(c => c.IsCommemorative, ct));
+    }
+
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CoinResponse>> Get(int id, CancellationToken ct)

@@ -100,12 +100,107 @@
   },
   "home": {
     "accountDeleted": "Your account and all your data have been deleted.",
-    "headline": "Your euro coin collection, wherever you go",
     "welcome": "Welcome, {{name}}!",
-    "goToCollections": "Go to my collections",
-    "intro": "Record your coins with photos, check in seconds whether you already have one, and share your collection with friends.",
     "registerFree": "Sign up for free",
-    "browseCollectors": "Explore public collections"
+    "browseCollectors": "Explore public collections",
+    "eyebrow": "For euro coin collectors",
+    "title": "Your collection, a showcase in your pocket.",
+    "intro": "Record your coins with photos, check in seconds whether you already have a coin, and share your collection with a single link.",
+    "trust": {
+      "free": "Completely free",
+      "noAds": "No ads",
+      "yourData": "Your data stays yours"
+    },
+    "album": {
+      "missing": "missing",
+      "coin": "2 € · Germany · 2006",
+      "owned": "Schleswig-Holstein · In your collection"
+    },
+    "featuresLabel": "Features",
+    "features": {
+      "photo": {
+        "title": "Record with photos",
+        "text": "Crop photos of both sides; add the value, country, year and mint mark. Works from your phone too."
+      },
+      "check": {
+        "title": "Check in seconds",
+        "text": "At a market or a swap: search and see right away whether you have that coin."
+      },
+      "share": {
+        "title": "Share or keep private",
+        "text": "You choose for each collection: only you, people with the link, or everyone."
+      }
+    },
+    "steps": {
+      "title": "How to start",
+      "account": {
+        "title": "Create your account",
+        "text": "In a minute, for free. Your first collection is ready."
+      },
+      "add": {
+        "title": "Add your coins",
+        "text": "Take a photo, crop it, fill in the details."
+      },
+      "share": {
+        "title": "Share your showcase",
+        "text": "Your profile and collections have their own addresses."
+      }
+    },
+    "promise": {
+      "title": "Free. No ads. Your collection.",
+      "text": "No paid plans and no ads; download your collection whenever you like.",
+      "free": "Free to sign up and use",
+      "noAds": "Never any ads",
+      "export": "One-click export"
+    },
+    "dashboard": {
+      "coinTotal": {
+        "one": "You have {{count}} coin in your collection.",
+        "other": "You have {{count}} coins in your collection."
+      },
+      "empty": "No coins yet. Start by adding your first one.",
+      "addCoin": "Add coin",
+      "recent": "Recently added",
+      "collections": "Your collections",
+      "manage": "See all"
+    },
+    "check": {
+      "title": "Do I have this coin?",
+      "placeholder": "e.g. germany 2006",
+      "none": "Not in your collection.",
+      "owned": "Owned",
+      "quantity": {
+        "one": "{{count}} piece",
+        "other": "{{count}} pieces"
+      },
+      "more": {
+        "one": "and {{count}} more result",
+        "other": "and {{count}} more results"
+      }
+    },
+    "stats": {
+      "title": "Summary",
+      "coins": {
+        "one": "coin",
+        "other": "coins"
+      },
+      "collections": {
+        "one": "collection",
+        "other": "collections"
+      },
+      "countries": {
+        "one": "country",
+        "other": "countries"
+      },
+      "commemoratives": {
+        "one": "commemorative",
+        "other": "commemoratives"
+      }
+    },
+    "profile": {
+      "title": "Your showcase is public",
+      "text": "Your public collections appear on your profile:"
+    }
   },
   "login": {
     "title": "Sign in",
@@ -183,10 +278,22 @@
       "Commemorative": "Commem."
     },
     "sort": {
-      "Title": { "asc": "A → Z", "desc": "Z → A" },
-      "Denomination": { "asc": "1 cent → 2 €", "desc": "2 € → 1 cent" },
-      "Country": { "asc": "A → Z", "desc": "Z → A" },
-      "Year": { "asc": "old → new", "desc": "new → old" }
+      "Title": {
+        "asc": "A → Z",
+        "desc": "Z → A"
+      },
+      "Denomination": {
+        "asc": "1 cent → 2 €",
+        "desc": "2 € → 1 cent"
+      },
+      "Country": {
+        "asc": "A → Z",
+        "desc": "Z → A"
+      },
+      "Year": {
+        "asc": "old → new",
+        "desc": "new → old"
+      }
     },
     "side": {
       "National": {

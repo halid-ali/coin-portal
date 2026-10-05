@@ -100,12 +100,107 @@
   },
   "home": {
     "accountDeleted": "Dein Konto und alle deine Daten wurden gelöscht.",
-    "headline": "Deine Euro-Münzsammlung – immer dabei",
     "welcome": "Willkommen, {{name}}!",
-    "goToCollections": "Zu meinen Sammlungen",
-    "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine schon hast, und teile deine Sammlung mit Freunden.",
     "registerFree": "Kostenlos registrieren",
-    "browseCollectors": "Öffentliche Sammlungen entdecken"
+    "browseCollectors": "Öffentliche Sammlungen entdecken",
+    "eyebrow": "Für Euro-Münzsammler",
+    "title": "Deine Sammlung als Vitrine für die Hosentasche.",
+    "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine Münze schon hast, und teile deine Sammlung mit einem einzigen Link.",
+    "trust": {
+      "free": "Komplett kostenlos",
+      "noAds": "Keine Werbung",
+      "yourData": "Deine Daten gehören dir"
+    },
+    "album": {
+      "missing": "fehlt",
+      "coin": "2 € · Deutschland · 2006",
+      "owned": "Schleswig-Holstein · In deiner Sammlung"
+    },
+    "featuresLabel": "Funktionen",
+    "features": {
+      "photo": {
+        "title": "Mit Fotos erfassen",
+        "text": "Fotos beider Seiten zuschneiden, Nennwert, Land, Jahr und Münzzeichen eintragen. Auch am Handy."
+      },
+      "check": {
+        "title": "In Sekunden prüfen",
+        "text": "Auf dem Markt oder beim Tausch: suchen und sofort sehen, ob du die Münze hast."
+      },
+      "share": {
+        "title": "Teilen oder privat halten",
+        "text": "Du wählst für jede Sammlung: nur du, alle mit dem Link oder alle."
+      }
+    },
+    "steps": {
+      "title": "So fängst du an",
+      "account": {
+        "title": "Konto erstellen",
+        "text": "In einer Minute und kostenlos. Deine erste Sammlung ist schon da."
+      },
+      "add": {
+        "title": "Münzen hinzufügen",
+        "text": "Foto machen, zuschneiden, Angaben ausfüllen."
+      },
+      "share": {
+        "title": "Vitrine teilen",
+        "text": "Dein Profil und deine Sammlungen haben eigene Adressen."
+      }
+    },
+    "promise": {
+      "title": "Kostenlos. Werbefrei. Deine Sammlung.",
+      "text": "Keine Bezahlpläne und keine Werbung; lade deine Sammlung herunter, wann immer du willst.",
+      "free": "Registrierung und Nutzung kostenlos",
+      "noAds": "Niemals Werbung",
+      "export": "Export mit einem Klick"
+    },
+    "dashboard": {
+      "coinTotal": {
+        "one": "In deiner Sammlung ist {{count}} Münze.",
+        "other": "In deiner Sammlung sind {{count}} Münzen."
+      },
+      "empty": "Noch keine Münzen. Füge deine erste hinzu.",
+      "addCoin": "Münze hinzufügen",
+      "recent": "Zuletzt hinzugefügt",
+      "collections": "Deine Sammlungen",
+      "manage": "Alle ansehen"
+    },
+    "check": {
+      "title": "Habe ich diese Münze?",
+      "placeholder": "z. B. deutschland 2006",
+      "none": "Nicht in deiner Sammlung.",
+      "owned": "Vorhanden",
+      "quantity": {
+        "one": "{{count}} Stück",
+        "other": "{{count}} Stück"
+      },
+      "more": {
+        "one": "und {{count}} weiterer Treffer",
+        "other": "und {{count}} weitere Treffer"
+      }
+    },
+    "stats": {
+      "title": "Übersicht",
+      "coins": {
+        "one": "Münze",
+        "other": "Münzen"
+      },
+      "collections": {
+        "one": "Sammlung",
+        "other": "Sammlungen"
+      },
+      "countries": {
+        "one": "Land",
+        "other": "Länder"
+      },
+      "commemoratives": {
+        "one": "Gedenkmünze",
+        "other": "Gedenkmünzen"
+      }
+    },
+    "profile": {
+      "title": "Deine Vitrine ist öffentlich",
+      "text": "Deine öffentlichen Sammlungen erscheinen auf deinem Profil:"
+    }
   },
   "login": {
     "title": "Anmelden",
@@ -183,10 +278,22 @@
       "Commemorative": "Gedenkm."
     },
     "sort": {
-      "Title": { "asc": "A → Z", "desc": "Z → A" },
-      "Denomination": { "asc": "1 Cent → 2 €", "desc": "2 € → 1 Cent" },
-      "Country": { "asc": "A → Z", "desc": "Z → A" },
-      "Year": { "asc": "alt → neu", "desc": "neu → alt" }
+      "Title": {
+        "asc": "A → Z",
+        "desc": "Z → A"
+      },
+      "Denomination": {
+        "asc": "1 Cent → 2 €",
+        "desc": "2 € → 1 Cent"
+      },
+      "Country": {
+        "asc": "A → Z",
+        "desc": "Z → A"
+      },
+      "Year": {
+        "asc": "alt → neu",
+        "desc": "neu → alt"
+      }
     },
     "side": {
       "National": {
