@@ -64,6 +64,20 @@ public class Collection
 
     public List<Coin> Coins { get; set; } = [];
 
+    /// <summary>The share token exists exactly while the collection is Unlisted.</summary>
+    public void SetVisibility(CollectionVisibility visibility)
+    {
+        Visibility = visibility;
+        if (visibility != CollectionVisibility.Unlisted)
+        {
+            ShareToken = null;
+        }
+        else
+        {
+            ShareToken ??= NewShareToken();
+        }
+    }
+
     /// <summary>128 random bits, URL safe (22 characters).</summary>
     public static string NewShareToken() =>
         WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(16));

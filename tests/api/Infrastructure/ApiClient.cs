@@ -98,6 +98,26 @@ public sealed class ApiClient(HttpClient http) : IDisposable
         return SendAsync(HttpMethod.Put, url, new MultipartFormDataContent { { file, "file", fileName } });
     }
 
+    /// <summary>
+    /// A coin with its photos in one multipart request, like the coin form: the field "coin" holds
+    /// the request as JSON, the files are "national" and "common".
+    /// </summary>
+    public Task<HttpResponseMessage> PostCoinWithPhotosAsync(string url, object coin, byte[]? national = null,
+        byte[]? common = null)
+    {
+        var content = new MultipartFormDataContent { { new StringContent(JsonSerializer.Serialize(coin, Json)), "coin" } };
+        foreach (var (name, bytes) in new[] { ("national", national), ("common", common) })
+        {
+            if (bytes is not null)
+            {
+                var file = new ByteArrayContent(bytes);
+                file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+                content.Add(file, name, name + ".png");
+            }
+        }
+        return SendAsync(HttpMethod.Post, url, content);
+    }
+
     public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string url, HttpContent? content = null,
         bool withAntiforgeryToken = true)
     {

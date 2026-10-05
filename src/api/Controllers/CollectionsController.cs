@@ -3,6 +3,7 @@ using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
+using CoinPortal.Api.Publishing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,8 @@ namespace CoinPortal.Api.Controllers;
 /// <summary>
 /// The signed-in user's collections. Other users' collections are reported as 404.
 /// Errors that the client words itself carry a code: DuplicateName (validation key),
-/// last_collection, has_coins, collection_limit, invalid_target, not_unlisted and moderation_locked (ProblemDetails "code").
+/// last_collection, has_coins, collection_limit, invalid_target, not_unlisted, moderation_locked,
+/// public_requirements and would_unpublish (ProblemDetails "code").
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -25,6 +27,7 @@ public class CollectionsController(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
     IPhotoStorage photoStorage,
+    PublicationGuard publication,
     IOptions<UserLimitOptions> limits) : ControllerBase
 {
     private string CurrentUserId => userManager.GetUserId(User)!;
@@ -34,9 +37,10 @@ public class CollectionsController(
     public async Task<IReadOnlyList<CollectionResponse>> List(CancellationToken ct)
     {
         var userId = CurrentUserId;
+        var minPublicCoins = await publication.MinPublicCoinsAsync(ct);
         // Order before projecting: EF cannot sort on the constructed response
         return await Project(db.Collections.Where(c => c.OwnerId == userId)
-                .OrderBy(c => c.CreatedAtUtc).ThenBy(c => c.Id))
+                .OrderBy(c => c.CreatedAtUtc).ThenBy(c => c.Id), minPublicCoins)
             .ToListAsync(ct);
     }
 
@@ -45,7 +49,8 @@ public class CollectionsController(
     public async Task<ActionResult<CollectionResponse>> Get(int id, CancellationToken ct)
     {
         var userId = CurrentUserId;
-        var collection = await Project(db.Collections.Where(c => c.Id == id && c.OwnerId == userId))
+        var minPublicCoins = await publication.MinPublicCoinsAsync(ct);
+        var collection = await Project(db.Collections.Where(c => c.Id == id && c.OwnerId == userId), minPublicCoins)
             .FirstOrDefaultAsync(ct);
         return collection is null ? NotFound() : collection;
     }
@@ -59,6 +64,12 @@ public class CollectionsController(
         if (await db.Collections.CountAsync(c => c.OwnerId == userId, ct) >= limits.Value.MaxCollections)
         {
             return this.CodedProblem("collection_limit", "You have reached the maximum number of collections.");
+        }
+        // A new collection has no coins yet
+        if (request.Visibility == CollectionVisibility.Public)
+        {
+            return this.PublicRequirementsNotMet(
+                new PublicationStatus(0, 0, await publication.MinPublicCoinsAsync(ct)));
         }
 
         var now = DateTime.UtcNow;
@@ -98,6 +109,17 @@ public class CollectionsController(
                 StatusCodes.Status403Forbidden);
         }
 
+        // Checked when it becomes Public; one that is Public already keeps it (a raised minimum
+        // applies at its next change that lowers the count, PublicationGuard)
+        if (request.Visibility == CollectionVisibility.Public && collection.Visibility != CollectionVisibility.Public)
+        {
+            var status = await publication.StatusAsync(collection.Id, ct);
+            if (!status.CanBePublic)
+            {
+                return this.PublicRequirementsNotMet(status);
+            }
+        }
+
         if (!await TryApplyAsync(collection, request, DateTime.UtcNow, ct) || !await TrySaveAsync(ct))
         {
             return ValidationProblem(ModelState);
@@ -111,7 +133,9 @@ public class CollectionsController(
     /// the same user first; with <paramref name="deleteCoins"/> the coins and their photos are
     /// deleted too. A collection with coins and neither is refused (409 has_coins): a page opened
     /// before coins were added cannot delete them by accident. The name confirmation is the
-    /// client's job. The last collection of a user cannot be deleted.
+    /// client's job. The last collection of a user cannot be deleted. Moving coins without photos
+    /// into a Public collection breaks its rule (409 would_unpublish); with
+    /// <paramref name="unpublish"/> the target becomes Unlisted.
     /// </summary>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -120,7 +144,7 @@ public class CollectionsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id, [FromQuery] int? moveTo, [FromQuery] bool deleteCoins,
-        CancellationToken ct)
+        [FromQuery] bool unpublish, CancellationToken ct)
     {
         var userId = CurrentUserId;
         var collection = await FindOwnedAsync(id, ct);
@@ -165,6 +189,14 @@ public class CollectionsController(
             }
             if (moveTo is { } target)
             {
+                var broken = await publication.BrokenByAsync(
+                    [new CollectionChange(target, AddsUnphotographed: await coins.AnyAsync(PublicationRules.IsNotPhotographed, ct))],
+                    ct);
+                if (broken.Count > 0 && !unpublish)
+                {
+                    return this.WouldUnpublish(broken);
+                }
+                PublicationGuard.Unpublish(broken, DateTime.UtcNow);
                 await coins.ExecuteUpdateAsync(s => s.SetProperty(c => c.CollectionId, target), ct);
             }
             else
@@ -222,31 +254,17 @@ public class CollectionsController(
         return new ShareTokenResponse(collection.ShareToken);
     }
 
-    // The token exists exactly while the collection is Unlisted
-    private static void SetVisibility(Collection collection, CollectionVisibility visibility)
-    {
-        collection.Visibility = visibility;
-        if (visibility != CollectionVisibility.Unlisted)
-        {
-            collection.ShareToken = null;
-        }
-        else
-        {
-            collection.ShareToken ??= Collection.NewShareToken();
-        }
-    }
-
     private Task<Collection?> FindOwnedAsync(int id, CancellationToken ct)
     {
         var userId = CurrentUserId;
         return db.Collections.FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId, ct);
     }
 
-    private Task<CollectionResponse> ProjectOneAsync(int id, CancellationToken ct) =>
-        Project(db.Collections.Where(c => c.Id == id)).FirstAsync(ct);
+    private async Task<CollectionResponse> ProjectOneAsync(int id, CancellationToken ct) =>
+        await Project(db.Collections.Where(c => c.Id == id), await publication.MinPublicCoinsAsync(ct)).FirstAsync(ct);
 
-    // Coin count in the same query
-    private static IQueryable<CollectionResponse> Project(IQueryable<Collection> collections) =>
+    // Coin counts in the same query
+    private static IQueryable<CollectionResponse> Project(IQueryable<Collection> collections, int minPublicCoins) =>
         collections.Select(c => new CollectionResponse(
             c.Id,
             c.Name,
@@ -255,6 +273,8 @@ public class CollectionsController(
             c.ModerationLockedAtUtc != null,
             c.ShareToken,
             c.Coins.Count,
+            c.Coins.AsQueryable().Count(PublicationRules.IsPhotographed),
+            minPublicCoins,
             c.CoverImageId,
             c.CreatedAtUtc,
             c.UpdatedAtUtc));
@@ -287,7 +307,7 @@ public class CollectionsController(
         collection.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         if (request.Visibility is { } visibility)
         {
-            SetVisibility(collection, visibility);
+            collection.SetVisibility(visibility);
         }
         collection.UpdatedAtUtc = now;
         return true;

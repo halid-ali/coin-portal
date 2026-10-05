@@ -31,9 +31,10 @@ public class PhotosTests(CoinPortalFactory factory)
     public async Task Photos_AreCachedForGood()
     {
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var collection = await alice.FirstCollectionAsync();
         var coin = await alice.CreateCoinAsync(collection.Id);
         var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        await alice.PublishAsync(collection);
         // Signed out: in tests every signed-in request renews the cookie (zero validation interval),
         // and a response that sets a cookie is marked no-cache
         using var visitor = await factory.CreateAnonymousClientAsync();
@@ -150,10 +151,11 @@ public class PhotosTests(CoinPortalFactory factory)
     public async Task ImagesWithoutVersion_AreRevalidated()
     {
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var collection = await alice.FirstCollectionAsync();
         var coin = await alice.CreateCoinAsync(collection.Id);
         await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
         await alice.UploadCoverAsync(collection.Id);
+        await alice.PublishAsync(collection);
         using var visitor = await factory.CreateAnonymousClientAsync();
 
         // The same address serves the next image too, so it must not be kept for good
@@ -265,7 +267,9 @@ public class PhotosTests(CoinPortalFactory factory)
         var coin = await alice.CreateCoinAsync(collection.Id);
         var photo = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
         var cover = await alice.UploadCoverAsync(collection.Id);
-        collection = await alice.SetVisibilityAsync(collection, visibility);
+        collection = visibility == CollectionVisibility.Public
+            ? await alice.PublishAsync(collection)
+            : await alice.SetVisibilityAsync(collection, visibility);
         // A valid-looking secret for the collections that have none
         var link = collection.ShareToken ?? new string('A', Collection.ShareTokenLength);
         // The key of another link-only collection opens only that one

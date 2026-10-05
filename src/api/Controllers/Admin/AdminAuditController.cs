@@ -32,6 +32,6 @@ public class AdminAuditController(AppDbContext db) : AdminControllerBase
         return await entries.OrderByDescending(e => e.CreatedAtUtc).ThenByDescending(e => e.Id)
             .ToPagedAsync(query.Page, query.PageSize, e => new AdminAuditEntryResponse(
                 e.Id, e.CreatedAtUtc, e.ActorId, e.ActorUserName, e.Action, e.TargetUserId, e.TargetUserName,
-                e.TargetCollectionId, e.TargetCollectionName, e.Note), ct);
+                e.TargetCollectionId, e.TargetCollectionName, e.Setting, e.OldValue, e.NewValue, e.Note), ct);
     }
 }

@@ -40,9 +40,10 @@ public class VisibilityTests(CoinPortalFactory factory)
     public async Task PublicCollection_IsVisibleSignedOut()
     {
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var collection = await alice.FirstCollectionAsync();
+        await alice.CreatePhotographedCoinAsync(collection.Id, "Visible");
+        collection = await alice.PublishAsync(collection);
         var hidden = await alice.CreateCollectionAsync();
-        await alice.CreateCoinAsync(collection.Id, "Visible");
         await alice.CreateCoinAsync(hidden.Id, "Hidden");
         using var visitor = await factory.CreateAnonymousClientAsync();
 
@@ -56,29 +57,33 @@ public class VisibilityTests(CoinPortalFactory factory)
         var explore = await visitor.GetJsonAsync<PagedResponse<ExploreCoinResponse>>(
             $"/api/public/coins?owner={alice.UserName}");
 
+        const int coinCount = CoinPortalFactory.MinPublicCoins;
         Assert.Equal(alice.UserName, get.OwnerUserName);
-        Assert.Equal("Visible", Assert.Single(coins.Items).Title);
+        Assert.Equal(coinCount, coins.Items.Count);
+        Assert.Contains(coins.Items, c => c.Title == "Visible");
         Assert.Equal(alice.UserName, profile.UserName); // stored spelling, not the URL's
         Assert.Equal(collection.Id, Assert.Single(profile.Collections).Id);
-        Assert.Equal((1, 1), (collector.CollectionCount, collector.CoinCount));
-        Assert.Equal("Visible", Assert.Single(explore.Items).Title);
+        Assert.Equal((1, coinCount), (collector.CollectionCount, collector.CoinCount));
+        Assert.Equal(coinCount, explore.Items.Count);
+        Assert.DoesNotContain(explore.Items, c => c.Title == "Hidden");
     }
 
     [Fact]
     public async Task Explore_ListsCoinWithItsCollectionOwnerAndPhotos()
     {
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var collection = await alice.FirstCollectionAsync();
         var coin = await alice.CreateCoinAsync(collection.Id, "Visible");
         // Uploaded in reverse order: the list keeps the side order
         var common = await alice.UploadPhotoAsync(coin.Id, CoinSide.Common);
         var national = await alice.UploadPhotoAsync(coin.Id, CoinSide.National);
+        collection = await alice.PublishAsync(collection);
         using var visitor = await factory.CreateAnonymousClientAsync();
 
         var explore = await visitor.GetJsonAsync<PagedResponse<ExploreCoinResponse>>(
             $"/api/public/coins?owner={alice.UserName}");
 
-        var item = Assert.Single(explore.Items);
+        var item = Assert.Single(explore.Items, c => c.Id == coin.Id);
         Assert.Equal((coin.Id, collection.Id, collection.Name, alice.UserName),
             (item.Id, item.CollectionId, item.CollectionName, item.OwnerUserName));
         Assert.Equal([national, common], item.Photos);
@@ -88,8 +93,7 @@ public class VisibilityTests(CoinPortalFactory factory)
     public async Task PublicResponses_CarryNoPersonalData()
     {
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
-        await alice.CreateCoinAsync(collection.Id);
+        var collection = await alice.PublishAsync(await alice.FirstCollectionAsync());
         using var visitor = await factory.CreateAnonymousClientAsync();
 
         foreach (var url in new[]
@@ -149,7 +153,7 @@ public class VisibilityTests(CoinPortalFactory factory)
         var madePrivate = await alice.SetVisibilityAsync(unlisted, CollectionVisibility.Private);
         using var oldLink = await visitor.GetAsync($"/api/public/shared/{unlisted.ShareToken}");
         var unlistedAgain = await alice.SetVisibilityAsync(madePrivate, CollectionVisibility.Unlisted);
-        var madePublic = await alice.SetVisibilityAsync(unlistedAgain, CollectionVisibility.Public);
+        var madePublic = await alice.PublishAsync(unlistedAgain);
 
         Assert.Null(madePrivate.ShareToken);
         await oldLink.ShouldHaveStatusAsync(HttpStatusCode.NotFound);

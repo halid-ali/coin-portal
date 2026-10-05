@@ -219,6 +219,7 @@ public class AdminAuditQuery
 /// One audit entry. The user and collection names are null when the user they belonged to has
 /// been deleted (the client shows "deleted user"); the ids stay.
 /// </summary>
+/// <param name="Setting">SettingChanged: the site setting (e.g. MinPublicCoins) with its values before and after.</param>
 public sealed record AdminAuditEntryResponse(
     long Id,
     DateTime CreatedAtUtc,
@@ -229,4 +230,20 @@ public sealed record AdminAuditEntryResponse(
     string? TargetUserName,
     int? TargetCollectionId,
     string? TargetCollectionName,
+    string? Setting,
+    string? OldValue,
+    string? NewValue,
     string? Note);
+
+/// <summary>Site-wide settings (the panel's "General settings").</summary>
+/// <param name="MinPublicCoins">Photographed coins a collection needs to become Public.</param>
+public sealed record AdminSettingsResponse(int MinPublicCoins);
+
+/// <param name="Note">The admin's reason, only kept in the audit log.</param>
+public sealed record AdminSettingsRequest(
+    [Range(SiteSettings.MinPublicCoinsMin, SiteSettings.MinPublicCoinsMax)] int MinPublicCoins,
+    [StringLength(AuditLogEntry.NoteMaxLength)] string? Note);
+
+/// <summary>What a minimum would mean before it is saved.</summary>
+/// <param name="PublicCollectionsBelow">Public collections with fewer photographed coins. They stay Public; the minimum applies at their next change that lowers the count.</param>
+public sealed record AdminSettingsImpactResponse(int MinPublicCoins, int PublicCollectionsBelow);

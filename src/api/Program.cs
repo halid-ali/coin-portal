@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using CoinPortal.Api.DevData;
 using CoinPortal.Api.Photos;
 using CoinPortal.Api.Hosting;
+using CoinPortal.Api.Publishing;
 using Microsoft.AspNetCore.ResponseCompression;
 
 // Our own switch is removed so the configuration command-line parser never sees it
@@ -139,6 +140,9 @@ builder.Services.AddOptions<UserLimitOptions>()
     .Bind(builder.Configuration.GetSection(UserLimitOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+// What a Public collection must hold (photos, minimum from the admin's site settings)
+builder.Services.AddScoped<PublicationGuard>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<CoinPhoto> CoinPhotos => Set<CoinPhoto>();
     public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
+    public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -152,6 +153,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             b.Property(e => e.TargetUserName).HasMaxLength(AuditLogEntry.UserNameMaxLength);
             b.Property(e => e.TargetCollectionName).HasMaxLength(Collection.NameMaxLength);
             b.Property(e => e.Note).HasMaxLength(AuditLogEntry.NoteMaxLength);
+            b.Property(e => e.Setting).HasMaxLength(AuditLogEntry.SettingMaxLength).IsUnicode(false);
+            b.Property(e => e.OldValue).HasMaxLength(AuditLogEntry.SettingValueMaxLength);
+            b.Property(e => e.NewValue).HasMaxLength(AuditLogEntry.SettingValueMaxLength);
 
             // Newest first, and a user's history in the panel
             b.HasIndex(e => e.CreatedAtUtc);
@@ -159,6 +163,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
             var actions = string.Join(", ", Enum.GetValues<AuditAction>().Cast<int>());
             b.ToTable(t => t.HasCheckConstraint("CK_AuditLog_Action", $"[Action] IN ({actions})"));
+        });
+
+        builder.Entity<SiteSettings>(b =>
+        {
+            // The single row is inserted by the migration (not HasData: a later model change
+            // would write the default over the admin's value)
+            b.Property(s => s.Id).ValueGeneratedNever();
+            b.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_SiteSettings_Id", $"[Id] = {Data.SiteSettings.SingletonId}");
+                t.HasCheckConstraint("CK_SiteSettings_MinPublicCoins",
+                    $"[MinPublicCoins] BETWEEN {Data.SiteSettings.MinPublicCoinsMin} AND {Data.SiteSettings.MinPublicCoinsMax}");
+            });
         });
     }
 }
