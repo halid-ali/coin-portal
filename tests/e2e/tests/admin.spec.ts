@@ -3,16 +3,13 @@ import { Browser, expect, test } from '@playwright/test';
 import { expectAccessible } from '../support/axe';
 import { TestUser } from '../support/users';
 
-/** A user with a public collection holding one coin, and the collection's public address. */
+/** A user with a public collection holding photographed coins, and its public address. */
 async function publicCollector() {
   const user = await TestUser.signUp();
-  const collection = await user.setVisibility(await user.firstCollection(), 'Public');
-  await user.send('PUT', `/api/collections/${collection.id}`, {
-    name: `Public ${user.userName}`,
-    visibility: 'Public',
-  });
-  await user.createCoin(collection.id, 'Public coin');
-  return { user, name: `Public ${user.userName}`, url: `/u/${user.userName}/${collection.id}` };
+  const first = await user.firstCollection();
+  await user.createPhotographedCoin(first.id, 'Public coin');
+  const collection = await user.publish(first, `Public ${user.userName}`);
+  return { user, name: collection.name, url: `/u/${user.userName}/${collection.id}` };
 }
 
 async function adminPage(browser: Browser) {
