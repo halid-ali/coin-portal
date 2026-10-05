@@ -132,6 +132,13 @@ export interface CoinListQuery {
   pageSize?: number;
 }
 
+/** Counts over all of the user's collections (GET api/coins/summary). */
+export interface CoinSummary {
+  coinCount: number;
+  countryCount: number;
+  commemorativeCount: number;
+}
+
 export interface PagedResponse<T> {
   items: T[];
   page: number;

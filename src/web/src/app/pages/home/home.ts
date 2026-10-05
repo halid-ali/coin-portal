@@ -1,46 +1,25 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ACCOUNT_DELETED_STATE } from '../../core/settings/settings.service';
+import { HomeDashboard } from './home-dashboard';
+import { HomeWelcome } from './home-welcome';
 
+/** Home page: the signed-in user's dashboard, or the introduction for visitors. */
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [TranslocoPipe, HomeDashboard, HomeWelcome],
   template: `
-    <section class="mx-auto max-w-2xl py-8 text-center">
+    @if (auth.currentUser()) {
+      <app-home-dashboard />
+    } @else {
       @if (accountDeleted) {
-        <p role="status" class="alert-success mb-8">{{ 'home.accountDeleted' | transloco }}</p>
+        <p role="status" class="alert-success mt-4">{{ 'home.accountDeleted' | transloco }}</p>
       }
-
-      <h1 class="text-3xl font-bold text-shade-900 sm:text-4xl">
-        {{ 'home.headline' | transloco }}
-      </h1>
-
-      @if (auth.currentUser(); as user) {
-        <p class="mt-4 text-lg text-shade-600">
-          {{ 'home.welcome' | transloco: { name: user.firstName } }}
-        </p>
-        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <a routerLink="/collections" class="btn-primary">{{
-            'home.goToCollections' | transloco
-          }}</a>
-          <a routerLink="/explore" class="btn-secondary">{{ 'nav.explore' | transloco }}</a>
-        </div>
-      } @else {
-        <p class="mt-4 text-lg text-shade-600">
-          {{ 'home.intro' | transloco }}
-        </p>
-        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <a routerLink="/register" class="btn-primary">{{ 'home.registerFree' | transloco }}</a>
-          <a routerLink="/login" class="btn-secondary">{{ 'nav.login' | transloco }}</a>
-        </div>
-        <a routerLink="/explore" class="link mt-6 inline-block"
-          >{{ 'home.browseCollectors' | transloco }} <span aria-hidden="true">→</span></a
-        >
-      }
-    </section>
+      <app-home-welcome />
+    }
   `,
 })
 export class Home {

@@ -100,12 +100,107 @@
   },
   "home": {
     "accountDeleted": "Hesabın ve tüm verilerin silindi.",
-    "headline": "Euro coin koleksiyonun, her yerde yanında",
     "welcome": "Hoş geldin, {{name}}!",
-    "goToCollections": "Koleksiyonlarıma git",
-    "intro": "Coin'lerini fotoğraflarıyla kaydet, elinde olup olmadığını saniyeler içinde kontrol et ve koleksiyonunu arkadaşlarınla paylaş.",
     "registerFree": "Ücretsiz kayıt ol",
-    "browseCollectors": "Herkese açık koleksiyonları keşfet"
+    "browseCollectors": "Herkese açık koleksiyonları keşfet",
+    "eyebrow": "Euro coin koleksiyonu için",
+    "title": "Koleksiyonun, cebindeki vitrinde.",
+    "intro": "Coin'lerini fotoğraflarıyla kaydet, bir coin'in sende olup olmadığını saniyeler içinde kontrol et, koleksiyonunu tek linkle paylaş.",
+    "trust": {
+      "free": "Tamamen ücretsiz",
+      "noAds": "Reklam yok",
+      "yourData": "Verilerin senin"
+    },
+    "album": {
+      "missing": "eksik",
+      "coin": "2 € · Almanya · 2006",
+      "owned": "Schleswig-Holstein · Koleksiyonunda var"
+    },
+    "featuresLabel": "Özellikler",
+    "features": {
+      "photo": {
+        "title": "Fotoğrafla kaydet",
+        "text": "İki yüzün fotoğrafını kırp; değer, ülke, yıl ve darphane harfini ekle. Telefonundan da olur."
+      },
+      "check": {
+        "title": "Saniyede kontrol et",
+        "text": "Pazarda ya da takasta: ara ve o coin'in sende olup olmadığını hemen gör."
+      },
+      "share": {
+        "title": "Paylaş ya da gizle",
+        "text": "Her koleksiyon için sen seç: sadece sen, linki olanlar ya da herkes."
+      }
+    },
+    "steps": {
+      "title": "Nasıl başlanır",
+      "account": {
+        "title": "Hesabını aç",
+        "text": "Bir dakikada, ücretsiz. İlk koleksiyonun hazır gelir."
+      },
+      "add": {
+        "title": "Coin'lerini ekle",
+        "text": "Fotoğraf çek, kırp, bilgileri doldur."
+      },
+      "share": {
+        "title": "Vitrinini paylaş",
+        "text": "Profilin ve koleksiyonların kendi adreslerinde."
+      }
+    },
+    "promise": {
+      "title": "Ücretsiz. Reklamsız. Senin koleksiyonun.",
+      "text": "Ücretli üyelik ya da reklam yok; koleksiyonunu istediğin an indirebilirsin.",
+      "free": "Kayıt ve kullanım ücretsiz",
+      "noAds": "Hiç reklam gösterilmez",
+      "export": "Tek tıkla dışa aktarma"
+    },
+    "dashboard": {
+      "coinTotal": {
+        "one": "Koleksiyonunda {{count}} coin var.",
+        "other": "Koleksiyonunda {{count}} coin var."
+      },
+      "empty": "Henüz coin'in yok. İlk coin'ini ekleyerek başla.",
+      "addCoin": "Coin ekle",
+      "recent": "Son eklediklerin",
+      "collections": "Koleksiyonların",
+      "manage": "Tümünü gör"
+    },
+    "check": {
+      "title": "Bu coin bende var mı?",
+      "placeholder": "Ör. almanya 2006",
+      "none": "Koleksiyonunda yok.",
+      "owned": "Var",
+      "quantity": {
+        "one": "{{count}} adet",
+        "other": "{{count}} adet"
+      },
+      "more": {
+        "one": "ve {{count}} sonuç daha",
+        "other": "ve {{count}} sonuç daha"
+      }
+    },
+    "stats": {
+      "title": "Özet",
+      "coins": {
+        "one": "coin",
+        "other": "coin"
+      },
+      "collections": {
+        "one": "koleksiyon",
+        "other": "koleksiyon"
+      },
+      "countries": {
+        "one": "ülke",
+        "other": "ülke"
+      },
+      "commemoratives": {
+        "one": "hatıra parası",
+        "other": "hatıra parası"
+      }
+    },
+    "profile": {
+      "title": "Vitrinin herkese açık",
+      "text": "Herkese açık koleksiyonların profilinde görünüyor:"
+    }
   },
   "login": {
     "title": "Giriş yap",
@@ -183,10 +278,22 @@
       "Commemorative": "Hatıra"
     },
     "sort": {
-      "Title": { "asc": "A → Z", "desc": "Z → A" },
-      "Denomination": { "asc": "1 cent → 2 €", "desc": "2 € → 1 cent" },
-      "Country": { "asc": "A → Z", "desc": "Z → A" },
-      "Year": { "asc": "eski → yeni", "desc": "yeni → eski" }
+      "Title": {
+        "asc": "A → Z",
+        "desc": "Z → A"
+      },
+      "Denomination": {
+        "asc": "1 cent → 2 €",
+        "desc": "2 € → 1 cent"
+      },
+      "Country": {
+        "asc": "A → Z",
+        "desc": "Z → A"
+      },
+      "Year": {
+        "asc": "eski → yeni",
+        "desc": "yeni → eski"
+      }
     },
     "side": {
       "National": {

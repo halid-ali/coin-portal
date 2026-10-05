@@ -7,6 +7,7 @@ import {
   CoinListQuery,
   CoinPhoto,
   CoinSide,
+  CoinSummary,
   CoinUpsertRequest,
   PagedResponse,
   PhotoSize,
@@ -31,6 +32,11 @@ export class CoinService {
 
   list(query: CoinListQuery): Observable<PagedResponse<Coin>> {
     return this.http.get<PagedResponse<Coin>>(BASE_URL, { params: toListParams(query) });
+  }
+
+  /** Counts over all of the user's collections. */
+  summary(): Observable<CoinSummary> {
+    return this.http.get<CoinSummary>(`${BASE_URL}/summary`);
   }
 
   get(id: number): Observable<Coin> {
