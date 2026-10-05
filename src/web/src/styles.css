@@ -95,6 +95,15 @@
   }
 
   /*
+   * Logo (shared/logo and the splash in index.html): a dark coin with a gold euro sign on the light
+   * theme, a gold coin with a dark sign on the dark one (:root.dark). Not tied to the accent color.
+   */
+  :root {
+    --logo-coin: #1c1f22;
+    --logo-sign: #f2b51e;
+  }
+
+  /*
    * Accent color (AccentService): the palette behind the brand scale and the primary button.
    * Amber is the default; the others apply through data-accent on <html>. The fill and its text
    * color are the same in both themes: white text on the darker fills, dark text on the light ones.
@@ -246,6 +255,9 @@
     --color-brand-900: var(--accent-200);
     --color-brand-950: var(--accent-100);
     --color-focus: var(--accent-400);
+
+    --logo-coin: #f2b51e;
+    --logo-sign: #3b2604;
 
     --color-danger-50: color-mix(in oklab, var(--color-red-400) 10%, var(--color-slate-900));
     --color-danger-100: color-mix(in oklab, var(--color-red-400) 18%, var(--color-slate-900));
@@ -444,8 +456,7 @@
   }
 
   .app-splash-logo {
-    @apply grid size-14 place-items-center rounded-full bg-linear-to-br from-amber-300 to-amber-500 text-2xl text-amber-950
-      shadow-sm ring-1 ring-amber-600/20;
+    @apply size-14;
   }
 
   @media (prefers-reduced-motion: no-preference) {

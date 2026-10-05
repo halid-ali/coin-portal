@@ -9,7 +9,9 @@
     />
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Tab icon: the SVG follows the browser's light/dark mode; the .ico is the fallback -->
+    <link rel="icon" href="favicon.ico" sizes="48x48" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <!-- Installable app (home screen, desktop); icons from scripts/make-icons.mjs -->
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -42,7 +44,17 @@
     <app-root>
       <!-- Until Angular starts (it replaces this). Styles: .app-splash in styles.css -->
       <div class="app-splash" role="status">
-        <span class="app-splash-logo" aria-hidden="true">€</span>
+        <!-- Same drawing as shared/logo (colors from styles.css) -->
+        <svg class="app-splash-logo" viewBox="2 2 60 60" aria-hidden="true">
+          <circle cx="32" cy="32" r="30" style="fill: var(--logo-coin)" />
+          <path
+            d="M41.83 22.19A13.2 13.2 0 1 0 41.83 41.81M16 27.7H30.5M16 36.3H30.5"
+            fill="none"
+            stroke-width="4.8"
+            stroke-linecap="round"
+            style="stroke: var(--logo-sign)"
+          />
+        </svg>
         CoinVitrine
         <span class="sr-only">Loading…</span>
       </div>

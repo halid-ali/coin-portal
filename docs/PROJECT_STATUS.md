@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-04 (**`v1.3.0` yayında**: P2 (#31–#34, Tamamlananlar 66–69) ve Angular 21.2.25
-(Tamamlananlar 70), yayın Tamamlananlar 71. P1 `v1.1.0` ve `v1.2.0`'da (Tamamlananlar 54–65). Sırada yeni
-iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+(Tamamlananlar 70), yayın Tamamlananlar 71. P1 `v1.1.0` ve `v1.2.0`'da (Tamamlananlar 54–65). Yeni logo
+`feat/logo`'da commit'lendi, merge ve yayın bekliyor (Tamamlananlar 72). Sırada yeni iş seçimi. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1268,6 +1268,21 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     bilinmeyen adres 200 (SPA, 404 sayfası), `coinportal.runasp.net` 308. Kullanıcı telefonda 404 sayfasını ve
     tema renkli onay kutusunu doğruladı. Release notları `.notes/release-v1.3.0.md`, kullanıcı onayıyla Claude
     `.notes/scripts/create-release.js` ile yayınladı ("latest").
+72. **Yeni logo** (`feat/logo`, 2026-10-04): amber geçişli daire + "€" metni yerine sade bir logo: dolu
+    daire, içinde uçları yuvarlak çizgilerle € (kullanıcının gösterdiği bir örnekten). `shared/logo`
+    (inline SVG, header ve footer), açılış ekranında `index.html`'de kopyası.
+    - **Renk temaya göre** (kullanıcı kararı): açıkta koyu para (#1c1f22) + altın € (#f2b51e), koyuda altın
+      para + koyu kahve € (#3b2604). `styles.css` `--logo-coin` / `--logo-sign`; tema rengine bağlı değil.
+      Koyu para koyu temada zemine karışıyordu, bu yüzden tersi.
+    - İkonlar (`make-icons.mjs` yeni çizimle): manifest ve iPhone ikonları açık tema hali (koyu para),
+      maskable/apple zemini slate-50 (manifest'in `background_color`'ı); yeni `favicon.svg` tarayıcının
+      açık/koyu moduna göre renk değiştirir, `favicon.ico` yedek.
+    - **Denenip bırakılanlar** (aynı sohbette, kullanıcı seçici): SVG'de parlak 3D altın para; three.js
+      ile gerçekçi render (tırtıklı kenar, kenar yazısı "coinvitrine.com", buzlu/parlak yüzey): büyükte
+      beğenildi ama 32 px'te bütün detay kayboldu, yazısız ve büyük € hali de yetmedi; sadece kenar
+      çizgileriyle (içi boş) € ve halka: "çok çizgi dolu". Sonuç: küçük boyda okunan sade düz logo.
+    - Doğrulama: `ng build`, `ng test` (261), Prettier; headless Edge'de iki temada header/footer ve
+      üretilen ikonlar kontrol edildi. Kullanıcı localhost'ta baktı.
 
 ## Yol haritası
 
@@ -1388,7 +1403,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
 (Tamamlananlar 69). **P2 bitti ve `v1.3.0` ile yayında** (2026-10-04, Tamamlananlar 71); P1 `v1.1.0` ve
-`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, logo, watermark) sonraki sohbetlerde:
+`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo bitti (Tamamlananlar 72):
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
@@ -1414,7 +1429,7 @@ Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angul
 2. **Görünüm üzerinde çalışmaya devam** (kullanıcı 2026-09-28'de "sitenin görünümü üzerinde çalışalım"
    dedi; koyu tema ve tema rengi bitti). Kullanıcı ayrı bir sohbette genel görsellerle ilgili birkaç
    düzeltme ve logo için ayrı bir çalışma yapmak istiyor. Genel düzeltmeler sohbeti 2026-09-28/29'da
-   yapıldı ve bitti (Tamamlananlar 14); görünümde sırada logo var. Akılda tutulacak (kullanıcı, 2026-09-29): koleksiyon sayfasındaki sahip
+   yapıldı ve bitti (Tamamlananlar 14); logo da bitti (Tamamlananlar 72). Akılda tutulacak (kullanıcı, 2026-09-29): koleksiyon sayfasındaki sahip
    aksiyonları (Linki kopyala / Düzenle / Sil) çoğalırsa ya da tasarım değişirse tek bir "⋯" (daha
    fazla) menüsüne toplanabilir; şimdilik telefonda ikon butonlar yetiyor.
 3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
@@ -1512,7 +1527,8 @@ Kararlar (2026-09-28, kullanıcıyla):
   Çivit, Mor, Gül (rose), Yeşil (lime; green yerine kullanıcı seçti). Emerald, sky ve red bilerek yok:
   başarı, bilgi ve tehlike mesajlarıyla karışırdı. Seçim sadece Ayarlar > Görünüm'de (navbar butonu yok),
   tercih tema gibi hesapta (hesap > tarayıcı > Altın).
-- **Birincil buton renge uyar, logo altın kalır** (kullanıcı kararı; logo için ayrı bir çalışma yapılacak).
+- **Birincil buton renge uyar, logo uymaz** (kullanıcı kararı). Logo 2026-10-04'ten beri temaya göre iki renkli
+  (Tamamlananlar 72), tema rengiyle değişmez.
   Buton dolgusu iki temada aynı: amber/teal/lime açık dolgu + koyu yazı, blue/indigo/violet/rose 600 dolgu
   + beyaz yazı (hover bir ton koyu), okunabilirlik için.
 - **Kaydırma çubuğunun yeri hep ayrılır** (2026-09-28, kullanıcı onayı): `scrollbar-gutter: stable`.
