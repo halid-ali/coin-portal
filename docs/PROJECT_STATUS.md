@@ -3,7 +3,7 @@
 Son güncelleme: 2026-10-05 (**`v1.3.0` yayında**: P2 (#31–#34, Tamamlananlar 66–69) ve Angular 21.2.25
 (Tamamlananlar 70), yayın Tamamlananlar 71. P1 `v1.1.0` ve `v1.2.0`'da (Tamamlananlar 54–65). Yeni logo
 (`feat/logo`, Tamamlananlar 72) ve yeni ana sayfa (`feat/home-page`, onun üstünde, Tamamlananlar 73)
-commit'lendi, merge ve yayın bekliyor; kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+2026-10-05'te `main`'e alındı, push ve yayın bekliyor; kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
@@ -1434,7 +1434,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
 (Tamamlananlar 69). **P2 bitti ve `v1.3.0` ile yayında** (2026-10-04, Tamamlananlar 71); P1 `v1.1.0` ve
-`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti (Tamamlananlar 72–73), kullanıcı başka görsel düzenlemeler de yapacak (2026-10-04); ikisi merge ve yayın bekliyor. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
+`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti (Tamamlananlar 72–73), kullanıcı başka görsel düzenlemeler de yapacak (2026-10-04); ikisi `main`'de (2026-10-05), push ve yayın (`v1.4.0` adayı) bekliyor. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
