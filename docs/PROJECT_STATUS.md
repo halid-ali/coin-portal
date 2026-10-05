@@ -1,6 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-05 (**`v1.4.0` yayında**: yeni logo (Tamamlananlar 72) ve yeni ana sayfa
+Son güncelleme: 2026-10-05 (**devam eden iş: `feat/public-requirements`**, herkese açık koleksiyon kuralı;
+1. aşama (backend) bitti, 2. aşama (client) sırada, merge ikisinden sonra; kararlar "Herkese açık koleksiyon
+kuralı: kararlar", ilerleme Tamamlananlar 75. **`v1.4.0` yayında**: yeni logo (Tamamlananlar 72) ve yeni ana sayfa
 (Tamamlananlar 73), yayın Tamamlananlar 74. Önceki sürümler: `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1320,6 +1322,49 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     arama 200. Release notları `.notes/release-v1.4.0.md`, kullanıcı onayıyla Claude
     `.notes/scripts/create-release.js` ile yayınladı ("latest"). Pipeline'ı izlemek için yeni lokal betik
     `.notes/scripts/run-status.js <repo> <etiket>` (sadece okur; koşu, işler, onay bekleme durumu).
+75. **Herkese açık koleksiyon kuralı** (`feat/public-requirements`, 2026-10-05, **devam ediyor**; kararlar
+    "Herkese açık koleksiyon kuralı: kararlar"). 1. ve 2. aşama aynı branch'te, merge ikisinden sonra
+    (`main`'de kuralı uygulayan ama arayüzü hazır olmayan bir ara durum olmasın).
+    - **1. aşama, backend (bitti):**
+      - `Publishing/PublicationRules`: "fotoğraflı coin" tanımı tek yerde (ulusal yüz fotoğrafı;
+        Expression, EF'te ve bellekte), `PublicationStatus`. `Publishing/PublicationGuard`: eşiği okur,
+        koleksiyonun durumunu sayar, bir işlemin hangi Public koleksiyonları bozacağını bulur
+        (`CollectionChange`: fotoğrafsız coin ekler / fotoğraflı coin eksiltir), `Unpublish` (Unlisted + yeni
+        link). Görünürlük ve link kuralı `Collection.SetVisibility`'ye taşındı.
+      - Site ayarı: `SiteSettings` tablosu (tek satır, Id 1, `MinPublicCoins` 1–100, varsayılan 10; satırı
+        migration ekler, `HasData` değil). Admin uçları `api/admin/settings` (GET, PUT + isteğe bağlı not) ve
+        `GET api/admin/settings/impact?minPublicCoins=N` (bu eşiğin altında kalan Public koleksiyon sayısı).
+        Değişiklik denetim kaydına `SettingChanged` (yeni alanlar `Setting`, `OldValue`, `NewValue`).
+      - Yayına alma: Public'e geçişte kural tam uygulanır; olmazsa 400 `public_requirements` + `coinCount`,
+        `photographedCoinCount`, `minPublicCoins`. Yeni koleksiyon Public başlayamaz. Koleksiyon yanıtına
+        `PhotographedCoinCount` ve `MinPublicCoins` eklendi.
+      - Kati kontroller (409 `would_unpublish` + `collections: [{id, name}]`; `?unpublish=true` ile işlem
+        yapılır ve koleksiyon aynı kayıtta Unlisted olur): ulusal yüz fotoğrafını silmek, coin silmek,
+        coin taşımak (kaynak ve hedef), Public koleksiyona fotoğrafsız coin eklemek, koleksiyon silerken
+        fotoğrafsız coin'leri Public bir koleksiyona taşımak.
+      - Yeni coin fotoğraflarıyla tek istekte: `POST api/coins/with-photos` multipart (`coin` = istek
+        JSON'u, `national` / `common` dosyaları). Ayrı adres, çünkü aynı adreste `[Consumes]` ile ayrılan iki
+        uçtan OpenAPI dokümanı sadece birini gösteriyordu. Önce bütün görseller
+        işlenir, sonra dosyalar, sonra tek `SaveChanges`; hata olursa dosyalar silinir. Fotoğraf hatası
+        `side` da taşır. Fotoğraf işleme ortak yardımcıda (`ProcessCoinPhotoAsync`).
+      - Coin listesi filtresi `photographed=true|false`.
+      - Migration `AddPublicationRules`: tablo, ayar satırı, denetim alanları; kurala uymayan Public
+        koleksiyonları Unlisted yapar (T-SQL'de `CRYPT_GEN_RANDOM(16)` → base64url link). Örnek veriyle hem
+        `ef database update` hem idempotent `migrate.sql` yolu denendi.
+      - Seed: herkese açık koleksiyonlardaki coin'lere yapay ulusal yüz fotoğrafı (`DevData/SeedPhotos`,
+        metale göre renkli disk; değer başına bir kez işlenir), diğerleri fotoğrafsız.
+      - Testler: `PublicationTests` (kural, kati kontroller, tek istekte kayıt, filtre), `SiteSettingsTests`
+        (panel ucu, denetim kaydı, aralık, eşik yükseltme; `SiteSettingsCollection` diğer testlerle aynı anda
+        koşmaz). Testlerde eşik 2 (`CoinPortalFactory.MinPublicCoins`); Public kuran eski testler
+        `PublishAsync` / `CreatePublicCollectionAsync` / `CreatePhotographedCoinAsync` kullanır. e2e
+        yardımcıları `createPhotographedCoin`, `publish` (e2e'de eşik varsayılan 10). API 243 test.
+    - **2. aşama, client (sırada):** panelde "Genel ayarlar" bölümü (eşik + etki sayısı), koleksiyon
+      sayfasının başında her zaman görünen uyarı ("7/10 fotoğraflı coin · 3 coin'in ulusal yüzü eksik · …";
+      şartlar sağlanınca "Hazır · Herkese açık yap" butonu), uyarı pencereleri (`would_unpublish`), görünürlük
+      seçiminde Public'in kapalı olması, coin formunun yeni coin'i fotoğraflarıyla tek istekte kaydetmesi,
+      fotoğrafsız filtresi, denetim kaydında `SettingChanged`, kullanım şartlarına kural cümlesi, e2e.
+    - **3. aşama (sonra):** coin ikonlarının düzeltilmesi (`.notes/designs/coin-icons/`), fotoğrafsız coin'de
+      değere göre ikon, ortak yüz fotoğrafı yoksa yerinde değer ikonu.
 
 ## Yol haritası
 
@@ -1382,6 +1427,12 @@ mağaza için TWA.
       bölümleri eklenir (panelin kendisi 12. adımda). Turnstile giriş formuna da (Açık konular 16).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
+- [ ] 18. **Euro dışı coin'ler** (kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
+      ekleme sayfasının başında "Euro coin / Diğer coin" seçimi; Euro bugünkü form, Diğer serbest değer ve
+      para birimi, tüm ülkeler (`Intl.DisplayNames`), yüz adları "Ön yüz / Arka yüz" (veritabanındaki iki yüz
+      yeri aynen, etiketler türe göre). **Diğer coin'de iki yüzün fotoğrafı zorunlu** (standart bir ortak yüz
+      yok); bunun için sadece `Publishing/PublicationRules.IsPhotographed` değişir. Fotoğrafsız diğer coin'in
+      yer tutucusu bugünkü genel çizim (`CoinPlaceholder`).
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1436,6 +1487,9 @@ bağlanmadı; sadece o raporda. Açık konular ve yayın öncesi listesine dokun
 kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi maddeleri) #20'de yapılır.
 
 ## Sıradaki adım
+
+**Devam eden iş (2026-10-05):** `feat/public-requirements` 2. aşama (client), Tamamlananlar 75'teki listeye
+göre; sonra merge. 3. aşama (coin ikonları) ondan sonra, ikon hatalarına kullanıcıyla birlikte bakılır.
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
@@ -1505,6 +1559,38 @@ Kararlar (2026-09-27, kullanıcıyla):
 - Varsayılanlar (2026-09-27): profil `/u/{kullanıcı}`, herkese açık koleksiyon `/u/{kullanıcı}/{id}`,
   gizli link `/s/{anahtar}`, Keşfet `/explore`; "sadece linkle"den çıkınca link iptal, tekrar
   açılınca yeni link; herkese açık koleksiyonu olmayan profil 404.
+
+## Herkese açık koleksiyon kuralı: kararlar
+
+Kararlar (2026-10-05, kullanıcıyla). Gerekçe: site bir vitrin; fotoğrafsız coin'i yayına sokmak boş vitrin
+sergilemek gibi.
+
+- **Kural:** bir koleksiyon ancak bütün coin'lerinin fotoğrafı varsa ve en az eşik kadar fotoğraflı coin'i
+  varsa Herkese açık olabilir. Sayılan coin satırıdır, adet (`Quantity`) değil.
+- **Fotoğraflı coin = ulusal yüzünün fotoğrafı olan coin.** Euro'da farklı olan yüz ulusal yüz, ortak yüz
+  her ülkede aynı; sadece ortak yüzü olan coin sayılmaz.
+- **Eşik site ayarı, varsayılan 10**, admin panelden değiştirir ("Genel ayarlar" bölümü), değişiklik
+  denetim kaydına yazılır. Panel kaydetmeden önce bu eşiğin altında kalacak yayındaki koleksiyon sayısını
+  gösterir.
+- **Eşik yükseltilince** yayındaki koleksiyonlar hemen inmez; sayı kontrolü sadece sayıyı azaltan
+  işlemlerde (coin silme, taşıma) yapılır. Eşiğin altındaki bir yayına coin eklemek onu indirmez.
+- **Linkle paylaşılan ve Gizli koleksiyonlarda kural yok**; fotoğrafsız coin serbest. Fotoğrafsız coin'lerde
+  değere göre coin ikonu gösterilecek (3. aşama).
+- **Kati kural:** Public bir koleksiyonun şartını bozacak işlem uyarı penceresiyle sorulur; kullanıcı
+  onaylarsa işlem yapılır ve koleksiyon **Linkle paylaşılana** geçer (yeni link; herkese açık adres çalışmaz,
+  pencere bunu söyler). Kontrolü API yapar (`would_unpublish`), iki sekme açık olsa da kural delinmez.
+- **Yeni coin fotoğraflarıyla tek istekte** kaydedilir: coin bir an bile fotoğrafsız var olmaz. Kullanıcının
+  önerdiği "bir dakikalık süre + arka planda kontrol" yerine seçildi: arka plan zamanlayıcısı uygulama
+  yeniden başlayınca kaybolur, kullanıcı beklemede kalır, yarış olur.
+- **Yayına alma butonla** (otomatik değil): şartlar sağlanınca koleksiyon sayfasındaki uyarı "Hazır ·
+  Herkese açık yap" olur; yayına almak bilinçli bir adım kalır.
+- **Koleksiyon sayfasının başındaki uyarı her zaman görünür** (bilerek Gizli tutulan koleksiyonlarda da,
+  kapatılamaz). Metin duruma göre: Gizli'de "linkle paylaşabilirsin" ipucu, Linkle paylaşılanda yok;
+  "N coin eksik" fotoğrafsız filtresine götürür.
+- **Fotoğrafsız filtresi** coin listesinde (sahip için).
+- **Canlı veri:** migration kurala uymayan Public koleksiyonları Linkle paylaşılana çeker (canlıda 2
+  kullanıcı, 2 coin; şimdi yapmak ucuz).
+- **Gelecek:** Euro dışı coin'lerde iki yüz zorunlu (yol haritası 18, Açık konular 10).
 
 ## Çok dilli destek: kararlar
 
@@ -1781,6 +1867,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (şu an 25 Euro ihraççısı, `Countries` tablosu; tarihî ülkeler de gerekebilir), yılın genelleşmesi
     (şu an 1999 ve sonrası, `CK_Coins_Year`; antikalarda tahmini yıl/dönem), para birimi. Euro'ya özgü
     kurallar (ulusal/ortak yüz, 2 € hatıra) sadece Euro türünde geçerli olmalı.
+    **2026-10-05 güncellemesi:** tür koleksiyonda değil coin'de düşünülüyor (coin ekleme sayfasında seçim,
+    yol haritası 18). Herkese açık koleksiyon kuralı: Euro coin ulusal yüzüyle, diğer coin iki yüzüyle
+    fotoğraflı sayılır; kural tek yerde (`PublicationRules`), tür gelince orası değişir. Tür alanı şimdi
+    eklenmedi (ileride `Euro` varsayılanıyla eklemek kolay bir migration).
 11. ~~**İstek sınırlama (rate limiting) yok**~~ (kapandı 2026-10-01): yerleşik rate limiter, Tamamlananlar
     28. Sınırlar bellekte (uygulama yeniden başlayınca sıfırlanır) ve IP başına: sitenin önüne CDN/proxy
     konursa `UseForwardedHeaders` + `KnownProxies` gerekir, yoksa herkes proxy'nin IP'siyle tek kovaya

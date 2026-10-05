@@ -148,7 +148,9 @@ npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md     # regenerate for a release
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
 (e-postalar `@example.com`), parola hepsi için `Coinportal1`. Her birinde "Koleksiyonum" ve
 "Hatıra paraları" koleksiyonları var; seed ayrıca ayse'nin "Koleksiyonum"unu ve elif'in "Hatıra
-paraları"nı herkese açık, jonas'ın "Koleksiyonum"unu sadece linkle yapar. **Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
+paraları"nı herkese açık, jonas'ın "Koleksiyonum"unu sadece linkle yapar; herkese açık koleksiyonlardaki
+coin'lere yapay ulusal yüz fotoğrafı koyar (`DevData/SeedPhotos`, kural gereği), diğerleri fotoğrafsız.
+**Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
 sıfırlar**; kullanıcı onlarla deneme yapmış olabilir (fotoğraf yüklemiş vb.), çalıştırmadan önce sor.
 API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-data` kullanılabilir.
 
@@ -160,6 +162,7 @@ src/api/                ASP.NET Core API (proje CoinPortal.Api). Controllers/ (+
                         AppDbContext, Migrations/), DevData/ (dev only), Photos/ (storage, image
                         processing, orphan sweep), Authorization/ (roller, policy'ler, admin senkronu), Querying/,
                         Validation/, Localization/, Accounts/ (hesap silme, veri dışa aktarma),
+                        Publishing/ (herkese açık koleksiyon kuralı),
                         Hosting/ (Serilog, DataProtection, rate limiter,
                         client'ın wwwroot'tan sunulması), App_Data/{photos,logs,keys} (gitignored)
 src/web/                Angular client (proje adı `web`, derleme çıktısı dist/web/browser)
@@ -186,7 +189,18 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `noindex`). Koleksiyon sayfası tek bileşen, route data `mode`
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
 - Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
-  Unlisted iken var; başka görünürlüğe geçince silinir) / `Public`.
+  Unlisted iken var; başka görünürlüğe geçince silinir; `Collection.SetVisibility`) / `Public`.
+- **Herkese açık koleksiyon kuralı** (`Publishing/`, kararlar PROJECT_STATUS'ta): Public olmak için bütün
+  coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
+  **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
+  sorgular, filtre (`photographed=`), kontroller ondan geçer, kuralı başka yerde yeniden yazma. Public'e
+  geçişte 400 `public_requirements` (+ sayılar). Public koleksiyonu bozacak her işlem `PublicationGuard.
+  BrokenByAsync` ile kontrol edilir: onaysız 409 `would_unpublish` (+ `collections`), `?unpublish=true` ile
+  işlem yapılır ve koleksiyon aynı kayıtta Unlisted olur. **Coin'in fotoğraflarını, koleksiyonunu ya da
+  varlığını değiştiren yeni bir uç da bu kontrolü yapar ve testiyle gelir.** Sayı kontrolü sadece sayıyı
+  azaltan işlemde (eşik yükselince yayındakiler hemen inmez). Yeni coin fotoğraflarıyla tek istekte
+  (`POST api/coins/with-photos` multipart: `coin` JSON + `national` / `common`). Kilit yok: aynı kullanıcının eşzamanlı
+  iki isteği sayıyı aşabilir (kota gibi bilinçli); fotoğraf kısmı her durumda tutar.
 
 - Auth: ASP.NET Core Identity + HttpOnly cookie `coinportal.auth` (JWT yok, SPA ile API aynı origin).
   Oturum 14 gün, kullandıkça uzar; login'de "Beni hatırla" varsayılan işaretli, kayıt kalıcı oturum açar
@@ -238,6 +252,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   uygulanır, hesap işlemleri admin olmayanlara:** admin'in koleksiyonu gizlenebilir (panelde sahibinin
   yanında "Admin" rozeti, `ownerIsAdmin`), admin hesabı kilitlenemez. Admin kendi koleksiyonunun
   kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
+  Site geneli ayarlar `SiteSettings` tablosunda (tek satır, satırı migration ekler, `HasData` değil: bir
+  model değişikliği admin'in değerini ezerdi), admin `api/admin/settings` ile değiştirir; değişiklik
+  `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır.
   Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
   kendi hesaplarını Ayarlar'dan silemez (`admin_account`; paneldeki silmede `cannot_delete_admin`), önce
   ayardan çıkarılırlar.
@@ -358,7 +375,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   kaynağı 404, girişsiz 401, görünürlük). Test projesi görsel kütüphanesine referans vermez (`TestImages`
   PNG'yi elle üretir). xUnit v3 4.x Microsoft Testing Platform ister (`global.json` → `test.runner`).
   Admin testleri `[Collection(AdminCollection.Name)]` içinde (sırayla çalışır: `SyncAdminsAsync` diğer
-  admin'lerin rolünü alır); admin kullanıcı `factory.SignUpAdminAsync()`. Açılış kodu veritabanına
+  admin'lerin rolünü alır); admin kullanıcı `factory.SignUpAdminAsync()`. Testlerde yayın eşiği 2
+  (`CoinPortalFactory.MinPublicCoins`, factory migration'dan sonra yazar): Public koleksiyon
+  `user.PublishAsync(c)` / `CreatePublicCollectionAsync()` ile kurulur (eşiğe kadar fotoğraflı coin ekler),
+  Public koleksiyona coin `CreatePhotographedCoinAsync` ile eklenir. **Site ayarını değiştiren testler**
+  `[Collection(SiteSettingsCollection.Name)]` içinde (`DisableParallelization`: hiçbir testle aynı anda
+  koşmaz) ve değeri `finally`'de geri koyar. Açılış kodu veritabanına
   eriştiği için factory migration'ı host başlamadan uygular. Testlerde cookie her istekte doğrulanır
   (`ValidationInterval` sıfır; kilit ve rol hemen yansır), bu yüzden girişli yanıtlar cookie yeniler ve
   `no-cache` olur: önbellek başlığını girişsiz istemciyle test et. API'nin açmadığı alanlar için
@@ -585,7 +607,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ayrı portta olmalı). Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
   dizüstünde zaman aşımı yapar); CI'da Chromium. Arayüz İngilizce (`locale: 'en-US'`), seçiciler rol ve
   görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`), girişli tarayıcı
-  `user.browser(browser)`. Her sayfa `expectAccessible(page, ad)` (axe, WCAG 2.1 AA): **ciddi ve kritik
+  `user.browser(browser)`. Public koleksiyon `user.publish(c)` ile (e2e'de eşik varsayılan 10, yardımcı
+  eksik fotoğraflı coin'leri ekler), Public koleksiyona coin `createPhotographedCoin` ile. Her sayfa `expectAccessible(page, ad)` (axe, WCAG 2.1 AA): **ciddi ve kritik
   bulgu testi kırar** (kullanıcı kararı 2026-10-04), azı raporda; tarama animasyonlar bitince yapılır
   (yarı saydam pencere yanlış kontrast verir). Mobil kart listesi ve masaüstü tablo ikisi de DOM'da:
   metin seçicilerinde `.filter({ visible: true })`. Yeni bir kritik akış ya da sayfa e2e testiyle ve
