@@ -1,18 +1,17 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-05 (**`v1.3.0` yayında**: P2 (#31–#34, Tamamlananlar 66–69) ve Angular 21.2.25
-(Tamamlananlar 70), yayın Tamamlananlar 71. P1 `v1.1.0` ve `v1.2.0`'da (Tamamlananlar 54–65). Yeni logo
-(`feat/logo`, Tamamlananlar 72) ve yeni ana sayfa (`feat/home-page`, onun üstünde, Tamamlananlar 73)
-2026-10-05'te `main`'e alındı, push ve yayın bekliyor; kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+Son güncelleme: 2026-10-05 (**`v1.4.0` yayında**: yeni logo (Tamamlananlar 72) ve yeni ana sayfa
+(Tamamlananlar 73), yayın Tamamlananlar 74. Önceki sürümler: `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
+`v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket ve Release `v1.3.0` (2026-10-04, "latest"), canlıda `v1.3.0`.
+- Durum: `main` güncel ve temiz; son etiket ve Release `v1.4.0` (2026-10-05, "latest"), canlıda `v1.4.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.3.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.4.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -1314,6 +1313,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Almanca ve Bulgarca kontrol edildi (5090'da ayrı API ile).
     - **Saklanan taslak:** 8 euro coin'i için açık kutulu çizgi ikonlar (`.notes/designs/coin-icons/`):
       kullanıcı beğendi, "küçük kusurlar var, başka bir zaman kullanacağız".
+74. **`v1.4.0`** (`chore/release-v1.4.0`, 2026-10-05): yeni logo (Tamamlananlar 72) ve yeni ana sayfa
+    (Tamamlananlar 73). Migration yok, sunucu hazırlığı yok. Pipeline (Release #7): Checks (API, Web, E2E
+    paralel), Package, kullanıcı onayı, Deploy, hepsi başarılı; canlı `/api/health` `1.4.0+8225c9e`, ana
+    sayfa, `favicon.svg`, ikonlar ve manifest 200, `api/coins/summary` girişsiz 401, Keşfet'te çok kelimeli
+    arama 200. Release notları `.notes/release-v1.4.0.md`, kullanıcı onayıyla Claude
+    `.notes/scripts/create-release.js` ile yayınladı ("latest"). Pipeline'ı izlemek için yeni lokal betik
+    `.notes/scripts/run-status.js <repo> <etiket>` (sadece okur; koşu, işler, onay bekleme durumu).
 
 ## Yol haritası
 
@@ -1434,12 +1440,12 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
 (Tamamlananlar 69). **P2 bitti ve `v1.3.0` ile yayında** (2026-10-04, Tamamlananlar 71); P1 `v1.1.0` ve
-`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti (Tamamlananlar 72–73), kullanıcı başka görsel düzenlemeler de yapacak (2026-10-04); ikisi `main`'de (2026-10-05), push ve yayın (`v1.4.0` adayı) bekliyor. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
+`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti ve `v1.4.0` ile yayında (Tamamlananlar 72–74), kullanıcı başka görsel düzenlemeler de yapacak. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
-    "Required reviewers"); karar kullanıcının. (`v1.1.0`, `v1.2.0` ve `v1.3.0` sorunsuz.)
+    "Required reviewers"); karar kullanıcının. (`v1.1.0`–`v1.4.0` sorunsuz.)
   - ~~Yetim süpürmenin canlı sonucu~~ (kullanıcı 2026-10-04'te baktı, çalışıyor).
   - Esc düzeltmesi (Tamamlananlar 64) canlıda bir kez denenir (kırpma penceresi). 2026-10-04: denenemedi,
     şirket bilgisayarından site açılmıyor (Defender), telefonda Esc yok; masaüstü bir tarayıcıda bakılır.
