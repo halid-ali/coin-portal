@@ -175,7 +175,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
-- Rotalar: `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
+- Rotalar: `/` (ana sayfa: girişsiz `HomeWelcome` tanıtım, girişli `HomeDashboard` pano; `pages/home/`),
+  `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
   `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `account`).
   Eski `/collection…` adresleri yönlendirilir.
   Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`; `adminGuard`).
@@ -279,7 +280,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (PublicController). Fotoğraf ve kapak GET'leri `CanView` kullanır (`[AllowAnonymous]`).
   Girişsiz okuma uçları `PublicController` (`api/public/...`) altında; yanıtlarda kullanıcı adı dışında
   kişisel veri olmaz, görünmeyen her şey 404. Coin listesi filtre/sıralama/sayfalama `CoinListing`
-  ile paylaşılır. Keşfet'te `pageSize=0` (tümü) yasak (girişsiz, tüm veriyi tarar).
+  ile paylaşılır. Arama kelime kelime: her kelime başlıkta ya da açıklamada geçmeli, sıra önemsiz
+  ("almanya 2006" → "2 € · Almanya · 2006"; en fazla `MaxSearchTerms` kelime). Keşfet'te `pageSize=0`
+  (tümü) yasak (girişsiz, tüm veriyi tarar).
 - **Arayüz metni API'de üretilmez**, çeviri client'ta. İstemcinin kendi mesajını göstermesi gereken
   hatalarda ProblemDetails'e makine kodu eklenir (`this.CodedProblem(code, title)`, ör.
   `invalid_image`, `last_collection`). Alan hatalarında ise
@@ -509,6 +512,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   okudum ve şartları kabul ediyorum" kutusu zorunlu (API `RegisterRequest.AcceptTerms`, `[MustBeTrue]`).
 - Üst menü (navbar) öğeleri `layout/header/header.ts` içindeki `NAV_ITEMS` listesinde (`public: true`
   girişsiz de görünür); masaüstü ve mobil menü aynı listeyi kullanır.
+- **Yan yana butonlar telefonda:** yazı kırılmaz (`whitespace-nowrap`), butonlar `flex-auto` ve kapsayıcı
+  `flex-wrap`: sığmazlarsa (dar ekran, uzun dil) alt alta geçerler (ana sayfa). Dört dilde 360 px'te ölçülür.
 - Paylaşılan (Unlisted) koleksiyonda fotoğraf URL'lerine anahtar eklenir: `photoUrl(…, shareToken)`,
   `coverUrl(…, shareToken)`, `CoinThumb`/`PhotoViewer` `[shareToken]` input'u.
 - **Girişsiz sayfalar sahibe özel kodu indirmez:** koleksiyon sayfası salt okunur modlarda da kullanıldığı için
@@ -546,7 +551,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
     `coin.side.<değer>.label`, `visibility.<değer>.label`, `coin.sort.<sütun>.asc`.
   - Dil sırası: hesaptaki dil > bu tarayıcıdaki son seçim (`localStorage` `coinportal.language`) >
     tarayıcı dili > İngilizce. Açılışta ve girişte `LanguageService.use()`; çeviri yüklenmeden dil
-    değişmez. Dil seçici footer'da (herkes) ve Ayarlar > Görünüm'de; ikisi de `LanguagePreference.change()`
+    değişmez. Dil seçici footer'da (herkes), telefonda girişsiz ziyaretçiye ayrıca header'da tema
+    butonunun yanında ikon olarak (`iconOnly`; footer telefonda sayfanın sonunda kalıyor) ve Ayarlar >
+    Görünüm'de; hepsi `LanguagePreference.change()`
     kullanır (girişliyse önce hesaba kaydeder). Seçici `shared/language-select` (bayraklı liste kutusu,
     klavyeyle kullanılır; native `<select>` resim gösteremez, emoji bayraklar Windows'ta harf çıkar),
     bayraklar `shared/flag` (inline SVG).
