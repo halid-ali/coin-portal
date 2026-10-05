@@ -187,6 +187,52 @@ public class CoinsTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task List_SearchMatchesEveryWordInAnyOrder()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        await alice.CreateCoinAsync(collection.Id, "2 € · Almanya · 2006");
+        await alice.CreateCoinAsync(collection.Id, "2 € · Almanya · 2011", year: 2011);
+        await alice.CreateCoinAsync(collection.Id, "2 € · Avusturya · 2006", "AT");
+
+        async Task<IEnumerable<string>> Titles(string search) =>
+            (await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>(
+                $"/api/coins?search={Uri.EscapeDataString(search)}")).Items.Select(c => c.Title);
+
+        Assert.Equal(["2 € · Almanya · 2006"], await Titles("almanya 2006"));
+        Assert.Equal(["2 € · Almanya · 2006"], await Titles("  2006   ALMANYA "));
+        Assert.Equal(3, (await Titles("2 €")).Count());
+        Assert.Empty(await Titles("almanya 1999"));
+    }
+
+    [Fact]
+    public async Task Summary_CountsOwnCoinsCountriesAndCommemoratives()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        var first = await alice.FirstCollectionAsync();
+        var second = await alice.CreateCollectionAsync();
+        await alice.CreateCoinAsync(first.Id, "A", "DE");
+        await alice.CreateCoinAsync(first.Id, "B", "DE", 2011);
+        var commemorative = TestUser.NewCoin(second.Id, "C", "AT");
+        commemorative.IsCommemorative = true;
+        using (var created = await alice.Client.PostAsync("/api/coins", commemorative))
+        {
+            await created.ShouldHaveStatusAsync(HttpStatusCode.Created);
+        }
+        await bob.CreateCoinAsync((await bob.FirstCollectionAsync()).Id, "Not Alice's", "FR");
+
+        var summary = await alice.Client.GetJsonAsync<CoinSummaryResponse>("/api/coins/summary");
+        var empty = await factory.SignUpAsync();
+
+        Assert.Equal(new CoinSummaryResponse(3, 2, 1), summary);
+        Assert.Equal(new CoinSummaryResponse(0, 0, 0),
+            await empty.Client.GetJsonAsync<CoinSummaryResponse>("/api/coins/summary"));
+        await (await factory.CreateAnonymousClientAsync())
+            .ExpectStatusAsync("/api/coins/summary", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task List_FiltersByYearAndCommemorative()
     {
         var alice = await factory.SignUpAsync();
