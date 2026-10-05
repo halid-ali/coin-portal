@@ -48,3 +48,24 @@ test('the dashboard shows the counts and checks whether a coin is owned', async 
   await context.close();
   await user.dispose();
 });
+
+// Phones: the footer (with its language selector) is at the end of the page, so visitors get a
+// languages button in the navbar
+test('visitors on a phone switch the language from the navbar', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto('/');
+
+  const navbar = page.getByRole('banner');
+  await navbar.getByRole('button', { name: 'Language: English' }).click();
+  await expect(page.getByRole('option')).toHaveCount(4);
+  await expectAccessible(page, 'languages list (phone)');
+  await page.getByRole('option', { name: 'Deutsch' }).click();
+
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Deine Sammlung als Vitrine für die Hosentasche.',
+    }),
+  ).toBeVisible();
+  await expect(navbar.getByRole('button', { name: 'Sprache: Deutsch' })).toBeVisible();
+});

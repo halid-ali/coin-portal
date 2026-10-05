@@ -8,6 +8,9 @@ import { filter } from 'rxjs';
 import { UserResponse } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { Language } from '../../core/i18n/languages';
+import { LanguagePreference } from '../../core/settings/language-preference';
+import { LanguageSelect } from '../../shared/language-select/language-select';
 import { Logo } from '../../shared/logo/logo';
 import { ThemeToggle } from '../../shared/theme-toggle/theme-toggle';
 
@@ -19,7 +22,15 @@ const NAV_ITEMS: readonly { path: string; labelKey: string; icon: string; public
 
 @Component({
   selector: 'app-header',
-  imports: [NgTemplateOutlet, RouterLink, RouterLinkActive, TranslocoPipe, Logo, ThemeToggle],
+  imports: [
+    NgTemplateOutlet,
+    RouterLink,
+    RouterLinkActive,
+    TranslocoPipe,
+    LanguageSelect,
+    Logo,
+    ThemeToggle,
+  ],
   templateUrl: './header.html',
   host: {
     // Sticky here, not on <header>: a sticky element cannot leave its parent, and this host is
@@ -32,7 +43,8 @@ const NAV_ITEMS: readonly { path: string; labelKey: string; icon: string; public
 })
 export class Header {
   protected readonly auth = inject(AuthService);
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
+  private readonly languagePreference = inject(LanguagePreference);
   private readonly router = inject(Router);
 
   protected readonly navItems = computed(() =>
@@ -52,6 +64,11 @@ export class Header {
         takeUntilDestroyed(),
       )
       .subscribe(() => this.closeMenus());
+  }
+
+  /** Signed out only (phones): nothing to save to an account, so nothing can fail. */
+  protected chooseLanguage(lang: Language): void {
+    void this.languagePreference.change(lang).catch(() => undefined);
   }
 
   protected initials(user: UserResponse): string {
