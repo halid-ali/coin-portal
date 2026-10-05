@@ -83,7 +83,8 @@ terminallerinde sürekli çalışır halde tutuyor.
 - Yayın akışı (kullanıcı onayıyla; git-cliff sürümü sabit, yükseltmesi bilinçli): main'de
   `npx git-cliff@2.14.2 --bumped-version` önerisine bakılır (1.0.0'a
   kadar breaking → minor, feat → minor, fix → patch; karar kullanıcıyla) → `chore/release-vX.Y.Z`
-  branch'inde `npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md` + commit `chore(release): vX.Y.Z` → merge →
+  branch'inde `npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md`, README'deki sabit "tests" rozeti son
+  sayılarla (API + client + e2e toplamı; diğer rozetler canlı) + commit `chore(release): vX.Y.Z` → merge →
   merge commit'ine `git tag -a vX.Y.Z -m "vX.Y.Z"`. `v1.0.0` ilk gerçek (hosting) yayını.
 - Canlı site MonsterASP.NET'te (https://coinvitrine.com; sağlayıcının adresi `coinportal.runasp.net`
   ve `www.` oraya yönlenir).
