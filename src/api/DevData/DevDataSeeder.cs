@@ -44,6 +44,9 @@ public static class DevDataSeeder
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var photoStorage = scope.ServiceProvider.GetRequiredService<IPhotoStorage>();
+        var imageProcessor = scope.ServiceProvider.GetRequiredService<IImageProcessor>();
+        // One stand-in photo per denomination, processed once
+        Dictionary<Denomination, IReadOnlyDictionary<string, byte[]>> processed = [];
 
         // Make sure the schema is up to date before inserting
         await db.Database.MigrateAsync();
@@ -111,7 +114,7 @@ public static class DevDataSeeder
             }
             db.Collections.AddRange(main, commemorative);
 
-            db.Coins.AddRange(seedUser.Coins.Select(c => new Coin
+            var coins = seedUser.Coins.Select(c => new Coin
             {
                 OwnerId = user.Id,
                 Collection = c.IsCommemorative ? commemorative : main,
@@ -125,7 +128,30 @@ public static class DevDataSeeder
                 Quantity = c.Quantity,
                 CreatedAtUtc = c.CreatedAtUtc,
                 UpdatedAtUtc = c.CreatedAtUtc,
-            }));
+            }).ToList();
+            db.Coins.AddRange(coins);
+
+            // A public collection needs a national side photo of every coin (PublicationRules):
+            // stand-in photos there, none elsewhere, so the "without photo" filter has work too
+            foreach (var coin in coins.Where(c => c.Collection.Visibility == CollectionVisibility.Public))
+            {
+                if (!processed.TryGetValue(coin.Denomination, out var files))
+                {
+                    using var source = new MemoryStream(SeedPhotos.Png(coin.Denomination));
+                    var sizes = await imageProcessor.ProcessAsync(source, CancellationToken.None);
+                    files = sizes.ToDictionary(s => s.Key.FileName(), s => s.Value);
+                    processed[coin.Denomination] = files;
+                }
+                var photo = new CoinPhoto
+                {
+                    Id = Guid.NewGuid(),
+                    Side = CoinSide.National,
+                    SizeBytes = files.Values.Sum(f => (long)f.Length),
+                    CreatedAtUtc = coin.CreatedAtUtc,
+                };
+                await photoStorage.SaveAsync(user.Id, photo.Id, files, CancellationToken.None);
+                coin.Photos.Add(photo);
+            }
             await db.SaveChangesAsync();
 
             logger.LogInformation(
