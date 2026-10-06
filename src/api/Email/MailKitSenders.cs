@@ -54,7 +54,8 @@ internal static class MimeMessages
         mime.From.Add(new MailboxAddress(settings.FromName, settings.FromAddress));
         mime.To.Add(new MailboxAddress(message.ToName, message.ToAddress));
         mime.Subject = message.Subject;
-        mime.Body = new TextPart("plain") { Text = message.Body };
+        // multipart/alternative when there is HTML: the program shows the best part it can
+        mime.Body = new BodyBuilder { TextBody = message.Body, HtmlBody = message.HtmlBody }.ToMessageBody();
         return mime;
     }
 }

@@ -48,8 +48,9 @@ public sealed class EmailVerification(
     {
         var token = tokens.Create(user.Id, user.Email!);
         var link = $"{options.Value.SiteUrl}/verify-email?token={Uri.EscapeDataString(token)}";
-        var (subject, body) = EmailTexts.Verification(user.PreferredLanguage, user.FirstName, link,
+        var mail = EmailTexts.Verification(user.PreferredLanguage, user.FirstName, link,
             (int)EmailVerificationTokens.Lifetime.TotalHours);
-        return sender.SendAsync(new MailMessage(user.Email!, $"{user.FirstName} {user.LastName}", subject, body), ct);
+        return sender.SendAsync(new MailMessage(user.Email!, $"{user.FirstName} {user.LastName}", mail.Subject,
+            mail.Text, mail.Html), ct);
     }
 }

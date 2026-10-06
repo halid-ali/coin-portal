@@ -1619,8 +1619,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       (girişli, yeni `Email` politikası 10 dk'da 3, 503 `email_not_sent`). `me`/login/kayıt yanıtında
       `emailConfirmed`; admin kullanıcı listesi ve detayında, dışa aktarmada (`account.json`) da.
       Koleksiyon Create/Update/Publish yeni paylaşımda 403 `email_not_confirmed`.
-    - **E-posta metni** düz metin, dört dilde (`Email/EmailTexts`; Almanca "du", Bulgarca "Вие", mevcut
-      çevirilerle aynı). Gönderen `CoinVitrine <contact@coinvitrine.com>`.
+    - **E-posta metni** dört dilde (`Email/EmailTexts`; Almanca "du", Bulgarca "Вие", mevcut
+      çevirilerle aynı). Gönderen `CoinVitrine <contact@coinvitrine.com>`. Düz metin + HTML (kullanıcı kararı
+      2026-10-06: smtp4dev düz metindeki linki tıklanabilir göstermiyordu, programlara göre değişir): HTML'de
+      amber "doğrula" butonu, altında linkin kendisi; sade kart, dışarıdan görsel yok (engellenir, okunduğunu
+      ele verir), ad HTML'e kodlanarak (`EmailHtml`, test `HtmlBody_EncodesTheName`). Masaüstü ve 360 px'te
+      headless Edge'de bakıldı.
     - **Client:** `layout/email-banner` (her sayfanın üstünde, tekrar gönder; `role="status"`/`alert`),
       `/verify-email` sayfası (girişsiz de; token adres çubuğundan silinir, `noindex`; girişliyse `me`
       yenilenir), koleksiyon formunda kapalı seçenekler + gerekçe, koleksiyon sayfasında yayın butonu
@@ -1629,7 +1633,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - **Gizlilik:** `privacy.data.i5`, `purposes.i1`, `hosting.p1` dört dilde (hesap e-postaları, sadece
       hesapla ilgili, MonsterASP'tan gönderilir); `PRIVACY_UPDATED` 2026-10-06. Log maskesine `token=`.
       `THIRD-PARTY-NOTICES.md`: MailKit/MimeKit, BouncyCastle (MIT).
-    - **Testler:** API 12 yeni (`EmailVerificationTests`: dil, `SiteUrl`, çıkıştan sonra link, bozuk/süresi
+    - **Testler:** API 13 yeni (`EmailVerificationTests`: dil, `SiteUrl`, HTML gövdesi ve adın kodlanması, çıkıştan sonra link, bozuk/süresi
       dolmuş/başka adres/kullanıcısız token, tekrar gönderme sınırı, sunucu kapalıyken kayıt + 503, paylaşma
       kuralı, eskiden paylaşılmışın kalması) + matris satırları + admin/dışa aktarma kontrolleri; testler
       `FakeMailSender` ile, `SignUpAsync` varsayılan doğrulanmış. Client: `email-banner.spec`,

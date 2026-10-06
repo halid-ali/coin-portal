@@ -39,7 +39,7 @@ function latestLink(address: string): string | null {
     if (!headers.toLowerCase().includes(`<${address.toLowerCase()}>`)) {
       continue;
     }
-    const link = /\/verify-email\?token=[^\s]+/.exec(body);
+    const link = /\/verify-email\?token=[^\s]+/.exec(plainText(headers, body));
     if (link) {
       return link[0];
     }
@@ -47,7 +47,25 @@ function latestLink(address: string): string | null {
   return null;
 }
 
-/** Headers and the decoded plain-text body of a single-part message. */
+/**
+ * The plain-text part: the body itself, or the text/plain part of a multipart message (the API
+ * sends multipart/alternative, text and HTML).
+ */
+function plainText(headers: string, body: string): string {
+  const boundary = /content-type:\s*multipart\/[^;]+;[^]*?boundary="?([^"\r\n;]+)"?/i.exec(headers);
+  if (!boundary) {
+    return body;
+  }
+  for (const raw of body.split(`--${boundary[1]}`)) {
+    const part = raw.replace(/^\r?\n/, '');
+    if (/^content-type:\s*text\/plain/im.test(part.slice(0, part.search(/\r?\n\r?\n/)))) {
+      return parse(part).body;
+    }
+  }
+  return '';
+}
+
+/** Headers and the decoded body of a single part. */
 function parse(eml: string): { headers: string; body: string } {
   const split = /\r?\n\r?\n/.exec(eml)!;
   const headers = eml.slice(0, split.index);

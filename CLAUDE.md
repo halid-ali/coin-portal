@@ -321,7 +321,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yoksa Development dışında açılışta Warning. **Linkler `Email:SiteUrl`'den kurulur, isteğin `Host`'undan
   asla** (sahte Host başlığı linki saldırganın sitesine çevirirdi); loopback ise Development dışında
   Warning. E-posta metinleri **API'de** (`Email/EmailTexts`, dört dil, kaynak Türkçe; "arayüz metni API'de
-  üretilmez" kuralının bilinçli istisnası) ve kullanıcının diline göre. **Doğrulama linki**
+  üretilmez" kuralının bilinçli istisnası) ve kullanıcının diline göre. Her e-posta iki parçalı
+  (`multipart/alternative`): düz metin + aynı kelimelerle HTML (`EmailHtml`: tablolar, satır içi stil, hex
+  renkler; dışarıdan görsel ya da kaynak yok; **her metin `EmailHtml.Encode`'dan geçer**, ad kullanıcının).
+  **Doğrulama linki**
   `/verify-email?token=`: `EmailVerificationTokens` (Data Protection, kullanıcı Id + e-posta, 24 saat;
   Identity'nin token'ı değil, o güvenlik damgasına bağlı ve çıkış damgayı yeniler). `POST
   api/auth/verify-email` girişsiz (`Auth` hız sınırı, geçersizse 400 `invalid_token`), `POST

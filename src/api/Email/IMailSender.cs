@@ -11,5 +11,8 @@ public interface IMailSender
     Task SendAsync(MailMessage message, CancellationToken ct);
 }
 
-/// <summary>A plain-text e-mail to one recipient.</summary>
-public sealed record MailMessage(string ToAddress, string ToName, string Subject, string Body);
+/// <summary>An e-mail to one recipient: plain text, and the same as HTML when there is one.</summary>
+public sealed record MailMessage(string ToAddress, string ToName, string Subject, string Body, string? HtmlBody = null);
+
+/// <summary>What EmailTexts writes: the subject and both bodies.</summary>
+public sealed record MailContent(string Subject, string Text, string Html);

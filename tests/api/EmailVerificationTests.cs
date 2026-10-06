@@ -32,7 +32,26 @@ public class EmailVerificationTests(CoinPortalFactory factory)
         // The configured address, never the request's host
         Assert.Contains($"{CoinPortalFactory.SiteUrl}/verify-email?token=", mail.Body);
         Assert.Contains("Test", mail.Body); // the first name
+        // The same link behind the HTML body's button, in the same language
+        Assert.NotNull(mail.HtmlBody);
+        Assert.Contains($"""<a href="{CoinPortalFactory.SiteUrl}/verify-email?token=""", mail.HtmlBody);
+        Assert.Contains($"""<html lang="{language ?? "en"}">""", mail.HtmlBody);
+        Assert.Contains("Test", mail.HtmlBody);
         Assert.False(me.EmailConfirmed);
+    }
+
+    [Fact]
+    public void HtmlBody_EncodesTheName()
+    {
+        // Names may hold anything but control characters
+        var mail = EmailTexts.Verification("en", """<img src=x onerror="alert(1)"> & Co""",
+            "https://example.com/verify-email?token=a&b", 24);
+
+        Assert.DoesNotContain("<img", mail.Html);
+        Assert.Contains("&lt;img src=x onerror=&quot;alert(1)&quot;&gt; &amp; Co", mail.Html);
+        Assert.Contains("href=\"https://example.com/verify-email?token=a&amp;b\"", mail.Html);
+        // Plain text stays plain
+        Assert.Contains("""Hello <img src=x onerror="alert(1)"> & Co,""", mail.Text);
     }
 
     [Fact]
