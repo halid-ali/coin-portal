@@ -129,6 +129,57 @@ public static class TestImages
     /// <summary>Bytes that are no image at all.</summary>
     public static byte[] NotAnImage() => Encoding.UTF8.GetBytes("This is not an image, just text.");
 
+    /// <summary>An SVG with a script: an image to a browser, but never one the API may store.</summary>
+    public static byte[] SvgWithScript() => Encoding.UTF8.GetBytes(
+        """<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160"><script>alert(1)</script></svg>""");
+
+    /// <summary>An HTML page with a script.</summary>
+    public static byte[] Html() => Encoding.UTF8.GetBytes(
+        "<!DOCTYPE html><html><body><script>alert(1)</script></body></html>");
+
+    /// <summary>
+    /// A valid PNG that carries <paramref name="payload"/> twice: in a text chunk and after its end
+    /// (a polyglot). The stored image must hold neither.
+    /// </summary>
+    public static byte[] PngWithPayload(int width, int height, string payload)
+    {
+        var png = Png(width, height);
+        using var stream = new MemoryStream();
+        // Everything up to IEND (its 12 bytes: length, type, CRC), a tEXt chunk, IEND, then the payload
+        stream.Write(png, 0, png.Length - 12);
+        WriteChunk(stream, "tEXt", Encoding.Latin1.GetBytes("Comment\0" + payload));
+        WriteChunk(stream, "IEND", []);
+        stream.Write(Encoding.UTF8.GetBytes(payload));
+        return stream.ToArray();
+    }
+
+    /// <summary>
+    /// A PNG of a few hundred bytes whose header claims <paramref name="width"/> x
+    /// <paramref name="height"/> pixels (a decompression bomb's header): decoding it would need
+    /// gigabytes, so the size must be refused from the header alone.
+    /// </summary>
+    public static byte[] PngClaimingSize(int width, int height)
+    {
+        var header = new byte[13];
+        BinaryPrimitives.WriteInt32BigEndian(header, width);
+        BinaryPrimitives.WriteInt32BigEndian(header.AsSpan(4), height);
+        header[8] = 8; // bit depth
+        header[9] = 2; // color type: RGB
+
+        using var compressed = new MemoryStream();
+        using (var zlib = new ZLibStream(compressed, CompressionLevel.Fastest, leaveOpen: true))
+        {
+            zlib.Write(new byte[1 + width * 3]); // a single row of the claimed width
+        }
+
+        using var png = new MemoryStream();
+        png.Write(Signature);
+        WriteChunk(png, "IHDR", header);
+        WriteChunk(png, "IDAT", compressed.ToArray());
+        WriteChunk(png, "IEND", []);
+        return png.ToArray();
+    }
+
     /// <summary>
     /// The header of a lossless JPEG (SOF3, 200x160, one component): a real JPEG kind that image
     /// libraries recognize but do not decode.

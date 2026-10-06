@@ -2,8 +2,9 @@
 
 Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamamlananlar 77–78); `v1.5.0` herkese açık
 koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
-haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80) bitti, sıradaki 19c kötüye
-kullanım testleri. Önceki
+haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
+(81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti, sıradaki
+19d ZAP. Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1497,6 +1498,28 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       silinince eksik uç listelendi), sonra geri alındı.
     - `ApiClient.FileContent` / `CoinWithPhotosContent`: multipart gövdeleri tablodan da kurulabilsin diye
       ayrıldı. API testleri 297 (+52), süre ~1 dk.
+81. **Kötüye kullanım testleri ve paylaşım linkinin harf duyarlılığı** (`fix/share-token-case` +
+    `feat/abuse-tests`, 2026-10-06; yol haritası 19c).
+    - **Bulgu (düzeltildi):** paylaşım linki büyük/küçük harf duyarsızdı: `ShareToken` sütunu veritabanının
+      varsayılan (CI) collation'ını kullanıyordu, harfleri değiştirilmiş anahtar da koleksiyonu, coin
+      listesini, fotoğrafları ve kapağı açıyordu. Etki düşük (linki bilmeyen kullanamaz, tahmin edilecek
+      anahtar ~128 bitten ~110 bite iner), ama anahtar birebir eşleşmeli. Düzeltme: sütuna
+      `Latin1_General_BIN2` (migration `ShareTokenCaseSensitive`: unique index'i kaldırır, sütunu değiştirir,
+      index'i yeniden kurar; tek transaction, küçük tablo). Mevcut linkler aynen çalışır. Lokal veritabanına
+      uygulandı, çalışan API'de asıl link 200, harfi değişmiş link 404. Test `VisibilityTests.
+      ShareLink_WithItsLettersInOtherCase_DoesNotOpen`. Kural CLAUDE.md "Backend kuralları"nda (gizli değer
+      tutan sütun binary collation alır). **Sonraki yayında migration var:** pipeline özeti yedek uyarısı verir,
+      onaydan önce panelden veritabanı yedeği alınır.
+    - `tests/api/AbuseTests.cs` (41 test), hepsi geçti: gövdedeki fazladan alanlar (`id`, `ownerId`,
+      `createdAtUtc`, `shareToken`, `moderationLocked…`, `coverImageId`, kayıtta `roles`/`lockedAtUtc`,
+      ayarlarda `userName`/`email`) etkisiz; başkasının koleksiyonuna fotoğraflı coin reddedilir ve dosya
+      kalmaz; `?collectionId=<başkasının>` 404. Yükleme: `.jpg`/`.png` adlı SVG ve HTML `invalid_image`;
+      metin chunk'ında ve sonunda betik taşıyan PNG kabul edilir ama kaydedilen WebP'lerde yok, sunum
+      `image/webp` + `nosniff`; 50.000×50.000 diyen birkaç yüz baytlık PNG başlıktan reddedilir; dosya adındaki
+      `../../` yok sayılır. Sorgu: aramada `%`, `_`, `[`, `'`, `' OR '1'='1` düz metin; 17 sınır dışı değer
+      (sayfa, boyut, sıralama, yön, `countryOrder`, `collectionId`, yıl, ülke, değer) hem `api/coins` hem
+      Keşfet'te 400; uzun değerler 400, uzun ya da joker/yol içeren kullanıcı adı 404.
+    - `TestImages`: `SvgWithScript`, `Html`, `PngWithPayload`, `PngClaimingSize`. API testleri 339 (+42).
 
 ## Yol haritası
 
@@ -1572,7 +1595,8 @@ mağaza için TWA.
   - [x] 19b. **Yetki matrisi** (2026-10-06, Tamamlananlar 80; `AuthorizationMatrixTests`): her uç için
         beklenen sonuç tablosu (yabancı kullanıcı 404, girişsiz 401, admin olmayan 403, görünürlük). Tabloda
         olmayan yeni bir uç testi kırar (IDOR'a karşı en etkili koruma).
-  - [ ] 19c. Hedefli kötüye kullanım testleri: mass assignment (gövdede `ownerId`, başkasının
+  - [x] 19c. (2026-10-06, Tamamlananlar 81; paylaşım linkinin harf duyarsızlığı bulundu ve düzeltildi)
+        Hedefli kötüye kullanım testleri: mass assignment (gövdede `ownerId`, başkasının
         `collectionId`'si, fazladan alanlar), dosya yükleme (uzantısı JPEG olan SVG/HTML, küçük dosyada dev
         piksel boyutu, bozuk başlık), girdi parametreleri (`search`, `sort`, `countryOrder`, `owner`),
         paylaşım anahtarı (yanlış, kısa, başka koleksiyonun; görünürlük değişince eskisi çalışmaz).
@@ -1637,7 +1661,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → **19c kötüye kullanım testleri** (sıradaki) → 19d ZAP → 19e elle tarama. Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → **19d ZAP** (sıradaki) → 19e elle tarama. Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
