@@ -28,6 +28,7 @@ public class CollectionsController(
     UserManager<ApplicationUser> userManager,
     IPhotoStorage photoStorage,
     PublicationGuard publication,
+    UnverifiedAccounts unverified,
     IOptions<UserLimitOptions> limits) : ControllerBase
 {
     private string CurrentUserId => userManager.GetUserId(User)!;
@@ -65,7 +66,8 @@ public class CollectionsController(
         {
             return this.CodedProblem("collection_limit", "You have reached the maximum number of collections.");
         }
-        if (request.Visibility == CollectionVisibility.Unlisted && !await EmailConfirmedAsync(ct))
+        // The collection from sign-up is the only one until the address is confirmed
+        if (!await EmailConfirmedAsync(ct))
         {
             return this.EmailNotConfirmed();
         }
@@ -309,12 +311,7 @@ public class CollectionsController(
         return new ShareTokenResponse(collection.ShareToken);
     }
 
-    // Read for each request: the cookie does not carry it, and confirming must count at once
-    private Task<bool> EmailConfirmedAsync(CancellationToken ct)
-    {
-        var userId = CurrentUserId;
-        return db.Users.Where(u => u.Id == userId).Select(u => u.EmailConfirmed).SingleAsync(ct);
-    }
+    private Task<bool> EmailConfirmedAsync(CancellationToken ct) => unverified.IsConfirmedAsync(CurrentUserId, ct);
 
     private Task<Collection?> FindOwnedAsync(int id, CancellationToken ct)
     {

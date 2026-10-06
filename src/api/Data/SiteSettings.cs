@@ -14,6 +14,12 @@ public class SiteSettings
     /// <summary>Name of <see cref="MinPublicCoins"/> in the audit log.</summary>
     public const string MinPublicCoinsName = "MinPublicCoins";
 
+    public const int UnverifiedMaxCoinsMin = 0;
+    public const int UnverifiedMaxCoinsMax = 10_000;
+
+    /// <summary>Name of <see cref="UnverifiedMaxCoins"/> in the audit log.</summary>
+    public const string UnverifiedMaxCoinsName = "UnverifiedMaxCoins";
+
     public int Id { get; set; }
 
     /// <summary>
@@ -21,4 +27,10 @@ public class SiteSettings
     /// (<see cref="Publishing.PublicationRules"/>).
     /// </summary>
     public int MinPublicCoins { get; set; }
+
+    /// <summary>
+    /// How many coins an account may hold before its e-mail address is confirmed
+    /// (<see cref="Accounts.UnverifiedAccounts"/>); 0: none. Lowering it removes nothing.
+    /// </summary>
+    public int UnverifiedMaxCoins { get; set; }
 }

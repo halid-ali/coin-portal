@@ -138,9 +138,10 @@ builder.Services.AddScoped<PhotoQuota>();
 builder.Services.AddSingleton<PhotoSweeper>();
 builder.Services.AddHostedService<PhotoSweepService>();
 
-// Account export (ZIP) and deletion, for the user (Settings) and admins
+// Account export (ZIP) and deletion, for the user (Settings) and admins; what unverified accounts may do
 builder.Services.AddScoped<AccountExport>();
 builder.Services.AddScoped<AccountDeletion>();
+builder.Services.AddScoped<UnverifiedAccounts>();
 builder.Services.AddOptions<UserLimitOptions>()
     .Bind(builder.Configuration.GetSection(UserLimitOptions.SectionName))
     .ValidateDataAnnotations()

@@ -177,6 +177,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 t.HasCheckConstraint("CK_SiteSettings_Id", $"[Id] = {Data.SiteSettings.SingletonId}");
                 t.HasCheckConstraint("CK_SiteSettings_MinPublicCoins",
                     $"[MinPublicCoins] BETWEEN {Data.SiteSettings.MinPublicCoinsMin} AND {Data.SiteSettings.MinPublicCoinsMax}");
+                t.HasCheckConstraint("CK_SiteSettings_UnverifiedMaxCoins",
+                    $"[UnverifiedMaxCoins] BETWEEN {Data.SiteSettings.UnverifiedMaxCoinsMin} AND {Data.SiteSettings.UnverifiedMaxCoinsMax}");
             });
         });
     }

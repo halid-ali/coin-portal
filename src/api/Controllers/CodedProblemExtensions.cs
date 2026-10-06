@@ -38,12 +38,22 @@ public static class CodedProblemExtensions
             });
 
     /// <summary>
-    /// 403 email_not_confirmed: sharing a collection (Public or Unlisted) needs a verified e-mail
-    /// address. What is shared already stays shared.
+    /// 403 email_not_confirmed: sharing a collection (Public or Unlisted) or opening another one
+    /// needs a verified e-mail address (Accounts.UnverifiedAccounts). What is shared already stays
+    /// shared.
     /// </summary>
     public static ObjectResult EmailNotConfirmed(this ControllerBase controller) =>
         controller.CodedProblem("email_not_confirmed",
-            "Confirm your e-mail address to share collections.", StatusCodes.Status403Forbidden);
+            "Confirm your e-mail address first.", StatusCodes.Status403Forbidden);
+
+    /// <summary>
+    /// 403 unverified_coin_limit: an account without a verified e-mail address holds as many coins
+    /// as the site allows it (SiteSettings.UnverifiedMaxCoins, in "maxCoins").
+    /// </summary>
+    public static ObjectResult UnverifiedCoinLimit(this ControllerBase controller, int maxCoins) =>
+        controller.CodedProblem("unverified_coin_limit",
+            "Confirm your e-mail address to add more coins.", StatusCodes.Status403Forbidden,
+            new Dictionary<string, object?> { ["maxCoins"] = maxCoins });
 
     /// <summary>
     /// 409 would_unpublish: the action would break the rule of these Public collections. Sent again

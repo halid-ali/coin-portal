@@ -1,5 +1,7 @@
 using System.Net;
+using System.Text.Json;
 using CoinPortal.Api.Contracts.Auth;
+using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Email;
@@ -156,15 +158,12 @@ public class EmailVerificationTests(CoinPortalFactory factory)
         // Everything else stays open
         using var rename = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
             new CollectionUpsertRequest { Name = "Renamed", Visibility = CollectionVisibility.Private });
-        using var createPrivate = await alice.Client.PostAsync("/api/collections",
-            new CollectionUpsertRequest { Name = "Private one" });
 
         foreach (var response in new[] { createUnlisted, makeUnlisted, makePublic, publish })
         {
             Assert.Equal("email_not_confirmed", await response.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
         }
         await rename.ShouldHaveStatusAsync(HttpStatusCode.OK);
-        await createPrivate.ShouldHaveStatusAsync(HttpStatusCode.Created);
 
         // Confirmed, the same change goes through
         using var visitor = await factory.CreateAnonymousClientAsync();
@@ -173,6 +172,76 @@ public class EmailVerificationTests(CoinPortalFactory factory)
         await verify.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         var shared = await alice.SetVisibilityAsync(collection with { Name = "Renamed" }, CollectionVisibility.Unlisted);
         Assert.Equal(CollectionVisibility.Unlisted, shared.Visibility);
+    }
+
+    [Fact]
+    public async Task Unverified_KeepsOneCollection_AndAddsCoinsUpToTheLimit()
+    {
+        var alice = await factory.SignUpAsync(confirmEmail: false);
+        var collection = await alice.FirstCollectionAsync();
+        var coins = new List<CoinResponse>();
+        for (var i = 0; i < CoinPortalFactory.UnverifiedMaxCoins; i++)
+        {
+            coins.Add(await alice.CreateCoinAsync(collection.Id, $"Coin {i}"));
+        }
+
+        var me = await alice.Client.GetJsonAsync<UserResponse>("/api/auth/me");
+        using var second = await alice.Client.PostAsync("/api/collections", new CollectionUpsertRequest { Name = "Second" });
+        using var oneMore = await alice.Client.PostAsync("/api/coins", TestUser.NewCoin(collection.Id));
+        using var withPhotos = await alice.Client.PostCoinWithPhotosAsync("/api/coins/with-photos",
+            TestUser.NewCoin(collection.Id), national: TestImages.Png(200, 160));
+        using var edit = await alice.Client.PutAsync($"/api/coins/{coins[0].Id}",
+            TestUser.NewCoin(collection.Id, "Edited"));
+
+        Assert.Equal(CoinPortalFactory.UnverifiedMaxCoins, me.UnverifiedMaxCoins);
+        Assert.Equal("email_not_confirmed", await second.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("unverified_coin_limit", await oneMore.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("unverified_coin_limit", await withPhotos.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        using (var problem = JsonDocument.Parse(await oneMore.Content.ReadAsStringAsync()))
+        {
+            Assert.Equal(CoinPortalFactory.UnverifiedMaxCoins, problem.RootElement.GetProperty("maxCoins").GetInt32());
+        }
+        await edit.ShouldHaveStatusAsync(HttpStatusCode.OK);
+
+        // Deleting one makes room again
+        using (var delete = await alice.Client.DeleteAsync($"/api/coins/{coins[1].Id}"))
+        {
+            await delete.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        await alice.CreateCoinAsync(collection.Id, "In its place");
+
+        // Confirmed: no limit of its own, and a second collection
+        using var visitor = await factory.CreateAnonymousClientAsync();
+        using (var verify = await visitor.PostAsync("/api/auth/verify-email",
+            new VerifyEmailRequest(factory.Mail.LatestVerificationToken(alice.User.Email))))
+        {
+            await verify.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        await alice.CreateCoinAsync(collection.Id, "Beyond the limit");
+        await alice.CreateCollectionAsync("Second");
+        Assert.Null((await alice.Client.GetJsonAsync<UserResponse>("/api/auth/me")).UnverifiedMaxCoins);
+    }
+
+    [Fact]
+    public async Task UnverifiedAboveTheLimit_KeepsItsCoins_ButAddsNone()
+    {
+        // An account from before verification, with more coins than the limit
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        for (var i = 0; i <= CoinPortalFactory.UnverifiedMaxCoins; i++)
+        {
+            await alice.CreateCoinAsync(collection.Id, $"Coin {i}");
+        }
+        await alice.CreateCollectionAsync("Second");
+        await factory.WithDbAsync(db => db.Users.Where(u => u.Id == alice.User.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.EmailConfirmed, false)));
+
+        using var oneMore = await alice.Client.PostAsync("/api/coins", TestUser.NewCoin(collection.Id));
+
+        Assert.Equal("unverified_coin_limit", await oneMore.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal(CoinPortalFactory.UnverifiedMaxCoins + 1,
+            (await alice.Client.GetJsonAsync<CoinSummaryResponse>("/api/coins/summary")).CoinCount);
+        Assert.Equal(2, (await alice.Client.GetJsonAsync<List<CollectionResponse>>("/api/collections")).Count);
     }
 
     [Fact]

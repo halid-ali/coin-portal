@@ -18,7 +18,8 @@ namespace CoinPortal.Api.Controllers;
 /// CRUD for the signed-in user's own coins. Coins of other users are reported
 /// as 404 (not 403) so their existence is not revealed. Changes that would break the rule of a
 /// Public collection (PublicationRules) are refused with 409 would_unpublish unless sent with
-/// ?unpublish=true, which makes that collection Unlisted.
+/// ?unpublish=true, which makes that collection Unlisted. An account without a verified e-mail
+/// address adds coins up to SiteSettings.UnverifiedMaxCoins (403 unverified_coin_limit).
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -31,6 +32,7 @@ public class CoinsController(
     IImageProcessor imageProcessor,
     PhotoQuota photoQuota,
     PublicationGuard publication,
+    UnverifiedAccounts unverified,
     IOptions<PhotoOptions> photoOptions,
     IOptions<JsonOptions> jsonOptions,
     IOptions<UserLimitOptions> limits) : ControllerBase
@@ -85,6 +87,7 @@ public class CoinsController(
     [HttpPost]
     [ProducesResponseType<CoinResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public Task<ActionResult<CoinResponse>> Create(CoinUpsertRequest request, [FromQuery] bool unpublish,
         CancellationToken ct) =>
@@ -102,6 +105,7 @@ public class CoinsController(
     [RequestFormLimits(MultipartBodyLengthLimit = MaxCreateRequestBytes)]
     [ProducesResponseType<CoinResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CoinResponse>> CreateWithPhotos([FromForm] string? coin, IFormFile? national,
         IFormFile? common, [FromQuery] bool unpublish, CancellationToken ct)
@@ -142,9 +146,15 @@ public class CoinsController(
         IReadOnlyList<(CoinSide Side, IFormFile File)> uploads, bool unpublish, CancellationToken ct)
     {
         var userId = CurrentUserId;
-        if (await db.Coins.CountAsync(c => c.OwnerId == userId, ct) >= limits.Value.MaxCoins)
+        var coinCount = await db.Coins.CountAsync(c => c.OwnerId == userId, ct);
+        if (coinCount >= limits.Value.MaxCoins)
         {
             return this.CodedProblem("coin_limit", "You have reached the maximum number of coins.");
+        }
+        if (!await unverified.IsConfirmedAsync(userId, ct)
+            && await unverified.MaxCoinsAsync(ct) is var maxCoins && coinCount >= maxCoins)
+        {
+            return this.UnverifiedCoinLimit(maxCoins);
         }
 
         var countryCode = await ValidateCountryAsync(request.CountryCode, ct);

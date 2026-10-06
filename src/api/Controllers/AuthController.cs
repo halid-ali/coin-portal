@@ -1,3 +1,4 @@
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Email;
@@ -20,6 +21,7 @@ public class AuthController(
     IPasswordHasher<ApplicationUser> passwordHasher,
     EmailVerification emailVerification,
     EmailVerificationTokens verificationTokens,
+    UnverifiedAccounts unverified,
     ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
@@ -86,7 +88,7 @@ public class AuthController(
         {
             logger.LogError(e, "Verification e-mail not sent at sign-up: {UserId}", user.Id);
         }
-        return Ok(UserResponse.From(user, []));
+        return Ok(UserResponse.From(user, [], await unverified.MaxCoinsForAsync(user, HttpContext.RequestAborted)));
     }
 
     /// <summary>
@@ -257,7 +259,8 @@ public class AuthController(
 
     // Roles from the database, not the cookie: current even before the cookie is refreshed
     private async Task<UserResponse> ToResponseAsync(ApplicationUser user) =>
-        UserResponse.From(user, await userManager.GetRolesAsync(user));
+        UserResponse.From(user, await userManager.GetRolesAsync(user),
+            await unverified.MaxCoinsForAsync(user, HttpContext.RequestAborted));
 
     // Without a code: the temporary lockout after failed attempts
     private ObjectResult LockedOut(ApplicationUser user) =>
