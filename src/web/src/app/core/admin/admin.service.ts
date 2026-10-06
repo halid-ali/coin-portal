@@ -8,6 +8,7 @@ import {
   AdminAuditQuery,
   AdminCollection,
   AdminCollectionQuery,
+  AdminDeleteUsersResult,
   AdminSettings,
   AdminSettingsImpact,
   AdminStats,
@@ -66,6 +67,11 @@ export class AdminService {
   /** Deletes the user with everything they own (not admins: 403 cannot_delete_admin). */
   deleteUser(id: string, note: string): Observable<void> {
     return this.http.delete<void>(`${API}/users/${encodeURIComponent(id)}`, { body: { note } });
+  }
+
+  /** Deletes the selected users like deleteUser, one audit entry each; admins are skipped. */
+  deleteUsers(userIds: readonly string[], note: string): Observable<AdminDeleteUsersResult> {
+    return this.http.post<AdminDeleteUsersResult>(`${API}/users/bulk-delete`, { userIds, note });
   }
 
   /** Hides the collection: private, share link removed, locked against sharing. */

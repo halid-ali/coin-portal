@@ -31,6 +31,27 @@
         }
       </select>
     </div>
+    <div class="max-w-full min-w-0">
+      <label for="admin-user-email" class="sr-only">{{
+        'admin.users.emailFilter' | transloco
+      }}</label>
+      <select
+        id="admin-user-email"
+        class="form-input w-auto max-w-full min-w-0"
+        (change)="setEmail(emailSelect.value)"
+        #emailSelect
+      >
+        <option value="" [selected]="emailValue() === undefined">
+          {{ 'admin.users.allEmails' | transloco }}
+        </option>
+        <option value="true" [selected]="emailValue() === true">
+          {{ 'admin.users.emailConfirmed' | transloco }}
+        </option>
+        <option value="false" [selected]="emailValue() === false">
+          {{ 'admin.users.emailUnconfirmed' | transloco }}
+        </option>
+      </select>
+    </div>
     <div class="max-w-full min-w-0 xl:hidden">
       <label for="admin-user-sort" class="sr-only">{{ 'admin.sort' | transloco }}</label>
       <select
@@ -55,10 +76,63 @@
     <p role="status" class="text-sm text-shade-500">{{ 'common.loading' | transloco }}</p>
   }
 
+  <!-- After a bulk deletion; focused then, the bar it came from may be gone -->
+  <div #bulkStatus tabindex="-1" role="status" class="focus:outline-none">
+    @if (bulkResult(); as b) {
+      <p class="text-sm text-success-700">
+        {{ 'admin.users.bulkDeleted' | plural: b.deleted }}
+        @if (b.skippedAdmins > 0) {
+          {{ 'admin.users.bulkSkippedAdmins' | plural: b.skippedAdmins }}
+        }
+      </p>
+    } @else if (bulkError()) {
+      <p class="alert-error">{{ 'admin.users.bulkFailed' | transloco }}</p>
+    }
+  </div>
+
   @if (loadError()) {
     <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
   } @else if (result(); as r) {
     <p class="text-sm text-shade-500">{{ 'admin.users.count' | plural: r.totalCount }}</p>
+
+    <!-- Selection of this page's users (admins cannot be selected): delete them at once -->
+    @if (selectable().length > 0) {
+      <div
+        class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-shade-200 bg-shade-50 px-3 py-2"
+      >
+        <label class="flex items-center gap-2 text-sm text-shade-700 xl:hidden">
+          <input
+            type="checkbox"
+            class="form-checkbox"
+            [checked]="allSelected()"
+            [indeterminate]="someSelected()"
+            (change)="toggleAll()"
+          />
+          {{ 'admin.users.selectPage' | transloco }}
+        </label>
+        <p class="text-sm font-medium text-shade-800">
+          {{ 'admin.users.selected' | plural: selectedCount() }}
+        </p>
+        <div class="ml-auto flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            class="link text-sm whitespace-nowrap"
+            [attr.aria-disabled]="selectedCount() === 0 || deleting() || null"
+            (click)="clearSelection()"
+          >
+            {{ 'admin.users.clearSelection' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="btn-secondary-danger whitespace-nowrap"
+            [attr.aria-disabled]="selectedCount() === 0 || deleting() || null"
+            (click)="deleteSelected()"
+          >
+            {{ 'admin.users.deleteSelected' | transloco }}
+          </button>
+        </div>
+      </div>
+    }
 
     @if (r.items.length === 0) {
       <p class="card text-sm text-shade-600">{{ 'admin.users.empty' | transloco }}</p>
@@ -82,6 +156,15 @@
             <div class="flex items-start justify-between gap-3">
               <div class="max-w-full min-w-0">
                 <div class="flex min-w-0 items-center gap-2">
+                  @if (!u.isAdmin) {
+                    <input
+                      type="checkbox"
+                      class="relative z-10 form-checkbox"
+                      [checked]="selected().has(u.id)"
+                      [attr.aria-label]="'admin.users.select' | transloco: { userName: u.userName }"
+                      (change)="toggle(u.id)"
+                    />
+                  }
                   <a
                     [routerLink]="[u.id]"
                     [state]="{ listQuery: listQueryParams() }"
@@ -154,6 +237,7 @@
             }}
           </caption>
           <colgroup>
+            <col class="w-[44px]" />
             <col />
             <col class="w-[148px]" />
             <col class="w-[179px]" />
@@ -163,6 +247,16 @@
           </colgroup>
           <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
             <tr>
+              <th scope="col" class="py-2 pl-3">
+                <input
+                  type="checkbox"
+                  class="form-checkbox"
+                  [checked]="allSelected()"
+                  [indeterminate]="someSelected()"
+                  [attr.aria-label]="'admin.users.selectPage' | transloco"
+                  (change)="toggleAll()"
+                />
+              </th>
               <th
                 appSortHeader
                 class="px-3 py-2"
@@ -210,6 +304,17 @@
           <tbody class="divide-y divide-shade-100">
             @for (u of r.items; track u.id) {
               <tr class="hover:bg-brand-50/50">
+                <td class="py-2.5 pl-3">
+                  @if (!u.isAdmin) {
+                    <input
+                      type="checkbox"
+                      class="form-checkbox"
+                      [checked]="selected().has(u.id)"
+                      [attr.aria-label]="'admin.users.select' | transloco: { userName: u.userName }"
+                      (change)="toggle(u.id)"
+                    />
+                  }
+                </td>
                 <td class="px-3 py-2.5">
                   <div class="flex min-w-0 items-center gap-2">
                     <a

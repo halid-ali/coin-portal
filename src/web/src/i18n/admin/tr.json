@@ -57,6 +57,10 @@
     "search": "Kullanıcı adı veya e-posta ara",
     "status": "Durum",
     "allStatuses": "Tüm durumlar",
+    "emailFilter": "E-posta",
+    "allEmails": "Tüm e-postalar",
+    "emailConfirmed": "E-postası doğrulanmış",
+    "emailUnconfirmed": "E-postası doğrulanmamış",
     "count": {
       "one": "{{count}} kullanıcı",
       "other": "{{count}} kullanıcı"
@@ -64,6 +68,29 @@
     "empty": "Bu aramaya uyan kullanıcı yok.",
     "adminBadge": "Admin",
     "unverifiedMark": "E-posta doğrulanmamış",
+    "select": "Seç: {{userName}}",
+    "selectPage": "Bu sayfadakilerin hepsini seç",
+    "selected": {
+      "one": "{{count}} kullanıcı seçili",
+      "other": "{{count}} kullanıcı seçili"
+    },
+    "clearSelection": "Seçimi kaldır",
+    "deleteSelected": "Seçilenleri sil",
+    "bulkDeleteTitle": "Seçilen kullanıcıları sil",
+    "bulkDeleteMessage": {
+      "one": "{{count}} hesap, tüm koleksiyonları, coin'leri, fotoğrafları ve paylaşım linkleriyle hemen silinir. Admin hesapları seçilmişse atlanır. Geri alınamaz.",
+      "other": "{{count}} hesap, tüm koleksiyonları, coin'leri, fotoğrafları ve paylaşım linkleriyle hemen silinir. Admin hesapları seçilmişse atlanır. Geri alınamaz."
+    },
+    "bulkDeleteType": "Onaylamak için silinecek hesap sayısını yaz:",
+    "bulkDeleted": {
+      "one": "{{count}} hesap silindi.",
+      "other": "{{count}} hesap silindi."
+    },
+    "bulkSkippedAdmins": {
+      "one": "{{count}} admin hesabı atlandı.",
+      "other": "{{count}} admin hesabı atlandı."
+    },
+    "bulkFailed": "Silme tamamlanamadı. Liste yenilendi; kalanları tekrar dene.",
     "column": {
       "user": "Kullanıcı",
       "createdAt": "Kayıt",

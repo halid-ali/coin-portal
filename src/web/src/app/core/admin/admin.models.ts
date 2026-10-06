@@ -65,6 +65,8 @@ export type AdminUserSort = 'CreatedAt' | 'UserName' | 'LastSeen' | 'Storage';
 export interface AdminUserQuery {
   search?: string;
   status?: AdminUserStatus;
+  /** Only verified (true) or unverified (false) addresses; both when unset. */
+  emailConfirmed?: boolean;
   sort?: AdminUserSort;
   dir?: SortDirection;
   page?: number;
@@ -188,6 +190,14 @@ export interface AdminSettings {
 export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
 export const UNVERIFIED_MAX_COINS_RANGE = { min: 0, max: 10_000 } as const;
 export const UNVERIFIED_LIFETIME_DAYS_RANGE = { min: 0, max: 365 } as const;
+
+/** What a bulk deletion did; admins among the selected are skipped. */
+export interface AdminDeleteUsersResult {
+  deleted: number;
+  skippedAdmins: number;
+  /** Ids of no user (deleted in the meantime). */
+  notFound: number;
+}
 
 /** What a minimum would mean before it is saved. */
 export interface AdminSettingsImpact {

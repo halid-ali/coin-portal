@@ -8,6 +8,7 @@ import { provideAdminTranslations } from '../../core/admin/admin-translations';
 import { AdminUser } from '../../core/admin/admin.models';
 import { PagedResponse } from '../../core/coins/coin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
+import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { AdminUsers } from './admin-users';
 
 const user = (userName: string, changes: Partial<AdminUser> = {}): AdminUser => ({
@@ -26,7 +27,10 @@ const user = (userName: string, changes: Partial<AdminUser> = {}): AdminUser => 
 });
 
 describe('AdminUsers', () => {
+  let confirmWithNote: ReturnType<typeof vi.fn>;
+
   beforeEach(async () => {
+    confirmWithNote = vi.fn().mockResolvedValue('Spam wave');
     await TestBed.configureTestingModule({
       imports: [AdminUsers],
       providers: [
@@ -38,6 +42,7 @@ describe('AdminUsers', () => {
         provideHttpClientTesting(),
         provideTestTransloco(),
         provideAdminTranslations(),
+        { provide: ConfirmDialogService, useValue: { confirmWithNote } },
       ],
     }).compileComponents();
     await useTestLanguage('tr');
@@ -92,6 +97,64 @@ describe('AdminUsers', () => {
     expect(text).toContain('Kilitli');
     expect(text).toContain('Hiç'); // never seen
     expect(text).toContain('5 MB');
+  });
+
+  it('filters by the e-mail address, and deletes the selected users at once', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/admin/users?emailConfirmed=false');
+    const http = TestBed.inject(HttpTestingController);
+    const page = (items: AdminUser[]): PagedResponse<AdminUser> => ({
+      items,
+      page: 1,
+      pageSize: 25,
+      totalCount: items.length,
+      totalPages: 1,
+    });
+
+    const request = http.expectOne((r) => r.url === '/api/admin/users');
+    expect(request.request.params.get('emailConfirmed')).toBe('false');
+    request.flush(
+      page([
+        user('spam.one', { id: 's1', emailConfirmed: false }),
+        user('spam.two', { id: 's2', emailConfirmed: false }),
+        user('root', { id: 'a1', isAdmin: true, emailConfirmed: false }),
+      ]),
+    );
+    const element = harness.fixture.nativeElement as HTMLElement;
+    await vi.waitFor(async () => {
+      await harness.fixture.whenStable();
+      expect(element.textContent).toContain('0 kullanıcı seçili');
+    });
+
+    // Admins cannot be selected: the header box takes the other two
+    const tableBoxes = () => [...element.querySelectorAll<HTMLInputElement>('table input')];
+    expect(tableBoxes()).toHaveLength(3);
+    tableBoxes()[0].click();
+    await harness.fixture.whenStable();
+    expect(element.textContent).toContain('2 kullanıcı seçili');
+
+    const deleteButton = [...element.querySelectorAll('button')].find((b) =>
+      b.textContent!.includes('Seçilenleri sil'),
+    )!;
+    deleteButton.click();
+    await vi.waitFor(() => expect(confirmWithNote).toHaveBeenCalled());
+    // The count must be typed to confirm
+    expect(confirmWithNote.mock.calls[0][0].typeToConfirm.value).toBe('2');
+
+    const deletion = await vi.waitFor(() =>
+      http.expectOne((r) => r.url === '/api/admin/users/bulk-delete'),
+    );
+    expect(deletion.request.body).toEqual({ userIds: ['s1', 's2'], note: 'Spam wave' });
+    deletion.flush({ deleted: 2, skippedAdmins: 0, notFound: 0 });
+
+    // The list loads again
+    const reload = await vi.waitFor(() => http.expectOne((r) => r.url === '/api/admin/users'));
+    reload.flush(page([user('root', { id: 'a1', isAdmin: true, emailConfirmed: false })]));
+    await vi.waitFor(async () => {
+      await harness.fixture.whenStable();
+      expect(element.textContent).toContain('2 hesap silindi.');
+    });
+    expect(document.activeElement?.getAttribute('role')).toBe('status');
   });
 
   it('goes to the last page when the page is past it, with the first of repeated params', async () => {

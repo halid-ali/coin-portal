@@ -57,6 +57,10 @@
     "search": "Search username or email",
     "status": "Status",
     "allStatuses": "All statuses",
+    "emailFilter": "Email",
+    "allEmails": "All emails",
+    "emailConfirmed": "Email verified",
+    "emailUnconfirmed": "Email not verified",
     "count": {
       "one": "{{count}} user",
       "other": "{{count}} users"
@@ -64,6 +68,29 @@
     "empty": "No users match this search.",
     "adminBadge": "Admin",
     "unverifiedMark": "Email not verified",
+    "select": "Select {{userName}}",
+    "selectPage": "Select everyone on this page",
+    "selected": {
+      "one": "{{count}} user selected",
+      "other": "{{count}} users selected"
+    },
+    "clearSelection": "Clear selection",
+    "deleteSelected": "Delete selected",
+    "bulkDeleteTitle": "Delete the selected users",
+    "bulkDeleteMessage": {
+      "one": "{{count}} account is deleted right away with all its collections, coins, photos and share links. Admin accounts among the selected are skipped. This cannot be undone.",
+      "other": "{{count}} accounts are deleted right away with all their collections, coins, photos and share links. Admin accounts among the selected are skipped. This cannot be undone."
+    },
+    "bulkDeleteType": "Type the number of accounts to confirm:",
+    "bulkDeleted": {
+      "one": "{{count}} account deleted.",
+      "other": "{{count}} accounts deleted."
+    },
+    "bulkSkippedAdmins": {
+      "one": "{{count}} admin account was skipped.",
+      "other": "{{count}} admin accounts were skipped."
+    },
+    "bulkFailed": "The deletion did not finish. The list was reloaded; try the rest again.",
     "column": {
       "user": "User",
       "createdAt": "Joined",

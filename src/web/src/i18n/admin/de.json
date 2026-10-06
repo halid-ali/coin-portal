@@ -57,6 +57,10 @@
     "search": "Benutzername oder E-Mail suchen",
     "status": "Status",
     "allStatuses": "Alle Status",
+    "emailFilter": "E-Mail",
+    "allEmails": "Alle E-Mails",
+    "emailConfirmed": "E-Mail bestätigt",
+    "emailUnconfirmed": "E-Mail nicht bestätigt",
     "count": {
       "one": "{{count}} Benutzer",
       "other": "{{count}} Benutzer"
@@ -64,6 +68,29 @@
     "empty": "Keine Benutzer passen zu dieser Suche.",
     "adminBadge": "Admin",
     "unverifiedMark": "E-Mail nicht bestätigt",
+    "select": "{{userName}} auswählen",
+    "selectPage": "Alle auf dieser Seite auswählen",
+    "selected": {
+      "one": "{{count}} Benutzer ausgewählt",
+      "other": "{{count}} Benutzer ausgewählt"
+    },
+    "clearSelection": "Auswahl aufheben",
+    "deleteSelected": "Ausgewählte löschen",
+    "bulkDeleteTitle": "Ausgewählte Benutzer löschen",
+    "bulkDeleteMessage": {
+      "one": "{{count}} Konto wird sofort mit allen Sammlungen, Münzen, Fotos und Links zum Teilen gelöscht. Ausgewählte Admin-Konten werden übersprungen. Das kann nicht rückgängig gemacht werden.",
+      "other": "{{count}} Konten werden sofort mit allen Sammlungen, Münzen, Fotos und Links zum Teilen gelöscht. Ausgewählte Admin-Konten werden übersprungen. Das kann nicht rückgängig gemacht werden."
+    },
+    "bulkDeleteType": "Gib zur Bestätigung die Anzahl der Konten ein:",
+    "bulkDeleted": {
+      "one": "{{count}} Konto gelöscht.",
+      "other": "{{count}} Konten gelöscht."
+    },
+    "bulkSkippedAdmins": {
+      "one": "{{count}} Admin-Konto wurde übersprungen.",
+      "other": "{{count}} Admin-Konten wurden übersprungen."
+    },
+    "bulkFailed": "Das Löschen wurde nicht abgeschlossen. Die Liste wurde neu geladen; versuche es für den Rest erneut.",
     "column": {
       "user": "Benutzer",
       "createdAt": "Registriert",
