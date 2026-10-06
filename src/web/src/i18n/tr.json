@@ -655,11 +655,11 @@
       "i2": "Tercihler ve zamanlar: dil, tema ve renk seçimlerin; kayıt olduğun, giriş yaptığın ve siteyi son kullandığın zamanlar.",
       "i3": "İçeriğin: koleksiyonların, coin bilgilerin ve yüklediğin fotoğraflar. Fotoğraflardaki konum dahil tüm ek bilgiler (EXIF) yüklemede silinir.",
       "i4": "Teknik kayıtlar: sunucu her isteğin adresini, zamanını ve sonucunu kaydeder ve 30 gün saklar. Adresteki arama terimleri, Keşfet'teki kullanıcı filtresi ve paylaşım linklerinin anahtarları kayda yazılmaz. IP adresin sadece bir istek sınırı aşıldığında kaydedilir. Barındırma sağlayıcısı da kendi sunucu kayıtlarına her isteğin IP adresini, zamanını, adresini, sonucunu ve tarayıcı bilgisini yazar ve bunları 6 ay saklar.",
-      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin."
+      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin; sana gönderdiğimiz hesap e-postaları (e-posta adresini doğrulama linki) ve adresinin doğrulanıp doğrulanmadığı."
     },
     "purposes": {
       "title": "Neden işliyoruz (hukuki dayanak)",
-      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır.",
+      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır. E-posta adresine sadece hesabınla ilgili e-postalar (doğrulama linki) göndeririz; bülten ya da reklam göndermeyiz.",
       "i2": "Siteyi güvende tutmak için: teknik kayıtlar, istek sınırları, hatalı girişlerden sonraki geçici kilit ve kötüye kullanıma karşı moderasyon (GDPR md. 6/1-f, meşru menfaat).",
       "i3": "Siteyi işletmek için toplu sayılar: örneğin son 30 günde siteyi kullanan hesap sayısı. Bu sayılar kişi bazında değerlendirme için kullanılmaz (GDPR md. 6/1-f, meşru menfaat).",
       "i4": "Bize yazdığın e-postaları cevaplamak için: e-posta adresin ve mesajın (GDPR md. 6/1-f, meşru menfaat).",
@@ -679,7 +679,7 @@
     },
     "hosting": {
       "title": "Barındırma",
-      "p1": "Site, MonsterASP.NET s.r.o. şirketinin (Prag, Çek Cumhuriyeti) Avrupa Birliği'ndeki veri merkezlerinde bulunan sunucularında çalışır; veriler ve iletişim adresimize gelen e-postalar orada saklanır. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler (GDPR md. 28'e göre veri işleme sözleşmesi). Verilerin başka kimseyle paylaşılmaz."
+      "p1": "Site, MonsterASP.NET s.r.o. şirketinin (Prag, Çek Cumhuriyeti) Avrupa Birliği'ndeki veri merkezlerinde bulunan sunucularında çalışır; veriler ve iletişim adresimize gelen e-postalar orada saklanır, sitenin hesap e-postaları da oradan gönderilir. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler (GDPR md. 28'e göre veri işleme sözleşmesi). Verilerin başka kimseyle paylaşılmaz."
     },
     "retention": {
       "title": "Ne kadar saklıyoruz",

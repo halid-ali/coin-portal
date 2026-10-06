@@ -655,11 +655,11 @@
       "i2": "Preferences and times: your language, theme and color choices; when you signed up, signed in and last used the site.",
       "i3": "Your content: collections, coin details and the photos you upload. All extra information in photos (EXIF), including the location, is removed on upload.",
       "i4": "Technical records: the server logs the address, time and result of each request and keeps them for 30 days. Search terms in the address, the user filter of Explore and the keys of share links are not written to the log. Your IP address is only recorded when a request limit is exceeded. The hosting provider also writes the IP address, time, address, result and browser details of each request to its own server logs and keeps them for 6 months.",
-      "i5": "Emails: the emails you send us and your email address."
+      "i5": "Emails: emails you write to us and your email address; account emails we send you (the link to confirm your email address) and whether your address is confirmed."
     },
     "purposes": {
       "title": "Why we process it (legal basis)",
-      "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the minimum age of 18.",
+      "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the age limit of 18. We send your email address only emails about your account (the verification link), no newsletters or advertising.",
       "i2": "To keep the site safe: technical records, request limits, the temporary lock after failed sign-ins and moderation against abuse (Art. 6(1)(f) GDPR, legitimate interest).",
       "i3": "To run the site, as totals: for example the number of accounts that used the site in the last 30 days. These numbers are not used to assess individuals (Art. 6(1)(f) GDPR, legitimate interest).",
       "i4": "To answer the emails you send us: your email address and message (Art. 6(1)(f) GDPR, legitimate interest).",
@@ -679,7 +679,7 @@
     },
     "hosting": {
       "title": "Hosting",
-      "p1": "The site runs on servers of MonsterASP.NET s.r.o. (Prague, Czech Republic) in data centers in the European Union; the data and the emails sent to our contact address are stored there. The provider processes the data only on our behalf and on our instructions (a data processing agreement under Art. 28 GDPR). Your data is not shared with anyone else."
+      "p1": "The site runs on servers of MonsterASP.NET s.r.o. (Prague, Czech Republic) in data centers in the European Union; the data and the emails sent to our contact address are stored there, and the site's account emails are sent from there. The provider processes the data only on our behalf and on our instructions (a data processing agreement under Art. 28 GDPR). Your data is not shared with anyone else."
     },
     "retention": {
       "title": "How long we keep it",

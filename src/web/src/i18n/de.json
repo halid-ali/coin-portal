@@ -655,11 +655,11 @@
       "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
       "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
       "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Links zum Teilen werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch der Hosting-Anbieter schreibt IP-Adresse, Zeitpunkt, Adresse, Ergebnis und Browserangaben jeder Anfrage in seine eigenen Serverprotokolle und bewahrt sie 6 Monate auf.",
-      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse."
+      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse; Konto-E-Mails, die wir dir senden (der Link zur Bestätigung deiner E-Mail-Adresse), und ob deine Adresse bestätigt ist."
     },
     "purposes": {
       "title": "Zwecke und Rechtsgrundlagen",
-      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren.",
+      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (den Bestätigungslink), keine Newsletter und keine Werbung.",
       "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i3": "Um die Website zu betreiben, als Gesamtzahlen: zum Beispiel die Zahl der Konten, die die Website in den letzten 30 Tagen genutzt haben. Diese Zahlen dienen nicht der Bewertung einzelner Personen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i4": "Um deine E-Mails an uns zu beantworten: deine E-Mail-Adresse und deine Nachricht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
@@ -679,7 +679,7 @@
     },
     "hosting": {
       "title": "Hosting",
-      "p1": "Die Website läuft auf Servern der MonsterASP.NET s.r.o. (Prag, Tschechien) in Rechenzentren in der Europäischen Union; dort werden die Daten und die E-Mails an unsere Kontaktadresse gespeichert. Der Anbieter verarbeitet die Daten nur in unserem Auftrag und nach unseren Weisungen (Auftragsverarbeitungsvertrag nach Art. 28 DSGVO). Deine Daten werden an niemanden sonst weitergegeben."
+      "p1": "Die Website läuft auf Servern der MonsterASP.NET s.r.o. (Prag, Tschechien) in Rechenzentren in der Europäischen Union; dort werden die Daten und die E-Mails an unsere Kontaktadresse gespeichert, und von dort werden die Konto-E-Mails der Website gesendet. Der Anbieter verarbeitet die Daten nur in unserem Auftrag und nach unseren Weisungen (Auftragsverarbeitungsvertrag nach Art. 28 DSGVO). Deine Daten werden an niemanden sonst weitergegeben."
     },
     "retention": {
       "title": "Speicherdauer",
