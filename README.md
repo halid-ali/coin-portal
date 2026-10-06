@@ -3,7 +3,7 @@
 [![release](https://img.shields.io/github/v/release/halid-ali/coin-portal?label=release)](https://github.com/halid-ali/coin-portal/releases/latest)
 [![license](https://img.shields.io/github/license/halid-ali/coin-portal?label=license&color=97ca00)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/halid-ali/coin-portal/ci.yml?branch=main&label=CI)](https://github.com/halid-ali/coin-portal/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-505%20passing-brightgreen)](#tests-and-checks)
+[![tests](https://img.shields.io/badge/tests-566%20passing-brightgreen)](#tests-and-checks)
 [![languages](https://img.shields.io/badge/languages-4-orange)](#features)
 
 <!-- The tests badge is static: API + client + end-to-end tests, updated with each release -->
