@@ -1,7 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-06 (**`v1.5.0` yayında**: herkese açık koleksiyon kuralı (Tamamlananlar 75, kararlar
-"Herkese açık koleksiyon kuralı: kararlar"), yayın Tamamlananlar 76; sıradaki iş 3. aşama (coin ikonları). Önceki
+"Herkese açık koleksiyon kuralı: kararlar"), yayın Tamamlananlar 76; 3. aşama coin değer ikonları bitti
+(Tamamlananlar 77), `v1.5.1` ile yayınlanacak; sonraki sürümün gündemi güvenlik testleri (yol haritası 19). Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1420,8 +1421,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
         bütün herkese açık okuyucuları etkiler, otomatik geri dönüş "yayına alma bilinçli adım" kararıyla
         çelişir); yarış durumu (Açık konular 22); coin formunda önceden uyarı ve kartlarda ilerleme rozeti
         (Açık konular 23).
-    - **3. aşama (sonra):** coin ikonlarının düzeltilmesi (`.notes/designs/coin-icons/`), fotoğrafsız coin'de
-      değere göre ikon, ortak yüz fotoğrafı yoksa yerinde değer ikonu.
+    - **3. aşama:** coin ikonları; bitti (Tamamlananlar 77).
 76. **`v1.5.0`** (`chore/release-v1.5.0`, 2026-10-06): herkese açık koleksiyon kuralı (Tamamlananlar 75).
     Kullanıcı tarayıcıda denedi, bulgu yok; `feat/public-requirements` merge, `main` push, etiket. Yeni migration
     (`AddPublicationRules`) olduğu için kullanıcı onaydan önce panelden veritabanı yedeği aldı ("Create BAK
@@ -1430,6 +1430,28 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     "Koleksiyonum", `yurtsever.d` / "Euro", 1'er coin); migration ikisini Linkle paylaşılana çekti, Keşfet ve
     profiller şimdilik boş (`api/public/collectors` `[]`, eski adresler 404). Eşik 10; sahipler fotoğraflı coin
     ekleyince butonla yeniden yayına alır. Release notları `.notes/release-v1.5.0.md`.
+77. **Coin değer ikonları** (`feat/denomination-icons`, 2026-10-06; herkese açık koleksiyon kuralının 3. aşaması,
+    `v1.5.1` ile yayınlanacak):
+    - Taslak kullanıcıyla adım adım (`.notes/designs/coin-icons/coins-v5.html` son hali; v2–v4 ara adımlar):
+      ikonlar **eşit boyda** (gerçek oran 40 px'te 1c'yi okunmaz yapıyordu); **dolu metal** (içi metal rengi,
+      kenar ve noktalar koyu ton, yazı metalin üstünde koyu): kullanıcı önce koyu temanın çizgi renklerini
+      beğendi, açık temada aynı renkler çizgide ~1,6:1 kaldığı için dolu stil seçildi, sonra koyu tema da aynı
+      yapıldı (**coin iki temada aynı**, sadece zemin değişir); 20c'nin kenarında 7 küçük içe oyuk (ilk
+      taslakta dışa taşan tümsekler, ikinci denemede dişli gibi büyük); noktalı halka çevreye oturtuldu (saat
+      3'te iki nokta yan yanaydı); dış kenar ve 1 €/2 € halkaları 1,1 → 0,75 birim (kullanıcı: biraz ince).
+      Kullanıcının seçmediği kusurlar (bakır/altın yakınlığı, 1 €/2 € çapraz zemini) aynen kaldı.
+    - `shared/denomination-icon` (`DenominationIcon`, inline SVG, geometri kodda hesaplanır),
+      `styles.css` `denomination-tile` / `-outlined` / `denomination-<copper|gold|bimetal>` (açık ve koyu).
+      Kullanıldığı yerler: `CoinThumb` (liste, tablo, kartlar, ana sayfa; zeminsiz, `tight`: coin fotoğraf
+      gibi daireyi doldurur, kullanıcı tarayıcıda iç içe iki daireyi fazla buldu), koleksiyon ızgarası (metalin
+      renkli kare zemini, `tile`), ana sayfa "Son eklenenler" kartı. Görüntüleyici `[denomination]` alırsa eksik ortak yüzü ikonla gösterir (butonlar,
+      oklar ve tekerlek dahil; ekran okuyucu "… – Ortak yüz (fotoğraf yok)", `viewer.noPhoto` 4 dilde); sadece
+      koleksiyon sayfası verir (coin formunda boş ortak yüz kutusu zaten görünüyor). `CoinPlaceholder` kullanılmıyor,
+      Euro dışı coin'ler için (yol haritası 18) duruyor.
+    - Testler: client 319 (+10: `denomination-icon.spec` etiket, metal renkleri, 20c oyukları, noktaların eşit
+      dağılımı, zemin; `coin-thumb.spec`; görüntüleyicide ikonlu ortak yüz ve `denomination`'sız hal); API 245
+      (değişmedi), e2e 12 geçti (axe dahil). Ekran görüntüleriyle (ayse.yilmaz, 4200) ızgara, tablo, telefon kartları, görüntüleyici iki temada
+      kontrol edildi.
 
 ## Yol haritası
 
@@ -1498,6 +1520,21 @@ mağaza için TWA.
       yeri aynen, etiketler türe göre). **Diğer coin'de iki yüzün fotoğrafı zorunlu** (standart bir ortak yüz
       yok); bunun için sadece `Publishing/PublicationRules.IsPhotographed` değişir. Fotoğrafsız diğer coin'in
       yer tutucusu bugünkü genel çizim (`CoinPlaceholder`).
+- [ ] 19. **Güvenlik testleri** (kullanıcı 2026-10-06'da ekletti; `v1.5.1`'den sonraki sürümün gündemi). Amaç bir
+      kerelik pentest değil, açıkların bir daha açılmamasını sağlayan kalıcı testler + otomatik tarama. Sıra:
+  - [ ] 19a. CodeQL "Default setup" (Açık konular 19; kullanıcı GitHub ayarından açar, C# + TypeScript).
+  - [ ] 19b. **Yetki matrisi** (`tests/api`): `ApiConventionsTests`'in uç listesinden; her uç için beklenen
+        sonuç tablosu (yabancı kullanıcı 404, girişsiz 401, admin olmayan 403, görünürlük). Tabloda olmayan
+        yeni bir uç testi kırar (IDOR'a karşı en etkili koruma; bugün erişim testleri elle yazılıyor).
+  - [ ] 19c. Hedefli kötüye kullanım testleri: mass assignment (gövdede `ownerId`, başkasının
+        `collectionId`'si, fazladan alanlar), dosya yükleme (uzantısı JPEG olan SVG/HTML, küçük dosyada dev
+        piksel boyutu, bozuk başlık), girdi parametreleri (`search`, `sort`, `countryOrder`, `owner`),
+        paylaşım anahtarı (yanlış, kısa, başka koleksiyonun; görünürlük değişince eskisi çalışmaz).
+  - [ ] 19d. CI'da OWASP ZAP baseline (pasif) taraması, e2e'nin lokal yayın derlemesine (5091) karşı, rapor
+        artefakt. **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
+        eksikliği beklenir (Açık konular 17).
+  - [ ] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
+        19b–19c'deki testlere eklenir. Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1553,9 +1590,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** herkese açık koleksiyon kuralının 3. aşaması, coin ikonları (`.notes/designs/coin-icons/`):
-ikonların düzeltilmesi, fotoğrafsız coin'de değere göre ikon, ortak yüz fotoğrafı yoksa yerinde değer ikonu; ikon
-hatalarına kullanıcıyla birlikte bakılır. Kural `v1.5.0` ile yayında (Tamamlananlar 75–76).
+**Sıradaki iş:** coin değer ikonlarının (Tamamlananlar 77) `v1.5.1` ile yayını (kullanıcı kararı 2026-10-06:
+yeni bir özellik olsa da küçük bir tamamlama, yama sürümü; git-cliff `--bumped-version` 1.6.0 önerir).
+**Ondan sonraki sürümün gündemi:** güvenlik testleri (yol haritası 19).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
@@ -1641,7 +1678,7 @@ sergilemek gibi.
 - **Eşik yükseltilince** yayındaki koleksiyonlar hemen inmez; sayı kontrolü sadece sayıyı azaltan
   işlemlerde (coin silme, taşıma) yapılır. Eşiğin altındaki bir yayına coin eklemek onu indirmez.
 - **Linkle paylaşılan ve Gizli koleksiyonlarda kural yok**; fotoğrafsız coin serbest. Fotoğrafsız coin'lerde
-  değere göre coin ikonu gösterilecek (3. aşama).
+  değere göre coin ikonu gösterilir (3. aşama, Tamamlananlar 77).
 - **Kati kural:** Public bir koleksiyonun şartını bozacak işlem uyarı penceresiyle sorulur; kullanıcı
   onaylarsa işlem yapılır ve koleksiyon **Linkle paylaşılana** geçer (yeni link; herkese açık adres çalışmaz,
   pencere bunu söyler). Kontrolü API yapar (`would_unpublish`), iki sekme açık olsa da kural delinmez.
