@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamamlananlar 77–78); `v1.5.0` herkese açık
-koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Sıradaki iş güvenlik testleri
-(yol haritası 19). Önceki
+koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
+haritası 19) sürüyor: 19a CodeQL açık (Tamamlananlar 79), sıradaki 19b yetki matrisi. Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -425,8 +425,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `coin-web-portal` olarak kaldı, Claude Code hafızası klasör yoluna bağlı). Açıklama ve topic'ler
       (euro-coins, coin-collection, aspnet-core, angular, tailwindcss, dotnet), wiki kapalı.
     - Güvenlik (kullanıcı ayarladı): private vulnerability reporting, dependency graph, Dependabot
-      alerts ve security updates, secret scanning ve push protection açık. Malware alerts, grouped
-      security updates ve CodeQL kararı Açık konular 19'da.
+      alerts ve security updates, secret scanning ve push protection açık; CodeQL "Default setup"
+      (2026-10-06, Tamamlananlar 79). Malware alerts ve grouped security updates Açık konular 19'da.
     - Rulesets: `main` (silme ve force-push yasak) ve `release-tags` (`v*`: silme, güncelleme,
       force-push yasak; yayınlanmış etiket taşınamaz). Bypass yok. PR ve zorunlu status check bilinçli
       olarak yok: lokal merge + doğrudan `main` push akışını engellerdi; CI yine her push'ta koşar.
@@ -1462,6 +1462,19 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       yayınlandı (latest `v1.5.1`, rozet doğrulandı). `.notes/scripts/create-release.js` artık sonunda
       `releases/latest` = etiket ve taslak kalmadığını kontrol eder (değilse hata kodu); kural CLAUDE.md "Sürüm
       ve yayın"da.
+79. **CodeQL** (`chore/codeql-alerts`, 2026-10-06; yol haritası 19a): kullanıcı GitHub'da "Default setup"ı
+    açtı. Diller C#, JavaScript/TypeScript ve GitHub Actions; standart kural seti, tehdit modeli `remote`,
+    `main` push'larında ve haftalık. İlk koşuda "Adjust Configuration" işinin atlanması normal (sadece bir
+    dilin analizi başarısız olursa ya da kod bulunamazsa koşar). İlk tarama: C# 0 bulgu, 9 bulgu:
+    - #8, #9 `js/insecure-randomness`: e2e'nin test kullanıcı adı `Math.random()` ile üretiliyordu (gerçek
+      risk değil); `tests/e2e/support/users.ts` artık `crypto.randomBytes` kullanıyor, uzunluk aynı.
+    - #1–#7 `actions/cache-poisoning/poisonable-step` (`ci.yml` web ve e2e adımları): **yanlış alarm**,
+      "False positive" olarak kapatılır. Gerekçe: `ci.yml`'yi elle başlatmak (`workflow_dispatch`) ve
+      `release.yml`'den çağırmak sadece yazma yetkisi olanların işi; `inputs.ref`'i sadece `release.yml`
+      verir (kendi etiketimiz); fork PR'larının önbelleği `main`'inkinden ayrı. `inputs.ref` ve elle başlatma
+      yayın pipeline'ı için gerekli, kod değişmedi.
+    - Yeni bir bulgu çıkarsa: gerçekse düzeltilir ve mümkünse 19b–19c testlerine girer; yanlış alarmsa
+      gerekçesiyle "False positive" kapatılır ve buraya yazılır.
 
 ## Yol haritası
 
@@ -1532,7 +1545,8 @@ mağaza için TWA.
       yer tutucusu bugünkü genel çizim (`CoinPlaceholder`).
 - [ ] 19. **Güvenlik testleri** (kullanıcı 2026-10-06'da ekletti; `v1.5.1`'den sonraki sürümün gündemi). Amaç bir
       kerelik pentest değil, açıkların bir daha açılmamasını sağlayan kalıcı testler + otomatik tarama. Sıra:
-  - [ ] 19a. CodeQL "Default setup" (Açık konular 19; kullanıcı GitHub ayarından açar, C# + TypeScript).
+  - [x] 19a. CodeQL "Default setup" (2026-10-06, kullanıcı açtı; C#, TypeScript, Actions; bulgular
+        Tamamlananlar 79).
   - [ ] 19b. **Yetki matrisi** (`tests/api`): `ApiConventionsTests`'in uç listesinden; her uç için beklenen
         sonuç tablosu (yabancı kullanıcı 404, girişsiz 401, admin olmayan 403, görünürlük). Tabloda olmayan
         yeni bir uç testi kırar (IDOR'a karşı en etkili koruma; bugün erişim testleri elle yazılıyor).
@@ -1601,7 +1615,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-19a CodeQL → 19b yetki matrisi → 19c kötüye kullanım testleri → 19d ZAP → 19e elle tarama. Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → **19b yetki matrisi** (sıradaki) → 19c kötüye kullanım testleri → 19d ZAP → 19e elle tarama. Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
@@ -2057,7 +2071,7 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 19. **GitHub güvenlik ayarları** (2026-10-02, #20): private vulnerability reporting, Dependabot alerts ve
     security updates, secret scanning, push protection açık; `SECURITY.md` bildirimi oraya yönlendiriyor.
     Kullanıcıya kalan: malware alerts ve grouped security updates'i açmak (Settings > Code security, tek
-    tık), CodeQL "Default setup" kararı (public repoda ücretsiz; C# ve TypeScript taraması, haftalık).
+    tık). CodeQL "Default setup" 2026-10-06'da açıldı (Tamamlananlar 79).
 
 20. **Canlı sitenin güvenlik ayarları** (2026-10-02, hosting'den kalan):
     - ~~Veritabanının uzaktan erişimi~~ (dışarıdan 1433): `sqlcmd` denemesi için açılmıştı, kullanıcı
