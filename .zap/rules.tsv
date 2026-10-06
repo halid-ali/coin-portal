@@ -1,0 +1,5 @@
+# ZAP baseline rules for the CI scan (.github/workflows/ci.yml, E2E job).
+# One rule per line, tab separated: <rule id>	<IGNORE|WARN|FAIL>	<reason>
+# Rules not listed are WARN. IGNORE needs a reason (why the alert does not apply to this site);
+# FAIL breaks the build once the scan is no longer report-only.
+# Rule ids: https://www.zaproxy.org/docs/alerts/
