@@ -76,10 +76,9 @@ public class AdminRoleTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        // Public with photographed coins
+        await alice.PublishAsync(await alice.FirstCollectionAsync());
         await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
-        var coin = await alice.CreateCoinAsync(collection.Id);
-        await alice.UploadPhotoAsync(coin.Id);
 
         var stats = await admin.Client.GetJsonAsync<AdminStatsResponse>("/api/admin/stats");
 
@@ -100,7 +99,7 @@ public class AdminRoleTests(CoinPortalFactory factory)
         // Only admin tests lock and hide, and they run one after another: the difference is exact
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var collection = await alice.CreatePublicCollectionAsync();
         var before = await admin.Client.GetJsonAsync<AdminStatsResponse>("/api/admin/stats");
 
         using (await admin.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest(null))) { }

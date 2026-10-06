@@ -154,7 +154,7 @@ public class AccountTests(CoinPortalFactory factory)
     {
         var alice = await factory.SignUpAsync();
         var (collection, _) = await FillAsync(alice);
-        await alice.SetVisibilityAsync(collection, CollectionVisibility.Public);
+        await alice.PublishAsync(collection);
         var bob = await factory.SignUpAsync();
         var (bobsCollection, bobsCoin) = await FillAsync(bob);
         var aliceFolder = Path.Combine(factory.PhotoRoot, alice.User.Id);

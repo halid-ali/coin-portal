@@ -1,6 +1,7 @@
 import { APIRequestContext, Browser, BrowserContext, expect, request } from '@playwright/test';
 
 import { ADMIN, BASE_URL, PASSWORD } from './env.mjs';
+import { coinPng } from './png';
 
 export type Visibility = 'Private' | 'Unlisted' | 'Public';
 
@@ -100,6 +101,45 @@ export class TestUser {
       countryCode: 'DE',
       year,
       collectionId,
+    });
+  }
+
+  /** A coin created with a national side photo, so it counts for a public collection. */
+  async createPhotographedCoin(collectionId: number, title: string): Promise<{ id: number }> {
+    const coin = { title, denomination: 'Euro2', countryCode: 'DE', year: 2006, collectionId };
+    const res = await this.api.post('/api/coins/with-photos', {
+      multipart: {
+        coin: JSON.stringify(coin),
+        national: { name: 'coin.png', mimeType: 'image/png', buffer: coinPng(200) },
+      },
+      headers: { 'X-XSRF-TOKEN': await xsrf(this.api) },
+    });
+    expect(res.status(), await res.text()).toBe(201);
+    return res.json();
+  }
+
+  /** Uploads the photo of one side of an existing coin. */
+  async uploadPhoto(coinId: number, side: 'national' | 'common' = 'national'): Promise<void> {
+    const res = await this.api.put(`/api/coins/${coinId}/photos/${side}`, {
+      multipart: { file: { name: 'coin.png', mimeType: 'image/png', buffer: coinPng(200) } },
+      headers: { 'X-XSRF-TOKEN': await xsrf(this.api) },
+    });
+    expect(res.status(), await res.text()).toBe(200);
+  }
+
+  /**
+   * Makes the collection Public under its name: first adds photographed coins up to the site's
+   * minimum (the API's default, 10, unless an admin changed it).
+   */
+  async publish(collection: Collection, name = collection.name): Promise<Collection> {
+    const current = await this.send('GET', `/api/collections/${collection.id}`);
+    for (let i = current.photographedCoinCount; i < current.minPublicCoins; i++) {
+      await this.createPhotographedCoin(collection.id, `Coin ${i + 1}`);
+    }
+    return this.send('PUT', `/api/collections/${collection.id}`, {
+      name,
+      description: collection.description,
+      visibility: 'Public',
     });
   }
 

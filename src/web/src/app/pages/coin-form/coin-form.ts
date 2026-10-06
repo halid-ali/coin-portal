@@ -23,7 +23,7 @@ import { CollectionReturn } from '../../core/coins/collection-return';
 import { CountryService } from '../../core/coins/country.service';
 import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
-import { photoErrorMessage } from '../../core/coins/photo-errors';
+import { coinWithPhotosErrorMessage, photoErrorMessage } from '../../core/coins/photo-errors';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { denominationLabel, suggestTitle } from '../../shared/coin-format';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
@@ -33,6 +33,7 @@ import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { ImageChange } from '../../shared/image-change';
 import { DISCARD_CHANGES_STATE, HasUnsavedChanges } from '../../shared/unsaved-changes';
+import { UNPUBLISH_DECLINED, UnpublishConfirm } from '../../shared/unpublish-confirm';
 import { PhotoSlot } from './photo-slot';
 
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
@@ -51,6 +52,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   private readonly location = inject(Location);
   private readonly collectionService = inject(CollectionService);
   private readonly collectionReturn = inject(CollectionReturn);
+  private readonly unpublishConfirm = inject(UnpublishConfirm);
 
   /** Route param, bound by withComponentInputBinding(); undefined in create mode. */
   readonly id = input<string>();
@@ -87,6 +89,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected readonly submitting = signal(false);
   protected readonly deleting = signal(false);
   protected readonly formErrors = signal<string[]>([]);
+  /** The user kept the national side photo to keep the collection public: not an error. */
+  protected readonly photoKept = signal(false);
 
   /** The saved coin's collection is hidden by an admin: its coins stay in it (API 403). */
   protected readonly moveLocked = computed(() => {
@@ -220,22 +224,41 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
 
     this.submitting.set(true);
     this.formErrors.set([]);
+    this.photoKept.set(false);
 
-    let coin: Coin;
+    const request = this.toRequest();
+    const id = this.coinId();
+    // A new coin takes its photos along: it never exists without them, even for a moment, so it
+    // can join a public collection
+    const uploads = id === null ? this.pendingUploads() : {};
+    let saved: Coin | typeof UNPUBLISH_DECLINED;
     try {
-      const request = this.toRequest();
-      const id = this.coinId();
-      coin = await firstValueFrom(
-        id === null ? this.coinService.create(request) : this.coinService.update(id, request),
+      saved = await this.unpublishConfirm.run((unpublish) =>
+        id !== null
+          ? this.coinService.update(id, request, unpublish)
+          : Object.keys(uploads).length > 0
+            ? this.coinService.createWithPhotos(request, uploads, unpublish)
+            : this.coinService.create(request, unpublish),
       );
     } catch (err) {
       this.submitting.set(false);
       const error = err as HttpErrorResponse;
-      this.formErrors.set(applyServerErrors(this.form, error, {}, this.saveMessageKeys));
+      const photoError = coinWithPhotosErrorMessage(error);
+      this.formErrors.set(
+        photoError ? [photoError] : applyServerErrors(this.form, error, {}, this.saveMessageKeys),
+      );
       this.focusFirstInvalid();
       return;
     }
+    if (saved === UNPUBLISH_DECLINED) {
+      this.submitting.set(false);
+      return;
+    }
 
+    const coin = saved;
+    for (const side of Object.keys(uploads) as CoinSide[]) {
+      this.photoChanges[side].set(null);
+    }
     this.coinId.set(coin.id);
     this.coin.set(coin);
     // The fields are saved; failed photo changes stay pending
@@ -243,17 +266,20 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
 
     const failures = await this.savePhotos(coin.id);
     this.submitting.set(false);
-    if (failures.length === 0) {
+    if (failures.length === 0 && !this.photoKept()) {
       this.backToCollection();
       return;
     }
 
     // The coin exists now: a retry must update it, not create another one. The address follows
-    // without a navigation, which would recreate the form and drop the pending photos
+    // without a navigation, which would recreate the form and drop the pending photos. A kept
+    // photo stays on the page too, so the user sees why it is still there
     this.location.replaceState(
       this.router.serializeUrl(this.router.createUrlTree(['/coins', coin.id, 'edit'])),
     );
-    this.formErrors.set([translate('coinForm.photosFailed'), ...failures]);
+    if (failures.length > 0) {
+      this.formErrors.set([translate('coinForm.photosFailed'), ...failures]);
+    }
   }
 
   protected async remove(): Promise<void> {
@@ -276,18 +302,25 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     this.deleting.set(true);
     this.formErrors.set([]);
 
-    this.coinService.delete(id).subscribe({
-      next: () => this.backToCollection(),
-      error: (err: HttpErrorResponse) => {
+    try {
+      const result = await this.unpublishConfirm.run((unpublish) =>
+        this.coinService.delete(id, unpublish),
+      );
+      if (result === UNPUBLISH_DECLINED) {
         this.deleting.set(false);
-        // Already gone (e.g. deleted in another tab) is fine
-        if (err.status === 404) {
-          this.backToCollection();
-          return;
-        }
-        this.formErrors.set(applyServerErrors(this.form, err));
-      },
-    });
+        return;
+      }
+      this.backToCollection();
+    } catch (err) {
+      const error = err as HttpErrorResponse;
+      this.deleting.set(false);
+      // Already gone (e.g. deleted in another tab) is fine
+      if (error.status === 404) {
+        this.backToCollection();
+        return;
+      }
+      this.formErrors.set(applyServerErrors(this.form, error));
+    }
   }
 
   private backToCollection(): void {
@@ -314,7 +347,10 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     return this.coin()?.photos.find((p) => p.side === side);
   }
 
-  /** Applies the pending photo changes one by one; returns messages for the failed ones. */
+  /**
+   * Applies the pending photo changes one by one; returns messages for the failed ones. A removal
+   * the user takes back to keep the collection public is dropped and noted (photoKept).
+   */
   private async savePhotos(coinId: number): Promise<string[]> {
     const failures: string[] = [];
     for (const side of COIN_SIDES) {
@@ -328,7 +364,15 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
             await firstValueFrom(this.coinService.uploadPhoto(coinId, side, change.image)),
           );
         } else {
-          await firstValueFrom(this.coinService.deletePhoto(coinId, side));
+          // Without its national side the coin no longer counts for a public collection
+          const result = await this.unpublishConfirm.run((unpublish) =>
+            this.coinService.deletePhoto(coinId, side, unpublish),
+          );
+          if (result === UNPUBLISH_DECLINED) {
+            this.photoKept.set(true);
+            this.photoChanges[side].set(null);
+            continue;
+          }
           this.dropStoredPhoto(side);
         }
         this.photoChanges[side].set(null);
@@ -344,6 +388,18 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       }
     }
     return failures;
+  }
+
+  /** Chosen photos waiting to be uploaded, by side. */
+  private pendingUploads(): Partial<Record<CoinSide, Blob>> {
+    const uploads: Partial<Record<CoinSide, Blob>> = {};
+    for (const side of COIN_SIDES) {
+      const change = this.photoChanges[side]();
+      if (change?.type === 'upload') {
+        uploads[side] = change.image;
+      }
+    }
+    return uploads;
   }
 
   private dropStoredPhoto(side: CoinSide): void {

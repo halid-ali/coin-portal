@@ -156,9 +156,22 @@ namespace CoinPortal.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Setting")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int?>("TargetCollectionId")
                         .HasColumnType("int");
@@ -183,7 +196,7 @@ namespace CoinPortal.Api.Data.Migrations
 
                     b.ToTable("AuditLog", null, t =>
                         {
-                            t.HasCheckConstraint("CK_AuditLog_Action", "[Action] IN (1, 2, 3, 4, 5)");
+                            t.HasCheckConstraint("CK_AuditLog_Action", "[Action] IN (1, 2, 3, 4, 5, 6)");
                         });
                 });
 
@@ -492,6 +505,24 @@ namespace CoinPortal.Api.Data.Migrations
                         {
                             Code = "VA",
                             Name = "Vatican City"
+                        });
+                });
+
+            modelBuilder.Entity("CoinPortal.Api.Data.SiteSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinPublicCoins")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SiteSettings", t =>
+                        {
+                            t.HasCheckConstraint("CK_SiteSettings_Id", "[Id] = 1");
+
+                            t.HasCheckConstraint("CK_SiteSettings_MinPublicCoins", "[MinPublicCoins] BETWEEN 1 AND 100");
                         });
                 });
 

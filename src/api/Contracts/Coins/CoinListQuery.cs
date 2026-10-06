@@ -42,6 +42,9 @@ public class CoinListQuery
 
     public bool? IsCommemorative { get; set; }
 
+    /// <summary>With (true) or without (false) the photos a public collection needs (PublicationRules).</summary>
+    public bool? Photographed { get; set; }
+
     // Matches title or description
     [StringLength(100)]
     public string? Search { get; set; }

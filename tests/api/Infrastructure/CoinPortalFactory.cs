@@ -87,9 +87,16 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         await using (var db = new AppDbContext(options))
         {
             await db.Database.MigrateAsync();
+            await db.SiteSettings.ExecuteUpdateAsync(s => s.SetProperty(x => x.MinPublicCoins, MinPublicCoins));
         }
         _ = Services;
     }
+
+    /// <summary>
+    /// The site setting in tests: low, so publishing needs few uploads, and above 1, so "too few"
+    /// can be tested. Tests that change it belong to the <see cref="SiteSettingsCollection"/>.
+    /// </summary>
+    public const int MinPublicCoins = 2;
 
     public override async ValueTask DisposeAsync()
     {
@@ -203,4 +210,15 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
 public static class AdminCollection
 {
     public const string Name = "Admin";
+}
+
+/// <summary>
+/// Tests that change a site setting (SiteSettings) run alone, while no other test runs: every
+/// publishing test depends on <see cref="CoinPortalFactory.MinPublicCoins"/>. They put the value
+/// back when done.
+/// </summary>
+[CollectionDefinition(Name, DisableParallelization = true)]
+public sealed class SiteSettingsCollection
+{
+    public const string Name = "SiteSettings";
 }

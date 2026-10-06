@@ -359,7 +359,10 @@
     "noMatches": "Filtrelere uyan coin bulunamadı.",
     "empty": "Bu koleksiyonda henüz coin yok.",
     "addFirstCoin": "İlk coin'ini ekle",
-    "noPublicCollections": "Henüz herkese açık bir koleksiyon yok."
+    "noPublicCollections": "Henüz herkese açık bir koleksiyon yok.",
+    "photoFilter": "Fotoğraf",
+    "photoMissing": "Ulusal yüzü eksik",
+    "photoComplete": "Ulusal yüzü var"
   },
   "coinForm": {
     "titleNew": "Coin ekle",
@@ -501,7 +504,46 @@
       "other": "{{count}} coin ve fotoğrafları geri alınamaz şekilde silinir."
     },
     "typeName": "Onaylamak için koleksiyonun adını yaz:",
-    "submit": "Koleksiyonu sil"
+    "submit": "Koleksiyonu sil",
+    "submitAnyway": "Yine de sil"
+  },
+  "publication": {
+    "notReadyTitle": "Herkese açık yapmak için",
+    "progress": "{{photographed}}/{{required}} fotoğraflı coin",
+    "missing": {
+      "one": "{{count}} coin'in ulusal yüzü eksik",
+      "other": "{{count}} coin'in ulusal yüzü eksik"
+    },
+    "shareByLinkMeanwhile": "Bu arada linkle paylaşabilirsin.",
+    "readyTitle": "Koleksiyonun vitrine hazır",
+    "readyText": "Bütün coin'lerin fotoğrafı var; herkese açık yapabilirsin.",
+    "publish": "Herkese açık yap",
+    "publishing": "Yayına alınıyor…",
+    "publishShared": {
+      "title": "Paylaşım linki çalışmayacak",
+      "message": "Koleksiyon herkese açık olunca şu anki paylaşım linki çalışmaz. Koleksiyon herkese açık adresinden açılır, profilinde ve Keşfet'te görünür."
+    },
+    "needs": "Henüz seçilemez:",
+    "needsNew": "Henüz seçilemez: önce koleksiyonu oluştur ve ulusal yüz fotoğraflı coin'ler ekle.",
+    "requirementsNotMet": "Koleksiyon henüz herkese açık olamaz: bütün coin'lerin ulusal yüz fotoğrafı ve yeterli sayıda fotoğraflı coin gerekiyor. Sayılar güncellendi.",
+    "moveUnpublishes": {
+      "one": "\"{{name}}\" herkese açık ve bu koleksiyonda ulusal yüz fotoğrafı olmayan {{count}} coin var: taşırsan \"{{name}}\" sadece linkle paylaşılır.",
+      "other": "\"{{name}}\" herkese açık ve bu koleksiyonda ulusal yüz fotoğrafı olmayan {{count}} coin var: taşırsan \"{{name}}\" sadece linkle paylaşılır."
+    },
+    "moveUnpublishesSome": "\"{{name}}\" herkese açık ve taşınacak coin'lerin bazılarında ulusal yüz fotoğrafı yok: taşırsan \"{{name}}\" sadece linkle paylaşılır.",
+    "unpublish": {
+      "title": {
+        "one": "Koleksiyon herkese açık olmaktan çıkacak",
+        "other": "Koleksiyonlar herkese açık olmaktan çıkacak"
+      },
+      "message": {
+        "one": "Bu değişiklikten sonra {{names}} herkese açık koleksiyon şartlarını karşılamıyor. Devam edersen sadece linkle paylaşılır: herkese açık adresi çalışmaz, profilinde ve Keşfet'te görünmez, yeni bir paylaşım linki oluşur.",
+        "other": "Bu değişiklikten sonra {{names}} herkese açık koleksiyon şartlarını karşılamıyor. Devam edersen sadece linkle paylaşılırlar: herkese açık adresleri çalışmaz, profilinde ve Keşfet'te görünmezler, her biri için yeni bir paylaşım linki oluşur."
+      },
+      "quoted": "\"{{name}}\"",
+      "confirm": "Devam et",
+      "photoKept": "Ulusal yüz fotoğrafı silinmedi; koleksiyon herkese açık kaldı."
+    }
   },
   "profile": {
     "notFound": "Bu kullanıcının herkese açık bir koleksiyonu yok ya da kullanıcı bulunamadı.",
@@ -666,7 +708,8 @@
     },
     "content": {
       "title": "İçeriğin",
-      "p1": "Koleksiyonların, coin bilgilerin ve fotoğrafların senindir. Bir koleksiyonu paylaştığında, paylaşım sürdükçe sitenin onu fotoğraflarıyla birlikte göstermesine izin verirsin. Sadece kendi çektiğin ya da kullanma hakkına sahip olduğun fotoğrafları yükle."
+      "p1": "Koleksiyonların, coin bilgilerin ve fotoğrafların senindir. Bir koleksiyonu paylaştığında, paylaşım sürdükçe sitenin onu fotoğraflarıyla birlikte göstermesine izin verirsin. Sadece kendi çektiğin ya da kullanma hakkına sahip olduğun fotoğrafları yükle.",
+      "p2": "Herkese açık bir koleksiyondaki her coin'in ulusal yüz fotoğrafı olmalı ve koleksiyonda en az yöneticinin belirlediği sayıda böyle coin bulunmalı. Bir değişiklik bu şartı bozarsa sana sorulur; onaylarsan koleksiyon sadece linkle paylaşılır."
     },
     "rules": {
       "title": "Yasak olanlar",

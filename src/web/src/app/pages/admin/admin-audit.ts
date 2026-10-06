@@ -172,6 +172,14 @@ import { AdminListBase } from './admin-list-base';
         } @else if (e.targetCollectionId) {
           <span> · {{ 'admin.audit.deletedCollection' | transloco }}</span>
         }
+        @if (e.setting) {
+          <span
+            >{{ 'admin.settings.names.' + e.setting | transloco }}: {{ e.oldValue }}
+            <span aria-hidden="true">→</span
+            ><span class="sr-only">{{ 'admin.audit.changedTo' | transloco }}</span>
+            {{ e.newValue }}</span
+          >
+        }
       </p>
       @if (e.note) {
         <p class="mt-1 wrap-break-word text-shade-700 italic">{{ e.note }}</p>

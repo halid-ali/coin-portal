@@ -8,6 +8,7 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
   { path: 'users', labelKey: 'admin.nav.users', icon: 'users' },
   { path: 'collections', labelKey: 'admin.nav.collections', icon: 'collections' },
   { path: 'audit', labelKey: 'admin.nav.audit', icon: 'audit' },
+  { path: 'settings', labelKey: 'admin.nav.settings', icon: 'settings' },
 ];
 
 /**
@@ -66,6 +67,13 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
                         <!-- clipboard with lines -->
                         <rect x="5" y="4" width="14" height="17" rx="2" />
                         <path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3" />
+                      }
+                      @case ('settings') {
+                        <!-- sliders -->
+                        <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" />
+                        <circle cx="15" cy="6" r="2" />
+                        <circle cx="9" cy="12" r="2" />
+                        <circle cx="17" cy="18" r="2" />
                       }
                     }
                   </svg>

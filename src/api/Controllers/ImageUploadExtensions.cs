@@ -34,6 +34,34 @@ public static class ImageUploadExtensions
         return (buffer, null);
     }
 
+    /// <summary>
+    /// Buffers, checks and processes a coin photo upload: the files to store (by file name), or
+    /// a coded problem (file_missing, file_too_large, invalid_image).
+    /// </summary>
+    public static async Task<(IReadOnlyDictionary<string, byte[]>? Files, ObjectResult? Problem)> ProcessCoinPhotoAsync(
+        this ControllerBase controller, IFormFile? file, IImageProcessor imageProcessor, PhotoOptions options,
+        CancellationToken ct)
+    {
+        var (buffer, problem) = await controller.BufferUploadAsync(file, options, ct);
+        if (problem is not null)
+        {
+            return (null, problem);
+        }
+
+        try
+        {
+            await using (buffer)
+            {
+                var sizes = await imageProcessor.ProcessAsync(buffer!, ct);
+                return (sizes.ToDictionary(s => s.Key.FileName(), s => s.Value), null);
+            }
+        }
+        catch (InvalidImageException e)
+        {
+            return (null, controller.CodedProblem("invalid_image", e.Message));
+        }
+    }
+
     public static ObjectResult QuotaExceeded(this ControllerBase controller, long limitBytes) =>
         controller.CodedProblem("quota_exceeded",
             $"Photo storage limit of {limitBytes / (1024.0 * 1024):0.##} MB reached.");

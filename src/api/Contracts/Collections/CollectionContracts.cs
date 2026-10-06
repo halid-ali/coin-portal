@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Publishing;
 
 namespace CoinPortal.Api.Contracts.Collections;
 
@@ -12,7 +13,10 @@ public class CollectionUpsertRequest
     [StringLength(Collection.DescriptionMaxLength)]
     public string? Description { get; set; }
 
-    /// <summary>Omitted keeps the current value (Private for a new collection).</summary>
+    /// <summary>
+    /// Omitted keeps the current value (Private for a new collection). Public needs the
+    /// PublicationRules (400 public_requirements otherwise), so a new collection cannot start Public.
+    /// </summary>
     [EnumDataType(typeof(CollectionVisibility))]
     public CollectionVisibility? Visibility { get; set; }
 }
@@ -20,6 +24,8 @@ public class CollectionUpsertRequest
 /// <param name="CoverImageId">Uploaded cover (GET /api/collections/{id}/cover?v={CoverImageId}); null = the client's default picture.</param>
 /// <param name="ShareToken">Owner only: the secret of the share link /s/{ShareToken} while Unlisted.</param>
 /// <param name="ModerationLocked">Hidden by an admin: Private, and the visibility cannot change.</param>
+/// <param name="PhotographedCoinCount">Coins with the photos a public collection needs (PublicationRules); CoinCount minus this is what is missing.</param>
+/// <param name="MinPublicCoins">Photographed coins a collection needs to become Public (site setting, the same for every collection).</param>
 public sealed record CollectionResponse(
     int Id,
     string Name,
@@ -28,9 +34,18 @@ public sealed record CollectionResponse(
     bool ModerationLocked,
     string? ShareToken,
     int CoinCount,
+    int PhotographedCoinCount,
+    int MinPublicCoins,
     Guid? CoverImageId,
     DateTime CreatedAtUtc,
-    DateTime UpdatedAtUtc);
+    DateTime UpdatedAtUtc)
+{
+    /// <summary>
+    /// The collection meets the rule of a Public collection now (<see cref="PublicationStatus"/>).
+    /// The client shows the counts, this decides; a moderation lock is reported separately.
+    /// </summary>
+    public bool CanBePublic => new PublicationStatus(CoinCount, PhotographedCoinCount, MinPublicCoins).CanBePublic;
+}
 
 public sealed record CollectionCoverImageResponse(int CollectionId, Guid CoverImageId);
 

@@ -13,6 +13,19 @@ function codeMessage(code: string): string {
   return translate(`photo.errors.${code}`, { mb: MAX_MB });
 }
 
+/**
+ * A photo error of a coin saved together with its photos (POST api/coins/with-photos), or null:
+ * the message, led by the side when the API names it.
+ */
+export function coinWithPhotosErrorMessage(err: HttpErrorResponse): string | null {
+  const body = err.error as { code?: string; side?: string } | null;
+  if (!body?.code || !CODES.includes(body.code)) {
+    return err.status === 413 ? photoErrorMessage(err) : null;
+  }
+  const message = photoErrorMessage(err);
+  return body.side ? `${translate(`coin.side.${body.side}.label`)}: ${message}` : message;
+}
+
 export function photoErrorMessage(err: HttpErrorResponse): string {
   const code = (err.error as { code?: string } | null)?.code;
   if (code && CODES.includes(code)) {

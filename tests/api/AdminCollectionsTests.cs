@@ -20,7 +20,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
         var hidden = await alice.FirstCollectionAsync(); // private
-        var shown = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var shown = await alice.CreatePublicCollectionAsync();
         var linked = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
 
         var list = await ListAsync(admin, $"search={alice.UserName}");
@@ -39,7 +39,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var collection = await alice.PublishAsync(await alice.FirstCollectionAsync());
         using var visitor = await factory.CreateAnonymousClientAsync();
 
         using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest(null)))
@@ -50,6 +50,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         using var publicView = await visitor.GetAsync($"/api/public/collections/{collection.Id}");
         using var share = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
             new CollectionUpsertRequest { Name = collection.Name, Visibility = CollectionVisibility.Public });
+        using var publish = await alice.Client.PostAsync($"/api/collections/{collection.Id}/publish");
         using var rename = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
             new CollectionUpsertRequest { Name = "Renamed", Visibility = CollectionVisibility.Private });
         var locked = await ListAsync(admin, $"search={alice.UserName}&locked=true");
@@ -57,6 +58,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         Assert.Equal((CollectionVisibility.Private, true), (owned.Visibility, owned.ModerationLocked));
         await publicView.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
         Assert.Equal("moderation_locked", await share.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("moderation_locked", await publish.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
         Assert.Equal("Renamed", (await rename.ReadJsonAsync<CollectionResponse>()).Name);
         Assert.NotNull(Assert.Single(locked.Items).ModerationLockedAtUtc);
 
@@ -65,7 +67,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
             await unlock.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         }
         var stillPrivate = await alice.Client.GetJsonAsync<CollectionResponse>($"/api/collections/{collection.Id}");
-        var sharedAgain = await alice.SetVisibilityAsync(stillPrivate, CollectionVisibility.Public);
+        var sharedAgain = await alice.PublishAsync(stillPrivate);
 
         Assert.Equal((CollectionVisibility.Private, false), (stillPrivate.Visibility, stillPrivate.ModerationLocked));
         Assert.Equal(CollectionVisibility.Public, sharedAgain.Visibility);
@@ -76,9 +78,9 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var hidden = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
-        var coin = await alice.CreateCoinAsync(hidden.Id);
-        var other = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var hidden = await alice.PublishAsync(await alice.FirstCollectionAsync());
+        var coin = await alice.CreatePhotographedCoinAsync(hidden.Id);
+        var other = await alice.CreatePublicCollectionAsync();
         using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{hidden.Id}/lock", new AdminLockRequest("Spam")))
         {
             await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
@@ -119,8 +121,8 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         var admin = await factory.SignUpAdminAsync();
         var otherAdmin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var adminsCollection = await otherAdmin.CreateCollectionAsync(visibility: CollectionVisibility.Public);
-        var alicesCollection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var adminsCollection = await otherAdmin.CreatePublicCollectionAsync();
+        var alicesCollection = await alice.CreatePublicCollectionAsync();
 
         var ofAdmin = Assert.Single((await ListAsync(admin, $"search={otherAdmin.UserName}")).Items);
         var ofAlice = Assert.Single((await ListAsync(admin, $"search={alice.UserName}")).Items);
@@ -153,7 +155,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var collection = await alice.CreateCollectionAsync("Doomed", CollectionVisibility.Public);
+        var collection = await alice.CreatePublicCollectionAsync("Doomed");
 
         using (await admin.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest("  Offensive cover  "))) { }
         using (await admin.Client.DeleteAsync($"/api/admin/collections/{collection.Id}/lock")) { }
@@ -182,7 +184,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     public async Task CollectionAndAuditEndpoints_AreForAdminsOnly()
     {
         var alice = await factory.SignUpAsync();
-        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var collection = await alice.CreatePublicCollectionAsync();
 
         using var list = await alice.Client.GetAsync("/api/admin/collections");
         using var hide = await alice.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest(null));
@@ -206,10 +208,10 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         // Name -> coins
         foreach (var (name, coins) in new[] { ("b", 2), ("a", 0), ("c", 1) })
         {
-            var collection = await alice.CreateCollectionAsync(prefix + name, CollectionVisibility.Public);
+            var collection = await alice.CreatePublicCollectionAsync(prefix + name);
             for (var i = 0; i < coins; i++)
             {
-                await alice.CreateCoinAsync(collection.Id);
+                await alice.CreatePhotographedCoinAsync(collection.Id);
             }
         }
 
@@ -224,8 +226,8 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var hidden = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
-        var shown = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var hidden = await alice.CreatePublicCollectionAsync();
+        var shown = await alice.CreatePublicCollectionAsync();
         using (var hide = await admin.Client.PutAsync($"/api/admin/collections/{hidden.Id}/lock", new AdminLockRequest(null)))
         {
             await hide.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
@@ -248,7 +250,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Public);
+        var collection = await alice.CreatePublicCollectionAsync();
         // Hidden, unlocked, shared again by the owner and hidden again: three entries
         var url = $"/api/admin/collections/{collection.Id}/lock";
         using (var hide = await admin.Client.PutAsync(url, new AdminLockRequest(null)))
@@ -259,7 +261,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         {
             await unlock.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         }
-        await alice.SetVisibilityAsync(collection, CollectionVisibility.Public);
+        await alice.PublishAsync(collection);
         using (var hideAgain = await admin.Client.PutAsync(url, new AdminLockRequest(null)))
         {
             await hideAgain.ShouldHaveStatusAsync(HttpStatusCode.NoContent);

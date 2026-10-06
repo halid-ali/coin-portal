@@ -137,7 +137,7 @@ public class AdminUsersTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        await alice.PublishAsync(await alice.FirstCollectionAsync());
         await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
 
         var detail = await admin.Client.GetJsonAsync<AdminUserDetailResponse>($"/api/admin/users/{alice.User.Id}");
@@ -187,10 +187,10 @@ public class AdminUsersTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var alice = await factory.SignUpAsync();
-        var shown = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Public);
+        var shown = await alice.PublishAsync(await alice.FirstCollectionAsync());
         var linked = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
-        var coin = await alice.CreateCoinAsync(shown.Id);
-        var photoId = (await alice.UploadPhotoAsync(coin.Id)).Id;
+        var coin = await alice.CreatePhotographedCoinAsync(shown.Id);
+        var photoId = coin.Photos.Single().Id;
         var coverId = await alice.UploadCoverAsync(shown.Id);
         using var visitor = await factory.CreateAnonymousClientAsync();
         string[] urls =
@@ -277,7 +277,7 @@ public class AdminUsersTests(CoinPortalFactory factory)
     {
         var admin = await factory.SignUpAdminAsync();
         var bob = await factory.SignUpAsync();
-        var collection = await bob.SetVisibilityAsync(await bob.FirstCollectionAsync(), CollectionVisibility.Public);
+        var collection = await bob.PublishAsync(await bob.FirstCollectionAsync());
         using (await admin.Client.PutAsync($"/api/admin/users/{bob.User.Id}/lock", new AdminLockRequest("spam"))) { }
         using (await admin.Client.PutAsync($"/api/admin/collections/{collection.Id}/lock", new AdminLockRequest(null))) { }
 

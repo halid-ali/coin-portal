@@ -1,6 +1,7 @@
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
+using CoinPortal.Api.Publishing;
 using CoinPortal.Api.Querying;
 using CoinPortal.Api.Hosting;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,7 @@ public class CoinPhotosController(
     IImageProcessor imageProcessor,
     IPhotoStorage photoStorage,
     PhotoQuota photoQuota,
+    PublicationGuard publication,
     IOptions<PhotoOptions> photoOptions,
     ILogger<CoinPhotosController> logger) : ControllerBase
 {
@@ -50,28 +52,14 @@ public class CoinPhotosController(
             return NotFound();
         }
 
-        var (buffer, problem) = await this.BufferUploadAsync(file, photoOptions.Value, ct);
+        var (files, problem) = await this.ProcessCoinPhotoAsync(file, imageProcessor, photoOptions.Value, ct);
         if (problem is not null)
         {
             return problem;
         }
 
-        IReadOnlyDictionary<PhotoSize, byte[]> sizes;
-        try
-        {
-            await using (buffer)
-            {
-                sizes = await imageProcessor.ProcessAsync(buffer!, ct);
-            }
-        }
-        catch (InvalidImageException e)
-        {
-            return this.CodedProblem("invalid_image", e.Message);
-        }
-
         var existing = coin.Photos.FirstOrDefault(p => p.Side == side);
-        var files = sizes.ToDictionary(s => s.Key.FileName(), s => s.Value);
-        var sizeBytes = files.Values.Sum(f => (long)f.Length);
+        var sizeBytes = files!.Values.Sum(f => (long)f.Length);
 
         // The photo being replaced does not count against the quota
         if (!await photoQuota.FitsAsync(coin.OwnerId, sizeBytes, existing?.Id, ct))
@@ -122,10 +110,15 @@ public class CoinPhotosController(
         return CoinResponse.From(coin);
     }
 
+    /// <summary>
+    /// Removes the photo of one side. Without the photos a public collection needs, its coin breaks
+    /// the rule (409 would_unpublish); with <paramref name="unpublish"/> the collection becomes Unlisted.
+    /// </summary>
     [HttpDelete("{side:alpha}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int coinId, CoinSide side, CancellationToken ct)
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(int coinId, CoinSide side, [FromQuery] bool unpublish, CancellationToken ct)
     {
         var coin = await FindOwnedCoinAsync(coinId, ct);
         var photo = coin?.Photos.FirstOrDefault(p => p.Side == side);
@@ -134,8 +127,19 @@ public class CoinPhotosController(
             return NotFound();
         }
 
+        var losesPhotos = PublicationRules.HasPhotos(coin)
+            && !PublicationRules.HasPhotos(coin.Photos.Where(p => p != photo).Select(p => p.Side));
+        var broken = await publication.BrokenByAsync(
+            [new CollectionChange(coin.CollectionId, AddsUnphotographed: losesPhotos)], ct);
+        if (broken.Count > 0 && !unpublish)
+        {
+            return this.WouldUnpublish(broken);
+        }
+
+        var now = DateTime.UtcNow;
+        publication.Unpublish(broken, now);
         db.CoinPhotos.Remove(photo);
-        coin.UpdatedAtUtc = DateTime.UtcNow;
+        coin.UpdatedAtUtc = now;
         await db.SaveChangesAsync(ct);
         await photoStorage.DeleteAsync(coin.OwnerId, photo.Id);
 

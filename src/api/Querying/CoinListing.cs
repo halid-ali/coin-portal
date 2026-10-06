@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Publishing;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Querying;
@@ -34,6 +35,10 @@ public static class CoinListing
         if (query.IsCommemorative is { } isCommemorative)
         {
             coins = coins.Where(c => c.IsCommemorative == isCommemorative);
+        }
+        if (query.Photographed is { } photographed)
+        {
+            coins = coins.Where(photographed ? PublicationRules.IsPhotographed : PublicationRules.IsNotPhotographed);
         }
         // Every word must appear in the title or the description, in any order: "almanya 2006"
         // finds "2 € · Almanya · 2006". SQL Server's default collation is case-insensitive.

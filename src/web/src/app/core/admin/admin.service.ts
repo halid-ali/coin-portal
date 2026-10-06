@@ -8,6 +8,8 @@ import {
   AdminAuditQuery,
   AdminCollection,
   AdminCollectionQuery,
+  AdminSettings,
+  AdminSettingsImpact,
   AdminStats,
   AdminUser,
   AdminUserDetail,
@@ -73,6 +75,21 @@ export class AdminService {
 
   unlockCollection(id: number, note: string): Observable<void> {
     return this.http.delete<void>(`${API}/collections/${id}/lock`, { body: { note } });
+  }
+
+  settings(): Observable<AdminSettings> {
+    return this.http.get<AdminSettings>(`${API}/settings`);
+  }
+
+  /** The note goes to the audit log only (with the old and new value). */
+  updateSettings(settings: AdminSettings, note: string): Observable<AdminSettings> {
+    return this.http.put<AdminSettings>(`${API}/settings`, { ...settings, note });
+  }
+
+  settingsImpact(minPublicCoins: number): Observable<AdminSettingsImpact> {
+    return this.http.get<AdminSettingsImpact>(`${API}/settings/impact`, {
+      params: toParams({ minPublicCoins }),
+    });
   }
 
   audit(query: AdminAuditQuery): Observable<PagedResponse<AdminAuditEntry>> {

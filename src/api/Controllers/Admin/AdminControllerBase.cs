@@ -21,7 +21,7 @@ public abstract class AdminControllerBase : ControllerBase
     /// The target user is the collection's owner when only a collection is given (Owner loaded).
     /// </summary>
     protected AuditLogEntry Audit(AppDbContext db, AuditAction action, ApplicationUser? user = null,
-        Collection? collection = null, string? note = null)
+        Collection? collection = null, string? note = null, (string Name, string Old, string New)? setting = null)
     {
         var owner = user ?? collection?.Owner;
         var entry = new AuditLogEntry
@@ -34,6 +34,9 @@ public abstract class AdminControllerBase : ControllerBase
             TargetUserName = owner?.UserName,
             TargetCollectionId = collection?.Id,
             TargetCollectionName = collection?.Name,
+            Setting = setting?.Name,
+            OldValue = setting?.Old,
+            NewValue = setting?.New,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
         };
         db.AuditLog.Add(entry);

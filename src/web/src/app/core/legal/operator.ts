@@ -8,7 +8,7 @@ export const OPERATOR = {
 export const SOURCE_URL = 'https://github.com/halid-ali/coin-portal';
 
 /** Date of the terms of use's current text (ISO); changed with the text. */
-export const TERMS_UPDATED = '2026-10-03';
+export const TERMS_UPDATED = '2026-10-05';
 
 /** Date of the privacy policy's current text (ISO); changed with the text. */
 export const PRIVACY_UPDATED = '2026-10-03';

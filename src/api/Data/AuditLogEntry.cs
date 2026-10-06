@@ -8,6 +8,7 @@ public enum AuditAction
     CollectionHidden = 3,
     CollectionUnlocked = 4,
     UserDeleted = 5,
+    SettingChanged = 6,
 }
 
 /// <summary>
@@ -21,6 +22,8 @@ public class AuditLogEntry
 {
     public const int UserNameMaxLength = 256;
     public const int NoteMaxLength = 500;
+    public const int SettingMaxLength = 50;
+    public const int SettingValueMaxLength = 100;
 
     public long Id { get; set; }
     public DateTime CreatedAtUtc { get; set; }
@@ -34,6 +37,11 @@ public class AuditLogEntry
     public string? TargetUserName { get; set; }
     public int? TargetCollectionId { get; set; }
     public string? TargetCollectionName { get; set; }
+
+    /// <summary>SettingChanged: which site setting (SiteSettings), with its value before and after.</summary>
+    public string? Setting { get; set; }
+    public string? OldValue { get; set; }
+    public string? NewValue { get; set; }
 
     /// <summary>The admin's optional reason; only shown in the audit log.</summary>
     public string? Note { get; set; }

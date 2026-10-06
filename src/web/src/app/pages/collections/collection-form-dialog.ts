@@ -30,6 +30,8 @@ import {
   collectionErrorMessage,
   shareLink,
 } from '../../core/collections/collection.service';
+import { canChoosePublic, publicationProgress } from '../../core/collections/publication';
+import { PluralPipe } from '../../core/i18n/plural';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { confirmDiscardChanges } from '../../shared/unsaved-changes';
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
@@ -49,7 +51,14 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-collection-form-dialog',
-  imports: [ReactiveFormsModule, FieldA11y, TranslocoPipe, CoverPicker, VisibilityBadge],
+  imports: [
+    ReactiveFormsModule,
+    FieldA11y,
+    TranslocoPipe,
+    PluralPipe,
+    CoverPicker,
+    VisibilityBadge,
+  ],
   template: `
     <dialog
       #dialog
@@ -127,18 +136,25 @@ let nextId = 0;
             </div>
           </div>
         } @else {
-          <fieldset>
+          <!-- The reason Public is not available yet also describes the group: screen readers
+               often skip a disabled radio, and with it its own description -->
+          <fieldset [attr.aria-describedby]="publicBlocked() ? titleId + '-public-needs' : null">
             <legend class="form-label">{{ 'collectionForm.visibility' | transloco }}</legend>
             <div class="space-y-2">
               @for (option of visibilityOptions; track option) {
+                @let blocked = option === 'Public' && publicBlocked();
                 <label
-                  class="flex cursor-pointer items-start gap-3 rounded-lg border border-shade-200 p-3 transition-colors
-                            hover:bg-shade-50 has-checked:border-brand-400 has-checked:bg-brand-50"
+                  class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 transition-colors has-checked:border-brand-400 has-checked:bg-brand-50"
+                  [class]="
+                    blocked ? 'cursor-not-allowed bg-shade-50' : 'cursor-pointer hover:bg-shade-50'
+                  "
                 >
                   <input
                     type="radio"
                     formControlName="visibility"
                     [value]="option"
+                    [attr.disabled]="blocked ? '' : null"
+                    [attr.aria-describedby]="blocked ? titleId + '-public-needs' : null"
                     class="mt-1 accent-brand-500"
                   />
                   <span class="text-sm">
@@ -148,6 +164,24 @@ let nextId = 0;
                     <span class="mt-1 block text-shade-600">{{
                       'visibility.' + option + '.description' | transloco
                     }}</span>
+                    @if (blocked) {
+                      <!-- Why it cannot be chosen yet, with the numbers -->
+                      <span [id]="titleId + '-public-needs'" class="mt-1 block text-shade-700">
+                        @if (progress(); as p) {
+                          {{ 'publication.needs' | transloco }}
+                          {{
+                            'publication.progress'
+                              | transloco: { photographed: p.photographed, required: p.required }
+                          }}
+                          @if (p.missing > 0) {
+                            <span aria-hidden="true">·</span>
+                            {{ 'publication.missing' | plural: p.missing }}
+                          }
+                        } @else {
+                          {{ 'publication.needsNew' | transloco }}
+                        }
+                      </span>
+                    }
                   </span>
                 </label>
               }
@@ -253,7 +287,10 @@ export class CollectionFormDialog {
   /** The collection as last saved: the input when editing, set after a create. */
   protected readonly saved = linkedSignal<Collection | null>(() => this.collection() ?? null);
   protected readonly coverChange = signal<ImageChange | null>(null);
-  /** Something was saved, so closing reports the collection even when cancelled afterwards. */
+  /**
+   * Something was saved (or reloaded with fresh counts), so closing reports the collection even
+   * when cancelled afterwards.
+   */
   private savedAny = false;
 
   protected readonly form = this.fb.group({
@@ -263,6 +300,12 @@ export class CollectionFormDialog {
   });
 
   protected readonly visibilityOptions = VISIBILITIES;
+  /** Public needs photographed coins (publicationProgress); a new collection has none yet. */
+  protected readonly publicBlocked = computed(() => !canChoosePublic(this.saved()));
+  protected readonly progress = computed(() => {
+    const saved = this.saved();
+    return saved ? publicationProgress(saved) : null;
+  });
   protected readonly copied = signal(false);
   protected readonly copyFailed = signal(false);
   protected readonly regenerating = signal(false);
@@ -336,14 +379,19 @@ export class CollectionFormDialog {
             : this.collectionService.create(request),
         );
       } catch (err) {
+        const error = err as HttpErrorResponse;
         this.formErrors.set(
           applyServerErrors(
             this.form,
-            err as HttpErrorResponse,
+            error,
             COLLECTION_ERROR_CODES,
             COLLECTION_ERROR_MESSAGE_KEYS,
           ),
         );
+        // Coins changed in another tab meanwhile: the message says the counts are updated
+        if (existing && (error.error as { code?: string } | null)?.code === 'public_requirements') {
+          await this.reloadCounts(existing.id);
+        }
         this.focusFirstInvalid();
         return;
       }
@@ -459,6 +507,23 @@ export class CollectionFormDialog {
     event.preventDefault();
     if (await confirmDiscardChanges(this.confirmDialog)) {
       this.close();
+    }
+  }
+
+  /**
+   * Fresh counts after a refused Public: the option shows why it is not available, and the
+   * choice goes back to the saved visibility (the other fields keep what was typed).
+   */
+  private async reloadCounts(id: number): Promise<void> {
+    try {
+      const fresh = await firstValueFrom(this.collectionService.get(id));
+      this.saved.set(fresh);
+      this.savedAny = true;
+      // Back to what is saved: not a change of the user's that Escape would ask about
+      this.form.controls.visibility.setValue(fresh.visibility);
+      this.form.controls.visibility.markAsPristine();
+    } catch {
+      // The message stands; the counts update on the next save
     }
   }
 

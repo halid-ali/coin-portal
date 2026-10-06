@@ -123,6 +123,8 @@ export interface CoinListQuery {
   countryCode?: string;
   year?: number;
   isCommemorative?: boolean;
+  /** With (true) or without (false) the photos a public collection needs (own coins only). */
+  photographed?: boolean;
   search?: string;
   sort?: CoinSort;
   dir?: SortDirection;

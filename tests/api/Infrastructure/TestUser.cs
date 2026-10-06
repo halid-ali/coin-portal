@@ -63,6 +63,33 @@ public sealed record TestUser(ApiClient Client, UserResponse User)
         return await response.ReadJsonAsync<CoinResponse>();
     }
 
+    /// <summary>A coin created with a national side photo, so it counts for a public collection.</summary>
+    public async Task<CoinResponse> CreatePhotographedCoinAsync(int collectionId, string title = "Photographed coin",
+        string countryCode = "DE", int year = 2006, Denomination denomination = Denomination.Euro2)
+    {
+        using var response = await Client.PostCoinWithPhotosAsync("/api/coins/with-photos",
+            NewCoin(collectionId, title, countryCode, year, denomination), national: TestImages.Png(200, 160));
+        return await response.ReadJsonAsync<CoinResponse>();
+    }
+
+    /// <summary>
+    /// Makes the collection Public: first adds photographed coins up to the minimum
+    /// (<see cref="CoinPortalFactory.MinPublicCoins"/>). Its other coins must have photos already.
+    /// </summary>
+    public async Task<CollectionResponse> PublishAsync(CollectionResponse collection)
+    {
+        var current = await Client.GetJsonAsync<CollectionResponse>($"/api/collections/{collection.Id}");
+        for (var i = current.PhotographedCoinCount; i < current.MinPublicCoins; i++)
+        {
+            await CreatePhotographedCoinAsync(collection.Id, $"Photographed coin {i + 1}");
+        }
+        return await SetVisibilityAsync(current, CollectionVisibility.Public);
+    }
+
+    /// <summary>A new collection made Public (<see cref="PublishAsync"/>).</summary>
+    public async Task<CollectionResponse> CreatePublicCollectionAsync(string? name = null) =>
+        await PublishAsync(await CreateCollectionAsync(name));
+
     /// <summary>Uploads a photo of one side (a 200x160 PNG unless given) and returns it.</summary>
     public async Task<CoinPhotoResponse> UploadPhotoAsync(int coinId, CoinSide side = CoinSide.National,
         byte[]? image = null)
