@@ -1588,6 +1588,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       sadece `traceId` farklı, benzerlik %74–75 / eşik %75) ve **90027** "Cookie Slack Detector" (bilgi,
       girişsiz taramada cookie'siz yanıt aynı). Girişli aktif tarama şimdilik yok: girişsiz tarama temiz,
       girişli uçların erişimi yetki matrisi ve kötüye kullanım testleriyle kapalı.
+    - **Pasif taramada yeni yanlış alarm** (CI #63, 2026-10-06; `v1.6.0`'ın etiketi bu yüzden bir kez geri alındı,
+      push edilmemişti): **10031** "User Controllable HTML Element Attribute" (bilgi, düşük güven). Gezgin ilk kez
+      sıralamalı bir adrese (`?sort=Title&dir=Desc`) denk geldi; `Desc`'i `<meta name="description">` içinde
+      buldu. Sunucu her sayfaya aynı sabit `index.html`'i gönderir, adresten HTML'e bir şey yazılmaz;
+      kullanıcı onayıyla IGNORE. Ders: pasif tarama da gezginin o koşuda bulduğu adreslere göre değişir, yeni
+      bir bulgu yayını durdurabilir (bilinçli).
 
 ## Yol haritası
 
