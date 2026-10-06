@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Publishing;
 
 namespace CoinPortal.Api.Contracts.Collections;
 
@@ -37,7 +38,14 @@ public sealed record CollectionResponse(
     int MinPublicCoins,
     Guid? CoverImageId,
     DateTime CreatedAtUtc,
-    DateTime UpdatedAtUtc);
+    DateTime UpdatedAtUtc)
+{
+    /// <summary>
+    /// The collection meets the rule of a Public collection now (<see cref="PublicationStatus"/>).
+    /// The client shows the counts, this decides; a moderation lock is reported separately.
+    /// </summary>
+    public bool CanBePublic => new PublicationStatus(CoinCount, PhotographedCoinCount, MinPublicCoins).CanBePublic;
+}
 
 public sealed record CollectionCoverImageResponse(int CollectionId, Guid CoverImageId);
 

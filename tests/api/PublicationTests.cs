@@ -35,7 +35,56 @@ public class PublicationTests(CoinPortalFactory factory)
         var published = await alice.SetVisibilityAsync(collection, CollectionVisibility.Public);
 
         Assert.Equal(CollectionVisibility.Public, published.Visibility);
-        Assert.Equal((2, 2, Min), (published.CoinCount, published.PhotographedCoinCount, published.MinPublicCoins));
+        Assert.Equal((2, 2, Min, true),
+            (published.CoinCount, published.PhotographedCoinCount, published.MinPublicCoins, published.CanBePublic));
+    }
+
+    [Fact]
+    public async Task PublishEndpoint_OnlyChangesTheVisibility_AndEndsTheShareLink()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
+        for (var i = 0; i < Min; i++)
+        {
+            await alice.CreatePhotographedCoinAsync(collection.Id);
+        }
+        var ready = await GetAsync(alice, collection);
+        // Renamed in another tab: the page that publishes still holds the old name
+        await alice.SetVisibilityAsync(ready with { Name = "Renamed elsewhere" }, CollectionVisibility.Unlisted);
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        using var response = await alice.Client.PostAsync($"/api/collections/{collection.Id}/publish");
+        var published = await response.ReadJsonAsync<CollectionResponse>();
+
+        Assert.True(ready.CanBePublic);
+        Assert.Equal((CollectionVisibility.Public, "Renamed elsewhere", (string?)null),
+            (published.Visibility, published.Name, published.ShareToken));
+        await visitor.ExpectStatusAsync($"/api/public/collections/{collection.Id}", HttpStatusCode.OK);
+        await visitor.ExpectStatusAsync($"/api/public/shared/{ready.ShareToken}", HttpStatusCode.NotFound);
+
+        // Again: already Public, returned as it is
+        using var again = await alice.Client.PostAsync($"/api/collections/{collection.Id}/publish");
+        Assert.Equal(CollectionVisibility.Public, (await again.ReadJsonAsync<CollectionResponse>()).Visibility);
+    }
+
+    [Fact]
+    public async Task PublishEndpoint_OtherUsersCollection_Is404_AndAnonymousIs401()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        var bobs = await bob.FirstCollectionAsync();
+        for (var i = 0; i < Min; i++)
+        {
+            await bob.CreatePhotographedCoinAsync(bobs.Id);
+        }
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        using var byAlice = await alice.Client.PostAsync($"/api/collections/{bobs.Id}/publish");
+        using var anonymous = await visitor.PostAsync($"/api/collections/{bobs.Id}/publish", null);
+
+        await byAlice.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        await anonymous.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
+        Assert.Equal(CollectionVisibility.Private, (await GetAsync(bob, bobs)).Visibility);
     }
 
     [Fact]
@@ -340,24 +389,32 @@ public class PublicationTests(CoinPortalFactory factory)
         Assert.Equal(national.Id, Assert.Single(with.Items).Id);
     }
 
+    // Both ways to publish refuse it with the same counts: the form's PUT and the publish endpoint
     private static async Task ExpectRequirementsAsync(TestUser user, CollectionResponse collection, int coins,
         int photographed)
     {
-        using var response = await user.Client.PutAsync($"/api/collections/{collection.Id}", new CollectionUpsertRequest
+        using var put = await user.Client.PutAsync($"/api/collections/{collection.Id}", new CollectionUpsertRequest
         {
             Name = collection.Name,
             Visibility = CollectionVisibility.Public,
         });
+        await ExpectRequirementsProblemAsync(put, coins, photographed);
+        using var publish = await user.Client.PostAsync($"/api/collections/{collection.Id}/publish");
+        await ExpectRequirementsProblemAsync(publish, coins, photographed);
+
+        var current = await GetAsync(user, collection);
+        Assert.Equal((CollectionVisibility.Private, coins, photographed, false),
+            (current.Visibility, current.CoinCount, current.PhotographedCoinCount, current.CanBePublic));
+    }
+
+    private static async Task ExpectRequirementsProblemAsync(HttpResponseMessage response, int coins, int photographed)
+    {
         await response.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var root = json.RootElement;
         Assert.Equal("public_requirements", root.GetProperty("code").GetString());
         Assert.Equal((coins, photographed, Min), (root.GetProperty("coinCount").GetInt32(),
             root.GetProperty("photographedCoinCount").GetInt32(), root.GetProperty("minPublicCoins").GetInt32()));
-
-        var current = await GetAsync(user, collection);
-        Assert.Equal((CollectionVisibility.Private, coins, photographed),
-            (current.Visibility, current.CoinCount, current.PhotographedCoinCount));
     }
 
     private static async Task ExpectWouldUnpublishAsync(HttpResponseMessage response, CollectionResponse collection)

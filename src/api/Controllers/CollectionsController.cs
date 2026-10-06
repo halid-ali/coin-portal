@@ -129,6 +129,45 @@ public class CollectionsController(
     }
 
     /// <summary>
+    /// Makes the collection Public, nothing else: the name and description stay as they are (a page
+    /// opened before a rename in another tab cannot write the old ones back). An Unlisted
+    /// collection loses its share link. Refused with the current counts (400 public_requirements)
+    /// while the rule is not met; a collection that is Public already is returned unchanged.
+    /// </summary>
+    [HttpPost("{id:int}/publish")]
+    [ProducesResponseType<CollectionResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CollectionResponse>> Publish(int id, CancellationToken ct)
+    {
+        var collection = await FindOwnedAsync(id, ct);
+        if (collection is null)
+        {
+            return NotFound();
+        }
+        if (collection.ModerationLockedAtUtc is not null)
+        {
+            return this.CodedProblem("moderation_locked", "An administrator has hidden this collection.",
+                StatusCodes.Status403Forbidden);
+        }
+
+        if (collection.Visibility != CollectionVisibility.Public)
+        {
+            var status = await publication.StatusAsync(collection.Id, ct);
+            if (!status.CanBePublic)
+            {
+                return this.PublicRequirementsNotMet(status);
+            }
+            collection.SetVisibility(CollectionVisibility.Public);
+            collection.UpdatedAtUtc = DateTime.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return await ProjectOneAsync(collection.Id, ct);
+    }
+
+    /// <summary>
     /// Deletes a collection. With <paramref name="moveTo"/> its coins move to that collection of
     /// the same user first; with <paramref name="deleteCoins"/> the coins and their photos are
     /// deleted too. A collection with coins and neither is refused (409 has_coins): a page opened
@@ -196,7 +235,7 @@ public class CollectionsController(
                 {
                     return this.WouldUnpublish(broken);
                 }
-                PublicationGuard.Unpublish(broken, DateTime.UtcNow);
+                publication.Unpublish(broken, DateTime.UtcNow);
                 await coins.ExecuteUpdateAsync(s => s.SetProperty(c => c.CollectionId, target), ct);
             }
             else

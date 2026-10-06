@@ -137,7 +137,7 @@ public class CoinPhotosController(
         }
 
         var now = DateTime.UtcNow;
-        PublicationGuard.Unpublish(broken, now);
+        publication.Unpublish(broken, now);
         db.CoinPhotos.Remove(photo);
         coin.UpdatedAtUtc = now;
         await db.SaveChangesAsync(ct);

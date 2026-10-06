@@ -14,9 +14,11 @@ public sealed record CollectionChange(int CollectionId, bool AddsUnphotographed 
 /// rule of a Public collection is refused (409 would_unpublish) unless the user confirmed it; then
 /// the action goes ahead and the collection becomes Unlisted in the same save.
 /// No lock: two requests of the same user at once can both pass the minimum (like the photo
-/// quota). The photo part holds anyway, every check of it looks at the coin itself.
+/// quota). The same goes for a collection becoming Public while a coin without photos is added to
+/// it (the coin passes the guard while the collection is not Public yet); accepted, it needs the
+/// same user in two tabs at the same moment.
 /// </summary>
-public sealed class PublicationGuard(AppDbContext db)
+public sealed class PublicationGuard(AppDbContext db, ILogger<PublicationGuard> logger)
 {
     public Task<int> MinPublicCoinsAsync(CancellationToken ct) =>
         db.SiteSettings.AsNoTracking()
@@ -73,13 +75,19 @@ public sealed class PublicationGuard(AppDbContext db)
         return broken;
     }
 
-    /// <summary>Public → Unlisted: a new share link, the public address stops working.</summary>
-    public static void Unpublish(IEnumerable<Collection> collections, DateTime now)
+    /// <summary>
+    /// Public → Unlisted: a new share link, the public address stops working. Logged, so "why is my
+    /// collection no longer public" has an answer.
+    /// </summary>
+    public void Unpublish(IEnumerable<Collection> collections, DateTime now)
     {
         foreach (var collection in collections)
         {
             collection.SetVisibility(CollectionVisibility.Unlisted);
             collection.UpdatedAtUtc = now;
+            logger.LogInformation(
+                "Collection {CollectionId} of user {UserId} becomes unlisted: the owner confirmed a change that breaks the public collection rule",
+                collection.Id, collection.OwnerId);
         }
     }
 }

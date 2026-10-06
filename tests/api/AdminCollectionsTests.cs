@@ -50,6 +50,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         using var publicView = await visitor.GetAsync($"/api/public/collections/{collection.Id}");
         using var share = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
             new CollectionUpsertRequest { Name = collection.Name, Visibility = CollectionVisibility.Public });
+        using var publish = await alice.Client.PostAsync($"/api/collections/{collection.Id}/publish");
         using var rename = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
             new CollectionUpsertRequest { Name = "Renamed", Visibility = CollectionVisibility.Private });
         var locked = await ListAsync(admin, $"search={alice.UserName}&locked=true");
@@ -57,6 +58,7 @@ public class AdminCollectionsTests(CoinPortalFactory factory)
         Assert.Equal((CollectionVisibility.Private, true), (owned.Visibility, owned.ModerationLocked));
         await publicView.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
         Assert.Equal("moderation_locked", await share.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        Assert.Equal("moderation_locked", await publish.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
         Assert.Equal("Renamed", (await rename.ReadJsonAsync<CollectionResponse>()).Name);
         Assert.NotNull(Assert.Single(locked.Items).ModerationLockedAtUtc);
 

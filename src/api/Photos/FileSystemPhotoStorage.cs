@@ -36,8 +36,7 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
             }
 
             Directory.CreateDirectory(OwnerFolder(ownerId));
-            // Same volume as the target, so this is a rename
-            Directory.Move(temp, target);
+            await MoveFolderAsync(temp, target, ct);
         }
         catch
         {
@@ -154,6 +153,24 @@ public partial class FileSystemPhotoStorage : IPhotoStorage
 
     // Waits between attempts: a virus scanner or a backup may hold a file for a moment
     private static readonly TimeSpan[] RetryDelays = [TimeSpan.FromMilliseconds(200), TimeSpan.FromSeconds(1)];
+
+    // Same volume as the target, so this is a rename. Windows refuses it while a virus scanner
+    // still holds a file just written ("Access to the path is denied"), so it is tried again
+    private static async Task MoveFolderAsync(string source, string target, CancellationToken ct)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                Directory.Move(source, target);
+                return;
+            }
+            catch (Exception e) when ((e is IOException or UnauthorizedAccessException) && attempt < RetryDelays.Length)
+            {
+                await Task.Delay(RetryDelays[attempt], ct);
+            }
+        }
+    }
 
     // Never throws: the database is the source of truth and its rows are already gone. A folder
     // left behind holds personal data the user was told is deleted, so it is an error in the log

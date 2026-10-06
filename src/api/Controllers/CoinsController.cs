@@ -192,7 +192,7 @@ public class CoinsController(
         Apply(coin, request, countryCode, now);
         coin.Photos.AddRange(photos.Select(p => p.Photo));
         db.Coins.Add(coin);
-        PublicationGuard.Unpublish(broken, now);
+        publication.Unpublish(broken, now);
 
         // Files first, then the rows: a failed save removes the new files again
         try
@@ -265,7 +265,7 @@ public class CoinsController(
         }
 
         var now = DateTime.UtcNow;
-        PublicationGuard.Unpublish(broken, now);
+        publication.Unpublish(broken, now);
         Apply(coin, request, countryCode, now);
         await db.SaveChangesAsync(ct);
 
@@ -294,7 +294,7 @@ public class CoinsController(
         {
             return this.WouldUnpublish(broken);
         }
-        PublicationGuard.Unpublish(broken, DateTime.UtcNow);
+        publication.Unpublish(broken, DateTime.UtcNow);
 
         var photoIds = coin.Photos.Select(p => p.Id).ToList();
         db.Coins.Remove(coin);
