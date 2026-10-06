@@ -308,6 +308,27 @@ public class AbuseTests(CoinPortalFactory factory)
         Assert.Empty(explore.Items);
     }
 
+    // Malformed bodies
+
+    [Theory]
+    [InlineData("""{"name":"x","visibility":"Bogus"}""")]
+    [InlineData("""{"name":"x","visibility":99999999999999999999}""")]
+    [InlineData("""{"name":"x","description":[[[[]]]]}""")]
+    [InlineData("""{"name": """)]
+    public async Task MalformedBody_IsRejected_WithoutInternalDetails(string json)
+    {
+        // The serializer's own message names internal types and positions (2026-10-06, pentest)
+        var alice = await factory.SignUpAsync();
+
+        using var response = await alice.Client.SendRawJsonAsync(HttpMethod.Post, "/api/collections", json);
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("CoinPortal.", body);
+        Assert.DoesNotContain("System.", body);
+        Assert.DoesNotContain("LineNumber", body);
+    }
+
     private List<string> StoredFiles(TestUser user)
     {
         var folder = Path.Combine(factory.PhotoRoot, user.User.Id);
