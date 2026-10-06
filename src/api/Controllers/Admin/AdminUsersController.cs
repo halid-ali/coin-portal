@@ -14,7 +14,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CoinPortal.Api.Controllers.Admin;
 
 /// <summary>
-/// Users for the panel: list, details (account data and counts, no content) and the admin lock.
+/// Users for the panel: list, details (account data and counts, no content), the admin lock and
+/// deletion, one at a time or the ones selected on a page.
 /// A locked user cannot sign in and their shared collections are hidden until unlocked.
 /// Admins cannot be locked or deleted here; they are removed from the configuration (Admin:UserIds).
 /// </summary>
@@ -36,6 +37,10 @@ public class AdminUsersController(
         if (query.Status is { } status)
         {
             rows = rows.Where(r => r.Status == status);
+        }
+        if (query.EmailConfirmed is { } confirmed)
+        {
+            rows = rows.Where(r => r.EmailConfirmed == confirmed);
         }
 
         var desc = query.Dir == SortDirection.Desc;
@@ -152,6 +157,38 @@ public class AdminUsersController(
         await deletion.DeleteAsync(user, beforeSave: () =>
             Audit(db, AuditAction.UserDeleted, user, note: request?.Note).TargetUserName = null, ct);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Deletes the users selected in the list (spam accounts, at most a page), one after another,
+    /// each like <see cref="Delete"/> with its own audit entry and the same note. Admins among them
+    /// are skipped and counted, not refused: a selection may hold one.
+    /// </summary>
+    [HttpPost("bulk-delete")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<AdminDeleteUsersResponse> DeleteMany(AdminDeleteUsersRequest request, CancellationToken ct)
+    {
+        var (deleted, admins, notFound) = (0, 0, 0);
+        foreach (var id in request.UserIds.Distinct())
+        {
+            // Ids are GUIDs: anything else is no user, and is not looked up
+            var user = Guid.TryParse(id, out _) ? await userManager.FindByIdAsync(id) : null;
+            if (user is null)
+            {
+                notFound++;
+            }
+            else if (await userManager.IsInRoleAsync(user, AppRoles.Admin))
+            {
+                admins++;
+            }
+            else
+            {
+                await deletion.DeleteAsync(user, beforeSave: () =>
+                    Audit(db, AuditAction.UserDeleted, user, note: request.Note).TargetUserName = null, ct);
+                deleted++;
+            }
+        }
+        return new AdminDeleteUsersResponse(deleted, admins, notFound);
     }
 
     private async Task<IQueryable<UserRow>> RowsAsync(CancellationToken ct)

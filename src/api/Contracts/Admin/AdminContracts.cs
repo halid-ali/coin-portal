@@ -99,6 +99,9 @@ public class AdminUserQuery
     [EnumDataType(typeof(AdminUserStatus))]
     public AdminUserStatus? Status { get; set; }
 
+    /// <summary>Only verified (true) or unverified (false) e-mail addresses; both when unset.</summary>
+    public bool? EmailConfirmed { get; set; }
+
     [EnumDataType(typeof(AdminUserSort))]
     public AdminUserSort Sort { get; set; } = AdminUserSort.CreatedAt;
 
@@ -159,6 +162,20 @@ public sealed record AdminLockRequest([StringLength(AuditLogEntry.NoteMaxLength)
 
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminDeleteUserRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
+
+/// <summary>Several users at once (the ones selected on a page of the list).</summary>
+/// <param name="Note">The admin's reason, kept in each user's audit entry.</param>
+public sealed record AdminDeleteUsersRequest(
+    [Required, MinLength(1), MaxLength(AdminDeleteUsersRequest.MaxUsers)] IReadOnlyList<string> UserIds,
+    [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note)
+{
+    /// <summary>A full page of the list (its largest page size).</summary>
+    public const int MaxUsers = 100;
+}
+
+/// <param name="SkippedAdmins">Admins among the selected users: never deleted here.</param>
+/// <param name="NotFound">Ids of no user (deleted in the meantime).</param>
+public sealed record AdminDeleteUsersResponse(int Deleted, int SkippedAdmins, int NotFound);
 
 public enum AdminCollectionSort
 {

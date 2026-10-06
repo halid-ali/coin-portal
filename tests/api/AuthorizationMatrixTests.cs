@@ -168,6 +168,9 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("PUT", "api/admin/users/{id}/lock", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}/lock"),
         new("DELETE", "api/admin/users/{id}/lock", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}/lock"),
         new("DELETE", "api/admin/users/{id}", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}"),
+        // No such user: nothing is deleted
+        new("POST", "api/admin/users/bulk-delete", Access.Admin, _ => "/api/admin/users/bulk-delete",
+            _ => Json(new AdminDeleteUsersRequest([Guid.NewGuid().ToString()], null))),
         new("GET", "api/admin/collections", Access.Admin, _ => "/api/admin/collections"),
         new("PUT", "api/admin/collections/{id:int}/lock", Access.Admin,
             w => $"/api/admin/collections/{w.Shared.Id}/lock"),

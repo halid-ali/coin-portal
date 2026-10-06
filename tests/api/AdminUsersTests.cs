@@ -82,12 +82,60 @@ public class AdminUsersTests(CoinPortalFactory factory)
         var locked = await ListAsync(admin, $"search={prefix}&status=Locked");
         var unverified = await ListAsync(admin, $"search={prefix}&status=Unverified");
         var active = await ListAsync(admin, $"search={prefix}&status=Active");
+        // Locked or not
+        var unconfirmed = await ListAsync(admin, $"search={prefix}&emailConfirmed=false&sort=UserName&dir=Asc");
+        var confirmed = await ListAsync(admin, $"search={prefix}&emailConfirmed=true");
+        var lockedUnconfirmed = await ListAsync(admin, $"search={prefix}&status=Locked&emailConfirmed=false");
 
         Assert.Equal([prefix + "b"], locked.Items.Select(u => u.UserName));
         Assert.Equal((AdminUserStatus.Locked, false), (locked.Items[0].Status, locked.Items[0].EmailConfirmed));
         Assert.Equal([prefix + "c"], unverified.Items.Select(u => u.UserName));
         Assert.Equal(AdminUserStatus.Unverified, unverified.Items[0].Status);
         Assert.Equal([prefix + "a"], active.Items.Select(u => u.UserName));
+        Assert.Equal([prefix + "b", prefix + "c"], unconfirmed.Items.Select(u => u.UserName));
+        Assert.Equal([prefix + "a"], confirmed.Items.Select(u => u.UserName));
+        Assert.Equal([prefix + "b"], lockedUnconfirmed.Items.Select(u => u.UserName));
+    }
+
+    [Fact]
+    public async Task DeleteMany_DeletesTheSelected_SkipsAdmins_AndCountsUnknownIds()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var spam = await factory.SignUpAsync(confirmEmail: false);
+        var more = await factory.SignUpAsync(confirmEmail: false);
+        await spam.UploadCoverAsync((await spam.FirstCollectionAsync()).Id);
+
+        using var response = await admin.Client.PostAsync("/api/admin/users/bulk-delete",
+            new AdminDeleteUsersRequest(
+                [spam.User.Id, more.User.Id, more.User.Id, admin.User.Id, Guid.NewGuid().ToString(), "not-an-id"],
+                "Spam wave"));
+
+        Assert.Equal(new AdminDeleteUsersResponse(2, 1, 2), await response.ReadJsonAsync<AdminDeleteUsersResponse>());
+        await admin.Client.ExpectStatusAsync($"/api/admin/users/{spam.User.Id}", HttpStatusCode.NotFound);
+        await admin.Client.ExpectStatusAsync($"/api/admin/users/{more.User.Id}", HttpStatusCode.NotFound);
+        await admin.Client.ExpectStatusAsync($"/api/admin/users/{admin.User.Id}", HttpStatusCode.OK);
+        Assert.False(Directory.Exists(Path.Combine(factory.PhotoRoot, spam.User.Id)));
+        // One entry each, with the note and without the name
+        var entries = (await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+                $"/api/admin/audit?action={AuditAction.UserDeleted}&pageSize=100")).Items
+            .Where(e => e.TargetUserId == spam.User.Id || e.TargetUserId == more.User.Id)
+            .ToList();
+        Assert.Equal(2, entries.Count);
+        Assert.All(entries, e => Assert.Equal(("Spam wave", null, admin.User.Id), (e.Note, e.TargetUserName, e.ActorId)));
+    }
+
+    [Fact]
+    public async Task DeleteMany_NeedsOneToAPageOfIds()
+    {
+        var admin = await factory.SignUpAdminAsync();
+
+        using var none = await admin.Client.PostAsync("/api/admin/users/bulk-delete",
+            new AdminDeleteUsersRequest([], null));
+        using var tooMany = await admin.Client.PostAsync("/api/admin/users/bulk-delete",
+            new AdminDeleteUsersRequest(Enumerable.Range(0, 101).Select(_ => Guid.NewGuid().ToString()).ToList(), null));
+
+        Assert.Equal(["UserIds"], await none.ReadValidationKeysAsync());
+        Assert.Equal(["UserIds"], await tooMany.ReadValidationKeysAsync());
     }
 
     [Theory]
