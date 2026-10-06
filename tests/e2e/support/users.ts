@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { APIRequestContext, Browser, BrowserContext, expect, request } from '@playwright/test';
 
 import { ADMIN, BASE_URL, PASSWORD } from './env.mjs';
+import { verificationToken } from './mail';
 import { coinPng } from './png';
 
 export type Visibility = 'Private' | 'Unlisted' | 'Public';
@@ -37,8 +38,11 @@ export class TestUser {
     readonly id: string,
   ) {}
 
-  /** Signs a new user up through the API (the UI sign-up has its own test). */
-  static async signUp(): Promise<TestUser> {
+  /**
+   * Signs a new user up through the API (the UI sign-up has its own test) and confirms the
+   * e-mail address with the link from the e-mail, unless asked not to: sharing needs it.
+   */
+  static async signUp(confirmEmail = true): Promise<TestUser> {
     const userName = uniqueUserName();
     const api = await request.newContext({ baseURL: BASE_URL });
     await api.get('/api/auth/antiforgery');
@@ -57,6 +61,13 @@ export class TestUser {
     expect(res.status(), await res.text()).toBe(200);
     // The token belongs to the user, as in the app
     await api.get('/api/auth/antiforgery');
+    if (confirmEmail) {
+      const verified = await api.post('/api/auth/verify-email', {
+        data: { token: await verificationToken(`${userName}@example.com`) },
+        headers: { 'X-XSRF-TOKEN': await xsrf(api) },
+      });
+      expect(verified.status(), await verified.text()).toBe(204);
+    }
     return new TestUser(api, userName, PASSWORD, (await res.json()).id);
   }
 

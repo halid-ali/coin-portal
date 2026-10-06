@@ -17,7 +17,7 @@ namespace CoinPortal.Api.Controllers;
 /// The signed-in user's collections. Other users' collections are reported as 404.
 /// Errors that the client words itself carry a code: DuplicateName (validation key),
 /// last_collection, has_coins, collection_limit, invalid_target, not_unlisted, moderation_locked,
-/// public_requirements and would_unpublish (ProblemDetails "code").
+/// public_requirements, would_unpublish and email_not_confirmed (ProblemDetails "code").
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -65,6 +65,10 @@ public class CollectionsController(
         {
             return this.CodedProblem("collection_limit", "You have reached the maximum number of collections.");
         }
+        if (request.Visibility == CollectionVisibility.Unlisted && !await EmailConfirmedAsync(ct))
+        {
+            return this.EmailNotConfirmed();
+        }
         // A new collection has no coins yet
         if (request.Visibility == CollectionVisibility.Public)
         {
@@ -107,6 +111,14 @@ public class CollectionsController(
         {
             return this.CodedProblem("moderation_locked", "An administrator has hidden this collection.",
                 StatusCodes.Status403Forbidden);
+        }
+
+        // A new way of sharing needs a verified address; what is shared already stays (accounts
+        // from before verification existed)
+        if (request.Visibility is CollectionVisibility.Public or CollectionVisibility.Unlisted
+            && request.Visibility != collection.Visibility && !await EmailConfirmedAsync(ct))
+        {
+            return this.EmailNotConfirmed();
         }
 
         // Checked when it becomes Public; one that is Public already keeps it (a raised minimum
@@ -154,6 +166,10 @@ public class CollectionsController(
 
         if (collection.Visibility != CollectionVisibility.Public)
         {
+            if (!await EmailConfirmedAsync(ct))
+            {
+                return this.EmailNotConfirmed();
+            }
             var status = await publication.StatusAsync(collection.Id, ct);
             if (!status.CanBePublic)
             {
@@ -291,6 +307,13 @@ public class CollectionsController(
         collection.UpdatedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
         return new ShareTokenResponse(collection.ShareToken);
+    }
+
+    // Read for each request: the cookie does not carry it, and confirming must count at once
+    private Task<bool> EmailConfirmedAsync(CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        return db.Users.Where(u => u.Id == userId).Select(u => u.EmailConfirmed).SingleAsync(ct);
     }
 
     private Task<Collection?> FindOwnedAsync(int id, CancellationToken ct)

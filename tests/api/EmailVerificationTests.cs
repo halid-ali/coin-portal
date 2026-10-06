@@ -1,14 +1,18 @@
 using System.Net;
 using CoinPortal.Api.Contracts.Auth;
+using CoinPortal.Api.Contracts.Collections;
+using CoinPortal.Api.Data;
 using CoinPortal.Api.Email;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoinPortal.Api.Tests;
 
 /// <summary>
-/// The verification link sent at sign-up, confirming with it, and sending it again.
+/// The verification link sent at sign-up, confirming with it, sending it again, and the rule it
+/// unlocks: sharing a collection needs a confirmed address.
 /// </summary>
 public class EmailVerificationTests(CoinPortalFactory factory)
 {
@@ -115,5 +119,59 @@ public class EmailVerificationTests(CoinPortalFactory factory)
         {
             factory.Mail.FailWhen = _ => false;
         }
+    }
+
+    [Fact]
+    public async Task Sharing_NeedsAConfirmedAddress()
+    {
+        var alice = await factory.SignUpAsync(confirmEmail: false);
+        var collection = await alice.FirstCollectionAsync();
+
+        using var createUnlisted = await alice.Client.PostAsync("/api/collections",
+            new CollectionUpsertRequest { Name = "Shared", Visibility = CollectionVisibility.Unlisted });
+        using var makeUnlisted = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
+            new CollectionUpsertRequest { Name = collection.Name, Visibility = CollectionVisibility.Unlisted });
+        using var makePublic = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
+            new CollectionUpsertRequest { Name = collection.Name, Visibility = CollectionVisibility.Public });
+        using var publish = await alice.Client.PostAsync($"/api/collections/{collection.Id}/publish");
+        // Everything else stays open
+        using var rename = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
+            new CollectionUpsertRequest { Name = "Renamed", Visibility = CollectionVisibility.Private });
+        using var createPrivate = await alice.Client.PostAsync("/api/collections",
+            new CollectionUpsertRequest { Name = "Private one" });
+
+        foreach (var response in new[] { createUnlisted, makeUnlisted, makePublic, publish })
+        {
+            Assert.Equal("email_not_confirmed", await response.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
+        }
+        await rename.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        await createPrivate.ShouldHaveStatusAsync(HttpStatusCode.Created);
+
+        // Confirmed, the same change goes through
+        using var visitor = await factory.CreateAnonymousClientAsync();
+        using var verify = await visitor.PostAsync("/api/auth/verify-email",
+            new VerifyEmailRequest(factory.Mail.LatestVerificationToken(alice.User.Email)));
+        await verify.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        var shared = await alice.SetVisibilityAsync(collection with { Name = "Renamed" }, CollectionVisibility.Unlisted);
+        Assert.Equal(CollectionVisibility.Unlisted, shared.Visibility);
+    }
+
+    [Fact]
+    public async Task SharedBeforeVerificationExisted_StaysShared_ButSharesNoWider()
+    {
+        // Accounts from before verification: their address was never confirmed
+        var alice = await factory.SignUpAsync();
+        var unlisted = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Unlisted);
+        await factory.WithDbAsync(db => db.Users.Where(u => u.Id == alice.User.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.EmailConfirmed, false)));
+
+        using var renamed = await alice.Client.PutAsync($"/api/collections/{unlisted.Id}",
+            new CollectionUpsertRequest { Name = "Renamed", Visibility = CollectionVisibility.Unlisted });
+        using var newLink = await alice.Client.PostAsync($"/api/collections/{unlisted.Id}/share-token");
+        using var makePublic = await alice.Client.PostAsync($"/api/collections/{unlisted.Id}/publish");
+
+        Assert.Equal(CollectionVisibility.Unlisted, (await renamed.ReadJsonAsync<CollectionResponse>()).Visibility);
+        await newLink.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        Assert.Equal("email_not_confirmed", await makePublic.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
     }
 }
