@@ -330,6 +330,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (ölçüm yöntemi colgroup'un üstündeki yorumda).
 - Kullanıcının yazdığı adların tekillik kontrolü kodda Türkçe + kültürden bağımsız büyük/küçük harf
   duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
+- **Gizli değer tutan sütun binary collation alır** (`UseCollation("Latin1_General_BIN2")`, bkz.
+  `Collection.ShareToken`): veritabanının varsayılan collation'ı büyük/küçük harf duyarsız, yoksa
+  `AbC…` anahtarı `abc…` ile de eşleşir (paylaşım linkinde 2026-10-06'ya kadar böyleydi).
 - Kullanıcıya ait kaynaklarda sahiplik filtresi sorgunun içinde; başkasına ait kayıt → **404** (403 değil).
   Görünen ama yasak işlem → **403** (ör. kendi kilitli koleksiyonunu yayınlamak, `moderation_locked`).
 - **Rate limit:** girişsiz (`[AllowAnonymous]`) okuma uçları ve kimlik uçları bir politika alır:
