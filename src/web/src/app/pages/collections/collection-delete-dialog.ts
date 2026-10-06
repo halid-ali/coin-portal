@@ -18,6 +18,7 @@ import {
   CollectionService,
   collectionErrorMessage,
 } from '../../core/collections/collection.service';
+import { wouldUnpublish } from '../../core/collections/publication';
 import { PluralPipe } from '../../core/i18n/plural';
 
 let nextId = 0;
@@ -110,12 +111,29 @@ let nextId = 0;
                   #targetSelect
                   [disabled]="mode() !== 'move'"
                   [attr.aria-label]="'collectionDelete.moveTarget' | transloco"
-                  (change)="targetId.set(+targetSelect.value)"
+                  (change)="selectTarget(+targetSelect.value)"
                 >
                   @for (t of targets(); track t.id) {
                     <option [value]="t.id" [selected]="t.id === targetId()">{{ t.name }}</option>
                   }
                 </select>
+                @if (mode() === 'move' && unpublishesTarget()) {
+                  <!-- Told by the API after a click: announced, the next click confirms it -->
+                  <p
+                    class="form-hint ml-7 text-danger-700"
+                    [attr.role]="toldByApi() ? 'alert' : null"
+                  >
+                    @if (unphotographed() > 0) {
+                      {{
+                        'publication.moveUnpublishes'
+                          | plural: unphotographed() : { name: target()?.name }
+                      }}
+                    } @else {
+                      <!-- This page's counts were old: no number to give -->
+                      {{ 'publication.moveUnpublishesSome' | transloco: { name: target()?.name } }}
+                    }
+                  </p>
+                }
               </div>
               <label
                 class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 has-[input:checked]:border-danger-300 has-[input:checked]:bg-danger-50"
@@ -172,7 +190,14 @@ let nextId = 0;
               [disabled]="!confirmed() || deleting()"
               (click)="remove()"
             >
-              {{ (deleting() ? 'common.deleting' : 'collectionDelete.submit') | transloco }}
+              {{
+                (deleting()
+                  ? 'common.deleting'
+                  : toldByApi() && mode() === 'move'
+                    ? 'collectionDelete.submitAnyway'
+                    : 'collectionDelete.submit'
+                ) | transloco
+              }}
             </button>
           }
         </div>
@@ -198,6 +223,25 @@ export class CollectionDeleteDialog {
     this.collections().filter((c) => c.id !== this.collection().id),
   );
   protected readonly targetId = signal<number | null>(null);
+  protected readonly target = computed(() => this.targets().find((t) => t.id === this.targetId()));
+  /** Coins without the photos a public collection needs. */
+  protected readonly unphotographed = computed(
+    () => this.collection().coinCount - this.collection().photographedCoinCount,
+  );
+  /**
+   * Moving them into a public collection makes it "link only": said under the select, so typing
+   * the name confirms that too. Also set when the API says so (this page's counts were old).
+   */
+  protected readonly toldByApi = signal(false);
+  protected readonly unpublishesTarget = computed(
+    () => this.toldByApi() || (this.target()?.visibility === 'Public' && this.unphotographed() > 0),
+  );
+
+  /** Another target: what the API said was about the previous one. */
+  protected selectTarget(id: number): void {
+    this.targetId.set(id);
+    this.toldByApi.set(false);
+  }
 
   /** Exact name, surrounding spaces ignored. */
   protected readonly confirmed = computed(() => this.typed().trim() === this.collection().name);
@@ -227,13 +271,20 @@ export class CollectionDeleteDialog {
 
     this.deleting.set(true);
     this.error.set(null);
+    const unpublish = moveTo !== undefined && this.unpublishesTarget();
     try {
       await firstValueFrom(
-        this.collectionService.delete(this.collection().id, { moveTo, deleteCoins }),
+        this.collectionService.delete(this.collection().id, { moveTo, deleteCoins, unpublish }),
       );
       this.result = true;
       this.dialog().nativeElement.close();
     } catch (err) {
+      if (wouldUnpublish(err)) {
+        // The warning shows now; the next click confirms it
+        this.toldByApi.set(true);
+        this.error.set(null);
+        return;
+      }
       this.error.set(collectionErrorMessage(err as HttpErrorResponse));
     } finally {
       this.deleting.set(false);

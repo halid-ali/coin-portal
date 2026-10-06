@@ -210,12 +210,98 @@
           {{ 'coinList.sharedNotice' | transloco }}
         </p>
       }
+
+      <!-- Own collection that is not public: how far it is from the public rule, always shown;
+         once it is met, the button that makes it public -->
+      @if (publication(); as p) {
+        @if (p.ready) {
+          <section
+            aria-labelledby="publication-title"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-success-200 bg-success-50 px-4 py-3 text-success-900"
+          >
+            <div class="min-w-0">
+              <h2 id="publication-title" class="font-semibold">
+                {{ 'publication.readyTitle' | transloco }}
+              </h2>
+              <p class="text-sm">
+                {{
+                  'publication.progress'
+                    | transloco: { photographed: p.photographed, required: p.required }
+                }}
+                <span aria-hidden="true">·</span>
+                {{ 'publication.readyText' | transloco }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn-primary whitespace-nowrap"
+              [attr.aria-disabled]="publishing() || null"
+              (click)="publish()"
+            >
+              {{ (publishing() ? 'publication.publishing' : 'publication.publish') | transloco }}
+            </button>
+          </section>
+        } @else {
+          <section
+            aria-labelledby="publication-title"
+            class="flex items-start gap-3 rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-info-900"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="mt-0.5 size-5 shrink-0 text-info-600"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"
+              />
+              <circle cx="12" cy="12.5" r="3.5" />
+            </svg>
+            <div class="min-w-0">
+              <h2 id="publication-title" class="font-semibold">
+                {{ 'publication.notReadyTitle' | transloco }}
+              </h2>
+              <p class="text-sm">
+                {{
+                  'publication.progress'
+                    | transloco: { photographed: p.photographed, required: p.required }
+                }}
+                @if (p.missing > 0) {
+                  <span aria-hidden="true">·</span>
+                  <a [routerLink]="[]" [queryParams]="missingPhotosQuery()" class="link">{{
+                    'publication.missing' | plural: p.missing
+                  }}</a>
+                }
+                @if (collection()?.visibility === 'Private') {
+                  <span aria-hidden="true">·</span>
+                  {{ 'publication.shareByLinkMeanwhile' | transloco }}
+                }
+              </p>
+            </div>
+          </section>
+        }
+      }
+      @if (publishError(); as key) {
+        <div role="alert" class="alert-error">{{ key | transloco }}</div>
+      }
     }
 
     <!-- Filters; an empty collection has nothing to search or filter -->
     @if (showFilters()) {
       <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
-        <div [class]="mode() === 'explore' ? 'sm:col-span-2 lg:col-span-1' : 'sm:col-span-2'">
+        <!-- Explore (collector) and own collections (photos) have one filter more: there the
+         search takes one column on large screens, so the row still holds six -->
+        <div
+          [class]="
+            mode() === 'explore' || mode() === 'owner'
+              ? 'sm:col-span-2 lg:col-span-1'
+              : 'sm:col-span-2'
+          "
+        >
           <label for="search" class="form-label">{{ 'coinList.search' | transloco }}</label>
           <input
             id="search"
@@ -329,6 +415,28 @@
               </option>
             </select>
           </div>
+
+          @if (mode() === 'owner') {
+            <div>
+              <label for="photo" class="form-label">{{ 'coinList.photoFilter' | transloco }}</label>
+              <select
+                id="photo"
+                #photoSelect
+                class="form-input"
+                (change)="setFilters({ photo: photoSelect.value })"
+              >
+                <option value="" [selected]="query().photographed === undefined">
+                  {{ 'common.all' | transloco }}
+                </option>
+                <option value="missing" [selected]="query().photographed === false">
+                  {{ 'coinList.photoMissing' | transloco }}
+                </option>
+                <option value="complete" [selected]="query().photographed === true">
+                  {{ 'coinList.photoComplete' | transloco }}
+                </option>
+              </select>
+            </div>
+          }
 
           @if (hasFilters()) {
             <button

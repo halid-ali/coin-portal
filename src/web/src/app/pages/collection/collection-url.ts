@@ -9,6 +9,11 @@ export function toInt(value: string | undefined): number | undefined {
   return value && Number.isInteger(n) ? n : undefined;
 }
 
+/** Photo filter: "missing" (without the photos a public collection needs) / "complete" / all. */
+export function toPhotographed(value: string | undefined): boolean | undefined {
+  return value === 'missing' ? false : value === 'complete' ? true : undefined;
+}
+
 /** "all" is 0 (every coin on one page); values not offered fall back to the default. */
 export function toPageSize(value: string | undefined): number {
   if (value === 'all') {

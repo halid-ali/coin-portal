@@ -16,6 +16,9 @@ const collection: Collection = {
   description: null,
   visibility: 'Unlisted',
   coinCount: 3,
+  photographedCoinCount: 3,
+  minPublicCoins: 10,
+  canBePublic: false,
   coverImageId: null,
   moderationLocked: false,
   shareToken: 'old-token',
@@ -91,6 +94,91 @@ describe('CollectionFormDialog', () => {
       await Promise.resolve();
     });
   }
+
+  /** The visibility radio whose option reads `label` (Angular does not write [value] to the DOM). */
+  function visibilityRadio(label: string): HTMLInputElement {
+    const option = [...element().querySelectorAll('fieldset label')].find((l) =>
+      l.textContent!.includes(label),
+    )!;
+    return option.querySelector('input')!;
+  }
+
+  it('offers "public" only once the collection meets the requirements, and says why', async () => {
+    // 3 coins with photos, 10 needed
+    const publicRadio = visibilityRadio('Herkese açık');
+    expect(publicRadio.disabled).toBe(true);
+    const reason = element().querySelector(`#${publicRadio.getAttribute('aria-describedby')}`)!;
+    expect(reason.textContent).toContain('Henüz seçilemez: 3/10 fotoğraflı coin');
+    // The group says it too: screen readers often skip a disabled radio
+    expect(element().querySelector('fieldset')!.getAttribute('aria-describedby')).toBe(
+      publicRadio.getAttribute('aria-describedby'),
+    );
+    expect(visibilityRadio('Özel').disabled).toBe(false);
+
+    fixture.componentRef.setInput('collection', {
+      ...collection,
+      coinCount: 11,
+      photographedCoinCount: 10,
+    });
+    await fixture.whenStable();
+    expect(visibilityRadio('Herkese açık').disabled).toBe(true);
+    expect(element().textContent).toContain("1 coin'in ulusal yüzü eksik");
+
+    fixture.componentRef.setInput('collection', {
+      ...collection,
+      coinCount: 10,
+      photographedCoinCount: 10,
+      canBePublic: true,
+    });
+    await fixture.whenStable();
+    expect(visibilityRadio('Herkese açık').disabled).toBe(false);
+    expect(element().querySelector('fieldset')!.hasAttribute('aria-describedby')).toBe(false);
+  });
+
+  it('shows the fresh counts when the API refuses "public"', async () => {
+    fixture.componentRef.setInput('collection', {
+      ...collection,
+      coinCount: 10,
+      photographedCoinCount: 10,
+      canBePublic: true,
+    });
+    await fixture.whenStable();
+    visibilityRadio('Herkese açık').click();
+
+    // A coin without photos was added in another tab meanwhile
+    button(element(), 'Kaydet').click();
+    http.expectOne('/api/collections/5').flush(
+      {
+        code: 'public_requirements',
+        coinCount: 11,
+        photographedCoinCount: 10,
+        minPublicCoins: 10,
+      },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    const fresh = { ...collection, coinCount: 11, photographedCoinCount: 10 };
+    (await vi.waitFor(() => http.expectOne('/api/collections/5'))).flush(fresh);
+
+    await vi.waitFor(() => expect(visibilityRadio('Herkese açık').disabled).toBe(true));
+    expect(element().querySelector('[role=alert]')!.textContent).toContain('Sayılar güncellendi.');
+    expect(visibilityRadio('Sadece linkle').checked).toBe(true);
+    expect(element().textContent).toContain("1 coin'in ulusal yüzü eksik");
+
+    // The page behind takes the fresh counts too
+    pressEscape(dialog());
+    await vi.waitFor(() => expect(emitted).toEqual([fresh]));
+  });
+
+  it('keeps "public" for a public collection below a raised minimum', async () => {
+    fixture.componentRef.setInput('collection', {
+      ...collection,
+      visibility: 'Public',
+      shareToken: null,
+    });
+    await fixture.whenStable();
+
+    expect(visibilityRadio('Herkese açık').disabled).toBe(false);
+  });
 
   it('closes on Escape without a question when nothing changed', async () => {
     pressEscape(dialog());

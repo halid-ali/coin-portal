@@ -43,16 +43,37 @@ export class CoinService {
     return this.http.get<Coin>(`${BASE_URL}/${id}`);
   }
 
-  create(request: CoinUpsertRequest): Observable<Coin> {
-    return this.http.post<Coin>(BASE_URL, request);
+  // `unpublish`: the user agreed that a public collection this change breaks becomes "link only"
+  // (the API answers 409 would_unpublish otherwise; UnpublishConfirm asks)
+
+  create(request: CoinUpsertRequest, unpublish = false): Observable<Coin> {
+    return this.http.post<Coin>(BASE_URL, request, { params: unpublishParams(unpublish) });
   }
 
-  update(id: number, request: CoinUpsertRequest): Observable<Coin> {
-    return this.http.put<Coin>(`${BASE_URL}/${id}`, request);
+  /** A coin together with its photos: saved with all of them or not at all. */
+  createWithPhotos(
+    request: CoinUpsertRequest,
+    photos: Partial<Record<CoinSide, Blob>>,
+    unpublish = false,
+  ): Observable<Coin> {
+    const body = new FormData();
+    body.append('coin', JSON.stringify(request));
+    for (const [side, image] of Object.entries(photos)) {
+      body.append(side.toLowerCase(), image, side.toLowerCase());
+    }
+    return this.http.post<Coin>(`${BASE_URL}/with-photos`, body, {
+      params: unpublishParams(unpublish),
+    });
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE_URL}/${id}`);
+  update(id: number, request: CoinUpsertRequest, unpublish = false): Observable<Coin> {
+    return this.http.put<Coin>(`${BASE_URL}/${id}`, request, {
+      params: unpublishParams(unpublish),
+    });
+  }
+
+  delete(id: number, unpublish = false): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/${id}`, { params: unpublishParams(unpublish) });
   }
 
   /** Uploads or replaces one side; the API crops, resizes and re-encodes it. */
@@ -62,9 +83,16 @@ export class CoinService {
     return this.http.put<Coin>(`${BASE_URL}/${coinId}/photos/${side.toLowerCase()}`, body);
   }
 
-  deletePhoto(coinId: number, side: CoinSide): Observable<void> {
-    return this.http.delete<void>(`${BASE_URL}/${coinId}/photos/${side.toLowerCase()}`);
+  deletePhoto(coinId: number, side: CoinSide, unpublish = false): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/${coinId}/photos/${side.toLowerCase()}`, {
+      params: unpublishParams(unpublish),
+    });
   }
+}
+
+/** ?unpublish=true only when confirmed, so plain requests stay as they were. */
+export function unpublishParams(unpublish: boolean): HttpParams {
+  return unpublish ? new HttpParams().set('unpublish', true) : new HttpParams();
 }
 
 /**

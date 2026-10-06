@@ -4,7 +4,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { Observable, catchError, combineLatest, filter, of, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -30,6 +30,7 @@ import {
   CollectionSummary,
 } from '../../core/collections/collection.models';
 import { CollectionService, coverUrl, shareLink } from '../../core/collections/collection.service';
+import { publicationProgress } from '../../core/collections/publication';
 import { httpErrorKey, httpErrorMessage } from '../../core/http/problem-details';
 import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
@@ -40,6 +41,7 @@ import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { CoinPlaceholder } from '../../shared/coin-placeholder/coin-placeholder';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { scrollToTop } from '../../shared/motion';
+import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
 import { SortHeader } from '../../shared/sort-header/sort-header';
@@ -47,7 +49,7 @@ import { SEARCH_MAX_LENGTH, normalizeSearch, syncSearchWithUrl } from '../../sha
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
-import { toInt, toPageSize } from './collection-url';
+import { toInt, toPageSize, toPhotographed } from './collection-url';
 import { CollectionView, ViewToggle } from './view-toggle';
 
 /**
@@ -98,6 +100,7 @@ export class Collection {
   private readonly route = inject(ActivatedRoute);
   private readonly collectionReturn = inject(CollectionReturn);
   private readonly title = inject(Title);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   /** Route data and params, bound by withComponentInputBinding(). */
   readonly mode = input<CoinListMode>('owner');
@@ -150,6 +153,33 @@ export class Collection {
   readonly view = input(undefined, { transform: firstQueryParam });
   /** Explore: exact user name. */
   readonly owner = input(undefined, { transform: firstQueryParam });
+  /** Own collection: "missing" (without the photos a public collection needs) or "complete". */
+  readonly photo = input(undefined, { transform: firstQueryParam });
+
+  /**
+   * How far the own collection is from Public (the banner above the list); null when it is
+   * Public already or hidden by an admin.
+   */
+  protected readonly publication = computed(() => {
+    const collection = this.collection();
+    return collection && collection.visibility !== 'Public' && !collection.moderationLocked
+      ? publicationProgress(collection)
+      : null;
+  });
+  protected readonly publishing = signal(false);
+  /** Translation key when making the collection public failed. */
+  protected readonly publishError = signal<string | null>(null);
+  /**
+   * The banner's "missing" link: only the coins without photos. Search and filters would hide
+   * some of them; sort, page size and view are kept.
+   */
+  protected readonly missingPhotosQuery = computed(() => ({
+    photo: 'missing',
+    sort: this.sort() ?? null,
+    dir: this.dir() ?? null,
+    pageSize: this.pageSize() ?? null,
+    view: this.view() ?? null,
+  }));
 
   /** List (table / cards) is the default and stays out of the URL. */
   protected readonly viewMode = computed<CollectionView>(() =>
@@ -182,6 +212,7 @@ export class Collection {
       year: toInt(this.year()),
       isCommemorative:
         commemorative === 'true' ? true : commemorative === 'false' ? false : undefined,
+      photographed: this.mode() === 'owner' ? toPhotographed(this.photo()) : undefined,
       search: normalizeSearch(this.search()) || undefined,
       sort: sort === 'Newest' ? undefined : sort,
       dir: dir === 'Desc' ? dir : undefined,
@@ -217,6 +248,7 @@ export class Collection {
       q.countryCode ||
       q.year ||
       q.isCommemorative !== undefined ||
+      q.photographed !== undefined ||
       q.search ||
       q.owner
     );
@@ -227,9 +259,14 @@ export class Collection {
   /** Filters set behind the toggle, shown on it so they are not forgotten while folded. */
   protected readonly foldedFilterCount = computed(() => {
     const q = this.query();
-    return [q.denomination, q.countryCode, q.year, q.isCommemorative, q.owner].filter(
-      (v) => v != null,
-    ).length;
+    return [
+      q.denomination,
+      q.countryCode,
+      q.year,
+      q.isCommemorative,
+      q.photographed,
+      q.owner,
+    ].filter((v) => v != null).length;
   });
 
   protected readonly result = signal<PagedResponse<ListedCoin> | null>(null);
@@ -285,6 +322,8 @@ export class Collection {
           this.header.set(null);
           this.notFound.set(false);
           this.headerError.set(null);
+          this.publishError.set(null);
+          this.deleteError.set(null);
         }),
         switchMap(() => this.loadHeader()),
         takeUntilDestroyed(),
@@ -420,6 +459,48 @@ export class Collection {
     if (collection) {
       this.setOwnCollection(collection);
     }
+  }
+
+  /**
+   * The banner's button, once the collection meets the requirements. A collection shared by link
+   * asks first: its link stops working.
+   */
+  protected async publish(): Promise<void> {
+    const collection = this.collection();
+    if (!collection || this.publishing()) {
+      return;
+    }
+    if (
+      collection.visibility === 'Unlisted' &&
+      !(await this.confirmDialog.confirm({
+        title: translate('publication.publishShared.title'),
+        message: translate('publication.publishShared.message'),
+        confirmText: translate('publication.publish'),
+        cancelText: translate('common.cancel'),
+      }))
+    ) {
+      return;
+    }
+    this.publishing.set(true);
+    this.publishError.set(null);
+    this.collectionService.publish(collection.id).subscribe({
+      next: (updated) => {
+        this.publishing.set(false);
+        this.setOwnCollection(updated);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.publishing.set(false);
+        // Coins changed in another tab meanwhile: the page shows the fresh counts
+        if ((err.error as { code?: string } | null)?.code === 'public_requirements') {
+          this.publishError.set('publication.requirementsNotMet');
+          this.collectionService
+            .get(collection.id)
+            .subscribe((fresh) => this.setOwnCollection(fresh));
+          return;
+        }
+        this.publishError.set(httpErrorKey(err));
+      },
+    });
   }
 
   protected onDeleted(deleted: boolean): void {

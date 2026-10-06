@@ -15,7 +15,7 @@ interface Section {
 const SECTIONS: readonly Section[] = [
   { id: 'service', blocks: [{ p: 'p1' }] },
   { id: 'account', blocks: [{ p: 'p1' }] },
-  { id: 'content', blocks: [{ p: 'p1' }] },
+  { id: 'content', blocks: [{ p: 'p1' }, { p: 'p2' }] },
   { id: 'rules', blocks: [{ p: 'p1' }, { list: ['i1', 'i2', 'i3', 'i4', 'i5'] }] },
   { id: 'moderation', blocks: [{ p: 'p1' }] },
   { id: 'objection', blocks: [{ p: 'p1' }] },

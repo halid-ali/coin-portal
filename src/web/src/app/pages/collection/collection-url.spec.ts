@@ -1,5 +1,5 @@
 import { DEFAULT_PAGE_SIZE } from '../../core/coins/coin.models';
-import { toInt, toPageSize } from './collection-url';
+import { toInt, toPageSize, toPhotographed } from './collection-url';
 
 describe('collection URL values', () => {
   it.each([
@@ -12,6 +12,17 @@ describe('collection URL values', () => {
     [undefined, undefined],
   ])('toInt(%s) is %s', (value, expected) => {
     expect(toInt(value)).toBe(expected);
+  });
+
+  // The API's photographed filter; anything else is no filter
+  it.each([
+    ['missing', false],
+    ['complete', true],
+    ['all', undefined],
+    ['', undefined],
+    [undefined, undefined],
+  ])('toPhotographed(%s) is %s', (value, expected) => {
+    expect(toPhotographed(value)).toBe(expected);
   });
 
   // Only the offered sizes; "all" is 0, anything else the default

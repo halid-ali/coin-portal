@@ -8,19 +8,24 @@ import { Coin, PagedResponse } from '../../core/coins/coin.models';
 import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection as CoinCollection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
+import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Collection } from './collection';
 
-const collection = (coinCount: number): CoinCollection => ({
+const collection = (coinCount: number, more: Partial<CoinCollection> = {}): CoinCollection => ({
   id: 5,
   name: 'Koleksiyonum',
   description: null,
   visibility: 'Private',
   coinCount,
+  photographedCoinCount: 0,
+  minPublicCoins: 10,
+  canBePublic: false,
   coverImageId: null,
   moderationLocked: false,
   shareToken: null,
   createdAtUtc: '2026-10-01T12:00:00Z',
   updatedAtUtc: '2026-10-01T12:00:00Z',
+  ...more,
 });
 
 const coin: Coin = {
@@ -56,10 +61,13 @@ const emptyPage = (page: number, totalCount: number, pageSize = 10): PagedRespon
 describe('Collection', () => {
   let harness: RouterTestingHarness;
   let http: HttpTestingController;
+  let confirm: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
+    confirm = vi.fn();
     TestBed.configureTestingModule({
       providers: [
+        { provide: ConfirmDialogService, useValue: { confirm } },
         provideRouter(
           [
             { path: 'collections/:collectionId', component: Collection, data: { mode: 'owner' } },
@@ -81,12 +89,17 @@ describe('Collection', () => {
   const url = () => TestBed.inject(Router).url;
 
   /** Opens the page and answers its header and coin list requests. */
-  async function open(path: string, coinCount: number, coins: PagedResponse<Coin>) {
+  async function open(
+    path: string,
+    coinCount: number,
+    coins: PagedResponse<Coin>,
+    more: Partial<CoinCollection> = {},
+  ) {
     await harness.navigateByUrl(path);
     http.match('/api/countries').forEach((r) => r.flush([]));
     // A sorted list waits for the countries (their display order)
     await harness.fixture.whenStable();
-    http.expectOne('/api/collections/5').flush(collection(coinCount));
+    http.expectOne('/api/collections/5').flush(collection(coinCount, more));
     latestCoinRequest().flush(coins);
     await harness.fixture.whenStable();
   }
@@ -97,6 +110,118 @@ describe('Collection', () => {
     expect(open).toHaveLength(1);
     return open[0];
   }
+
+  const banner = () => page().querySelector('section[aria-labelledby=publication-title]');
+
+  it('shows how far a private collection is from public, linking the coins without photos', async () => {
+    await open('/collections/5', 3, pageWithCoin(), { photographedCoinCount: 1 });
+
+    expect(banner()!.textContent).toContain('Herkese açık yapmak için');
+    expect(banner()!.textContent).toContain('1/10 fotoğraflı coin');
+    expect(banner()!.textContent).toContain('Bu arada linkle paylaşabilirsin.');
+    const missing = banner()!.querySelector('a')!;
+    expect(missing.textContent).toContain("2 coin'in ulusal yüzü eksik");
+    expect(missing.getAttribute('href')).toBe('/collections/5?photo=missing');
+  });
+
+  it('lists every coin without photos from the banner, whatever the filters', async () => {
+    await open('/collections/5?search=tor&countryCode=DE&view=grid', 3, pageWithCoin(), {
+      photographedCoinCount: 1,
+    });
+
+    // Search and filters would hide some of them; the view stays
+    expect(banner()!.querySelector('a')!.getAttribute('href')).toBe(
+      '/collections/5?photo=missing&view=grid',
+    );
+  });
+
+  it('leaves out the link tip in a collection shared by link already', async () => {
+    await open('/collections/5', 3, pageWithCoin(), {
+      visibility: 'Unlisted',
+      shareToken: 'token',
+      photographedCoinCount: 3,
+    });
+
+    expect(banner()!.textContent).toContain('3/10 fotoğraflı coin');
+    expect(banner()!.textContent).not.toContain('linkle paylaşabilirsin');
+    expect(banner()!.querySelector('a')).toBeNull();
+  });
+
+  const publishButton = () =>
+    [...banner()!.querySelectorAll('button')].find((b) =>
+      b.textContent!.includes('Herkese açık yap'),
+    )!;
+  const ready = { photographedCoinCount: 10, canBePublic: true };
+
+  it('makes a ready collection public with the banner button', async () => {
+    await open('/collections/5', 10, pageWithCoin(), ready);
+
+    publishButton().click();
+    // Only the visibility: a name changed in another tab is not written back
+    const request = await vi.waitFor(() => http.expectOne('/api/collections/5/publish'));
+    expect(request.request.method).toBe('POST');
+    expect(confirm).not.toHaveBeenCalled();
+    request.flush(collection(10, { ...ready, visibility: 'Public' }));
+    await harness.fixture.whenStable();
+
+    expect(banner()).toBeNull();
+  });
+
+  it('asks before a collection shared by link loses its link', async () => {
+    await open('/collections/5', 10, pageWithCoin(), {
+      ...ready,
+      visibility: 'Unlisted',
+      shareToken: 'token',
+    });
+    confirm.mockResolvedValueOnce(false);
+
+    publishButton().click();
+    await vi.waitFor(() => expect(confirm).toHaveBeenCalled());
+    expect(confirm.mock.calls[0][0].title).toBe('Paylaşım linki çalışmayacak');
+    http.expectNone('/api/collections/5/publish');
+
+    confirm.mockResolvedValueOnce(true);
+    publishButton().click();
+    const request = await vi.waitFor(() => http.expectOne('/api/collections/5/publish'));
+    request.flush(collection(10, { ...ready, visibility: 'Public' }));
+    await harness.fixture.whenStable();
+    expect(banner()).toBeNull();
+  });
+
+  it('shows the fresh counts when the collection is no longer ready', async () => {
+    await open('/collections/5', 10, pageWithCoin(), ready);
+
+    publishButton().click();
+    const request = await vi.waitFor(() => http.expectOne('/api/collections/5/publish'));
+    request.flush(
+      { code: 'public_requirements', coinCount: 11, photographedCoinCount: 10, minPublicCoins: 10 },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    http.expectOne('/api/collections/5').flush(collection(11, { photographedCoinCount: 10 }));
+    await harness.fixture.whenStable();
+
+    expect(page().textContent).toContain('Sayılar güncellendi.');
+    expect(banner()!.textContent).toContain("1 coin'in ulusal yüzü eksik");
+  });
+
+  it('shows no banner for a public collection', async () => {
+    await open('/collections/5', 1, pageWithCoin(), { visibility: 'Public' });
+
+    expect(banner()).toBeNull();
+  });
+
+  it('filters by photos from the URL', async () => {
+    await harness.navigateByUrl('/collections/5?photo=missing');
+    http.match('/api/countries').forEach((r) => r.flush([]));
+    http.expectOne('/api/collections/5').flush(collection(3));
+    const request = http.expectOne((r) => r.url === '/api/coins');
+
+    expect(request.request.params.get('photographed')).toBe('false');
+    request.flush(emptyPage(1, 0));
+    await harness.fixture.whenStable();
+    expect(page().querySelector('#photo')).not.toBeNull();
+    expect(page().textContent).toContain('Filtreleri temizle');
+  });
 
   it('hides search and filters in an empty collection', async () => {
     await open('/collections/5', 0, emptyPage(1, 0));

@@ -29,6 +29,14 @@ export class CollectionService {
     return this.http.put<Collection>(`${BASE_URL}/${id}`, request);
   }
 
+  /**
+   * Makes the collection public, nothing else (400 public_requirements with the current counts
+   * while the rule is not met). An unlisted collection loses its share link.
+   */
+  publish(id: number): Observable<Collection> {
+    return this.http.post<Collection>(`${BASE_URL}/${id}/publish`, null);
+  }
+
   /** New share link for an Unlisted collection; the old one stops working. */
   regenerateShareToken(id: number): Observable<{ shareToken: string }> {
     return this.http.post<{ shareToken: string }>(`${BASE_URL}/${id}/share-token`, null);
@@ -48,15 +56,21 @@ export class CollectionService {
     return this.http.delete<void>(`${BASE_URL}/${id}/cover`);
   }
 
-  /** With moveTo the coins move there first; without it they are deleted with the collection. */
   /**
    * Deletes a collection: its coins move to `moveTo`, or go with it only when `deleteCoins` says
-   * so (the API answers 409 has_coins for a collection with coins and neither).
+   * so (the API answers 409 has_coins for a collection with coins and neither). `unpublish`: a
+   * public target that coins without photos would break becomes "link only".
    */
-  delete(id: number, options: { moveTo?: number; deleteCoins?: boolean } = {}): Observable<void> {
+  delete(
+    id: number,
+    options: { moveTo?: number; deleteCoins?: boolean; unpublish?: boolean } = {},
+  ): Observable<void> {
     let params = new HttpParams();
     if (options.moveTo !== undefined) {
       params = params.set('moveTo', options.moveTo);
+      if (options.unpublish) {
+        params = params.set('unpublish', true);
+      }
     } else if (options.deleteCoins) {
       params = params.set('deleteCoins', true);
     }
@@ -119,4 +133,6 @@ export const COLLECTION_ERROR_MESSAGE_KEYS = {
   Name: 'validation.required',
   // 403 when the collection was hidden by an admin while the form was open
   moderation_locked: 'collections.errors.moderation_locked',
+  // Coins or photos changed in another tab since the form was opened
+  public_requirements: 'publication.requirementsNotMet',
 } as const;
