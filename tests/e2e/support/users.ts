@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import { APIRequestContext, Browser, BrowserContext, expect, request } from '@playwright/test';
 
 import { ADMIN, BASE_URL, PASSWORD } from './env.mjs';
@@ -18,7 +20,7 @@ let counter = 0;
 /** A fresh, valid username (3-20 characters), unique across runs on the same database. */
 export function uniqueUserName(): string {
   const time = Date.now().toString(36).slice(-7);
-  const rand = Math.random().toString(36).slice(2, 6);
+  const rand = randomBytes(2).toString('hex');
   return `e2e${time}${rand}${counter++ % 10}`;
 }
 
