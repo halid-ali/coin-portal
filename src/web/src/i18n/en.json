@@ -418,7 +418,8 @@
     "use": "Use photo"
   },
   "viewer": {
-    "sides": "Choose side"
+    "sides": "Choose side",
+    "noPhoto": "no photo"
   },
   "collections": {
     "title": "My collections",

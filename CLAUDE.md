@@ -461,7 +461,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (birincil butonun dolgusu ve yazısı); ör. `bg-shade-0` (kart), `text-shade-900`, `bg-brand-50`. Koyu tema
   (`<html class="dark">`, `ThemeService`) sadece `styles.css`'teki değişkenleri değiştirir; template'e
   `dark:` ve düz palet (`slate-*`, `amber-*`, `bg-white`) yazılmaz. İstisna: iki temada aynı görünmesi
-  gerekenler (tehlike butonunun dolgusu, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri)
+  gerekenler (tehlike butonunun dolgusu, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri, coin
+  değer ikonu)
   ve `dark:` kullanan iki yer: baş harf avatarı (header, profil) ve bayrak çerçevesi (`shared/flag`).
   Logo (`shared/logo`) temaya göre değişir, kendi değişkenleriyle: `--logo-coin` / `--logo-sign` (açıkta
   koyu para + altın €, koyuda altın para + koyu €; kullanıcı kararı 2026-10-04), tema rengine bağlı değil.
@@ -562,7 +563,15 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `flag`, `collection-placeholder`): `url(#…)` sayfadaki ilk eşleşen id'yi kullanır.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer` (yüz değiştirme: butonlar, ok tuşları döngülü, fare tekerleği döngüsüz ve hamle başına
-  bir adım, `WheelGesture`). Fotoğrafı olmayan coin'in yerine `CoinPlaceholder` (`shared/coin-placeholder`).
+  bir adım, `WheelGesture`). Fotoğrafı olmayan coin'in yerine değer ikonu `DenominationIcon`
+  (`shared/denomination-icon`; dolu metal: bakır 1–5c, altın 10–50c, iki metalli 1 €/2 €, 20c 7 oyuklu):
+  **coin iki temada aynı** (düz palet sınıfları, kullanıcı kararı 2026-10-06), sadece arkasındaki zemin
+  temayla değişir (`tile` input'u → `denomination-tile` + `denomination-<metal>`, `styles.css`; çerçeve
+  `denomination-tile-outlined`; ızgarada). Yuvarlak küçük resimde (`CoinThumb`) zemin yok, `tight` ile coin
+  daireyi fotoğraf gibi doldurur (iç içe iki daire olmasın, kullanıcı kararı). Görüntüleyiciye `[denomination]` verilirse eksik ortak yüz bu ikonla
+  gösterilir (ortak yüz her ülkede aynı, değeri gösterir). Noktalı halkanın deseni çevreye oturtulur (tam
+  sayıda nokta), yoksa başlangıçta iki nokta yan yana düşer. Genel çizim `CoinPlaceholder`
+  (`shared/coin-placeholder`) şu an kullanılmıyor; Euro dışı coin'lerin yer tutucusu olacak (yol haritası 18).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
 - Sayfa iskeleti `app.html`: header, `main`, footer; üçü de `page-container` (genişlik
   `--page-max-width`, kenarlar hizalı). Okuma genişliği 64rem; bir rota `data: { pageWidth: 'wide' }`

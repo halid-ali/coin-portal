@@ -418,7 +418,8 @@
     "use": "Übernehmen"
   },
   "viewer": {
-    "sides": "Seite wählen"
+    "sides": "Seite wählen",
+    "noPhoto": "kein Foto"
   },
   "collections": {
     "title": "Meine Sammlungen",

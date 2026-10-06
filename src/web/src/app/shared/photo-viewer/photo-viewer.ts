@@ -10,20 +10,29 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { COIN_SIDES, CoinPhoto, CoinSide } from '../../core/coins/coin.models';
+import { COIN_SIDES, CoinPhoto, CoinSide, Denomination } from '../../core/coins/coin.models';
 import { photoUrl } from '../../core/coins/coin.service';
+import { DenominationIcon } from '../denomination-icon/denomination-icon';
 import { WheelGesture } from './wheel-gesture';
+
+/** One side in the viewer: its photo, or none (a common side shown as the denomination icon). */
+interface ViewerSide {
+  side: CoinSide;
+  photo: CoinPhoto | null;
+}
 
 let nextId = 0;
 
 /**
  * Fullscreen view of a coin's photos (largest size) in a modal <dialog>, with a switch
  * between the national and common side (buttons, arrow keys or the mouse wheel). Render it with
- * @if and remove it on (closed), like the other dialogs.
+ * @if and remove it on (closed), like the other dialogs. Given the denomination, a missing common
+ * side photo is shown as the denomination icon: the common side is the same in every country and
+ * shows the value.
  */
 @Component({
   selector: 'app-photo-viewer',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, DenominationIcon],
   template: `
     <dialog
       #dialog
@@ -59,34 +68,51 @@ let nextId = 0;
         </button>
       </div>
 
-      @if (current(); as photo) {
-        <img
-          [src]="url(photo)"
-          [alt]="title() + ' – ' + (sideKey(photo.side) | transloco)"
-          class="mx-auto aspect-square max-h-[calc(100dvh-9rem)] w-full rounded-xl bg-slate-800 object-contain"
-        />
+      @if (current(); as shown) {
+        @if (shown.photo; as photo) {
+          <img
+            [src]="url(photo)"
+            [alt]="title() + ' – ' + (sideKey(photo.side) | transloco)"
+            class="mx-auto aspect-square max-h-[calc(100dvh-9rem)] w-full rounded-xl bg-slate-800 object-contain"
+          />
+        } @else if (denomination(); as value) {
+          <div
+            role="img"
+            [attr.aria-label]="
+              title() +
+              ' – ' +
+              (sideKey(shown.side) | transloco) +
+              ' (' +
+              ('viewer.noPhoto' | transloco) +
+              ')'
+            "
+            class="mx-auto grid aspect-square max-h-[calc(100dvh-9rem)] w-full place-items-center rounded-xl bg-slate-800"
+          >
+            <app-denomination-icon class="aspect-square h-3/5" [denomination]="value" />
+          </div>
+        }
       }
 
-      @if (photos().length > 1) {
+      @if (sides().length > 1) {
         <div class="mt-3 flex justify-center">
           <div
             class="inline-flex rounded-lg bg-white/10 p-1"
             role="group"
             [attr.aria-label]="'viewer.sides' | transloco"
           >
-            @for (photo of photos(); track photo.side) {
+            @for (item of sides(); track item.side) {
               <button
                 type="button"
                 class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                 [class]="
-                  photo.side === side()
+                  item.side === current()?.side
                     ? 'bg-white text-slate-900'
                     : 'text-white/80 hover:text-white'
                 "
-                [attr.aria-pressed]="photo.side === side()"
-                (click)="side.set(photo.side)"
+                [attr.aria-pressed]="item.side === current()?.side"
+                (click)="side.set(item.side)"
               >
-                {{ sideKey(photo.side) | transloco }}
+                {{ sideKey(item.side) | transloco }}
               </button>
             }
           </div>
@@ -100,20 +126,28 @@ export class PhotoViewer {
   readonly photos = input.required<CoinPhoto[]>();
   readonly title = input('');
   readonly initialSide = input<CoinSide>();
+  /** Shows a missing common side as the denomination icon. */
+  readonly denomination = input<Denomination>();
   /** Share link secret, for photos of unlisted collections. */
   readonly shareToken = input<string | null>(null);
   readonly closed = output<void>();
 
   protected readonly titleId = `viewer-title-${++nextId}`;
 
+  // In COIN_SIDES order; the common side without a photo only with the denomination to draw
+  protected readonly sides = computed<ViewerSide[]>(() =>
+    COIN_SIDES.flatMap((side) => {
+      const photo = this.photos().find((p) => p.side === side) ?? null;
+      return photo || (side === 'Common' && this.denomination()) ? [{ side, photo }] : [];
+    }),
+  );
+
   // The national side identifies a euro coin, so it is shown first unless asked otherwise
   protected readonly side = linkedSignal<CoinSide | undefined>(
-    () =>
-      this.initialSide() ??
-      (this.photos().find((p) => p.side === 'National') ?? this.photos()[0])?.side,
+    () => this.initialSide() ?? this.sides().find((s) => s.photo)?.side,
   );
-  protected readonly current = computed(
-    () => this.photos().find((p) => p.side === this.side()) ?? this.photos()[0],
+  protected readonly current = computed<ViewerSide | undefined>(
+    () => this.sides().find((s) => s.side === this.side()) ?? this.sides()[0],
   );
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
@@ -136,9 +170,9 @@ export class PhotoViewer {
   }
 
   protected step(delta: number): void {
-    const photos = this.photos();
-    const index = photos.findIndex((p) => p.side === this.current()?.side);
-    const next = photos[(index + delta + photos.length) % photos.length];
+    const sides = this.sides();
+    const index = sides.findIndex((s) => s.side === this.current()?.side);
+    const next = sides[(index + delta + sides.length) % sides.length];
     if (next) {
       this.side.set(next.side);
     }
@@ -152,10 +186,10 @@ export class PhotoViewer {
     if (delta === 0) {
       return;
     }
-    const sides = COIN_SIDES.filter((s) => this.photos().some((p) => p.side === s));
-    const next = sides[sides.indexOf(this.current()?.side as CoinSide) + delta];
+    const sides = this.sides();
+    const next = sides[sides.findIndex((s) => s.side === this.current()?.side) + delta];
     if (next) {
-      this.side.set(next);
+      this.side.set(next.side);
     }
   }
 

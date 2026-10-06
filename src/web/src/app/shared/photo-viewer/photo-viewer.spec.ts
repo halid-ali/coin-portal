@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CoinPhoto } from '../../core/coins/coin.models';
+import { CoinPhoto, Denomination } from '../../core/coins/coin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { stubModalDialogs } from '../testing/dialogs';
 import { PhotoViewer } from './photo-viewer';
@@ -16,7 +16,8 @@ const PHOTOS: CoinPhoto[] = [
   template: `@if (open()) {
     <app-photo-viewer
       [coinId]="7"
-      [photos]="photos"
+      [photos]="photos()"
+      [denomination]="denomination()"
       title="2 € Almanya 2006"
       shareToken="abc"
       (closed)="open.set(false)"
@@ -25,7 +26,8 @@ const PHOTOS: CoinPhoto[] = [
 })
 class Host {
   readonly open = signal(true);
-  readonly photos = PHOTOS;
+  readonly photos = signal(PHOTOS);
+  readonly denomination = signal<Denomination | undefined>('Euro2');
 }
 
 describe('PhotoViewer', () => {
@@ -83,6 +85,41 @@ describe('PhotoViewer', () => {
     expect(shown()).toBe('Ulusal yüz');
     await wheel(-100);
     expect(shown()).toBe('Ulusal yüz');
+  });
+
+  describe('without a common side photo', () => {
+    const national = PHOTOS.filter((p) => p.side === 'National');
+    const icon = () => page.querySelector('[role=img]');
+
+    it('shows the denomination icon in its place', async () => {
+      fixture.componentInstance.photos.set(national);
+      await fixture.whenStable();
+      expect(shown()).toBe('Ulusal yüz');
+      expect(icon()).toBeNull();
+
+      await key('ArrowRight');
+      expect(shown()).toBe('Ortak yüz');
+      expect(page.querySelector('img')).toBeNull();
+      expect(icon()!.getAttribute('aria-label')).toBe(
+        '2 € Almanya 2006 – Ortak yüz (fotoğraf yok)',
+      );
+      expect(icon()!.querySelector('text')!.textContent).toBe('2€');
+
+      await wheel(-100);
+      expect(shown()).toBe('Ulusal yüz');
+      expect(imageUrl()).toContain('00000000-0000-0000-0000-000000000001');
+    });
+
+    it('shows only the photo when the denomination is not given', async () => {
+      fixture.componentInstance.photos.set(national);
+      fixture.componentInstance.denomination.set(undefined);
+      await fixture.whenStable();
+
+      expect(page.querySelector('[role=group]')).toBeNull();
+      expect(icon()).toBeNull();
+      await key('ArrowRight');
+      expect(imageUrl()).toContain('00000000-0000-0000-0000-000000000001');
+    });
   });
 
   it('reports closing, also by the close button', async () => {

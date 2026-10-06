@@ -346,6 +346,50 @@
     --stat: var(--color-indigo-500);
   }
 
+  /*
+   * The surface behind a denomination icon (shared/denomination-icon, `tile`): a tint of the
+   * coin's metal. The coin itself looks the same in both themes; only this surface follows the
+   * theme. `denomination-tile-outlined` adds a hairline border in the same hue.
+   */
+  .denomination-tile {
+    background: var(--denomination-bg);
+  }
+  .denomination-tile-outlined {
+    box-shadow: inset 0 0 0 1px var(--denomination-line);
+  }
+  .denomination-copper {
+    --denomination-bg: var(--color-orange-50);
+    --denomination-line: var(--color-orange-200);
+  }
+  .denomination-gold {
+    --denomination-bg: var(--color-amber-50);
+    --denomination-line: var(--color-amber-200);
+  }
+  .denomination-bimetal {
+    --denomination-bg: linear-gradient(
+      135deg,
+      var(--color-amber-50) 0 50%,
+      var(--color-slate-50) 50% 100%
+    );
+    --denomination-line: var(--color-slate-200);
+  }
+  :root.dark .denomination-copper {
+    --denomination-bg: color-mix(in oklab, var(--color-orange-500) 14%, var(--color-slate-900));
+    --denomination-line: color-mix(in oklab, var(--color-orange-500) 35%, var(--color-slate-900));
+  }
+  :root.dark .denomination-gold {
+    --denomination-bg: color-mix(in oklab, var(--color-amber-500) 12%, var(--color-slate-900));
+    --denomination-line: color-mix(in oklab, var(--color-amber-500) 32%, var(--color-slate-900));
+  }
+  :root.dark .denomination-bimetal {
+    --denomination-bg: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-amber-500) 12%, var(--color-slate-900)) 0 50%,
+      var(--color-slate-800) 50% 100%
+    );
+    --denomination-line: var(--color-slate-700);
+  }
+
   /* The page column of header, main and footer (width: --page-max-width) */
   .page-container {
     @apply mx-auto w-full max-w-(--page-max-width) px-4;
