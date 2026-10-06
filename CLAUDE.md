@@ -72,9 +72,11 @@ terminallerinde sürekli çalışır halde tutuyor.
   rapor artefaktı `e2e-report`. E2E işinin sonunda **ZAP baseline (pasif) taraması**: aynı site Production
   modunda HTTPS'te (`https://coinportal.test:5443`, `dev-certs` sertifikası; `localhost` HSTS almaz),
   girişsiz, Ajax spider'la; imaj tarihli etiket + digest'e sabit, elle güncellenir. Kurallar
-  `.zap/rules.tsv` (IGNORE gerekçesiyle); rapor artefaktı `zap-report`, özeti koşunun Summary'sinde.
-  **Şimdilik sadece rapor** (`continue-on-error`, `-I`); kurallar karara bağlanınca FAIL olanlar yayını
-  engeller. ZAP lokalde çalışmaz (docker yok), sadece CI'da. Canlı siteye tarama yapılmaz.
+  `.zap/rules.tsv`: kabul edilen bulgular (IGNORE gerekçesiyle, WARN bilinen bir eksik: şu an sadece CSP);
+  **listede olmayan her bulgu işi kırar** (`.zap/check.mjs`), yani yayını da engeller: yeni bir bulgu ya
+  düzeltilir ya da kullanıcıyla karar verilip gerekçesiyle listeye girer. Rapor artefaktı `zap-report`,
+  özeti koşunun Summary'sinde. ZAP lokalde çalışmaz (docker yok), sadece CI'da; `check.mjs` lokalde bir
+  rapora karşı denenebilir. Canlı siteye tarama yapılmaz.
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
@@ -236,8 +238,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   kendi fallback'ini alır. **Son parçasında nokta olabilen yeni bir client rotası** da `SpaHosting`'e
   eklenir ve `HostingTests`'teki listeye girer.
 - Güvenlik başlıkları `Hosting/SecurityHeaders`: her yanıtta `nosniff`, `X-Frame-Options: DENY` +
-  CSP `frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`;
-  Development dışında HSTS (`Hsts:MaxAgeDays`, varsayılan 30, localhost hariç); `/api` altında kendi
+  CSP `frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`,
+  site izolasyonu: `Cross-Origin-Opener-Policy: same-origin`, `-Resource-Policy: same-origin`,
+  `-Embedder-Policy: require-corp` (2026-10-06, ZAP). **Site başka origin'den hiçbir şey yüklemiyor;
+  dışarıdan bir kaynak (font, betik, görsel, iframe) eklenirse COEP onu engeller**: önce COEP'i
+  (`credentialless` ya da kaldırmak) ve gizlilik politikasını birlikte düşün. Development dışında HSTS (`Hsts:MaxAgeDays`, varsayılan 30, localhost hariç); `/api` altında kendi
   `Cache-Control`'ü olmayan yanıtlar `no-store` (görseller `private, immutable` kalır). Tam CSP yok
   (PROJECT_STATUS Açık konular 17).
 - **Tek adres** `Hosting/CanonicalHost`: `CanonicalHost:Host` doluysa (sunucuda `coinvitrine.com`,
@@ -700,6 +705,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Python kurulu değil; betikler için Node veya Bash kullan. Bash `node -e "…"` içinde template literal
   (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap. Toplu metin değişikliği
   gerekirse betiği Write ile scratchpad'e yazıp `node` ile çalıştır (heredoc'lar da bozulabiliyor).
+- Prettier'ın ayarı `src/web/.prettierrc`; `src/web` dışındaki bir dosyada (`tests/e2e`, `.zap`) ayarı
+  bulamaz ve varsayılana (çift tırnak, 80 sütun) çevirir: `src/web`'den `prettier --config .prettierrc …`.
 - **ImageSharp 4.x lisans anahtarı ister** (sadece derlemede, çalışma anında değil): anahtar yoksa
   Debug derleme uyarı verir, **Release (publish) derleme hata verir.** Lokalde `src/api/sixlabors.lic`
   (gitignore'da, repo kökünde değil: paket dosyayı `.csproj` klasöründen aşağı arar), CI'da ortam

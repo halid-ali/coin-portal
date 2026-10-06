@@ -298,6 +298,9 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
             Assert.Equal("frame-ancestors 'none'", Single(response, "Content-Security-Policy"));
             Assert.Equal("strict-origin-when-cross-origin", Single(response, "Referrer-Policy"));
             Assert.Contains("camera=()", Single(response, "Permissions-Policy"));
+            Assert.Equal("same-origin", Single(response, "Cross-Origin-Opener-Policy"));
+            Assert.Equal("same-origin", Single(response, "Cross-Origin-Resource-Policy"));
+            Assert.Equal("require-corp", Single(response, "Cross-Origin-Embedder-Policy"));
         }
         Assert.True(api.Headers.CacheControl?.NoStore);
         // The page keeps its own policy (revalidated, see ClientRoutes_ServeIndexHtml_Revalidated)

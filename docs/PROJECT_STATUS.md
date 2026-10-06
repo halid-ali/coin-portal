@@ -4,7 +4,8 @@ Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamam
 koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
 haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
 (81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti;
-19d ZAP sürüyor (rapor modunda eklendi, 82; ilk rapor incelenecek). Önceki
+19d ZAP taraması ve site izolasyonu başlıkları (82–83, başlıklar yayınlanmadı) bitti; sıradaki 19e elle
+tarama. Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1533,8 +1534,23 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       ve yayın kırmızı olmaz.
     - Rapor: artefakt `zap-report` (HTML, Markdown, JSON), Markdown özet koşunun Summary'sinde. E2E işinin
       süre sınırı 20 → 35 dk.
-    - **Kalan (19d'nin bitişi):** ilk raporu incelemek, kuralları karara bağlamak, `continue-on-error`'ı ve
-      `-I`'yı kaldırmak.
+    - İlk koşu (CI #57) başarılı: site HTTPS'te tarandı (kayıt, iletişim, herkese açık koleksiyon, API
+      çağrıları), 15 tür bulgu, yüksek seviye yok. Kararlar Tamamlananlar 83'te.
+83. **ZAP kuralları ve site izolasyonu başlıkları** (`feat/zap-rules`, 2026-10-06; yol haritası 19d'nin
+    bitişi). İlk rapor kullanıcıyla incelendi, kararlar (kullanıcı onayı 2026-10-06):
+    - **CSP (10055, 4 bulgu, Orta):** WARN; tam CSP Açık konular 17, gelince FAIL olur.
+    - **Site izolasyonu (90004, 3 bulgu, Düşük):** düzeltildi. `SecurityHeaders` her yanıta
+      `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`,
+      `Cross-Origin-Embedder-Policy: require-corp` ekler (site başka origin'den hiçbir şey yüklemiyor; kural
+      CLAUDE.md'de). `HostingTests` kontrol eder, e2e (axe dahil) geçti.
+    - **IGNORE (gerekçesi `.zap/rules.tsv`'de):** `XSRF-TOKEN` HttpOnly değil (istemci okumalı; oturum
+      cookie'lerinin HttpOnly'si `AuthTests`'te), `bypassSecurityTrustHtml` (Angular'ın paketteki kendi kodu,
+      uygulama çağırmıyor), localStorage'da dil tercihi, `index.html` yorumundaki "from", "Modern Web
+      Application", Cache-Control ve önbelleklenebilir içerik (bilinçli).
+    - **Kırma kuralı:** `.zap/rules.tsv` sadece kabul edilenleri listeler; raporda başka bir bulgu varsa
+      `.zap/check.mjs` işi kırar (yeni bulgu sessizce geçmez), site raporda hiç yoksa da. `continue-on-error`
+      kaldırıldı: ZAP adımı bozulursa da E2E işi ve yayın kırılır. `-I` kaldı (WARN'lar ZAP'ın çıkış kodunu
+      değiştirmesin; karar `check.mjs`'te).
 
 ## Yol haritası
 
@@ -1615,9 +1631,9 @@ mağaza için TWA.
         `collectionId`'si, fazladan alanlar), dosya yükleme (uzantısı JPEG olan SVG/HTML, küçük dosyada dev
         piksel boyutu, bozuk başlık), girdi parametreleri (`search`, `sort`, `countryOrder`, `owner`),
         paylaşım anahtarı (yanlış, kısa, başka koleksiyonun; görünürlük değişince eskisi çalışmaz).
-  - [ ] 19d. CI'da OWASP ZAP baseline (pasif) taraması, e2e'nin lokal yayın derlemesine (5091) karşı, rapor
-        artefakt (rapor modunda eklendi 2026-10-06, Tamamlananlar 82; kalan: ilk raporu inceleyip kuralları
-        karara bağlamak, sonra bulgular CI'ı kırar). **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
+  - [x] 19d. CI'da OWASP ZAP baseline (pasif) taraması, e2e'nin lokal yayın derlemesine karşı (Production +
+        HTTPS), rapor artefakt (2026-10-06, Tamamlananlar 82–83; kabul edilmeyen bulgu CI'ı ve yayını
+        kırar). **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
         eksikliği beklenir (Açık konular 17).
   - [ ] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
         19b–19c'deki testlere eklenir. Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
@@ -1677,7 +1693,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → **19d ZAP** (rapor modunda eklendi, Tamamlananlar 82; sıradaki: ilk raporu inceleyip kuralları karara bağlamak) → 19e elle tarama. Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → **19e elle tarama** (sıradaki). Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
@@ -2122,6 +2138,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (`script-src 'self' 'sha256-…'`) ve Angular'ın satır içi stilleri (`style-src 'self' 'unsafe-inline'`)
     gerekir; önce `Content-Security-Policy-Report-Only` ile, gerçek tarayıcıda (yayın paketi + HTTPS)
     denenerek açılır. Satır içi betik değişince hash de değişir (CLAUDE.md'ye kural olarak girer).
+    ZAP taraması bunu 4 bulguyla (kural 10055) raporlar, `.zap/rules.tsv`'de WARN; tam CSP gelince
+    satır silinir, bulgu tekrar çıkarsa CI kırılır.
 
 18. **Elle karşılanacak gizlilik talepleri ve denetim kaydı süresi** (2026-10-02, #17'den): profil salt
     okunur olduğu için ad, e-posta ya da doğum tarihi düzeltmesi e-postayla istenir ve veritabanında elle

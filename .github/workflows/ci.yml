@@ -144,7 +144,8 @@ jobs:
   # The whole site in a browser (tests/e2e, Playwright): sign-up to coin with photo, share links,
   # sessions, moderation, plus an axe accessibility scan of each page. server/start.mjs builds the
   # client and the API and runs them on their own database in the SQL Server container. Then a
-  # ZAP baseline scan of the same site in Production mode (report only for now)
+  # ZAP baseline scan of the same site in Production mode; an alert not accepted in .zap/rules.tsv
+  # fails the job
   e2e:
     name: E2E
     runs-on: ubuntu-latest
@@ -207,11 +208,11 @@ jobs:
 
       # OWASP ZAP baseline (passive) scan of the site as it runs live: Production settings over
       # HTTPS (Secure cookies, HSTS, no Swagger) on the database the tests filled, signed out. A
-      # host name other than localhost, which gets no HSTS. Report only for now (continue-on-error,
-      # -I): .zap/rules.tsv decides which alerts are ignored, warnings or failures. A fixed dated
-      # image with its digest, like the SQL Server one (Dependabot does not watch it)
+      # host name other than localhost, which gets no HSTS. .zap/rules.tsv lists the accepted alerts
+      # (IGNORE with a reason, WARN for a known gap); any other alert fails the job (.zap/check.mjs),
+      # so it blocks a release too. A fixed dated image with its digest, like the SQL Server one
+      # (Dependabot does not watch it)
       - name: Start site for ZAP
-        continue-on-error: true
         working-directory: tests/e2e
         run: |
           echo "127.0.0.1 coinportal.test" | sudo tee -a /etc/hosts
@@ -233,7 +234,6 @@ jobs:
 
       - name: ZAP baseline scan
         id: zap
-        continue-on-error: true
         run: |
           mkdir -p "$RUNNER_TEMP/zap"
           cp .zap/rules.tsv "$RUNNER_TEMP/zap/"
@@ -242,6 +242,9 @@ jobs:
             zaproxy/zap-stable:20260807@sha256:71db37cd5b75663b35758d10aaec05bf6fbac23f5020e3046c70e628a5f84efa \
             zap-baseline.py -t https://coinportal.test:5443 -j -m 3 -c rules.tsv -I \
               -r zap-report.html -w zap-report.md -J zap-report.json
+
+      - name: Check ZAP alerts
+        run: node .zap/check.mjs .zap/rules.tsv "$RUNNER_TEMP/zap/zap-report.json" coinportal.test
 
       - name: ZAP summary
         if: always() && steps.zap.outcome != 'skipped'
