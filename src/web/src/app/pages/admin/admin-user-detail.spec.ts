@@ -21,6 +21,7 @@ const jonas = (changes: Partial<AdminUserDetail> = {}): AdminUserDetail => ({
   lastSignInAtUtc: null,
   status: 'Active',
   isAdmin: false,
+  emailConfirmed: true,
   collectionCount: 2,
   coinCount: 10,
   storageBytes: 1024,

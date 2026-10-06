@@ -43,7 +43,8 @@
     "invalidRequest": "Gönderilen bilgiler kabul edilmedi. Kontrol edip tekrar dene.",
     "rateLimited": "Kısa sürede çok fazla istek gönderildi. Biraz bekleyip tekrar dene.",
     "collectionLimit": "Bir hesapta en fazla 50 koleksiyon olabilir. Yenisini eklemek için birini sil.",
-    "coinLimit": "Bir hesapta en fazla 10.000 coin olabilir."
+    "coinLimit": "Bir hesapta en fazla 10.000 coin olabilir.",
+    "emailNotConfirmed": "Koleksiyon paylaşmak için önce e-posta adresini doğrula."
   },
   "validation": {
     "required": "Bu alan zorunludur.",
@@ -76,7 +77,8 @@
     "editCoin": "Coin'i düzenle",
     "settings": "Ayarlar",
     "admin": "Yönetim",
-    "notFound": "Sayfa bulunamadı"
+    "notFound": "Sayfa bulunamadı",
+    "verifyEmail": "E-posta doğrulama"
   },
   "nav": {
     "main": "Ana menü",
@@ -477,7 +479,8 @@
     "noteLinkWillBeCreated": "Kaydedince gizli bir paylaşım linki oluşturulur.",
     "noteWillBePublic": "Kaydedince koleksiyon herkese açık olur.",
     "coverFailed": "Koleksiyon kaydedildi, ancak kapak kaydedilemedi:",
-    "moderationLocked": "Bu koleksiyon yönetici tarafından gizlendi. Kilit kalkana kadar özel kalır; adını ve açıklamasını değiştirebilirsin."
+    "moderationLocked": "Bu koleksiyon yönetici tarafından gizlendi. Kilit kalkana kadar özel kalır; adını ve açıklamasını değiştirebilirsin.",
+    "emailNeeded": "Paylaşmak için önce e-posta adresini doğrula; linki sayfanın üstündeki uyarıdan tekrar isteyebilirsin."
   },
   "cover": {
     "title": "Kapak fotoğrafı",
@@ -544,7 +547,8 @@
       "quoted": "\"{{name}}\"",
       "confirm": "Devam et",
       "photoKept": "Ulusal yüz fotoğrafı silinmedi; koleksiyon herkese açık kaldı."
-    }
+    },
+    "emailNeeded": "Yayına almak için önce e-posta adresini doğrula."
   },
   "profile": {
     "notFound": "Bu kullanıcının herkese açık bir koleksiyonu yok ya da kullanıcı bulunamadı.",
@@ -747,5 +751,22 @@
     "source": "Kaynak kodu",
     "sourceHint": "Proje açık kaynaklı; hataları orada da bildirebilirsin.",
     "licenses": "Kullanılan açık kaynak yazılımların lisansları"
+  },
+  "emailBanner": {
+    "label": "E-posta doğrulama",
+    "text": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayınca koleksiyonlarını herkese açık ya da linkle paylaşabilirsin.",
+    "resend": "Linki tekrar gönder",
+    "sent": "Yeni link {{email}} adresine gönderildi.",
+    "notSent": "E-posta şu an gönderilemedi. Biraz sonra tekrar dene."
+  },
+  "verifyEmail": {
+    "verifying": "E-posta adresin doğrulanıyor…",
+    "doneTitle": "E-posta adresin doğrulandı",
+    "doneText": "Artık koleksiyonlarını herkese açık ya da linkle paylaşabilirsin.",
+    "toCollections": "Koleksiyonlarıma git",
+    "signIn": "Giriş yap",
+    "invalidTitle": "Link geçersiz ya da süresi dolmuş",
+    "invalidText": "Doğrulama linki 24 saat geçerli. Giriş yap ve sayfanın üstündeki uyarıdan yeni bir link iste.",
+    "failedTitle": "E-posta adresi doğrulanamadı"
   }
 }

@@ -18,6 +18,7 @@ const user = (userName: string, changes: Partial<AdminUser> = {}): AdminUser => 
   lastSeenAtUtc: null,
   status: 'Active',
   isAdmin: false,
+  emailConfirmed: true,
   collectionCount: 2,
   coinCount: 106,
   storageBytes: 5 * 1024 * 1024,

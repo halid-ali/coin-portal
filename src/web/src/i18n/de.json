@@ -43,7 +43,8 @@
     "invalidRequest": "Die gesendeten Angaben wurden nicht angenommen. Prüfe sie und versuche es erneut.",
     "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut.",
     "collectionLimit": "Ein Konto kann höchstens 50 Sammlungen haben. Lösche eine, um eine neue anzulegen.",
-    "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben."
+    "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben.",
+    "emailNotConfirmed": "Bestätige zuerst deine E-Mail-Adresse, um Sammlungen zu teilen."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich.",
@@ -76,7 +77,8 @@
     "editCoin": "Münze bearbeiten",
     "settings": "Einstellungen",
     "admin": "Verwaltung",
-    "notFound": "Seite nicht gefunden"
+    "notFound": "Seite nicht gefunden",
+    "verifyEmail": "E-Mail-Bestätigung"
   },
   "nav": {
     "main": "Hauptmenü",
@@ -477,7 +479,8 @@
     "noteLinkWillBeCreated": "Beim Speichern wird ein privater Link zum Teilen erstellt.",
     "noteWillBePublic": "Beim Speichern wird die Sammlung öffentlich.",
     "coverFailed": "Die Sammlung wurde gespeichert, aber das Titelbild konnte nicht gespeichert werden:",
-    "moderationLocked": "Ein Administrator hat diese Sammlung ausgeblendet. Sie bleibt privat, bis die Sperre aufgehoben wird; Name und Beschreibung kannst du weiterhin ändern."
+    "moderationLocked": "Ein Administrator hat diese Sammlung ausgeblendet. Sie bleibt privat, bis die Sperre aufgehoben wird; Name und Beschreibung kannst du weiterhin ändern.",
+    "emailNeeded": "Bestätige zuerst deine E-Mail-Adresse, um zu teilen; den Link kannst du über den Hinweis oben auf der Seite erneut anfordern."
   },
   "cover": {
     "title": "Titelbild",
@@ -544,7 +547,8 @@
       "quoted": "„{{name}}“",
       "confirm": "Fortfahren",
       "photoKept": "Das Foto der nationalen Seite wurde nicht gelöscht; die Sammlung bleibt öffentlich."
-    }
+    },
+    "emailNeeded": "Bestätige zuerst deine E-Mail-Adresse, um sie zu veröffentlichen."
   },
   "profile": {
     "notFound": "Dieser Nutzer hat keine öffentlichen Sammlungen, oder es gibt ihn nicht.",
@@ -747,5 +751,22 @@
     "source": "Quellcode",
     "sourceHint": "Das Projekt ist Open Source; Fehler kannst du auch dort melden.",
     "licenses": "Lizenzen der verwendeten Open-Source-Software"
+  },
+  "emailBanner": {
+    "label": "E-Mail-Bestätigung",
+    "text": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Danach kannst du deine Sammlungen öffentlich oder per Link teilen.",
+    "resend": "Link erneut senden",
+    "sent": "Ein neuer Link wurde an {{email}} gesendet.",
+    "notSent": "Die E-Mail konnte gerade nicht gesendet werden. Versuche es gleich noch einmal."
+  },
+  "verifyEmail": {
+    "verifying": "Deine E-Mail-Adresse wird bestätigt…",
+    "doneTitle": "Deine E-Mail-Adresse ist bestätigt",
+    "doneText": "Du kannst deine Sammlungen jetzt öffentlich oder per Link teilen.",
+    "toCollections": "Zu meinen Sammlungen",
+    "signIn": "Anmelden",
+    "invalidTitle": "Der Link ist ungültig oder abgelaufen",
+    "invalidText": "Ein Bestätigungslink ist 24 Stunden gültig. Melde dich an und fordere über den Hinweis oben auf der Seite einen neuen an.",
+    "failedTitle": "Die E-Mail-Adresse konnte nicht bestätigt werden"
   }
 }

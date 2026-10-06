@@ -102,7 +102,9 @@
     "deleteTypeName": "Gib zur Bestätigung den Benutzernamen ein:",
     "adminNote": "Admins können im Panel nicht gesperrt oder gelöscht werden; sie werden aus der Konfiguration entfernt.",
     "history": "Verlauf",
-    "noHistory": "Keine Einträge zu diesem Benutzer."
+    "noHistory": "Keine Einträge zu diesem Benutzer.",
+    "emailConfirmed": "Bestätigt",
+    "emailUnconfirmed": "Nicht bestätigt"
   },
   "collections": {
     "search": "Sammlung oder Benutzername suchen",

@@ -167,6 +167,10 @@ export class Collection {
       : null;
   });
   protected readonly publishing = signal(false);
+  /** Sharing needs a verified e-mail address (API 403 email_not_confirmed). */
+  protected readonly emailBlocked = computed(
+    () => this.auth.currentUser()?.emailConfirmed === false,
+  );
   /** Translation key when making the collection public failed. */
   protected readonly publishError = signal<string | null>(null);
   /**

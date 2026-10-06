@@ -17,6 +17,7 @@ const USER: UserResponse = {
   theme: null,
   accent: null,
   previousSignInAtUtc: '2026-09-28T18:45:00Z',
+  emailConfirmed: true,
   roles: [],
 };
 

@@ -4,6 +4,7 @@ import { NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/r
 import { TranslocoPipe } from '@jsverse/transloco';
 import { filter } from 'rxjs';
 
+import { EmailBanner } from './layout/email-banner/email-banner';
 import { Footer } from './layout/footer/footer';
 import { Header } from './layout/header/header';
 import { PageWidthService } from './layout/page-width.service';
@@ -15,7 +16,7 @@ function pagePath(url: string): string {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TranslocoPipe, Header, Footer],
+  imports: [RouterOutlet, TranslocoPipe, Header, Footer, EmailBanner],
   templateUrl: './app.html',
 })
 export class App {

@@ -102,7 +102,9 @@
     "deleteTypeName": "Type the username to confirm:",
     "adminNote": "Admins cannot be locked or deleted in the panel; they are removed from the configuration.",
     "history": "History",
-    "noHistory": "No entries about this user."
+    "noHistory": "No entries about this user.",
+    "emailConfirmed": "Confirmed",
+    "emailUnconfirmed": "Not confirmed"
   },
   "collections": {
     "search": "Search collection or username",

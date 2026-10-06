@@ -28,6 +28,7 @@ const user = (roles: string[]): UserResponse => ({
   theme: null,
   accent: null,
   previousSignInAtUtc: null,
+  emailConfirmed: true,
   roles,
 });
 

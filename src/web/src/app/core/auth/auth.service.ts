@@ -93,6 +93,25 @@ export class AuthService {
     return this.refreshAntiforgeryTokenQuietly();
   }
 
+  /**
+   * Confirms an e-mail address with the secret from its verification link; signed out too (the
+   * link may be opened on another device). A signed-in user is reloaded: the link may be theirs.
+   */
+  verifyEmail(token: string): Observable<void> {
+    return this.http
+      .post<void>(`${API}/verify-email`, { token })
+      .pipe(
+        switchMap(() =>
+          this.user() ? from(this.loadMe()).pipe(map(() => undefined)) : of(undefined),
+        ),
+      );
+  }
+
+  /** Sends the verification link again (limited per user; 429 when asked too often). */
+  resendVerificationEmail(): Observable<void> {
+    return this.http.post<void>(`${API}/verify-email/resend`, null);
+  }
+
   /** Keeps the current user in step after a change elsewhere (e.g. the settings page). */
   patchUser(changes: Partial<UserResponse>): void {
     this.user.update((user) => user && { ...user, ...changes });

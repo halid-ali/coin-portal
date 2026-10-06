@@ -55,6 +55,8 @@ export interface AdminUser {
   id: string;
   userName: string;
   email: string;
+  /** Verified with the link from the e-mail; unverified users cannot share collections. */
+  emailConfirmed: boolean;
   createdAtUtc: string;
   lastSeenAtUtc: string | null;
   status: AdminUserStatus;

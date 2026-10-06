@@ -37,6 +37,7 @@ const user: UserResponse = {
   theme: null,
   accent: null,
   previousSignInAtUtc: null,
+  emailConfirmed: true,
   roles: [],
 };
 
@@ -133,6 +134,32 @@ describe('CollectionFormDialog', () => {
     await fixture.whenStable();
     expect(visibilityRadio('Herkese açık').disabled).toBe(false);
     expect(element().querySelector('fieldset')!.hasAttribute('aria-describedby')).toBe(false);
+  });
+
+  it('without a confirmed e-mail, offers no new way of sharing but keeps the current one', async () => {
+    TestBed.inject(AuthService).patchUser({ emailConfirmed: false });
+    fixture.componentRef.setInput('collection', {
+      ...collection,
+      coinCount: 10,
+      photographedCoinCount: 10,
+      canBePublic: true,
+    });
+    await fixture.whenStable();
+
+    // Unlisted already (shared before verification): stays choosable; Public would be new
+    const publicRadio = visibilityRadio('Herkese açık');
+    expect(visibilityRadio('Sadece linkle').disabled).toBe(false);
+    expect(publicRadio.disabled).toBe(true);
+    const reason = element().querySelector(`#${publicRadio.getAttribute('aria-describedby')}`)!;
+    expect(reason.textContent).toContain('e-posta adresini doğrula');
+    expect(element().querySelector('fieldset')!.getAttribute('aria-describedby')).toBe(
+      publicRadio.getAttribute('aria-describedby'),
+    );
+
+    fixture.componentRef.setInput('collection', { ...collection, visibility: 'Private' });
+    await fixture.whenStable();
+    expect(visibilityRadio('Sadece linkle').disabled).toBe(true);
+    expect(visibilityRadio('Özel').disabled).toBe(false);
   });
 
   it('shows the fresh counts when the API refuses "public"', async () => {

@@ -7,6 +7,8 @@ export interface UserResponse {
   id: string;
   userName: string;
   email: string;
+  /** Verified with the link from the e-mail; sharing collections needs it. */
+  emailConfirmed: boolean;
   firstName: string;
   lastName: string;
   birthDate: string; // ISO date (yyyy-MM-dd)

@@ -232,14 +232,19 @@
                 {{ 'publication.readyText' | transloco }}
               </p>
             </div>
-            <button
-              type="button"
-              class="btn-primary whitespace-nowrap"
-              [attr.aria-disabled]="publishing() || null"
-              (click)="publish()"
-            >
-              {{ (publishing() ? 'publication.publishing' : 'publication.publish') | transloco }}
-            </button>
+            @if (emailBlocked()) {
+              <!-- Sharing needs a verified address (the notice above the page sends the link) -->
+              <p class="text-sm font-medium">{{ 'publication.emailNeeded' | transloco }}</p>
+            } @else {
+              <button
+                type="button"
+                class="btn-primary whitespace-nowrap"
+                [attr.aria-disabled]="publishing() || null"
+                (click)="publish()"
+              >
+                {{ (publishing() ? 'publication.publishing' : 'publication.publish') | transloco }}
+              </button>
+            }
           </section>
         } @else {
           <section

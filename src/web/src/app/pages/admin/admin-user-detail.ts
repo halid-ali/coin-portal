@@ -130,6 +130,12 @@ import { AdminStatusBadge } from './admin-status-badge';
             <div class="min-w-0">
               <dt class="text-shade-500">{{ 'admin.user.email' | transloco }}</dt>
               <dd class="font-medium break-all text-shade-900">{{ u.email }}</dd>
+              <dd class="text-shade-600">
+                {{
+                  (u.emailConfirmed ? 'admin.user.emailConfirmed' : 'admin.user.emailUnconfirmed')
+                    | transloco
+                }}
+              </dd>
             </div>
             <div>
               <dt class="text-shade-500">{{ 'admin.user.createdAt' | transloco }}</dt>

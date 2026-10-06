@@ -102,7 +102,9 @@
     "deleteTypeName": "Onaylamak için kullanıcı adını yaz:",
     "adminNote": "Admin'ler panelden kilitlenemez ve silinemez; ayardan çıkarılırlar.",
     "history": "Geçmiş",
-    "noHistory": "Bu kullanıcıyla ilgili kayıt yok."
+    "noHistory": "Bu kullanıcıyla ilgili kayıt yok.",
+    "emailConfirmed": "Doğrulandı",
+    "emailUnconfirmed": "Doğrulanmadı"
   },
   "collections": {
     "search": "Koleksiyon veya kullanıcı adı ara",
