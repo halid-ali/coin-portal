@@ -205,6 +205,13 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
 - Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
   Unlisted iken var; başka görünürlüğe geçince silinir; `Collection.SetVisibility`) / `Public`.
+- **Paylaşmak doğrulanmış e-posta ister** (kullanıcı kararı 2026-10-06): e-postası doğrulanmamış kullanıcı
+  bir koleksiyonu yeni bir görünürlüğe (Unlisted ya da Public) alamaz, 403 `email_not_confirmed`
+  (`CollectionsController` Create/Update/Publish, `EmailConfirmedAsync` her istekte veritabanından).
+  Paylaşılmış olan kalır (doğrulamadan önceki hesaplar: canlıdaki mevcut kullanıcılar doğrulanmamış
+  başladı), adı değişebilir, linki yenilenebilir; sadece daha geniş paylaşım engellenir. Giriş ve
+  kendi koleksiyonları serbest. Client: üstte `layout/email-banner` (tekrar gönder), formda kapalı
+  seçenekler (`emailBlocked`), koleksiyon sayfasında yayın butonu yerine not.
 - **Herkese açık koleksiyon kuralı** (`Publishing/`, kararlar PROJECT_STATUS'ta): Public olmak için bütün
   coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
   **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
@@ -302,6 +309,19 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte; **yaklaşık**:
   kontrolle kayıt arasında kilit yok, aynı anda yapılan yüklemeler kotayı birkaç görsel (her biri en fazla
   ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
+- **E-posta sadece `IMailSender` arkasında** (`Email/`, MailKit; görsel kütüphanesi kuralının aynısı):
+  `Email:Smtp:Host` doluysa `SmtpMailSender`, boşsa `PickupFolderMailSender` (`Email:PickupPath`'e
+  `.eml`; lokal, e2e). Canlıda SMTP ayarları ve parola sunucudaki `web.config`'te
+  (`Email__Smtp__Host`, `__Port`, `__UserName`, `__Password`, `Email__SiteUrl`), repoya girmez; SMTP
+  yoksa Development dışında açılışta Warning. **Linkler `Email:SiteUrl`'den kurulur, isteğin `Host`'undan
+  asla** (sahte Host başlığı linki saldırganın sitesine çevirirdi); loopback ise Development dışında
+  Warning. E-posta metinleri **API'de** (`Email/EmailTexts`, dört dil, kaynak Türkçe; "arayüz metni API'de
+  üretilmez" kuralının bilinçli istisnası) ve kullanıcının diline göre. **Doğrulama linki**
+  `/verify-email?token=`: `EmailVerificationTokens` (Data Protection, kullanıcı Id + e-posta, 24 saat;
+  Identity'nin token'ı değil, o güvenlik damgasına bağlı ve çıkış damgayı yeniler). `POST
+  api/auth/verify-email` girişsiz (`Auth` hız sınırı, geçersizse 400 `invalid_token`), `POST
+  api/auth/verify-email/resend` girişli (`Email` politikası, kullanıcı başına 10 dk'da 3; gönderilemezse
+  503 `email_not_sent`). Kayıtta gönderim hatası kaydı bozmaz (Error log). `token=` log maskesinde.
 - Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar
   (`v`'siz istek `private, no-cache`, `ImageUploadExtensions.ImageCacheControl`).
   Yüklemede önce dosya yazılır, sonra satır; kayıt **hangi sebeple olursa olsun** başarısızsa yeni dosya
@@ -342,7 +362,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   **Yeni dil eklerken kontrol edilecekler:** yeni `i18n/<dil>.json` ve `i18n/admin/<dil>.json`
   dosyalarında tüm anahtarlar (test eşliği kontrol eder), admin tablolarının sütun genişlikleri
   (`admin-users.html`, `admin-collections.html`, `admin-audit.ts`; ölçülen metinler yorumlarda),
-  `Collection.DefaultNameFor`, dil seçicideki bayrak (`shared/flag`) ve
+  `Collection.DefaultNameFor`, `Email/EmailTexts`, dil seçicideki bayrak (`shared/flag`) ve
   coin tablosunun sütun genişlikleri: yeni dildeki sütun başlıkları ve **ülke adları** mevcut en uzundan
   (şu an "Нидерландия") uzunsa `collection.html` `<colgroup>` genişlikleri headless ölçümle büyütülür
   (ölçüm yöntemi colgroup'un üstündeki yorumda).
@@ -403,7 +423,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `https://localhost`, yani production cookie kuralları) gerçek SQL Server'a karşı çalışır; SQLite
   kullanılmaz (collation, `CHARINDEX`, filtreli index'ler). Koşu başına `CoinPortal_Tests_<zaman>_<id>`
   veritabanı migration'larla kurulur, sonunda silinir (sunucu: LocalDB, CI'da `COINPORTAL_TEST_SQL`).
-  Testler seed kullanmaz, kendi kullanıcılarını açar (`factory.SignUpAsync()`); `ApiClient` SPA gibi
+  Testler seed kullanmaz, kendi kullanıcılarını açar (`factory.SignUpAsync()`; e-postası doğrulanmış,
+  `confirmEmail: false` ile doğrulanmamış); gönderilen e-postalar `factory.Mail`'de (`FakeMailSender`:
+  `To(adres)`, `LatestVerificationToken`, `FailWhen`); `ApiClient` SPA gibi
   cookie ve antiforgery token'ı taşır. **Yeni bir uç ya da erişim kuralı testleriyle gelir** (başkasının
   kaynağı 404, girişsiz 401, görünürlük). Test projesi görsel kütüphanesine referans vermez (`TestImages`
   PNG'yi elle üretir). xUnit v3 4.x Microsoft Testing Platform ister (`global.json` → `test.runner`).
@@ -665,7 +687,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ister), adresleri `E2E_URLS`'ten, sertifikayı `Kestrel__Certificates__Default__Path`/`Password`'den alır;
   sağlık kontrolü yönlendirmeyi (HTTP → HTTPS 307) "ayakta" sayar. Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
   dizüstünde zaman aşımı yapar); CI'da Chromium. Arayüz İngilizce (`locale: 'en-US'`), seçiciler rol ve
-  görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`), girişli tarayıcı
+  görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`; e-postayı
+  `.build/data/mail`'deki `.eml`'den okunan linkle doğrular, `signUp(false)` doğrulamaz; `support/mail.ts`),
+  girişli tarayıcı
   `user.browser(browser)`. Public koleksiyon `user.publish(c)` ile (e2e'de eşik varsayılan 10, yardımcı
   eksik fotoğraflı coin'leri ekler), Public koleksiyona coin `createPhotographedCoin` ile. Her sayfa `expectAccessible(page, ad)` (axe, WCAG 2.1 AA): **ciddi ve kritik
   bulgu testi kırar** (kullanıcı kararı 2026-10-04), azı raporda; tarama animasyonlar bitince yapılır
