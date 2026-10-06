@@ -6,6 +6,7 @@ using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Email;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -59,10 +60,12 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
 
     /// <summary>
     /// The owner's data: a private collection with a coin, its photo and a cover, an unlisted one,
-    /// and the share link of a collection that went private again. Plus the other callers.
+    /// the share link of a collection that went private again, and a verification link secret.
+    /// Plus the other callers.
     /// </summary>
     private sealed record World(
         TestUser Owner,
+        string VerificationToken,
         CollectionResponse Collection,
         CoinResponse Coin,
         CollectionResponse Shared,
@@ -83,6 +86,9 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("POST", "api/Auth/logout", Access.SignedIn, _ => "/api/auth/logout"),
         new("GET", "api/Auth/me", Access.SignedIn, _ => "/api/auth/me"),
         new("GET", "api/Auth/antiforgery", Access.Anyone, _ => "/api/auth/antiforgery"),
+        new("POST", "api/Auth/verify-email", Access.Anyone, _ => "/api/auth/verify-email",
+            w => Json(new VerifyEmailRequest(w.VerificationToken))),
+        new("POST", "api/Auth/verify-email/resend", Access.SignedIn, _ => "/api/auth/verify-email/resend"),
         new("GET", "api/Health", Access.Anyone, _ => "/api/health"),
         new("GET", "api/Countries", Access.Anyone, _ => "/api/countries"),
 
@@ -275,6 +281,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
 
         return new World(
             owner,
+            factory.Services.GetRequiredService<EmailVerificationTokens>().Create(owner.User.Id, owner.User.Email),
             collection,
             coin,
             shared,

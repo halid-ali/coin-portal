@@ -156,6 +156,8 @@ builder.Services.AddSingleton<IMailSender>(services =>
     services.GetRequiredService<IOptions<EmailOptions>>().Value.UsesSmtp
         ? ActivatorUtilities.CreateInstance<SmtpMailSender>(services)
         : ActivatorUtilities.CreateInstance<PickupFolderMailSender>(services));
+builder.Services.AddSingleton<EmailVerificationTokens>();
+builder.Services.AddScoped<EmailVerification>();
 
 // What a Public collection must hold (photos, minimum from the admin's site settings)
 builder.Services.AddScoped<PublicationGuard>();

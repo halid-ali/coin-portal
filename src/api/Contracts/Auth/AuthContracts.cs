@@ -31,12 +31,16 @@ public sealed record LoginRequest(
 /// <param name="PreviousSignInAtUtc">The sign-in before the current session's, for the profile;
 /// null if none is recorded (new account, or none since the field was added).</param>
 /// <param name="Roles">Identity roles (AppRoles), e.g. ["Admin"]; empty for most users.</param>
+/// <param name="EmailConfirmed">The address is verified (link from the e-mail); needed to share collections.</param>
 public sealed record UserResponse(
-    string Id, string UserName, string Email,
+    string Id, string UserName, string Email, bool EmailConfirmed,
     string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme,
     AccentColor? Accent, DateTime? PreviousSignInAtUtc, IReadOnlyList<string> Roles)
 {
     public static UserResponse From(ApplicationUser u, IEnumerable<string> roles) =>
-        new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
+        new(u.Id, u.UserName!, u.Email!, u.EmailConfirmed, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
             u.PreferredTheme, u.PreferredAccent, u.PreviousSignInAtUtc, roles.Order().ToList());
 }
+
+/// <param name="Token">The secret from the verification link (/verify-email?token=...).</param>
+public sealed record VerifyEmailRequest([Required, StringLength(2000)] string Token);

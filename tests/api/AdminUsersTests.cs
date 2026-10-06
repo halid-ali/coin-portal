@@ -139,11 +139,14 @@ public class AdminUsersTests(CoinPortalFactory factory)
         var alice = await factory.SignUpAsync();
         await alice.PublishAsync(await alice.FirstCollectionAsync());
         await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
+        var bob = await factory.SignUpAsync(confirmEmail: false);
 
         var detail = await admin.Client.GetJsonAsync<AdminUserDetailResponse>($"/api/admin/users/{alice.User.Id}");
+        var bobs = await admin.Client.GetJsonAsync<AdminUserDetailResponse>($"/api/admin/users/{bob.User.Id}");
         using var unknown = await admin.Client.GetAsync($"/api/admin/users/{Guid.NewGuid()}");
 
         Assert.Equal(("Test", "User"), (detail.FirstName, detail.LastName));
+        Assert.Equal((true, false), (detail.EmailConfirmed, bobs.EmailConfirmed));
         Assert.Equal((2, 1, 1), (detail.CollectionCount, detail.PublicCollectionCount, detail.UnlistedCollectionCount));
         Assert.NotNull(detail.LastSignInAtUtc);
         Assert.True(detail.QuotaBytes > 0);

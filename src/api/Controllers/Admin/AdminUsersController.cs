@@ -48,7 +48,7 @@ public class AdminUsersController(
         };
         // Id keeps paging stable when the sort key is equal
         return await ordered.ThenBy(r => r.Id).ToPagedAsync(query.Page, query.PageSize,
-            r => new AdminUserResponse(r.Id, r.UserName, r.Email, r.CreatedAtUtc, r.LastSeenAtUtc, r.Status,
+            r => new AdminUserResponse(r.Id, r.UserName, r.Email, r.EmailConfirmed, r.CreatedAtUtc, r.LastSeenAtUtc, r.Status,
                 r.IsAdmin, r.CollectionCount, r.CoinCount, r.StorageBytes), ct);
     }
 
@@ -157,6 +157,7 @@ public class AdminUsersController(
             Id = u.Id,
             UserName = u.UserName!,
             Email = u.Email!,
+            EmailConfirmed = u.EmailConfirmed,
             FirstName = u.FirstName,
             LastName = u.LastName,
             CreatedAtUtc = u.CreatedAtUtc,
@@ -195,6 +196,7 @@ public class AdminUsersController(
         public required string Id { get; init; }
         public required string UserName { get; init; }
         public required string Email { get; init; }
+        public bool EmailConfirmed { get; init; }
         public required string FirstName { get; init; }
         public required string LastName { get; init; }
         public DateTime CreatedAtUtc { get; init; }
@@ -211,7 +213,7 @@ public class AdminUsersController(
         public int PhotoCount { get; init; }
         public long StorageBytes { get; init; }
 
-        public AdminUserDetailResponse ToDetail(long quotaBytes) => new(Id, UserName, Email, FirstName, LastName,
+        public AdminUserDetailResponse ToDetail(long quotaBytes) => new(Id, UserName, Email, EmailConfirmed, FirstName, LastName,
             CreatedAtUtc, LastSignInAtUtc, LastSeenAtUtc, Status, LockedAtUtc,
             Status == AdminUserStatus.LockedOut ? LockoutEnd?.UtcDateTime : null,
             IsAdmin, CollectionCount, PublicCollectionCount, UnlistedCollectionCount, CoinCount, PhotoCount,

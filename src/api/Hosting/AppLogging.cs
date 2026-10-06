@@ -89,7 +89,8 @@ public static partial class AppLogging
     /// The address as it may be logged. The key of a link-only collection is part of some paths
     /// (/s/{key}, api/public/shared/{key}) and of image URLs (?s={key}): a secret, never logged.
     /// Search terms (?search=, also an admin's search for an e-mail address) and the explore filter
-    /// (?owner=) are personal data the logs do not need.
+    /// (?owner=) are personal data the logs do not need. The secret of an e-mail verification link
+    /// (/verify-email?token=) is masked too.
     /// </summary>
     public static string MaskLoggedAddress(string pathAndQuery) =>
         MaskedQuery().Replace(SharedLinkPath().Replace(pathAndQuery, "$1***"), "$1***");
@@ -97,7 +98,7 @@ public static partial class AppLogging
     [GeneratedRegex(@"^(/s/|/api/public/shared/)[^/?#]+", RegexOptions.IgnoreCase)]
     private static partial Regex SharedLinkPath();
 
-    [GeneratedRegex(@"([?&](?:s|search|owner)=)[^&#]+", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"([?&](?:s|search|owner|token)=)[^&#]+", RegexOptions.IgnoreCase)]
     private static partial Regex MaskedQuery();
 
     /// <summary><see cref="MaskLoggedAddress"/> on the request path of every event, request log or not.</summary>

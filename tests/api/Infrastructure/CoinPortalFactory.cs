@@ -1,5 +1,6 @@
 using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Email;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -52,6 +53,12 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
     /// <summary>Photo storage folder of this run (PhotoStorage:RootPath).</summary>
     public string PhotoRoot { get; }
 
+    /// <summary>Every e-mail the app sends in this run, kept instead of sent.</summary>
+    public FakeMailSender Mail { get; } = new();
+
+    /// <summary>The site address in e-mail links (Email:SiteUrl).</summary>
+    public const string SiteUrl = "https://coinvitrine.test";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Not Development: production cookie rules (Secure) and HTTPS redirection apply,
@@ -65,6 +72,7 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
                 // Tests run the photo sweep themselves (PhotoSweepTests)
                 ["PhotoStorage:SweepIntervalHours"] = "0",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
+                ["Email:SiteUrl"] = SiteUrl,
                 // Console only, and ASP.NET Core's default key location
                 ["Logs:Path"] = "",
                 ["DataProtection:KeysPath"] = "",
@@ -76,8 +84,11 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             }));
         // The app checks the cookie against the database once a minute; tests check every request,
         // so a lock or role change shows at once instead of after a wait
-        builder.ConfigureTestServices(services => services.Configure<SecurityStampValidatorOptions>(
-            options => options.ValidationInterval = TimeSpan.Zero));
+        builder.ConfigureTestServices(services =>
+        {
+            services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
+            services.AddSingleton<IMailSender>(Mail);
+        });
     }
 
     public async ValueTask InitializeAsync()
@@ -158,8 +169,11 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(settings));
         });
 
-    /// <summary>Signs up a new user with a unique name; the client is signed in as that user.</summary>
-    public async Task<TestUser> SignUpAsync(string? language = "en", string? userName = null)
+    /// <summary>
+    /// Signs up a new user with a unique name; the client is signed in as that user. The e-mail
+    /// address is confirmed unless asked not to (sharing collections needs it).
+    /// </summary>
+    public async Task<TestUser> SignUpAsync(string? language = "en", string? userName = null, bool confirmEmail = true)
     {
         var client = await CreateAnonymousClientAsync();
         var request = TestUser.NewRegisterRequest(language);
@@ -168,6 +182,13 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             request = request with { UserName = userName, Email = $"{userName}@example.test" };
         }
         var user = await client.RegisterAsync(request);
+        if (confirmEmail)
+        {
+            // What the link in the e-mail does, without the round trip
+            await WithDbAsync(db => db.Users.Where(u => u.Id == user.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.EmailConfirmed, true)));
+            user = user with { EmailConfirmed = true };
+        }
         return new TestUser(client, user);
     }
 

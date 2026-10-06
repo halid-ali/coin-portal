@@ -92,7 +92,7 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage, ILogger<
                 await AddJsonAsync(zip, "collections.json", export, ct);
                 await AddJsonAsync(zip, "moderation.json", moderation, ct);
                 await AddJsonAsync(zip, "account.json", new AccountExportFile(DateTime.UtcNow, user.UserName!,
-                    user.Email!, user.FirstName, user.LastName, user.BirthDate, user.CreatedAtUtc,
+                    user.Email!, user.EmailConfirmed, user.FirstName, user.LastName, user.BirthDate, user.CreatedAtUtc,
                     user.PreferredLanguage, user.PreferredTheme, user.PreferredAccent, user.LastSignInAtUtc,
                     user.PreviousSignInAtUtc, user.LastSeenAtUtc, missing), ct);
             }

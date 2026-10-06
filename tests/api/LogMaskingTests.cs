@@ -17,6 +17,8 @@ public class LogMaskingTests
     [InlineData("/api/coins?collectionId=3&search=Belçika", "/api/coins?collectionId=3&search=***")]
     [InlineData("/api/public/coins?owner=ayse.yilmaz", "/api/public/coins?owner=***")]
     [InlineData("/explore?sort=year&size=20", "/explore?sort=year&size=20")]
+    // The secret of an e-mail verification link
+    [InlineData("/verify-email?token=CfDJ8abc-_xyz", "/verify-email?token=***")]
     public void SecretsAndSearchTerms_AreMaskedInLoggedAddresses(string address, string logged) =>
         Assert.Equal(logged, AppLogging.MaskLoggedAddress(address));
 }
