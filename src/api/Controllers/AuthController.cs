@@ -114,6 +114,13 @@ public class AuthController(
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
+        // Deleting the cookie alone would leave any copy of it valid until it expires. A new
+        // security stamp ends every session of the user, on other devices too, within the cookie
+        // validation interval (SecurityStampValidatorOptions)
+        if (await userManager.GetUserAsync(User) is { } user)
+        {
+            await userManager.UpdateSecurityStampAsync(user);
+        }
         await signInManager.SignOutAsync();
         return NoContent();
     }
