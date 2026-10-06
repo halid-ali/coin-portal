@@ -91,11 +91,16 @@ public sealed class ApiClient(HttpClient http) : IDisposable
 
     /// <summary>Multipart upload in the field "file", like the photo and cover forms.</summary>
     public Task<HttpResponseMessage> PutFileAsync(string url, byte[] bytes, string fileName = "photo.png",
+        string contentType = "image/png") =>
+        SendAsync(HttpMethod.Put, url, FileContent(bytes, fileName, contentType));
+
+    /// <summary>The body of <see cref="PutFileAsync"/>.</summary>
+    public static MultipartFormDataContent FileContent(byte[] bytes, string fileName = "photo.png",
         string contentType = "image/png")
     {
         var file = new ByteArrayContent(bytes);
         file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-        return SendAsync(HttpMethod.Put, url, new MultipartFormDataContent { { file, "file", fileName } });
+        return new MultipartFormDataContent { { file, "file", fileName } };
     }
 
     /// <summary>
@@ -103,6 +108,11 @@ public sealed class ApiClient(HttpClient http) : IDisposable
     /// the request as JSON, the files are "national" and "common".
     /// </summary>
     public Task<HttpResponseMessage> PostCoinWithPhotosAsync(string url, object coin, byte[]? national = null,
+        byte[]? common = null) =>
+        SendAsync(HttpMethod.Post, url, CoinWithPhotosContent(coin, national, common));
+
+    /// <summary>The body of <see cref="PostCoinWithPhotosAsync"/>.</summary>
+    public static MultipartFormDataContent CoinWithPhotosContent(object coin, byte[]? national = null,
         byte[]? common = null)
     {
         var content = new MultipartFormDataContent { { new StringContent(JsonSerializer.Serialize(coin, Json)), "coin" } };
@@ -115,7 +125,7 @@ public sealed class ApiClient(HttpClient http) : IDisposable
                 content.Add(file, name, name + ".png");
             }
         }
-        return SendAsync(HttpMethod.Post, url, content);
+        return content;
     }
 
     public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string url, HttpContent? content = null,

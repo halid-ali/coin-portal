@@ -2,7 +2,8 @@
 
 Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamamlananlar 77–78); `v1.5.0` herkese açık
 koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
-haritası 19) sürüyor: 19a CodeQL açık (Tamamlananlar 79), sıradaki 19b yetki matrisi. Önceki
+haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80) bitti, sıradaki 19c kötüye
+kullanım testleri. Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1475,6 +1476,27 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       yayın pipeline'ı için gerekli, kod değişmedi.
     - Yeni bir bulgu çıkarsa: gerçekse düzeltilir ve mümkünse 19b–19c testlerine girer; yanlış alarmsa
       gerekçesiyle "False positive" kapatılır ve buraya yazılır.
+    - Kullanıcı #1–#7'yi kapattı; #8 ve #9 push'tan sonraki taramada "Fixed" oldu. Açık bulgu yok.
+80. **Yetki matrisi** (`feat/authorization-matrix`, 2026-10-06; yol haritası 19b): `tests/api/
+    AuthorizationMatrixTests.cs`. API'nin 51 ucunun her biri tabloda bir satır: method + route şablonu +
+    erişim kuralı. Kurallar: `Anyone` (girişsiz de başarılı), `SignedIn` (girişsiz 401, kendi verisi),
+    `Owner` (sahibin gizli kaynağı: girişsiz 401, başka kullanıcı ve admin 404), `Visible` (girişsiz
+    okunabilen uçlar: gizli hedef ziyaretçiye, başka kullanıcıya ve admin'e 404, sahibin görünür yaptığı hedef
+    ziyaretçiye 200), `Admin` (girişsiz 401, kullanıcı 403). Her satırda sahibin isteği en son gider ve
+    401/403/404 almamalı: yanlış bir adresin "404 geldi, geçti" demesini önler.
+    - `EveryEndpoint_IsInTheMatrix` uçları uygulamadan okur (`ApiConventionsTests` gibi): tabloda olmayan yeni
+      uç, silinen ya da adresi değişen uç testi kırar. Kural CLAUDE.md "API testleri"nde.
+    - Her satır kendi verisini kurar (sahip, gizli koleksiyon + fotoğraflı coin + kapak, linkle paylaşılan
+      koleksiyon, gizliye dönmüş bir koleksiyonun eski linki), sahibin silmesi diğer satırları etkilemez.
+      `AdminCollection` içinde (admin açar); admin ayarı satırı mevcut değeri yazar, ayar değişmez.
+    - Kapsam dışı (planlandığı gibi): gövdedeki başkasına ait Id'ler (19c); görünürlük durumlarının ayrıntısı
+      zaten `PhotosAndCover_FollowTheCollectionsVisibility`, `VisibilityTests` ve
+      `Lock_HidesTheUsersSharedCollections`'ta, matriste tekrarlanmadı.
+    - Bulgu çıkmadı: bütün uçlar kurala uyuyor. Testin işe yaradığı bilinçli bozmayla doğrulandı (coin
+      GET'inden sahiplik filtresi kaldırılınca "başka kullanıcı 404 bekliyordu, 200 aldı"; tablodan bir satır
+      silinince eksik uç listelendi), sonra geri alındı.
+    - `ApiClient.FileContent` / `CoinWithPhotosContent`: multipart gövdeleri tablodan da kurulabilsin diye
+      ayrıldı. API testleri 297 (+52), süre ~1 dk.
 
 ## Yol haritası
 
@@ -1547,9 +1569,9 @@ mağaza için TWA.
       kerelik pentest değil, açıkların bir daha açılmamasını sağlayan kalıcı testler + otomatik tarama. Sıra:
   - [x] 19a. CodeQL "Default setup" (2026-10-06, kullanıcı açtı; C#, TypeScript, Actions; bulgular
         Tamamlananlar 79).
-  - [ ] 19b. **Yetki matrisi** (`tests/api`): `ApiConventionsTests`'in uç listesinden; her uç için beklenen
-        sonuç tablosu (yabancı kullanıcı 404, girişsiz 401, admin olmayan 403, görünürlük). Tabloda olmayan
-        yeni bir uç testi kırar (IDOR'a karşı en etkili koruma; bugün erişim testleri elle yazılıyor).
+  - [x] 19b. **Yetki matrisi** (2026-10-06, Tamamlananlar 80; `AuthorizationMatrixTests`): her uç için
+        beklenen sonuç tablosu (yabancı kullanıcı 404, girişsiz 401, admin olmayan 403, görünürlük). Tabloda
+        olmayan yeni bir uç testi kırar (IDOR'a karşı en etkili koruma).
   - [ ] 19c. Hedefli kötüye kullanım testleri: mass assignment (gövdede `ownerId`, başkasının
         `collectionId`'si, fazladan alanlar), dosya yükleme (uzantısı JPEG olan SVG/HTML, küçük dosyada dev
         piksel boyutu, bozuk başlık), girdi parametreleri (`search`, `sort`, `countryOrder`, `owner`),
@@ -1615,7 +1637,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → **19b yetki matrisi** (sıradaki) → 19c kötüye kullanım testleri → 19d ZAP → 19e elle tarama. Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → **19c kötüye kullanım testleri** (sıradaki) → 19d ZAP → 19e elle tarama. Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
