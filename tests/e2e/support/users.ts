@@ -118,6 +118,15 @@ export class TestUser {
     return res.json();
   }
 
+  /** Uploads the photo of one side of an existing coin. */
+  async uploadPhoto(coinId: number, side: 'national' | 'common' = 'national'): Promise<void> {
+    const res = await this.api.put(`/api/coins/${coinId}/photos/${side}`, {
+      multipart: { file: { name: 'coin.png', mimeType: 'image/png', buffer: coinPng(200) } },
+      headers: { 'X-XSRF-TOKEN': await xsrf(this.api) },
+    });
+    expect(res.status(), await res.text()).toBe(200);
+  }
+
   /**
    * Makes the collection Public under its name: first adds photographed coins up to the site's
    * minimum (the API's default, 10, unless an admin changed it).
