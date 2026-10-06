@@ -4,8 +4,8 @@ Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamam
 koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
 haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
 (81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti;
-19d ZAP taraması ve site izolasyonu başlıkları (82–83, başlıklar yayınlanmadı) bitti; sıradaki 19e elle
-tarama (elle oturum: 84, çıkış artık her yerden; aktif ZAP elle: 85, ilk rapor bekleniyor). Önceki
+19d ZAP taraması ve site izolasyonu başlıkları (82–83, başlıklar yayınlanmadı), 19e elle tarama (84–85;
+çıkış artık her yerden, aktif ZAP temiz) bitti; sıradaki bunların yayını. Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1581,6 +1581,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     aktif saldırılar; `scanner.maxRuleDurationInMins=5`, `maxScanDurationInMins=60`), iş süre sınırı 120 dk,
     concurrency grubu ayrı (push'un koşusu aktif taramayı iptal etmez). Push, PR ve yayın koşuları değişmedi.
     Aynı `rules.tsv` + `check.mjs`. Girişsiz; girişli aktif tarama ilk rapora göre düşünülecek.
+    - **İlk aktif tarama** (CI #62, 2026-10-06, kullanıcı başlattı): ~9 dk; SQL injection, XSS, yol aşımı gibi
+      saldırıların hiçbiri sonuç vermedi. İki yeni bulgu CI'ı kırdı, ikisi de yanlış alarm, kullanıcı onayıyla
+      `rules.tsv`'de IGNORE (`chore/zap-active-findings`): **43** "Source Code Disclosure - File Inclusion"
+      (Yüksek, orta güven: görsel adresindeki `v=` GUID, dosya yolu sadece Id'lerden; iki yanıt da aynı 400,
+      sadece `traceId` farklı, benzerlik %74–75 / eşik %75) ve **90027** "Cookie Slack Detector" (bilgi,
+      girişsiz taramada cookie'siz yanıt aynı). Girişli aktif tarama şimdilik yok: girişsiz tarama temiz,
+      girişli uçların erişimi yetki matrisi ve kötüye kullanım testleriyle kapalı.
 
 ## Yol haritası
 
@@ -1665,9 +1672,9 @@ mağaza için TWA.
         HTTPS), rapor artefakt (2026-10-06, Tamamlananlar 82–83; kabul edilmeyen bulgu CI'ı ve yayını
         kırar). **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
         eksikliği beklenir (Açık konular 17).
-  - [ ] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
-        19b–19c'deki testlere eklenir. (İlk elle oturum 2026-10-06, Tamamlananlar 84: 1 orta + 2 düşük bulgu
-        düzeltildi; aktif ZAP elle başlatılır, Tamamlananlar 85.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
+  - [x] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
+        19b–19c'deki testlere eklenir. (İlk tur 2026-10-06: elle oturum, Tamamlananlar 84, 1 orta + 2 düşük bulgu
+        düzeltildi; aktif ZAP elle başlatılır, ilk taraması temiz, Tamamlananlar 85. Ara sıra tekrarlanır.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1723,8 +1730,10 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → **19e elle tarama** (elle oturum: Tamamlananlar 84; aktif ZAP elle başlatılır: 85; sıradaki: ilk aktif taramanın raporu). Coin değer ikonları
+**Sıradaki iş:** güvenlik testlerinin (yol haritası 19) yayını. 19 bitti: ~~19a CodeQL~~ (Tamamlananlar 79) →
+~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → ~~19e elle tarama~~
+(84–85). Yayınlanmamış: paylaşım linki düzeltmesi (migration, onaydan önce veritabanı yedeği), site izolasyonu
+başlıkları, her yerden çıkış, genel JSON hata mesajları, kontrol karakteri kuralı. Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
