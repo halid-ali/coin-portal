@@ -1,22 +1,20 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamamlananlar 77–78); `v1.5.0` herkese açık
-koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
-haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
-(81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti;
-19d ZAP taraması ve site izolasyonu başlıkları (82–83, başlıklar yayınlanmadı), 19e elle tarama (84–85;
-çıkış artık her yerden, aktif ZAP temiz) bitti; sıradaki bunların yayını. Önceki
-sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
+Son güncelleme: 2026-10-06 (**`v1.6.0` yayında**: güvenlik testleri, yol haritası 19 bitti (Tamamlananlar
+79–87): CodeQL, yetki matrisi, kötüye kullanım testleri, CI'da ZAP, elle pentest; düzeltmeler: paylaşım linki
+büyük/küçük harf duyarlı (migration), her yerden çıkış, site izolasyonu başlıkları, genel JSON hata mesajları,
+kontrol karakteri kuralı. `v1.5.1` coin değer ikonları (77–78), `v1.5.0` herkese açık koleksiyon kuralı
+(75–76). Önceki sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket `v1.5.1` (2026-10-06), canlıda `v1.5.1`.
+- Durum: `main` güncel ve temiz; son etiket `v1.6.0` (2026-10-06), canlıda `v1.6.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.5.1`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.6.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -1594,6 +1592,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       buldu. Sunucu her sayfaya aynı sabit `index.html`'i gönderir, adresten HTML'e bir şey yazılmaz;
       kullanıcı onayıyla IGNORE. Ders: pasif tarama da gezginin o koşuda bulduğu adreslere göre değişir, yeni
       bir bulgu yayını durdurabilir (bilinçli).
+87. **`v1.6.0`** (`chore/release-v1.6.0`, 2026-10-06): güvenlik testleri ve bulguların düzeltmeleri (Tamamlananlar
+    79–86). git-cliff `v1.6.0` önerdi (`feat`: site izolasyonu başlıkları), kullanıcı onayladı. İlk etiket push
+    edilmeden geri alındı: `main`'in CI'ında ZAP yeni bir yanlış alarm (10031) buldu, kullanıcı onayıyla
+    IGNORE edildi, yayın commit'i ve etiket onun üstüne yeniden kuruldu (`b408ab7`). Pipeline (Release #10):
+    Checks (API, Web, E2E + ZAP), Package, kullanıcı panelden veritabanı yedeği alıp onayladı, Deploy; hepsi
+    başarılı. Canlı `/api/health` `1.6.0+b408ab7`, `Cross-Origin-*` başlıkları canlıda. Migration
+    `ShareTokenCaseSensitive` açılışta uygulandı. Release notları `.notes/release-v1.6.0.md`, yayınlandı
+    (latest `v1.6.0`). Testler: API 354, client 319, e2e 12 (README rozeti 685).
 
 ## Yol haritası
 
@@ -1736,11 +1742,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** güvenlik testlerinin (yol haritası 19) yayını. 19 bitti: ~~19a CodeQL~~ (Tamamlananlar 79) →
-~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → ~~19e elle tarama~~
-(84–85). Yayınlanmamış: paylaşım linki düzeltmesi (migration, onaydan önce veritabanı yedeği), site izolasyonu
-başlıkları, her yerden çıkış, genel JSON hata mesajları, kontrol karakteri kuralı. Coin değer ikonları
-`v1.5.1` ile yayında (Tamamlananlar 77–78).
+**Sıradaki iş:** kullanıcıyla seçilecek ("Aksiyon planı", "Yol haritası"). Güvenlik testleri (yol haritası 19)
+bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
+kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
