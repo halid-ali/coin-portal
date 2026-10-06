@@ -400,6 +400,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   **Yapısal kurallar `ApiConventionsTests`'te** (uygulamanın tüm controller action'ları üzerinden): route
   `api/` ile başlar, `api/admin` uçları `AdminControllerBase`'den gelir, girişsiz erişilebilen her uç bir rate
   limit politikası taşır, hiçbir uç antiforgery'yi atlamaz; yeni bir yapısal kural oraya eklenir.
+  **Yetki matrisi `AuthorizationMatrixTests`'te:** her uç bir satır (method + route şablonu + erişim kuralı:
+  `Anyone`, `SignedIn`, `Owner`, `Visible`, `Admin`); kural girişsiz ziyaretçinin, başka kullanıcının ve
+  admin'in ne alacağını belirler, sahibin isteği en son gider (adres gerçek mi). **Yeni bir uç tabloya
+  satırıyla girer**, yoksa `EveryEndpoint_IsInTheMatrix` kırılır (adresi değişen ya da silinen uç da).
+  Ayrıntılar (hata kodları, görünürlük durumları, gövdedeki Id'ler) özelliğin kendi testlerinde kalır.
   **İstemci sadece `CoinPortalFactory.CreateHttpClient` / `CreateAnonymousClientAsync` ile açılır**
   (kilitli): factory istemcileri thread-safe olmayan bir listede tutar, paralel `CreateClient` listeye null
   bırakır ve kapanışta bütün koşu "cleanup failure" ile düşer. Paylaşılan durum paralel testlerle
