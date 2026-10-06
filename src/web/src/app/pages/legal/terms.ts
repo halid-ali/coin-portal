@@ -19,7 +19,7 @@ const SECTIONS: readonly Section[] = [
   { id: 'rules', blocks: [{ p: 'p1' }, { list: ['i1', 'i2', 'i3', 'i4', 'i5'] }] },
   { id: 'moderation', blocks: [{ p: 'p1' }] },
   { id: 'objection', blocks: [{ p: 'p1' }] },
-  { id: 'ending', blocks: [{ p: 'p1' }] },
+  { id: 'ending', blocks: [{ p: 'p1' }, { p: 'p2' }] },
   { id: 'changes', blocks: [{ p: 'p1' }] },
 ];
 

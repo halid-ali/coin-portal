@@ -684,7 +684,7 @@
     },
     "retention": {
       "title": "How long we keep it",
-      "p1": "Your data is kept as long as your account exists. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. The hosting provider backs up the site's files, the database and the mailboxes every day and keeps the backups for 21 days, so deleted data remains in them for up to 21 days. The provider's server logs are deleted after 6 months. Emails you send us are kept as long as needed to answer your request and then deleted."
+      "p1": "Your data is kept as long as your account exists. An account whose email address you do not confirm is deleted with all its data once the time set by the administrator has passed; the date is shown in the notice on the site. When you delete your account, your account, collections, coins and photos are deleted at once. Entries in the administrators' audit log (action, time, reason) remain, but your name is removed from them; a reason an administrator wrote stays as written. Technical records are deleted after 30 days. The hosting provider backs up the site's files, the database and the mailboxes every day and keeps the backups for 21 days, so deleted data remains in them for up to 21 days. The provider's server logs are deleted after 6 months. Emails you send us are kept as long as needed to answer your request and then deleted."
     },
     "rights": {
       "title": "Your rights",
@@ -736,7 +736,8 @@
     },
     "ending": {
       "title": "Ending your account",
-      "p1": "You can delete your account at any time in Settings > Account; all your data is deleted at once. If the site is to close, this will be announced on the site as early as possible, with time to download your data."
+      "p1": "You can delete your account at any time in Settings > Account; all your data is deleted at once. If the site is to close, this will be announced on the site as early as possible, with time to download your data.",
+      "p2": "An account whose email address you do not confirm is deleted with its collections, coins and photos once the time set by the administrator has passed; the date is shown in the notice on the site. We try to send you a reminder email before the deletion, but cannot guarantee that it reaches you. Accounts locked by an administrator are not deleted this way."
     },
     "changes": {
       "title": "Changes",
@@ -759,6 +760,7 @@
       "one": "Confirm your email address: we sent a link to {{email}}. Until you do, you cannot open new collections or share collections, and your account can hold at most {{count}} coin.",
       "other": "Confirm your email address: we sent a link to {{email}}. Until you do, you cannot open new collections or share collections, and your account can hold at most {{count}} coins."
     },
+    "deletion": "If you do not confirm it, your account will be deleted on {{date}} with your collections, coins and photos.",
     "resend": "Send the link again",
     "sent": "A new link was sent to {{email}}.",
     "notSent": "The email could not be sent right now. Try again in a little while."

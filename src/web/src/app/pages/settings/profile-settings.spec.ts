@@ -19,6 +19,7 @@ const USER: UserResponse = {
   previousSignInAtUtc: '2026-09-28T18:45:00Z',
   emailConfirmed: true,
   unverifiedMaxCoins: null,
+  unverifiedDeletionDueUtc: null,
   roles: [],
 };
 

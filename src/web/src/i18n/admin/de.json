@@ -37,7 +37,15 @@
     "removedFiles": "Bereinigt",
     "removedFilesHint": "Ordner ohne Datensatz, letzte Prüfung",
     "missingFiles": "Fehlende Dateien",
-    "missingFilesHint": "Datensatz ohne Datei"
+    "missingFilesHint": "Datensatz ohne Datei",
+    "unverified": "Unbestätigte Konten",
+    "notRunYet": "Noch nicht gelaufen (zwei Minuten nach dem Start, dann alle 6 Stunden)",
+    "cleanupOff": "Aus: die Zeit ist 0 Tage (Einstellungen)",
+    "remindersSent": "Gesendete Erinnerungen",
+    "remindersFailed": "Nicht gesendete Erinnerungen",
+    "accountsDeleted": "Gelöschte Konten",
+    "lastRunHint": "im letzten Lauf",
+    "remindersFailedAlert": "Im letzten Lauf konnten einige Erinnerungs-E-Mails nicht gesendet werden. Sie werden beim nächsten Lauf erneut versucht, die Löschung wartet nicht darauf; prüfe die E-Mail-Einstellungen und die Logs."
   },
   "status": {
     "Active": "Aktiv",
@@ -106,7 +114,8 @@
     "history": "Verlauf",
     "noHistory": "Keine Einträge zu diesem Benutzer.",
     "emailConfirmed": "Bestätigt",
-    "emailUnconfirmed": "Nicht bestätigt"
+    "emailUnconfirmed": "Nicht bestätigt",
+    "deletionDue": "Wird ohne Bestätigung gelöscht: {{date}}"
   },
   "collections": {
     "search": "Sammlung oder Benutzername suchen",
@@ -184,14 +193,17 @@
       "other": "Mit diesem Wert liegen {{count}} öffentliche Sammlungen unter dem Minimum. Sie bleiben öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“."
     },
     "unverifiedTitle": "Konten mit unbestätigter E-Mail-Adresse",
-    "unverifiedText": "Ein Konto mit unbestätigter E-Mail-Adresse kann keine weitere Sammlung anlegen und keine Sammlungen teilen und hat höchstens die folgende Anzahl Münzen. Ein niedrigerer Wert löscht keine Münzen; Konten darüber können keine neuen hinzufügen.",
+    "unverifiedText": "Ein Konto mit unbestätigter E-Mail-Adresse kann keine weitere Sammlung anlegen und keine Sammlungen teilen und hat höchstens die folgende Anzahl Münzen. Ein niedrigerer Wert löscht keine Münzen; Konten darüber können keine neuen hinzufügen. Ein Konto, das unbestätigt bleibt, wird nach der folgenden Zeit mit seinen Inhalten gelöscht (außer Admins und gesperrten Konten).",
     "unverifiedMaxCoins": "Höchstzahl an Münzen",
     "unverifiedMaxCoinsHint": "Zwischen {{min}} und {{max}}. 0: keine Münzen vor der Bestätigung.",
+    "unverifiedLifetimeDays": "Zeit bis zur Löschung (Tage)",
+    "unverifiedLifetimeDaysHint": "Ab der Registrierung, zwischen {{min}} und {{max}}. 0: Konten werden nicht gelöscht. 7 Tage und 1 Tag vorher wird versucht, eine Erinnerungs-E-Mail zu senden; kein Konto wird früher als einen Tag nach dem ersten Erinnerungsversuch gelöscht.",
     "saved": "Gespeichert.",
     "unchanged": "Die Werte haben sich nicht geändert; es gibt nichts zu speichern.",
     "names": {
       "MinPublicCoins": "Mindestzahl Münzen mit Foto",
-      "UnverifiedMaxCoins": "Max. Münzen eines unbestätigten Kontos"
+      "UnverifiedMaxCoins": "Max. Münzen eines unbestätigten Kontos",
+      "UnverifiedLifetimeDays": "Lebensdauer eines unbestätigten Kontos (Tage)"
     }
   }
 }

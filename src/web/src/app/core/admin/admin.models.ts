@@ -18,6 +18,18 @@ export interface AdminStats {
   storageBytes: number;
   /** The last photo sweep since the API started; null before the first one. */
   diskCheck: AdminDiskCheck | null;
+  /** The last cleanup of unverified accounts since the API started; null before the first one. */
+  accountCleanup: AdminAccountCleanup | null;
+}
+
+/** What the last cleanup of unverified accounts did (reminders tried, accounts deleted). */
+export interface AdminAccountCleanup {
+  checkedAtUtc: string;
+  /** False while the lifetime is 0: nothing was checked. */
+  enabled: boolean;
+  remindersSent: number;
+  remindersFailed: number;
+  accountsDeleted: number;
 }
 
 /**
@@ -84,6 +96,8 @@ export interface AdminUserDetail extends AdminUser {
   unlistedCollectionCount: number;
   photoCount: number;
   quotaBytes: number;
+  /** When the account is deleted for its unverified address (ISO); null when it is not. */
+  deletionDueUtc: string | null;
 }
 
 export type AdminCollectionSort = 'UpdatedAt' | 'Name' | 'CoinCount';
@@ -166,11 +180,14 @@ export interface AdminSettings {
   minPublicCoins: number;
   /** Coins an account may hold until its e-mail address is verified. */
   unverifiedMaxCoins: number;
+  /** Days after which an account still unverified is deleted; 0: never. */
+  unverifiedLifetimeDays: number;
 }
 
 /** Same ranges as the API (SiteSettings). */
 export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
 export const UNVERIFIED_MAX_COINS_RANGE = { min: 0, max: 10_000 } as const;
+export const UNVERIFIED_LIFETIME_DAYS_RANGE = { min: 0, max: 365 } as const;
 
 /** What a minimum would mean before it is saved. */
 export interface AdminSettingsImpact {

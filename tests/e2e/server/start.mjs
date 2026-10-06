@@ -62,6 +62,7 @@ function startApi(adminId, url) {
     RateLimiting__Photos__PermitLimit: '100000',
     PhotoStorage__RootPath: path.join(build, 'data/photos'),
     PhotoStorage__SweepIntervalHours: '0',
+    AccountCleanup__IntervalHours: '0',
     Logs__Path: path.join(build, 'data/logs'),
     DataProtection__KeysPath: path.join(build, 'data/keys'),
     // E-mails as .eml files the tests read (verification links point to this site), not to the

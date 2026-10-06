@@ -20,6 +20,7 @@ const alice = {
   previousSignInAtUtc: null,
   emailConfirmed: true,
   unverifiedMaxCoins: null,
+  unverifiedDeletionDueUtc: null,
   roles: [],
 };
 

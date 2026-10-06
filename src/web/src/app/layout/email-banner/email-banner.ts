@@ -4,12 +4,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { httpErrorKey, problemCode } from '../../core/http/problem-details';
+import { LanguageService } from '../../core/i18n/language.service';
 import { PluralPipe } from '../../core/i18n/plural';
 
 /**
  * Above every page while the signed-in user's e-mail address is not verified: sharing
- * collections, opening another one and more coins than the limit (unverifiedMaxCoins) need it.
- * Sends the link again; the link itself opens /verify-email.
+ * collections, opening another one and more coins than the limit (unverifiedMaxCoins) need it,
+ * and when the account is deleted without it. Sends the link again; the link itself opens
+ * /verify-email.
  */
 @Component({
   selector: 'app-email-banner',
@@ -24,6 +26,9 @@ import { PluralPipe } from '../../core/i18n/plural';
         <p>
           {{ 'emailBanner.text' | plural: user.unverifiedMaxCoins ?? 0 : { email: user.email } }}
         </p>
+        @if (deletionDate(); as date) {
+          <p class="mt-1 font-medium">{{ 'emailBanner.deletion' | transloco: { date } }}</p>
+        }
         <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
@@ -48,11 +53,22 @@ import { PluralPipe } from '../../core/i18n/plural';
 })
 export class EmailBanner {
   private readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
 
   /** The user while the address is unverified, otherwise null (no banner). */
   protected readonly user = computed(() => {
     const user = this.auth.currentUser();
     return user && !user.emailConfirmed ? user : null;
+  });
+  /** The day the account is deleted unless verified, in the UI language; UTC like the e-mail's. */
+  protected readonly deletionDate = computed(() => {
+    const due = this.user()?.unverifiedDeletionDueUtc;
+    return due
+      ? new Intl.DateTimeFormat(this.language.current(), {
+          dateStyle: 'long',
+          timeZone: 'UTC',
+        }).format(new Date(due))
+      : null;
   });
   protected readonly sending = signal(false);
   protected readonly sent = signal(false);

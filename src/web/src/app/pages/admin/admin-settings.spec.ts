@@ -24,7 +24,9 @@ describe('AdminSettings', () => {
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(AdminSettings);
     await fixture.whenStable();
-    http.expectOne('/api/admin/settings').flush({ minPublicCoins: 10, unverifiedMaxCoins: 20 });
+    http
+      .expectOne('/api/admin/settings')
+      .flush({ minPublicCoins: 10, unverifiedMaxCoins: 20, unverifiedLifetimeDays: 30 });
     await fixture.whenStable();
   });
 
@@ -44,6 +46,7 @@ describe('AdminSettings', () => {
     await vi.waitFor(() => expect(page().textContent).toContain('En az fotoğraflı coin sayısı'));
     expect(input().value).toBe('10');
     expect(input('unverified-max-coins').value).toBe('20');
+    expect(input('unverified-lifetime-days').value).toBe('30');
   });
 
   it('tells how many public collections a new value leaves below it', async () => {
@@ -73,9 +76,10 @@ describe('AdminSettings', () => {
     expect(request.request.body).toEqual({
       minPublicCoins: 12,
       unverifiedMaxCoins: 20,
+      unverifiedLifetimeDays: 30,
       note: 'More photos',
     });
-    request.flush({ minPublicCoins: 12, unverifiedMaxCoins: 20 });
+    request.flush({ minPublicCoins: 12, unverifiedMaxCoins: 20, unverifiedLifetimeDays: 30 });
     await vi.waitFor(() => expect(page().textContent).toContain('Kaydedildi.'));
     // A pending impact lookup of the typed value is not needed any more
     http.match((r) => r.url === '/api/admin/settings/impact').forEach((r) => r.flush(null));
@@ -86,8 +90,13 @@ describe('AdminSettings', () => {
     page().querySelector('form')!.dispatchEvent(new Event('submit'));
 
     const request = http.expectOne((r) => r.method === 'PUT');
-    expect(request.request.body).toEqual({ minPublicCoins: 10, unverifiedMaxCoins: 0, note: '' });
-    request.flush({ minPublicCoins: 10, unverifiedMaxCoins: 0 });
+    expect(request.request.body).toEqual({
+      minPublicCoins: 10,
+      unverifiedMaxCoins: 0,
+      unverifiedLifetimeDays: 30,
+      note: '',
+    });
+    request.flush({ minPublicCoins: 10, unverifiedMaxCoins: 0, unverifiedLifetimeDays: 30 });
     await vi.waitFor(() => expect(page().textContent).toContain('Kaydedildi.'));
     expect(input('unverified-max-coins').value).toBe('0');
     // The minimum did not change: no impact lookup
@@ -111,11 +120,13 @@ describe('AdminSettings', () => {
   it('does not save a value out of range', async () => {
     await type('0');
     await type('-1', 'unverified-max-coins');
+    await type('366', 'unverified-lifetime-days');
     page().querySelector('form')!.dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
     http.expectNone((r) => r.method === 'PUT');
     expect(input().getAttribute('aria-invalid')).toBe('true');
     expect(input('unverified-max-coins').getAttribute('aria-invalid')).toBe('true');
+    expect(input('unverified-lifetime-days').getAttribute('aria-invalid')).toBe('true');
   });
 });

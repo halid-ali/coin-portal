@@ -684,7 +684,7 @@
     },
     "retention": {
       "title": "Speicherdauer",
-      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht. Einträge im Protokoll der Administratoren (Aktion, Zeitpunkt, Begründung) bleiben bestehen, aber dein Name wird daraus entfernt; eine von einem Administrator geschriebene Begründung bleibt unverändert. Technische Protokolle werden nach 30 Tagen gelöscht. Der Hosting-Anbieter sichert die Dateien der Website, die Datenbank und die Postfächer täglich und bewahrt die Sicherungen 21 Tage auf; gelöschte Daten bleiben darin also bis zu 21 Tage erhalten. Die Serverprotokolle des Anbieters werden nach 6 Monaten gelöscht. E-Mails, die du uns schreibst, werden aufbewahrt, solange es für die Beantwortung deines Anliegens nötig ist, und danach gelöscht."
+      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Ein Konto, dessen E-Mail-Adresse du nicht bestätigst, wird nach der vom Administrator festgelegten Zeit mit allen Daten gelöscht; das Datum steht im Hinweis auf der Website. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht. Einträge im Protokoll der Administratoren (Aktion, Zeitpunkt, Begründung) bleiben bestehen, aber dein Name wird daraus entfernt; eine von einem Administrator geschriebene Begründung bleibt unverändert. Technische Protokolle werden nach 30 Tagen gelöscht. Der Hosting-Anbieter sichert die Dateien der Website, die Datenbank und die Postfächer täglich und bewahrt die Sicherungen 21 Tage auf; gelöschte Daten bleiben darin also bis zu 21 Tage erhalten. Die Serverprotokolle des Anbieters werden nach 6 Monaten gelöscht. E-Mails, die du uns schreibst, werden aufbewahrt, solange es für die Beantwortung deines Anliegens nötig ist, und danach gelöscht."
     },
     "rights": {
       "title": "Deine Rechte",
@@ -736,7 +736,8 @@
     },
     "ending": {
       "title": "Ende deines Kontos",
-      "p1": "Du kannst dein Konto jederzeit unter Einstellungen > Konto löschen; alle deine Daten werden sofort gelöscht. Wird die Website eingestellt, wird das so früh wie möglich auf der Website angekündigt, mit Zeit, deine Daten herunterzuladen."
+      "p1": "Du kannst dein Konto jederzeit unter Einstellungen > Konto löschen; alle deine Daten werden sofort gelöscht. Wird die Website eingestellt, wird das so früh wie möglich auf der Website angekündigt, mit Zeit, deine Daten herunterzuladen.",
+      "p2": "Ein Konto, dessen E-Mail-Adresse du nicht bestätigst, wird nach der vom Administrator festgelegten Zeit mit seinen Sammlungen, Münzen und Fotos gelöscht; das Datum steht im Hinweis auf der Website. Wir versuchen, dir vor der Löschung eine Erinnerungs-E-Mail zu senden, können aber nicht garantieren, dass sie ankommt. Von einem Administrator gesperrte Konten werden nicht auf diese Weise gelöscht."
     },
     "changes": {
       "title": "Änderungen",
@@ -759,6 +760,7 @@
       "one": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {{count}} Münze haben.",
       "other": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {{count}} Münzen haben."
     },
+    "deletion": "Wenn du sie nicht bestätigst, wird dein Konto am {{date}} mit deinen Sammlungen, Münzen und Fotos gelöscht.",
     "resend": "Link erneut senden",
     "sent": "Ein neuer Link wurde an {{email}} gesendet.",
     "notSent": "Die E-Mail konnte gerade nicht gesendet werden. Versuche es gleich noch einmal."

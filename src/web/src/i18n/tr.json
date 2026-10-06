@@ -684,7 +684,7 @@
     },
     "retention": {
       "title": "Ne kadar saklıyoruz",
-      "p1": "Verilerin hesabın var olduğu sürece saklanır. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir. Yöneticilerin denetim kaydındaki girişler (işlem, zaman, gerekçe) kalır, ama adın onlardan kaldırılır; bir yöneticinin gerekçe olarak yazdığı metin olduğu gibi kalır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısı site dosyalarını, veritabanını ve e-posta kutularını her gün yedekler ve yedekleri 21 gün saklar; silinen veriler bu yedeklerde en fazla 21 gün daha kalır. Sağlayıcının sunucu kayıtları 6 ay sonra silinir. Bize yazdığın e-postalar, talebini cevaplamak için gerektiği sürece saklanır ve sonra silinir."
+      "p1": "Verilerin hesabın var olduğu sürece saklanır. E-posta adresini doğrulamadığın bir hesap, yöneticinin belirlediği süre dolunca bütün verileriyle silinir; silinme tarihi sitedeki uyarıda yazar. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir. Yöneticilerin denetim kaydındaki girişler (işlem, zaman, gerekçe) kalır, ama adın onlardan kaldırılır; bir yöneticinin gerekçe olarak yazdığı metin olduğu gibi kalır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısı site dosyalarını, veritabanını ve e-posta kutularını her gün yedekler ve yedekleri 21 gün saklar; silinen veriler bu yedeklerde en fazla 21 gün daha kalır. Sağlayıcının sunucu kayıtları 6 ay sonra silinir. Bize yazdığın e-postalar, talebini cevaplamak için gerektiği sürece saklanır ve sonra silinir."
     },
     "rights": {
       "title": "Hakların",
@@ -736,7 +736,8 @@
     },
     "ending": {
       "title": "Hesabın sona ermesi",
-      "p1": "Hesabını istediğin zaman Ayarlar > Hesap'tan silebilirsin; tüm verilerin hemen silinir. Site kapanacaksa bu, mümkün olduğunca önceden sitede duyurulur ve verilerini indirmen için zaman tanınır."
+      "p1": "Hesabını istediğin zaman Ayarlar > Hesap'tan silebilirsin; tüm verilerin hemen silinir. Site kapanacaksa bu, mümkün olduğunca önceden sitede duyurulur ve verilerini indirmen için zaman tanınır.",
+      "p2": "E-posta adresini doğrulamadığın bir hesap, yöneticinin belirlediği süre dolunca koleksiyonları, coin'leri ve fotoğraflarıyla birlikte silinir; silinme tarihi sitedeki uyarıda yazar. Silmeden önce sana hatırlatma e-postası göndermeye çalışırız, ama ulaşacağını garanti edemeyiz. Yöneticinin kilitlediği hesaplar bu yolla silinmez."
     },
     "changes": {
       "title": "Değişiklikler",
@@ -759,6 +760,7 @@
       "one": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {{count}} coin olabilir.",
       "other": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {{count}} coin olabilir."
     },
+    "deletion": "Doğrulamazsan hesabın {{date}} tarihinde koleksiyonların, coin'lerin ve fotoğraflarınla birlikte silinecek.",
     "resend": "Linki tekrar gönder",
     "sent": "Yeni link {{email}} adresine gönderildi.",
     "notSent": "E-posta şu an gönderilemedi. Biraz sonra tekrar dene."

@@ -10,6 +10,7 @@ import {
   AdminSettings as Settings,
   AdminSettingsImpact,
   MIN_PUBLIC_COINS_RANGE,
+  UNVERIFIED_LIFETIME_DAYS_RANGE,
   UNVERIFIED_MAX_COINS_RANGE,
 } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
@@ -21,8 +22,9 @@ import { integerValidator } from '../../shared/validators';
 
 /**
  * Admin > General settings: site-wide values. The photographed coins a collection needs to become
- * public (before saving, how many public collections the new value leaves below it) and the coins
- * an account may hold until its e-mail address is verified. Saved together, one audit entry each.
+ * public (before saving, how many public collections the new value leaves below it), and the coins
+ * an account may hold until its e-mail address is verified and the days before it is deleted
+ * without. Saved together, one audit entry each.
  */
 @Component({
   selector: 'app-admin-settings',
@@ -101,6 +103,28 @@ import { integerValidator } from '../../shared/validators';
         </div>
 
         <div>
+          <label for="unverified-lifetime-days" class="form-label">{{
+            'admin.settings.unverifiedLifetimeDays' | transloco
+          }}</label>
+          <input
+            id="unverified-lifetime-days"
+            type="number"
+            inputmode="numeric"
+            class="form-input w-32"
+            [min]="lifetimeRange.min"
+            [max]="lifetimeRange.max"
+            formControlName="unverifiedLifetimeDays"
+            appField
+          />
+          @if (errorMessage(form.controls.unverifiedLifetimeDays); as message) {
+            <p id="unverified-lifetime-days-error" class="form-error">{{ message }}</p>
+          }
+          <p id="unverified-lifetime-days-hint" class="form-hint">
+            {{ 'admin.settings.unverifiedLifetimeDaysHint' | transloco: lifetimeRange }}
+          </p>
+        </div>
+
+        <div>
           <label for="settings-note" class="form-label">{{ 'admin.note.label' | transloco }}</label>
           <textarea
             id="settings-note"
@@ -143,6 +167,7 @@ export class AdminSettings {
 
   protected readonly range = MIN_PUBLIC_COINS_RANGE;
   protected readonly unverifiedRange = UNVERIFIED_MAX_COINS_RANGE;
+  protected readonly lifetimeRange = UNVERIFIED_LIFETIME_DAYS_RANGE;
   protected readonly noteMaxLength = ADMIN_NOTE_MAX_LENGTH;
   protected readonly errorMessage = errorMessage;
   private readonly focusFirstInvalid = injectFocusFirstInvalid();
@@ -172,6 +197,12 @@ export class AdminSettings {
       integerValidator,
       Validators.min(UNVERIFIED_MAX_COINS_RANGE.min),
       Validators.max(UNVERIFIED_MAX_COINS_RANGE.max),
+    ]),
+    unverifiedLifetimeDays: this.fb.control<number | null>(null, [
+      Validators.required,
+      integerValidator,
+      Validators.min(UNVERIFIED_LIFETIME_DAYS_RANGE.min),
+      Validators.max(UNVERIFIED_LIFETIME_DAYS_RANGE.max),
     ]),
     note: ['', Validators.maxLength(ADMIN_NOTE_MAX_LENGTH)],
   });
@@ -213,7 +244,8 @@ export class AdminSettings {
     const saved = this.saved();
     if (
       settings.minPublicCoins === saved?.minPublicCoins &&
-      settings.unverifiedMaxCoins === saved.unverifiedMaxCoins
+      settings.unverifiedMaxCoins === saved.unverifiedMaxCoins &&
+      settings.unverifiedLifetimeDays === saved.unverifiedLifetimeDays
     ) {
       this.outcome.set('unchanged');
       return;

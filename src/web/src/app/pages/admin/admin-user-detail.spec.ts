@@ -31,6 +31,7 @@ const jonas = (changes: Partial<AdminUserDetail> = {}): AdminUserDetail => ({
   unlistedCollectionCount: 0,
   photoCount: 3,
   quotaBytes: 300 * 1024 * 1024,
+  deletionDueUtc: null,
   ...changes,
 });
 

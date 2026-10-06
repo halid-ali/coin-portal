@@ -37,7 +37,15 @@
     "removedFiles": "Cleaned up",
     "removedFilesHint": "folders without a record, last check",
     "missingFiles": "Missing files",
-    "missingFilesHint": "record without a file"
+    "missingFilesHint": "record without a file",
+    "unverified": "Unverified accounts",
+    "notRunYet": "Not run yet (two minutes after startup, then every 6 hours)",
+    "cleanupOff": "Off: the time is 0 days (Settings)",
+    "remindersSent": "Reminders sent",
+    "remindersFailed": "Reminders not sent",
+    "accountsDeleted": "Accounts deleted",
+    "lastRunHint": "in the last run",
+    "remindersFailedAlert": "Some reminder emails could not be sent in the last run. They are tried again on the next run, and the deletion does not wait for them; check the email settings and the logs."
   },
   "status": {
     "Active": "Active",
@@ -106,7 +114,8 @@
     "history": "History",
     "noHistory": "No entries about this user.",
     "emailConfirmed": "Confirmed",
-    "emailUnconfirmed": "Not confirmed"
+    "emailUnconfirmed": "Not confirmed",
+    "deletionDue": "Deleted unless verified: {{date}}"
   },
   "collections": {
     "search": "Search collection or username",
@@ -184,14 +193,17 @@
       "other": "With this value, {{count}} public collections fall below the minimum. They stay public; the first change that lowers their photographed coins makes them link only."
     },
     "unverifiedTitle": "Accounts with an unverified email",
-    "unverifiedText": "An account that has not verified its email address cannot open another collection or share collections, and holds at most the number of coins below. Lowering the value deletes no one's coins; accounts above it cannot add new ones.",
+    "unverifiedText": "An account that has not verified its email address cannot open another collection or share collections, and holds at most the number of coins below. Lowering the value deletes no one's coins; accounts above it cannot add new ones. An account that stays unverified is deleted with its content once the time below has passed (not admins or locked accounts).",
     "unverifiedMaxCoins": "Maximum number of coins",
     "unverifiedMaxCoinsHint": "Between {{min}} and {{max}}. 0: no coins before verifying.",
+    "unverifiedLifetimeDays": "Time before deletion (days)",
+    "unverifiedLifetimeDaysHint": "From sign-up, between {{min}} and {{max}}. 0: accounts are not deleted. A reminder email is attempted 7 days and 1 day before; no account is deleted sooner than a day after its first reminder attempt.",
     "saved": "Saved.",
     "unchanged": "The values have not changed; there is nothing to save.",
     "names": {
       "MinPublicCoins": "Minimum coins with photos",
-      "UnverifiedMaxCoins": "Max. coins of an unverified account"
+      "UnverifiedMaxCoins": "Max. coins of an unverified account",
+      "UnverifiedLifetimeDays": "Lifetime of an unverified account (days)"
     }
   }
 }

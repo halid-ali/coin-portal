@@ -37,7 +37,15 @@
     "removedFiles": "Temizlenen",
     "removedFilesHint": "kaydı olmayan klasörler, son kontrolde",
     "missingFiles": "Eksik dosya",
-    "missingFilesHint": "kaydı var, dosyası yok"
+    "missingFilesHint": "kaydı var, dosyası yok",
+    "unverified": "Doğrulanmamış hesaplar",
+    "notRunYet": "Henüz çalışmadı (açılıştan iki dakika sonra, sonra 6 saatte bir)",
+    "cleanupOff": "Kapalı: süre 0 gün (Ayarlar)",
+    "remindersSent": "Gönderilen hatırlatma",
+    "remindersFailed": "Gönderilemeyen hatırlatma",
+    "accountsDeleted": "Silinen hesap",
+    "lastRunHint": "son çalışmada",
+    "remindersFailedAlert": "Son çalışmada bazı hatırlatma e-postaları gönderilemedi. Sonraki çalışmada tekrar denenirler, silme onları beklemez; e-posta ayarlarına ve loglara bak."
   },
   "status": {
     "Active": "Aktif",
@@ -106,7 +114,8 @@
     "history": "Geçmiş",
     "noHistory": "Bu kullanıcıyla ilgili kayıt yok.",
     "emailConfirmed": "Doğrulandı",
-    "emailUnconfirmed": "Doğrulanmadı"
+    "emailUnconfirmed": "Doğrulanmadı",
+    "deletionDue": "Doğrulanmazsa silinecek: {{date}}"
   },
   "collections": {
     "search": "Koleksiyon veya kullanıcı adı ara",
@@ -184,14 +193,17 @@
       "other": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalırlar; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçerler."
     },
     "unverifiedTitle": "E-postası doğrulanmamış hesaplar",
-    "unverifiedText": "E-posta adresini doğrulamamış bir hesap başka koleksiyon açamaz, koleksiyon paylaşamaz ve en fazla aşağıdaki sayıda coin tutabilir. Değeri düşürmek kimsenin coin'ini silmez; sınırın üstündeki hesaplar yeni coin ekleyemez.",
+    "unverifiedText": "E-posta adresini doğrulamamış bir hesap başka koleksiyon açamaz, koleksiyon paylaşamaz ve en fazla aşağıdaki sayıda coin tutabilir. Değeri düşürmek kimsenin coin'ini silmez; sınırın üstündeki hesaplar yeni coin ekleyemez. Doğrulanmayan hesap aşağıdaki süre dolunca içindekilerle birlikte silinir (admin'ler ve kilitli hesaplar hariç).",
     "unverifiedMaxCoins": "En fazla coin sayısı",
     "unverifiedMaxCoinsHint": "{{min}} ile {{max}} arasında. 0: doğrulamadan coin eklenemez.",
+    "unverifiedLifetimeDays": "Silinmeden önceki süre (gün)",
+    "unverifiedLifetimeDaysHint": "Kayıttan itibaren, {{min}} ile {{max}} arasında. 0: hesaplar silinmez. Silmeden 7 ve 1 gün önce hatırlatma e-postası gönderilmeye çalışılır; hiçbir hesap ilk hatırlatma denemesinden 1 gün geçmeden silinmez.",
     "saved": "Kaydedildi.",
     "unchanged": "Değerler değişmedi; kaydedilecek bir şey yok.",
     "names": {
       "MinPublicCoins": "En az fotoğraflı coin sayısı",
-      "UnverifiedMaxCoins": "Doğrulanmamış hesapta en fazla coin"
+      "UnverifiedMaxCoins": "Doğrulanmamış hesapta en fazla coin",
+      "UnverifiedLifetimeDays": "Doğrulanmamış hesabın ömrü (gün)"
     }
   }
 }

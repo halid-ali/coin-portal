@@ -26,6 +26,7 @@ const user: UserResponse = {
   previousSignInAtUtc: null,
   emailConfirmed: true,
   unverifiedMaxCoins: null,
+  unverifiedDeletionDueUtc: null,
   roles: [],
 };
 

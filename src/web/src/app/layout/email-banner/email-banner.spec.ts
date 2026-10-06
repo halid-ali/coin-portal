@@ -13,6 +13,7 @@ const USER: UserResponse = {
   email: 'alice@example.com',
   emailConfirmed: false,
   unverifiedMaxCoins: 20,
+  unverifiedDeletionDueUtc: null,
   firstName: 'Alice',
   lastName: 'Smith',
   birthDate: '1990-01-01',
@@ -53,6 +54,15 @@ describe('EmailBanner', () => {
       b.textContent!.includes('tekrar gönder'),
     )!;
 
+  it('names the day the account is deleted without verification', async () => {
+    const fixture = await render({ ...USER, unverifiedDeletionDueUtc: '2026-11-06T22:30:00Z' });
+
+    // The UTC day, like the reminder e-mail's
+    expect(element(fixture).textContent).toContain(
+      "Doğrulamazsan hesabın 6 Kasım 2026 tarihinde koleksiyonların, coin'lerin ve fotoğraflarınla birlikte silinecek.",
+    );
+  });
+
   it('is not shown signed out', async () => {
     expect(element(await render(null)).textContent!.trim()).toBe('');
   });
@@ -67,6 +77,8 @@ describe('EmailBanner', () => {
     // What waits for the address, with the coin limit of the site
     expect(element(fixture).textContent).toContain('yeni koleksiyon açamaz');
     expect(element(fixture).textContent).toContain('en fazla 20 coin olabilir');
+    // No date while the lifetime is off
+    expect(element(fixture).textContent).not.toContain('silinecek');
 
     resendButton(fixture).click();
     // Pressed again while sending: no second request

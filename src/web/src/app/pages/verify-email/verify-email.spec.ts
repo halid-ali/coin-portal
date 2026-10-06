@@ -19,6 +19,7 @@ const USER: UserResponse = {
   email: 'alice@example.com',
   emailConfirmed: false,
   unverifiedMaxCoins: 20,
+  unverifiedDeletionDueUtc: null,
   firstName: 'Alice',
   lastName: 'Smith',
   birthDate: '1990-01-01',

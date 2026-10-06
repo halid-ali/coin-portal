@@ -140,6 +140,11 @@ import { UnverifiedMark } from './unverified-mark';
                     | transloco
                 }}
               </dd>
+              @if (u.deletionDueUtc) {
+                <dd class="text-shade-600">
+                  {{ 'admin.user.deletionDue' | transloco: { date: dateTime(u.deletionDueUtc) } }}
+                </dd>
+              }
             </div>
             <div>
               <dt class="text-shade-500">{{ 'admin.user.createdAt' | transloco }}</dt>

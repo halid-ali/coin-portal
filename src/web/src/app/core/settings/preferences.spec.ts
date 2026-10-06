@@ -27,6 +27,7 @@ const alice: UserResponse = {
   previousSignInAtUtc: null,
   emailConfirmed: true,
   unverifiedMaxCoins: null,
+  unverifiedDeletionDueUtc: null,
   roles: [],
 };
 
