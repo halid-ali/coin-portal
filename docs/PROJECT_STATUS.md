@@ -3,8 +3,8 @@
 Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamamlananlar 77–78); `v1.5.0` herkese açık
 koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Güvenlik testleri (yol
 haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
-(81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti, sıradaki
-19d ZAP. Önceki
+(81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti;
+19d ZAP sürüyor (rapor modunda eklendi, 82; ilk rapor incelenecek). Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1520,6 +1520,21 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       (sayfa, boyut, sıralama, yön, `countryOrder`, `collectionId`, yıl, ülke, değer) hem `api/coins` hem
       Keşfet'te 400; uzun değerler 400, uzun ya da joker/yol içeren kullanıcı adı 404.
     - `TestImages`: `SvgWithScript`, `Html`, `PngWithPayload`, `PngClaimingSize`. API testleri 339 (+42).
+82. **ZAP baseline taraması, rapor modu** (`feat/zap-baseline`, 2026-10-06; yol haritası 19d, ilk adım).
+    CI E2E işinin sonunda, Playwright testleri geçince: `start.mjs` siteyi `E2E_ENVIRONMENT=Production` ile
+    HTTPS'te açar (`dev-certs` sertifikası, `coinportal.test` `/etc/hosts`'ta; `localhost` HSTS almaz),
+    ZAP (`zaproxy/zap-stable:20260807` + digest, 2.17.0) `zap-baseline.py -j -m 3` ile girişsiz gezer.
+    Production + HTTPS seçimi, çünkü Development'ta Swagger açık ve cookie'ler `Secure` değil, Production'da
+    düz HTTP'de antiforgery 500 verir: ikisi de canlıda olmayan bulgular üretirdi. Lokalde denendi: HTTP → HTTPS
+    307, HSTS, `secure; samesite=strict` cookie'ler, antiforgery 204, Swagger yok.
+    - **Kullanıcı kararları (2026-10-06):** önce sadece rapor (bulgular CI'ı kırmaz; ilk rapordan sonra her
+      kural için IGNORE / WARN / FAIL kararı `.zap/rules.tsv`'ye yazılır); deneme `main`'e push ile (ZAP
+      lokalde çalışmaz: laptopta ve WSL'de docker/Java yok), adımlar `continue-on-error`: bozuk çıksalar da CI
+      ve yayın kırmızı olmaz.
+    - Rapor: artefakt `zap-report` (HTML, Markdown, JSON), Markdown özet koşunun Summary'sinde. E2E işinin
+      süre sınırı 20 → 35 dk.
+    - **Kalan (19d'nin bitişi):** ilk raporu incelemek, kuralları karara bağlamak, `continue-on-error`'ı ve
+      `-I`'yı kaldırmak.
 
 ## Yol haritası
 
@@ -1601,7 +1616,8 @@ mağaza için TWA.
         piksel boyutu, bozuk başlık), girdi parametreleri (`search`, `sort`, `countryOrder`, `owner`),
         paylaşım anahtarı (yanlış, kısa, başka koleksiyonun; görünürlük değişince eskisi çalışmaz).
   - [ ] 19d. CI'da OWASP ZAP baseline (pasif) taraması, e2e'nin lokal yayın derlemesine (5091) karşı, rapor
-        artefakt. **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
+        artefakt (rapor modunda eklendi 2026-10-06, Tamamlananlar 82; kalan: ilk raporu inceleyip kuralları
+        karara bağlamak, sonra bulgular CI'ı kırar). **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
         eksikliği beklenir (Açık konular 17).
   - [ ] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
         19b–19c'deki testlere eklenir. Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
@@ -1661,7 +1677,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → **19d ZAP** (sıradaki) → 19e elle tarama. Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → **19d ZAP** (rapor modunda eklendi, Tamamlananlar 82; sıradaki: ilk raporu inceleyip kuralları karara bağlamak) → 19e elle tarama. Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~

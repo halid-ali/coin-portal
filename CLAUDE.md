@@ -69,7 +69,12 @@ terminallerinde sürekli çalışır halde tutuyor.
   çağrılır (`ref` girdisi etiketin commit'i; çağrıldığında `github.workflow` "Release" olur, deneme
   paketi atlanır, concurrency grubu adı ayrı tutar). E2E: ayrı iş (`tests/e2e`, Playwright'ın Chromium'u,
   kendi SQL Server container'ı); etiket yayınında da koşar, kırık bir akış yayına geçemez; hata olursa
-  rapor artefaktı `e2e-report`.
+  rapor artefaktı `e2e-report`. E2E işinin sonunda **ZAP baseline (pasif) taraması**: aynı site Production
+  modunda HTTPS'te (`https://coinportal.test:5443`, `dev-certs` sertifikası; `localhost` HSTS almaz),
+  girişsiz, Ajax spider'la; imaj tarihli etiket + digest'e sabit, elle güncellenir. Kurallar
+  `.zap/rules.tsv` (IGNORE gerekçesiyle); rapor artefaktı `zap-report`, özeti koşunun Summary'sinde.
+  **Şimdilik sadece rapor** (`continue-on-error`, `-I`); kurallar karara bağlanınca FAIL olanlar yayını
+  engeller. ZAP lokalde çalışmaz (docker yok), sadece CI'da. Canlı siteye tarama yapılmaz.
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
@@ -638,7 +643,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   5091'de, `CoinPortal_E2E` veritabanıyla (açılışta migration), client'ı `--webroot` ile sunar (tek origin,
   SPA fallback); rate limit'ler yüksek. Admin: betik önce API'yi 5191'de açıp `e2e-admin`'i kaydeder ya da
   girer, Id'sini `Admin__UserIds__0` ile verip 5091'de yeniden başlatır (Playwright 5091'i bekler, hazırlık
-  ayrı portta olmalı). Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
+  ayrı portta olmalı). `E2E_ENVIRONMENT=Production` (ZAP için) admin hazırlığını atlar (orada giriş HTTPS
+  ister), adresleri `E2E_URLS`'ten, sertifikayı `Kestrel__Certificates__Default__Path`/`Password`'den alır;
+  sağlık kontrolü yönlendirmeyi (HTTP → HTTPS 307) "ayakta" sayar. Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
   dizüstünde zaman aşımı yapar); CI'da Chromium. Arayüz İngilizce (`locale: 'en-US'`), seçiciler rol ve
   görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`), girişli tarayıcı
   `user.browser(browser)`. Public koleksiyon `user.publish(c)` ile (e2e'de eşik varsayılan 10, yardımcı

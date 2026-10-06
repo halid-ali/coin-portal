@@ -143,11 +143,12 @@ jobs:
 
   # The whole site in a browser (tests/e2e, Playwright): sign-up to coin with photo, share links,
   # sessions, moderation, plus an axe accessibility scan of each page. server/start.mjs builds the
-  # client and the API and runs them on their own database in the SQL Server container
+  # client and the API and runs them on their own database in the SQL Server container. Then a
+  # ZAP baseline scan of the same site in Production mode (report only for now)
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     services:
       sql:
         image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04
@@ -202,4 +203,59 @@ jobs:
           path: |
             tests/e2e/playwright-report
             tests/e2e/test-results
+          if-no-files-found: ignore
+
+      # OWASP ZAP baseline (passive) scan of the site as it runs live: Production settings over
+      # HTTPS (Secure cookies, HSTS, no Swagger) on the database the tests filled, signed out. A
+      # host name other than localhost, which gets no HSTS. Report only for now (continue-on-error,
+      # -I): .zap/rules.tsv decides which alerts are ignored, warnings or failures. A fixed dated
+      # image with its digest, like the SQL Server one (Dependabot does not watch it)
+      - name: Start site for ZAP
+        continue-on-error: true
+        working-directory: tests/e2e
+        run: |
+          echo "127.0.0.1 coinportal.test" | sudo tee -a /etc/hosts
+          dotnet dev-certs https -ep "$RUNNER_TEMP/zap-site.pfx" -p zap-site
+          nohup node server/start.mjs > "$RUNNER_TEMP/zap-site.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -skf -o /dev/null https://coinportal.test:5443/api/health && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/zap-site.log"
+          exit 1
+        env:
+          COINPORTAL_E2E_SQL: Server=localhost,1433;Database=CoinPortal_E2E;User Id=sa;Password=Ci_Tests_Passw0rd;TrustServerCertificate=True
+          E2E_SKIP_BUILD: '1'
+          E2E_ENVIRONMENT: Production
+          E2E_URLS: http://localhost:5091;https://*:5443
+          Kestrel__Certificates__Default__Path: ${{ runner.temp }}/zap-site.pfx
+          Kestrel__Certificates__Default__Password: zap-site
+
+      - name: ZAP baseline scan
+        id: zap
+        continue-on-error: true
+        run: |
+          mkdir -p "$RUNNER_TEMP/zap"
+          cp .zap/rules.tsv "$RUNNER_TEMP/zap/"
+          chmod -R a+rwX "$RUNNER_TEMP/zap"
+          docker run --rm --network host -v "$RUNNER_TEMP/zap:/zap/wrk:rw" \
+            zaproxy/zap-stable:20260807@sha256:71db37cd5b75663b35758d10aaec05bf6fbac23f5020e3046c70e628a5f84efa \
+            zap-baseline.py -t https://coinportal.test:5443 -j -m 3 -c rules.tsv -I \
+              -r zap-report.html -w zap-report.md -J zap-report.json
+
+      - name: ZAP summary
+        if: always() && steps.zap.outcome != 'skipped'
+        run: |
+          if [ -f "$RUNNER_TEMP/zap/zap-report.md" ]; then
+            cat "$RUNNER_TEMP/zap/zap-report.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ZAP wrote no report; see the scan step's log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload ZAP report
+        if: always() && steps.zap.outcome != 'skipped'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zap-report
+          path: ${{ runner.temp }}/zap/zap-report.*
           if-no-files-found: ignore

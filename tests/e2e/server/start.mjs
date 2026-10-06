@@ -9,6 +9,11 @@
 //
 // Environment: E2E_PORT (5091), COINPORTAL_E2E_SQL (connection string; LocalDB CoinPortal_E2E by
 // default, created and migrated at startup).
+//
+// E2E_ENVIRONMENT=Production runs the site like the live one, for the ZAP scan in CI: Secure
+// cookies, HSTS, HTTPS redirection, no Swagger. No admin set-up (signing in needs HTTPS there);
+// E2E_URLS lists the addresses, e.g. an HTTPS one with its certificate in
+// Kestrel__Certificates__Default__Path / __Password.
 import { execSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,6 +27,7 @@ const build = path.join(e2eDir, '.build');
 const sql =
   process.env.COINPORTAL_E2E_SQL ??
   'Server=(localdb)\\MSSQLLocalDB;Database=CoinPortal_E2E;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True';
+const environment = process.env.E2E_ENVIRONMENT ?? 'Development';
 
 function run(command, cwd) {
   console.log(`[e2e] ${command}`);
@@ -42,7 +48,7 @@ let api;
 function startApi(adminId, url) {
   const env = {
     ...process.env,
-    ASPNETCORE_ENVIRONMENT: 'Development',
+    ASPNETCORE_ENVIRONMENT: environment,
     ConnectionStrings__DefaultConnection: sql,
     Database__MigrateOnStartup: 'true',
     // Warnings and errors only (Development logs every SQL command)
@@ -84,8 +90,9 @@ function startApi(adminId, url) {
 async function waitForHealth(url) {
   for (let i = 0; i < 120; i++) {
     try {
-      const res = await fetch(`${url}/api/health`);
-      if (res.ok) {
+      // In Production the plain HTTP address redirects to HTTPS: listening is enough
+      const res = await fetch(`${url}/api/health`, { redirect: 'manual' });
+      if (res.status < 400) {
         return;
       }
     } catch {
@@ -152,13 +159,17 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
   });
 }
 
-// The setup run listens elsewhere: Playwright waits for BASE_URL and would start the tests early
-const setupUrl = `http://localhost:${PORT + 100}`;
-startApi(null, setupUrl);
-await waitForHealth(setupUrl);
-const id = await adminId(setupUrl);
-await stopApi();
+if (environment === 'Development') {
+  // The setup run listens elsewhere: Playwright waits for BASE_URL and would start the tests early
+  const setupUrl = `http://localhost:${PORT + 100}`;
+  startApi(null, setupUrl);
+  await waitForHealth(setupUrl);
+  const id = await adminId(setupUrl);
+  await stopApi();
 
-startApi(id, BASE_URL);
+  startApi(id, BASE_URL);
+} else {
+  startApi(null, process.env.E2E_URLS ?? BASE_URL);
+}
 await waitForHealth(BASE_URL);
 console.log(`[e2e] site ready at ${BASE_URL} (port ${PORT})`);
