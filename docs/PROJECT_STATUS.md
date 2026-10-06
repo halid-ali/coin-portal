@@ -1646,6 +1646,20 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Ayarlar sayfasında ikinci bölüm; değişen her ayar ayrı denetim kaydı. Durum sütununun genişliği
       değişmedi (yeni metinler "Vorübergehend gesperrt"ten kısa). Sonra testler: API 373, client 331, e2e 14
       (golden path artık koleksiyon açmadan önce e-postayı linkle doğrular).
+    - **Doğrulanmamış hesabın ömrü ve toplu silme** (kullanıcı kararları 2026-10-07, üçüncü tur): süre admin
+      ayarı (varsayılan 30 gün, 0 = kapalı); mevcut hesaplarda süre yayın gününden (`UnverifiedLifetimeSinceUtc`,
+      migration `UnverifiedLifetime` `SYSUTCDATETIME()` ile); **iki hatırlatma** (7 gün ve 1 gün önce);
+      **kilitli hesaplar silinmez** (adres engelli kalsın). Kullanıcının uyarısı (2026-10-07): hatırlatma
+      gönderilemezse silme onu beklemez, son gün gönderilemeyen hatırlatma silinen hesaba tekrar denenmez;
+      metinler e-postanın ulaşacağına söz vermez ("göndermeye çalışırız, garanti edemeyiz"). Tek güvence:
+      silme, ilk hatırlatma *denemesinden* en az 1 gün sonra (kısaltılan süre önce uyarır, e-posta sunucusu
+      bozuksa silme takılmaz). İş birkaç saatte bir çalışır (günde bir yerine 6 saat: 1 günlük hatırlatma
+      penceresini kaçırmasın). Kilitli spam hesapları için kullanıcı isteği: **toplu silme** (sayfadaki
+      seçilenler, sayıyı yazarak onay, en fazla 100; "filtredeki herkesi sil" bilinçli olarak yok: görünmeyen
+      sayfaları da silerdi) ve listede **E-posta filtresi**. Panel: Ayarlar'da süre, kullanıcı detayında silinme
+      tarihi, Genel bakış'ta son çalışmanın özeti (gönderilen/gönderilemeyen hatırlatma, silinen hesap).
+      Kullanım şartları (`terms.ending.p2`) ve gizlilik (`privacy.retention`) dört dilde, tarihleri 2026-10-07.
+      Testler: API 384, client 333, e2e 15.
     - **Testler:** API 13 yeni (`EmailVerificationTests`: dil, `SiteUrl`, HTML gövdesi ve adın kodlanması, çıkıştan sonra link, bozuk/süresi
       dolmuş/başka adres/kullanıcısız token, tekrar gönderme sınırı, sunucu kapalıyken kayıt + 503, paylaşma
       kuralı, eskiden paylaşılmışın kalması) + matris satırları + admin/dışa aktarma kontrolleri; testler
@@ -1800,9 +1814,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** e-posta doğrulama yapıldı (Tamamlananlar 88, yayınlanmadı); sıradaki doğrulanmamış hesaba bir
-ömür (önerildi: 30 gün, 7 gün önce hatırlatma, mevcut hesaplarda süre yayın gününden; plan kullanıcıyla
-konuşulacak), şifre sıfırlama (aynı altyapı) ve yayın (önce sunucuda SMTP, "Yayın öncesi yapılacaklar"). Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** e-posta doğrulama, doğrulanmamış hesabın sınırları, ömrü ve toplu silme yapıldı (Tamamlananlar
+88, yayınlanmadı); sıradaki şifre sıfırlama (aynı altyapı) ve yayın (önce sunucuda SMTP, "Yayın öncesi yapılacaklar"). Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
@@ -2301,6 +2314,14 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     `http://` + sahte `Host` → 307 `https://<sahte host>`. Canlıda `CanonicalHost` başka host adlarını önce
     `coinvitrine.com`'a çevirdiği için etkisi yok; sitenin önünde paylaşılan bir önbellek de yok. `CanonicalHost`
     kapatılırsa ya da önüne bir proxy/CDN önbelleği girerse yeniden değerlendirilir.
+26. **Yarıda bırakılan istek "500 / severe error" diye loglanıyor** (2026-10-06, e2e'de görüldü; kullanıcı
+    "not edelim" dedi): sayfadan hemen ayrılınca tarayıcı süren isteği iptal eder, `RequestAborted` SQL
+    komutunu keser ve SqlClient bunu `OperationCanceledException` yerine `SqlException` ("A severe error
+    occurred on the current command") olarak fırlatır; istek logu Error seviyesinde 500 yazar (e2e: kayıttan
+    hemen sonra doğrulama linkine geçince ana sayfanın `GET /api/coins?sort=Newest`'i). Kullanıcıya etkisi yok
+    (yanıtı bekleyen kimse yok), ama loglarda sahte hata ve 500 sayısı. Olası çözüm: istek iptal edilmişse
+    (`HttpContext.RequestAborted.IsCancellationRequested`) hatayı 499 / Information'a indiren bir ara katman
+    ya da exception handler; önce lokalde tekrar üretilip mevcut davranış doğrulanır.
 
 ## Yayın öncesi yapılacaklar
 

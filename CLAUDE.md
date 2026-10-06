@@ -224,6 +224,24 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   formuna doğrudan gelinirse API'nin hatası gösterilir (`errors.unverifiedCoinLimit`). Panelde durum
   `Unverified` (gri; kilit ağır basar) ve isim yanında zarf + saat ikonu (`pages/admin/unverified-mark`,
   durumdan bağımsız, kilitli + doğrulanmamış ayırt edilir).
+- **Doğrulanmamış hesabın ömrü** (kullanıcı kararları 2026-10-07): `SiteSettings.UnverifiedLifetimeDays`
+  (admin ayarı, migration 30 ile başlatır, 0–365; 0 = kapalı) gün sonra hesap içindekilerle silinir. Süre
+  kayıttan, ama `UnverifiedLifetimeSinceUtc`'den (migration'ın çalıştığı an; 0'dan açılınca o an) önceden
+  değil: mevcut hesaplar yayın gününden sayar. Tarih tek yerde `Accounts/UnverifiedLifetime.DueUtc` (`me`
+  `unverifiedDeletionDueUtc`, admin detayı, silme işi). `Accounts/UnverifiedAccountCleanup`
+  (`UnverifiedCleanupService`, iki dakika sonra ve `AccountCleanup:IntervalHours`'te bir, varsayılan 6;
+  testlerde ve e2e'de 0) 7 gün ve 1 gün önce hatırlatma e-postası **dener** (`EmailTexts.DeletionReminder`,
+  yeni doğrulama linkiyle; gönderilemeyen sonraki çalışmada, zamanı geçmediyse tekrar denenir), süre
+  dolunca `AccountDeletion` ile siler (Warning log). **Söz verilmez:** silme e-postanın ulaşmasını
+  beklemez; tek güvence hiçbir hesabın ilk hatırlatma denemesinden 1 gün geçmeden silinmemesi (kısaltılan
+  süre önce uyarır). Admin'ler ve admin'in kilitlediği hesaplar silinmez (kilitli spam hesabı adresi
+  tutmaya devam eder; admin toplu siler). Son çalışma bellekte, panelde Genel bakış'ta. Metinler (bant,
+  şartlar `terms.ending.p2`, gizlilik `privacy.retention`) teslimat vaat etmez.
+- **Toplu silme** (admin): kullanıcı listesinde sayfadaki kullanıcılar seçilir (admin'lerin kutusu yok),
+  "Seçilenleri sil" sayıyı yazarak onaylanır; `POST api/admin/users/bulk-delete` (en fazla 100 Id, not),
+  her kullanıcı tek tek silmedeki gibi `AccountDeletion` + kendi denetim kaydı; admin'ler atlanır ve
+  sayılır, GUID olmayan ya da bulunmayan Id sayılır (`AdminDeleteUsersResponse`). Listeye `emailConfirmed`
+  filtresi (Durum ile birlikte: kilitli + doğrulanmamış).
 - **Herkese açık koleksiyon kuralı** (`Publishing/`, kararlar PROJECT_STATUS'ta): Public olmak için bütün
   coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
   **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
@@ -299,7 +317,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Site geneli ayarlar `SiteSettings` tablosunda (tek satır, satırı migration ekler, `HasData` değil: bir
   model değişikliği admin'in değerini ezerdi), admin `api/admin/settings` ile değiştirir; değişiklik
   `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır (değişen her
-  ayar ayrı kayıt, aynı not). Ayarlar: `MinPublicCoins`, `UnverifiedMaxCoins`; yeni ayar `settings.names`
+  ayar ayrı kayıt, aynı not). Ayarlar: `MinPublicCoins`, `UnverifiedMaxCoins`, `UnverifiedLifetimeDays`;
+  yeni ayar `settings.names`
   çevirisine de girer (denetim listesi).
   Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
   kendi hesaplarını Ayarlar'dan silemez (`admin_account`; paneldeki silmede `cannot_delete_admin`), önce
@@ -406,8 +425,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`search=`) ve Keşfet filtresi (`owner=`) maskelenir (`MaskLoggedAddress`). URL'e yeni bir gizli değer
   (token, anahtar) ya da kişisel veri girerse maskeye eklenir. Dosyalar `Logs:RetainedDays` gün tutulur. Loga parola,
   cookie, token ya da istek gövdesi yazılmaz.
-- **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi ve
-  admin'in silmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)
+- **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi,
+  admin'in tekli ve toplu silmesi, doğrulanmamış hesabın otomatik silinmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)
   eklenince ikisi de güncellenir:** kullanıcı satırından cascade ile silinmeli (olmuyorsa
   `AccountDeletion` transaction'ında elle) ve dışa aktarmada yer almalı; testleri `AccountTests`'te.
   Yeni bir görsel dosyası ayrıca `PhotoSweeper`'a girer. Dışa aktarmada dosyası bulunamayan görsel
