@@ -11,3 +11,5 @@
 10109	IGNORE	Modern Web Application: informational, the site is an SPA
 10015	IGNORE	Re-examine Cache-control Directives: no-cache on pages and no-store on API data are deliberate (Hosting/SpaHosting, SecurityHeaders)
 10049	IGNORE	Storable and Cacheable Content: hashed client files are immutable, the rest revalidates; deliberate
+43	IGNORE	Source Code Disclosure - File Inclusion (active scan): v= of an image URL is a GUID and files are found by ids only; both answers are the same 400, they differ only in the traceId (74-75% against a 75% threshold)
+90027	IGNORE	Cookie Slack Detector (active scan, informational): signed-out scan, the responses do not depend on the antiforgery cookies by design
