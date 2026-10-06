@@ -6,10 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 using CoinPortal.Api.DevData;
+using CoinPortal.Api.Email;
 using CoinPortal.Api.Photos;
 using CoinPortal.Api.Hosting;
 using CoinPortal.Api.Publishing;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Options;
 
 // Our own switch is removed so the configuration command-line parser never sees it
 var seedDevData = args.Contains(DevDataSeeder.CommandLineSwitch);
@@ -143,6 +145,17 @@ builder.Services.AddOptions<UserLimitOptions>()
     .Bind(builder.Configuration.GetSection(UserLimitOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+// E-mail (verification links): SMTP when Email:Smtp:Host is set, otherwise .eml files in
+// Email:PickupPath. The mail library is only behind IMailSender
+builder.Services.AddOptions<EmailOptions>()
+    .Bind(builder.Configuration.GetSection(EmailOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<IMailSender>(services =>
+    services.GetRequiredService<IOptions<EmailOptions>>().Value.UsesSmtp
+        ? ActivatorUtilities.CreateInstance<SmtpMailSender>(services)
+        : ActivatorUtilities.CreateInstance<PickupFolderMailSender>(services));
 
 // What a Public collection must hold (photos, minimum from the admin's site settings)
 builder.Services.AddScoped<PublicationGuard>();

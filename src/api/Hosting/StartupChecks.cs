@@ -1,3 +1,4 @@
+using CoinPortal.Api.Email;
 using CoinPortal.Api.Photos;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,26 @@ public static class StartupChecks
         {
             await ProbeAsync(keys);
             logger.LogInformation("Data protection keys: {Folder}", keys);
+        }
+
+        // E-mail: where messages go. Without SMTP outside development they are only written to a
+        // folder, so nobody receives their verification link
+        var email = app.Services.GetRequiredService<IOptions<EmailOptions>>().Value;
+        if (!env.IsDevelopment() && new Uri(email.SiteUrl).IsLoopback)
+        {
+            logger.LogWarning("E-mail links point to {SiteUrl}: set Email:SiteUrl to the site's address", email.SiteUrl);
+        }
+        if (email.UsesSmtp)
+        {
+            logger.LogInformation("E-mail: SMTP {Host}:{Port}, links to {SiteUrl}", email.Smtp.Host, email.Smtp.Port,
+                email.SiteUrl);
+        }
+        else
+        {
+            var mail = Path.GetFullPath(Path.Combine(env.ContentRootPath, email.PickupPath));
+            await ProbeAsync(mail);
+            logger.Log(env.IsDevelopment() ? LogLevel.Information : LogLevel.Warning,
+                "E-mail: not sent, written to {Folder} (no Email:Smtp:Host), links to {SiteUrl}", mail, email.SiteUrl);
         }
 
         // Creates (or reads and decrypts) the key ring: fails here, not on the first sign-in
