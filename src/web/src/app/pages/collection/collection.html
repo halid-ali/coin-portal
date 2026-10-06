@@ -613,7 +613,11 @@
                         class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
                       />
                     } @else {
-                      <app-coin-placeholder class="size-full p-[24%] text-shade-300" />
+                      <app-denomination-icon
+                        tile
+                        class="size-full p-[24%]"
+                        [denomination]="coin.denomination"
+                      />
                     }
                     @if (coin.isCommemorative) {
                       <span
@@ -935,6 +939,7 @@
       [coinId]="coin.id"
       [photos]="coin.photos"
       [title]="coin.title"
+      [denomination]="coin.denomination"
       [shareToken]="shareToken()"
       (closed)="viewerCoin.set(null)"
     />

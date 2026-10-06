@@ -38,8 +38,8 @@ import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
-import { CoinPlaceholder } from '../../shared/coin-placeholder/coin-placeholder';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
+import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
 import { scrollToTop } from '../../shared/motion';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -81,7 +81,7 @@ type QueryParamValue = string | number | boolean | null;
     Pagination,
     SortHeader,
     CoinThumb,
-    CoinPlaceholder,
+    DenominationIcon,
     PhotoViewer,
     ViewToggle,
     VisibilityBadge,

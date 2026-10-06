@@ -21,8 +21,8 @@ import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
 import { httpErrorKey } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
-import { CoinPlaceholder } from '../../shared/coin-placeholder/coin-placeholder';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
+import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
 import { SEARCH_MAX_LENGTH } from '../../shared/url-search';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
@@ -51,8 +51,8 @@ export const HOME_COLLECTIONS = 5;
     RouterLink,
     TranslocoPipe,
     PluralPipe,
-    CoinPlaceholder,
     CoinThumb,
+    DenominationIcon,
     CollectionCard,
     CollectionFormDialog,
   ],
@@ -261,7 +261,7 @@ export const HOME_COLLECTIONS = 5;
                       class="size-3/4 rounded-full object-cover shadow-md ring-1 ring-shade-200"
                     />
                   } @else {
-                    <app-coin-placeholder class="size-1/2 text-shade-300" />
+                    <app-denomination-icon class="size-[90%]" [denomination]="coin.denomination" />
                   }
                 </div>
                 <div class="px-3 py-2.5">

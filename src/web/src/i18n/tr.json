@@ -418,7 +418,8 @@
     "use": "Kullan"
   },
   "viewer": {
-    "sides": "Yüz seçimi"
+    "sides": "Yüz seçimi",
+    "noPhoto": "fotoğraf yok"
   },
   "collections": {
     "title": "Koleksiyonlarım",
