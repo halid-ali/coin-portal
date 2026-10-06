@@ -18,6 +18,7 @@ const USER: UserResponse = {
   userName: 'alice',
   email: 'alice@example.com',
   emailConfirmed: false,
+  unverifiedMaxCoins: 20,
   firstName: 'Alice',
   lastName: 'Smith',
   birthDate: '1990-01-01',

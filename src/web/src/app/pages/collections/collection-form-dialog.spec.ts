@@ -38,6 +38,7 @@ const user: UserResponse = {
   accent: null,
   previousSignInAtUtc: null,
   emailConfirmed: true,
+  unverifiedMaxCoins: null,
   roles: [],
 };
 

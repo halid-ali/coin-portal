@@ -19,6 +19,7 @@ const alice = {
   accent: null,
   previousSignInAtUtc: null,
   emailConfirmed: true,
+  unverifiedMaxCoins: null,
   roles: [],
 };
 

@@ -76,6 +76,7 @@ const CODE_MESSAGE_KEYS: Record<string, string> = {
   collection_limit: 'errors.collectionLimit',
   coin_limit: 'errors.coinLimit',
   email_not_confirmed: 'errors.emailNotConfirmed',
+  unverified_coin_limit: 'errors.unverifiedCoinLimit',
 };
 
 /** The machine code of a coded problem (`this.CodedProblem(code, …)` in the API), if any. */

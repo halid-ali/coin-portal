@@ -4,14 +4,16 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { httpErrorKey, problemCode } from '../../core/http/problem-details';
+import { PluralPipe } from '../../core/i18n/plural';
 
 /**
  * Above every page while the signed-in user's e-mail address is not verified: sharing
- * collections needs it. Sends the link again; the link itself opens /verify-email.
+ * collections, opening another one and more coins than the limit (unverifiedMaxCoins) need it.
+ * Sends the link again; the link itself opens /verify-email.
  */
 @Component({
   selector: 'app-email-banner',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, PluralPipe],
   host: { class: 'block' },
   template: `
     @if (user(); as user) {
@@ -20,7 +22,7 @@ import { httpErrorKey, problemCode } from '../../core/http/problem-details';
         [attr.aria-label]="'emailBanner.label' | transloco"
       >
         <p>
-          {{ 'emailBanner.text' | transloco: { email: user.email } }}
+          {{ 'emailBanner.text' | plural: user.unverifiedMaxCoins ?? 0 : { email: user.email } }}
         </p>
         <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button

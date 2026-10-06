@@ -44,7 +44,8 @@
     "rateLimited": "Kısa sürede çok fazla istek gönderildi. Biraz bekleyip tekrar dene.",
     "collectionLimit": "Bir hesapta en fazla 50 koleksiyon olabilir. Yenisini eklemek için birini sil.",
     "coinLimit": "Bir hesapta en fazla 10.000 coin olabilir.",
-    "emailNotConfirmed": "Koleksiyon paylaşmak için önce e-posta adresini doğrula."
+    "emailNotConfirmed": "Bunun için önce e-posta adresini doğrula.",
+    "unverifiedCoinLimit": "E-posta adresini doğrulamadan daha fazla coin ekleyemezsin."
   },
   "validation": {
     "required": "Bu alan zorunludur.",
@@ -754,7 +755,10 @@
   },
   "emailBanner": {
     "label": "E-posta doğrulama",
-    "text": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayınca koleksiyonlarını herkese açık ya da linkle paylaşabilirsin.",
+    "text": {
+      "one": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {{count}} coin olabilir.",
+      "other": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {{count}} coin olabilir."
+    },
     "resend": "Linki tekrar gönder",
     "sent": "Yeni link {{email}} adresine gönderildi.",
     "notSent": "E-posta şu an gönderilemedi. Biraz sonra tekrar dene."
@@ -768,5 +772,12 @@
     "invalidTitle": "Link geçersiz ya da süresi dolmuş",
     "invalidText": "Doğrulama linki 24 saat geçerli. Giriş yap ve sayfanın üstündeki uyarıdan yeni bir link iste.",
     "failedTitle": "E-posta adresi doğrulanamadı"
+  },
+  "unverified": {
+    "newCollection": "Yeni koleksiyon açmak için önce e-posta adresini doğrula.",
+    "coinLimit": {
+      "one": "Doğrulanmamış bir hesapta en fazla {{count}} coin olabilir. Daha fazla coin eklemek için e-posta adresini doğrula.",
+      "other": "Doğrulanmamış bir hesapta en fazla {{count}} coin olabilir. Daha fazla coin eklemek için e-posta adresini doğrula."
+    }
   }
 }

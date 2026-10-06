@@ -44,7 +44,8 @@
     "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut.",
     "collectionLimit": "Ein Konto kann höchstens 50 Sammlungen haben. Lösche eine, um eine neue anzulegen.",
     "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben.",
-    "emailNotConfirmed": "Bestätige zuerst deine E-Mail-Adresse, um Sammlungen zu teilen."
+    "emailNotConfirmed": "Bestätige zuerst deine E-Mail-Adresse.",
+    "unverifiedCoinLimit": "Bis du deine E-Mail-Adresse bestätigst, kannst du keine weiteren Münzen hinzufügen."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich.",
@@ -754,7 +755,10 @@
   },
   "emailBanner": {
     "label": "E-Mail-Bestätigung",
-    "text": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Danach kannst du deine Sammlungen öffentlich oder per Link teilen.",
+    "text": {
+      "one": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {{count}} Münze haben.",
+      "other": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {{count}} Münzen haben."
+    },
     "resend": "Link erneut senden",
     "sent": "Ein neuer Link wurde an {{email}} gesendet.",
     "notSent": "Die E-Mail konnte gerade nicht gesendet werden. Versuche es gleich noch einmal."
@@ -768,5 +772,12 @@
     "invalidTitle": "Der Link ist ungültig oder abgelaufen",
     "invalidText": "Ein Bestätigungslink ist 24 Stunden gültig. Melde dich an und fordere über den Hinweis oben auf der Seite einen neuen an.",
     "failedTitle": "Die E-Mail-Adresse konnte nicht bestätigt werden"
+  },
+  "unverified": {
+    "newCollection": "Bestätige zuerst deine E-Mail-Adresse, um eine neue Sammlung anzulegen.",
+    "coinLimit": {
+      "one": "Ein unbestätigtes Konto kann höchstens {{count}} Münze haben. Bestätige deine E-Mail-Adresse, um weitere hinzuzufügen.",
+      "other": "Ein unbestätigtes Konto kann höchstens {{count}} Münzen haben. Bestätige deine E-Mail-Adresse, um weitere hinzuzufügen."
+    }
   }
 }

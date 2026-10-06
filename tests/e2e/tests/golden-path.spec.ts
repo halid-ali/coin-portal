@@ -2,10 +2,11 @@ import { expect, test } from '@playwright/test';
 
 import { expectAccessible } from '../support/axe';
 import { PASSWORD } from '../support/env.mjs';
+import { verificationLink } from '../support/mail';
 import { coinPng } from '../support/png';
 import { uniqueUserName } from '../support/users';
 
-// Sign-up → own collection → coin with a cropped photo → the list in its views, sorted and filtered
+// Sign-up → the link from the e-mail → own collection → coin with a cropped photo → the list in its views, sorted and filtered
 test('a new user signs up, adds a coin with a photo and browses it', async ({ page }) => {
   const userName = uniqueUserName();
 
@@ -21,6 +22,12 @@ test('a new user signs up, adds a coin with a photo and browses it', async ({ pa
   await page.getByRole('checkbox', { name: /privacy policy/ }).check();
   await page.getByRole('button', { name: 'Sign up' }).click();
   await expect(page).toHaveURL('/');
+
+  // Another collection waits for a confirmed address
+  await page.goto(await verificationLink(`${userName}@example.com`));
+  await expect(
+    page.getByRole('heading', { name: 'Your email address is confirmed' }),
+  ).toBeVisible();
 
   // A new collection next to the one every account starts with
   await page.getByRole('link', { name: 'My collections' }).first().click();

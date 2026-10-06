@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
@@ -121,6 +121,21 @@ describe('HomeDashboard', () => {
     expect(text()).toContain('Hatıra paraları');
     // No public collection: no profile link
     expect(text()).not.toContain('Vitrinin herkese açık');
+  });
+
+  it('offers no new collection before the address is verified, and no coin at the limit', async () => {
+    const currentUser = TestBed.inject(AuthService).currentUser as WritableSignal<UserResponse>;
+    currentUser.set({ ...user, emailConfirmed: false, unverifiedMaxCoins: 20 });
+    const counts = { countryCount: 3, commemorativeCount: 0 };
+
+    await open([collection(1, 'Koleksiyonum', 'Private')], { coinCount: 19, ...counts });
+    expect(text()).toContain('Coin ekle');
+    expect(text()).not.toContain('Yeni koleksiyon');
+    expect(text()).not.toContain('Doğrulanmamış bir hesapta');
+
+    await open([collection(1, 'Koleksiyonum', 'Private')], { coinCount: 20, ...counts });
+    expect(text()).not.toContain('Coin ekle');
+    expect(text()).toContain('Doğrulanmamış bir hesapta en fazla 20 coin olabilir.');
   });
 
   it('invites to add the first coin and hides recent coins when there are none', async () => {

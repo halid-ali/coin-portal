@@ -195,12 +195,15 @@
               </svg>
               <span class="hidden md:inline">{{ 'common.delete' | transloco }}</span>
             </button>
-            <a
-              routerLink="/coins/new"
-              [queryParams]="{ collection: collectionId() }"
-              class="btn-primary"
-              ><span aria-hidden="true" class="mr-1">+</span>{{ 'coinList.addCoin' | transloco }}</a
-            >
+            @if (!coinLimitReached()) {
+              <a
+                routerLink="/coins/new"
+                [queryParams]="{ collection: collectionId() }"
+                class="btn-primary"
+                ><span aria-hidden="true" class="mr-1">+</span
+                >{{ 'coinList.addCoin' | transloco }}</a
+              >
+            }
           </div>
         }
       </div>
@@ -208,6 +211,13 @@
       @if (mode() === 'shared') {
         <p class="rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
           {{ 'coinList.sharedNotice' | transloco }}
+        </p>
+      }
+
+      <!-- Unverified e-mail address and as many coins as it allows: no "Add coin" -->
+      @if (coinLimitReached()) {
+        <p class="rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
+          {{ 'unverified.coinLimit' | plural: unverifiedMaxCoins() ?? 0 }}
         </p>
       }
 
@@ -574,12 +584,14 @@
             </button>
           } @else if (mode() === 'owner') {
             <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
-            <a
-              routerLink="/coins/new"
-              [queryParams]="{ collection: collectionId() }"
-              class="btn-primary mt-4"
-              >{{ 'coinList.addFirstCoin' | transloco }}</a
-            >
+            @if (!coinLimitReached()) {
+              <a
+                routerLink="/coins/new"
+                [queryParams]="{ collection: collectionId() }"
+                class="btn-primary mt-4"
+                >{{ 'coinList.addFirstCoin' | transloco }}</a
+              >
+            }
           } @else if (mode() === 'explore') {
             <p class="text-shade-600">{{ 'coinList.noPublicCollections' | transloco }}</p>
           } @else {

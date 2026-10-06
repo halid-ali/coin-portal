@@ -29,6 +29,7 @@ const user = (roles: string[]): UserResponse => ({
   accent: null,
   previousSignInAtUtc: null,
   emailConfirmed: true,
+  unverifiedMaxCoins: null,
   roles,
 });
 

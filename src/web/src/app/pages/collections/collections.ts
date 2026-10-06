@@ -1,14 +1,18 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
 import { PluralPipe } from '../../core/i18n/plural';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
 import { CollectionFormDialog } from './collection-form-dialog';
 
-/** My collections: the user's collections as cards, plus creating a new one. */
+/**
+ * My collections: the user's collections as cards, plus creating a new one (once the e-mail
+ * address is verified; the API answers 403 email_not_confirmed before).
+ */
 @Component({
   selector: 'app-collections',
   imports: [TranslocoPipe, PluralPipe, CollectionCard, CollectionFormDialog],
@@ -26,9 +30,16 @@ import { CollectionFormDialog } from './collection-form-dialog';
             </p>
           }
         </div>
-        <button type="button" class="btn-primary" (click)="creating.set(true)">
-          <span aria-hidden="true" class="mr-1">+</span>{{ 'collections.new' | transloco }}
-        </button>
+        @if (emailBlocked()) {
+          <!-- The collection from sign-up is the only one until the address is verified -->
+          <p class="max-w-sm text-sm text-shade-600">
+            {{ 'unverified.newCollection' | transloco }}
+          </p>
+        } @else {
+          <button type="button" class="btn-primary" (click)="creating.set(true)">
+            <span aria-hidden="true" class="mr-1">+</span>{{ 'collections.new' | transloco }}
+          </button>
+        }
       </div>
 
       @if (loadError()) {
@@ -39,9 +50,11 @@ import { CollectionFormDialog } from './collection-form-dialog';
         @if (list.length === 0) {
           <div class="card text-center">
             <p class="text-shade-600">{{ 'collections.empty' | transloco }}</p>
-            <button type="button" class="btn-primary mt-4" (click)="creating.set(true)">
-              {{ 'collections.createFirst' | transloco }}
-            </button>
+            @if (!emailBlocked()) {
+              <button type="button" class="btn-primary mt-4" (click)="creating.set(true)">
+                {{ 'collections.createFirst' | transloco }}
+              </button>
+            }
           </div>
         } @else {
           <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -69,10 +82,14 @@ import { CollectionFormDialog } from './collection-form-dialog';
 export class Collections {
   private readonly collectionService = inject(CollectionService);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   protected readonly collections = signal<Collection[] | null>(null);
   protected readonly loadError = signal(false);
   protected readonly creating = signal(false);
+  protected readonly emailBlocked = computed(
+    () => this.auth.currentUser()?.emailConfirmed === false,
+  );
 
   constructor() {
     this.collectionService.list().subscribe({

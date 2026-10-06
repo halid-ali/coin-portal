@@ -12,6 +12,7 @@ const USER: UserResponse = {
   userName: 'alice',
   email: 'alice@example.com',
   emailConfirmed: false,
+  unverifiedMaxCoins: 20,
   firstName: 'Alice',
   lastName: 'Smith',
   birthDate: '1990-01-01',
@@ -63,6 +64,9 @@ describe('EmailBanner', () => {
   it('asks to confirm the address and sends the link again', async () => {
     const fixture = await render(USER);
     expect(element(fixture).textContent).toContain('alice@example.com adresine bir link gönderdik');
+    // What waits for the address, with the coin limit of the site
+    expect(element(fixture).textContent).toContain('yeni koleksiyon açamaz');
+    expect(element(fixture).textContent).toContain('en fazla 20 coin olabilir');
 
     resendButton(fixture).click();
     // Pressed again while sending: no second request

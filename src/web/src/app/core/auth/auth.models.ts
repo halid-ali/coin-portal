@@ -7,8 +7,13 @@ export interface UserResponse {
   id: string;
   userName: string;
   email: string;
-  /** Verified with the link from the e-mail; sharing collections needs it. */
+  /**
+   * Verified with the link from the e-mail; sharing collections, opening another one and holding
+   * more than unverifiedMaxCoins coins need it.
+   */
   emailConfirmed: boolean;
+  /** Coins the account may hold until the address is verified (site setting); null once it is. */
+  unverifiedMaxCoins: number | null;
   firstName: string;
   lastName: string;
   birthDate: string; // ISO date (yyyy-MM-dd)
