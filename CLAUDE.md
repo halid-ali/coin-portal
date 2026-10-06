@@ -76,7 +76,11 @@ terminallerinde sürekli çalışır halde tutuyor.
   **listede olmayan her bulgu işi kırar** (`.zap/check.mjs`), yani yayını da engeller: yeni bir bulgu ya
   düzeltilir ya da kullanıcıyla karar verilip gerekçesiyle listeye girer. Rapor artefaktı `zap-report`,
   özeti koşunun Summary'sinde. ZAP lokalde çalışmaz (docker yok), sadece CI'da; `check.mjs` lokalde bir
-  rapora karşı denenebilir. Canlı siteye tarama yapılmaz.
+  rapora karşı denenebilir. Canlı siteye tarama yapılmaz. **Aktif tarama** (saldırı da dener, en çok ~1
+  saat): GitHub'da Actions > CI > Run workflow, `main`, "Active ZAP scan" işaretli (`zap_active`;
+  `zap-full-scan.py`, kural başına 5 dk, toplam 60 dk sınırı, E2E işi 120 dk). Ara sıra elle; push ve
+  yayın koşularında hiç çalışmaz. Aynı `rules.tsv` ve `check.mjs`: aktif kuralların yeni bulguları işi kırar,
+  karara bağlanır.
 - Git kimliği repo seviyesinde tanımlı; global ayarlara dokunma.
 
 ### Sürüm ve yayın
