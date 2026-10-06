@@ -1636,6 +1636,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `verify-email.spec`, formda doğrulanmamış seçenekler. E2E: `email-verification.spec` (bant, tekrar
       gönder, `.eml`'deki link, axe) ve e2e kullanıcıları kayıtta linkle doğrulanır (`support/mail.ts`).
     - **Yayından önce sunucuda** (Yayın öncesi yapılacaklar): SMTP ayarları ve `Email__SiteUrl`.
+    - **Lokal posta sunucusu** (kullanıcı kararı 2026-10-06): smtp4dev 3.15.0 repo'nun yerel .NET aracı
+      (`.config/dotnet-tools.json`; NuGet'ten, kurulum ve yönetici yetkisi istemez; MailHog bakımsız, Mailpit
+      GitHub'dan exe ister). Geliştirmede varsayılan (`appsettings.Development.json` → `localhost:2525`,
+      `Security: None`), gelen kutusu http://localhost:5050; e2e `.eml` klasöründe kalır.
 
 ## Yol haritası
 

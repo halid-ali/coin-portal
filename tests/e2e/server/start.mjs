@@ -64,7 +64,9 @@ function startApi(adminId, url) {
     PhotoStorage__SweepIntervalHours: '0',
     Logs__Path: path.join(build, 'data/logs'),
     DataProtection__KeysPath: path.join(build, 'data/keys'),
-    // E-mails as .eml files the tests read (verification links point to this site)
+    // E-mails as .eml files the tests read (verification links point to this site), not to the
+    // developer's smtp4dev from appsettings.Development.json
+    Email__Smtp__Host: '',
     Email__PickupPath: MAIL_DIR,
     Email__SiteUrl: BASE_URL,
   };

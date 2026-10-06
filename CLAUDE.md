@@ -34,7 +34,7 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
 ## Çalışan uygulamalar
 
 Kullanıcı API'yi (`dotnet run --launch-profile http`, 5080) ve client'ı (`ng serve`, 4200) kendi
-terminallerinde sürekli çalışır halde tutuyor.
+terminallerinde sürekli çalışır halde tutuyor; e-posta denemelerinde ayrıca smtp4dev'i (5050, "Komutlar").
 
 - Bunları durdurmak gerekirse (ör. `bin/` kilidi, migration, API'nin yeni kodla yeniden başlaması)
   **önce kullanıcıya sor**, sadece onay verirse durdur.
@@ -130,7 +130,7 @@ terminallerinde sürekli çalışır halde tutuyor.
 Repo kökünden (`/c/repos/private/coin-web-portal`):
 
 ```bash
-dotnet tool restore                                   # dotnet-ef local tool (fresh clone)
+dotnet tool restore                                   # local tools: dotnet-ef, smtp4dev (fresh clone)
 dotnet build                                          # backend build
 dotnet test                                           # API tests (tests/api), own LocalDB database per run
 dotnet test --project tests/api --filter-class "*CoinsTests"   # one test class (xUnit v3 filters)
@@ -142,6 +142,9 @@ cd src/api && dotnet run --launch-profile http
 cd src/api && dotnet run --launch-profile http -- --seed-dev-data   # dev data, then exits
 dotnet publish src/api -c Release -o <dir>            # whole site: API + Angular build in wwwroot
 dotnet publish src/api -c Release -o <dir> -p:SkipWebClient=true   # API only
+
+# Local mail server for the dev API's e-mails (inbox http://localhost:5050, SMTP localhost:2525)
+dotnet smtp4dev --urls=http://localhost:5050 --smtpport=2525 --imapport= --pop3port=
 
 # Client (http://localhost:4200, /api proxied to 5080)
 cd src/web && npm install && ng serve
@@ -311,7 +314,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
 - **E-posta sadece `IMailSender` arkasında** (`Email/`, MailKit; görsel kütüphanesi kuralının aynısı):
   `Email:Smtp:Host` doluysa `SmtpMailSender`, boşsa `PickupFolderMailSender` (`Email:PickupPath`'e
-  `.eml`; lokal, e2e). Canlıda SMTP ayarları ve parola sunucudaki `web.config`'te
+  `.eml`; e2e, `Email__Smtp__Host` boş verilerek). Lokalde (`appsettings.Development.json`) e-postalar
+  **smtp4dev**'e gider (`localhost:2525`, şifresiz; gelen kutusu http://localhost:5050, komut "Komutlar"da;
+  kapalıysa e-posta gönderilemez: kayıt olur, Error log, tekrar gönder 503). Canlıda SMTP ayarları ve parola sunucudaki `web.config`'te
   (`Email__Smtp__Host`, `__Port`, `__UserName`, `__Password`, `Email__SiteUrl`), repoya girmez; SMTP
   yoksa Development dışında açılışta Warning. **Linkler `Email:SiteUrl`'den kurulur, isteğin `Host`'undan
   asla** (sahte Host başlığı linki saldırganın sitesine çevirirdi); loopback ise Development dışında
