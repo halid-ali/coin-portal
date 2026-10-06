@@ -40,6 +40,17 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
                 request.Note);
             settings.UnverifiedMaxCoins = request.UnverifiedMaxCoins;
         }
+        if (settings.UnverifiedLifetimeDays != request.UnverifiedLifetimeDays)
+        {
+            AuditChange(SiteSettings.UnverifiedLifetimeDaysName, settings.UnverifiedLifetimeDays,
+                request.UnverifiedLifetimeDays, request.Note);
+            // Turned on again: the lifetime counts from now, not from sign-ups while it was off
+            if (settings.UnverifiedLifetimeDays == 0)
+            {
+                settings.UnverifiedLifetimeSinceUtc = DateTime.UtcNow;
+            }
+            settings.UnverifiedLifetimeDays = request.UnverifiedLifetimeDays;
+        }
         await db.SaveChangesAsync(ct);
         return ToResponse(settings);
     }
@@ -58,7 +69,7 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
     }
 
     private static AdminSettingsResponse ToResponse(SiteSettings settings) =>
-        new(settings.MinPublicCoins, settings.UnverifiedMaxCoins);
+        new(settings.MinPublicCoins, settings.UnverifiedMaxCoins, settings.UnverifiedLifetimeDays);
 
     private void AuditChange(string name, int oldValue, int newValue, string? note) =>
         Audit(db, AuditAction.SettingChanged, note: note, setting: (name,

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Validation;
 
@@ -35,15 +36,18 @@ public sealed record LoginRequest(
 /// open another collection and hold more coins than <paramref name="UnverifiedMaxCoins"/>.</param>
 /// <param name="UnverifiedMaxCoins">Coins the account may hold until the address is verified (site
 /// setting); null once it is.</param>
+/// <param name="UnverifiedDeletionDueUtc">When the account is deleted unless the address is verified;
+/// null once it is, or when it never would be (lifetime 0, admins, locked accounts).</param>
 public sealed record UserResponse(
     string Id, string UserName, string Email, bool EmailConfirmed, int? UnverifiedMaxCoins,
+    DateTime? UnverifiedDeletionDueUtc,
     string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme,
     AccentColor? Accent, DateTime? PreviousSignInAtUtc, IReadOnlyList<string> Roles)
 {
-    public static UserResponse From(ApplicationUser u, IEnumerable<string> roles, int? unverifiedMaxCoins) =>
-        new(u.Id, u.UserName!, u.Email!, u.EmailConfirmed, unverifiedMaxCoins, u.FirstName, u.LastName,
-            u.BirthDate, u.PreferredLanguage, u.PreferredTheme, u.PreferredAccent, u.PreviousSignInAtUtc,
-            roles.Order().ToList());
+    public static UserResponse From(ApplicationUser u, IEnumerable<string> roles, UnverifiedLimits? limits) =>
+        new(u.Id, u.UserName!, u.Email!, u.EmailConfirmed, limits?.MaxCoins, limits?.DeletionDueUtc,
+            u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage, u.PreferredTheme, u.PreferredAccent,
+            u.PreviousSignInAtUtc, roles.Order().ToList());
 }
 
 /// <param name="Token">The secret from the verification link (/verify-email?token=...).</param>

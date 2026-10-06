@@ -44,13 +44,20 @@ public sealed class EmailVerificationTokens(IDataProtectionProvider provider)
 public sealed class EmailVerification(
     EmailVerificationTokens tokens, IMailSender sender, IOptions<EmailOptions> options)
 {
-    public Task SendAsync(ApplicationUser user, CancellationToken ct)
-    {
-        var token = tokens.Create(user.Id, user.Email!);
-        var link = $"{options.Value.SiteUrl}/verify-email?token={Uri.EscapeDataString(token)}";
-        var mail = EmailTexts.Verification(user.PreferredLanguage, user.FirstName, link,
-            (int)EmailVerificationTokens.Lifetime.TotalHours);
-        return sender.SendAsync(new MailMessage(user.Email!, $"{user.FirstName} {user.LastName}", mail.Subject,
+    private static int LinkHours => (int)EmailVerificationTokens.Lifetime.TotalHours;
+
+    public Task SendAsync(ApplicationUser user, CancellationToken ct) =>
+        SendAsync(user, EmailTexts.Verification(user.PreferredLanguage, user.FirstName, Link(user), LinkHours), ct);
+
+    /// <summary>The account will be deleted at <paramref name="dueUtc"/> unless the link is used.</summary>
+    public Task SendDeletionReminderAsync(ApplicationUser user, DateTime dueUtc, CancellationToken ct) =>
+        SendAsync(user, EmailTexts.DeletionReminder(user.PreferredLanguage, user.FirstName, Link(user), dueUtc,
+            LinkHours), ct);
+
+    private string Link(ApplicationUser user) =>
+        $"{options.Value.SiteUrl}/verify-email?token={Uri.EscapeDataString(tokens.Create(user.Id, user.Email!))}";
+
+    private Task SendAsync(ApplicationUser user, MailContent mail, CancellationToken ct) =>
+        sender.SendAsync(new MailMessage(user.Email!, $"{user.FirstName} {user.LastName}", mail.Subject,
             mail.Text, mail.Html), ct);
-    }
 }

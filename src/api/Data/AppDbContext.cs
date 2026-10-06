@@ -179,6 +179,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                     $"[MinPublicCoins] BETWEEN {Data.SiteSettings.MinPublicCoinsMin} AND {Data.SiteSettings.MinPublicCoinsMax}");
                 t.HasCheckConstraint("CK_SiteSettings_UnverifiedMaxCoins",
                     $"[UnverifiedMaxCoins] BETWEEN {Data.SiteSettings.UnverifiedMaxCoinsMin} AND {Data.SiteSettings.UnverifiedMaxCoinsMax}");
+                t.HasCheckConstraint("CK_SiteSettings_UnverifiedLifetimeDays",
+                    $"[UnverifiedLifetimeDays] BETWEEN {Data.SiteSettings.UnverifiedLifetimeDaysMin} AND {Data.SiteSettings.UnverifiedLifetimeDaysMax}");
             });
         });
     }

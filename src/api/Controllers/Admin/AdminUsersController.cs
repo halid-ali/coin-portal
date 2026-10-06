@@ -57,7 +57,14 @@ public class AdminUsersController(
     public async Task<ActionResult<AdminUserDetailResponse>> Get(string id, CancellationToken ct)
     {
         var row = await (await RowsAsync(ct)).FirstOrDefaultAsync(r => r.Id == id, ct);
-        return row is null ? NotFound() : row.ToDetail(photoQuota.LimitBytes);
+        if (row is null)
+        {
+            return NotFound();
+        }
+        var settings = await db.SiteSettings.AsNoTracking().SingleAsync(s => s.Id == SiteSettings.SingletonId, ct);
+        var deletionDue = row.IsAdmin ? null : UnverifiedLifetime.DueUtc(row.EmailConfirmed, row.LockedAtUtc,
+            row.CreatedAtUtc, row.DeletionReminderTriedAtUtc, settings, DateTime.UtcNow);
+        return row.ToDetail(photoQuota.LimitBytes, deletionDue);
     }
 
     /// <summary>Locks the user until unlocked; their sessions end within the cookie validation interval.</summary>
@@ -165,6 +172,7 @@ public class AdminUsersController(
             LastSeenAtUtc = u.LastSeenAtUtc,
             LockedAtUtc = u.LockedAtUtc,
             LockoutEnd = u.LockoutEnd,
+            DeletionReminderTriedAtUtc = u.DeletionReminderTriedAtUtc,
             Status = u.LockedAtUtc != null ? AdminUserStatus.Locked
                 : u.LockoutEnd > now ? AdminUserStatus.LockedOut
                 : !u.EmailConfirmed ? AdminUserStatus.Unverified
@@ -205,6 +213,7 @@ public class AdminUsersController(
         public DateTime? LastSeenAtUtc { get; init; }
         public DateTime? LockedAtUtc { get; init; }
         public DateTimeOffset? LockoutEnd { get; init; }
+        public DateTime? DeletionReminderTriedAtUtc { get; init; }
         public AdminUserStatus Status { get; init; }
         public bool IsAdmin { get; init; }
         public int CollectionCount { get; init; }
@@ -214,10 +223,11 @@ public class AdminUsersController(
         public int PhotoCount { get; init; }
         public long StorageBytes { get; init; }
 
-        public AdminUserDetailResponse ToDetail(long quotaBytes) => new(Id, UserName, Email, EmailConfirmed, FirstName, LastName,
+        public AdminUserDetailResponse ToDetail(long quotaBytes, DateTime? deletionDueUtc) => new(Id, UserName,
+            Email, EmailConfirmed, FirstName, LastName,
             CreatedAtUtc, LastSignInAtUtc, LastSeenAtUtc, Status, LockedAtUtc,
             Status == AdminUserStatus.LockedOut ? LockoutEnd?.UtcDateTime : null,
             IsAdmin, CollectionCount, PublicCollectionCount, UnlistedCollectionCount, CoinCount, PhotoCount,
-            StorageBytes, quotaBytes);
+            StorageBytes, quotaBytes, deletionDueUtc);
     }
 }

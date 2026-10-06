@@ -71,6 +71,8 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["PhotoStorage:RootPath"] = PhotoRoot,
                 // Tests run the photo sweep themselves (PhotoSweepTests)
                 ["PhotoStorage:SweepIntervalHours"] = "0",
+                // Tests run the cleanup of unverified accounts themselves (UnverifiedCleanupTests)
+                ["AccountCleanup:IntervalHours"] = "0",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
                 ["Email:SiteUrl"] = SiteUrl,
                 // Console only, and ASP.NET Core's default key location
@@ -100,7 +102,8 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             await db.Database.MigrateAsync();
             await db.SiteSettings.ExecuteUpdateAsync(s => s
                 .SetProperty(x => x.MinPublicCoins, MinPublicCoins)
-                .SetProperty(x => x.UnverifiedMaxCoins, UnverifiedMaxCoins));
+                .SetProperty(x => x.UnverifiedMaxCoins, UnverifiedMaxCoins)
+                .SetProperty(x => x.UnverifiedLifetimeDays, UnverifiedLifetimeDays));
         }
         _ = Services;
     }
@@ -113,6 +116,9 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
 
     /// <summary>Coins an unverified account may hold in tests: low, so reaching it needs few coins.</summary>
     public const int UnverifiedMaxCoins = 3;
+
+    /// <summary>Days an unverified account lives in tests (the site's default).</summary>
+    public const int UnverifiedLifetimeDays = 30;
 
     public override async ValueTask DisposeAsync()
     {
@@ -190,7 +196,7 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         if (confirmEmail)
         {
             await ConfirmEmailAsync(user.Id);
-            user = user with { EmailConfirmed = true, UnverifiedMaxCoins = null };
+            user = user with { EmailConfirmed = true, UnverifiedMaxCoins = null, UnverifiedDeletionDueUtc = null };
         }
         return new TestUser(client, user);
     }

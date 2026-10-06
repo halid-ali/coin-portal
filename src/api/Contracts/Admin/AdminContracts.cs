@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
@@ -16,6 +17,7 @@ namespace CoinPortal.Api.Contracts.Admin;
 /// <param name="HiddenCollectionCount">Hidden and locked by an admin.</param>
 /// <param name="StorageBytes">Stored image bytes: all sizes of all coin photos plus covers (the database's sizes, as the quota counts).</param>
 /// <param name="DiskCheck">The last photo sweep since the app started; null before the first one.</param>
+/// <param name="AccountCleanup">The last run of the unverified account cleanup since the app started; null before the first one.</param>
 public sealed record AdminStatsResponse(
     int UserCount,
     int ActiveUsersLast30Days,
@@ -28,7 +30,20 @@ public sealed record AdminStatsResponse(
     int CoinCount,
     int PhotoCount,
     long StorageBytes,
-    AdminDiskCheckResponse? DiskCheck);
+    AdminDiskCheckResponse? DiskCheck,
+    AdminAccountCleanupResponse? AccountCleanup);
+
+/// <summary>
+/// What the cleanup of unverified accounts (UnverifiedAccountCleanup) did on its last run: reminders
+/// that reached the mail server, ones that did not, and accounts it deleted.
+/// </summary>
+/// <param name="Enabled">False while the lifetime is 0 (nothing is checked).</param>
+public sealed record AdminAccountCleanupResponse(
+    DateTime CheckedAtUtc, bool Enabled, int RemindersSent, int RemindersFailed, int AccountsDeleted)
+{
+    public static AdminAccountCleanupResponse From(UnverifiedCleanupResult r) =>
+        new(r.CheckedAtUtc, r.Enabled, r.RemindersSent, r.RemindersFailed, r.AccountsDeleted);
+}
 
 /// <summary>
 /// What the photo sweep (PhotoSweeper) found on disk: the real size, folders it removed because
@@ -114,6 +129,7 @@ public sealed record AdminUserResponse(
 
 /// <param name="LockedOutUntilUtc">End of the temporary lockout, if one is running.</param>
 /// <param name="QuotaBytes">The photo storage limit every user has.</param>
+/// <param name="DeletionDueUtc">When the account is deleted for an unverified address; null when it is not (verified, admin, locked, lifetime 0).</param>
 public sealed record AdminUserDetailResponse(
     string Id,
     string UserName,
@@ -134,7 +150,8 @@ public sealed record AdminUserDetailResponse(
     int CoinCount,
     int PhotoCount,
     long StorageBytes,
-    long QuotaBytes);
+    long QuotaBytes,
+    DateTime? DeletionDueUtc);
 
 /// <summary>Body of the lock and unlock requests (users and collections); may be omitted.</summary>
 /// <param name="Note">The reason, kept in the audit log only.</param>
@@ -246,12 +263,14 @@ public sealed record AdminAuditEntryResponse(
 /// <summary>Site-wide settings (the panel's "General settings").</summary>
 /// <param name="MinPublicCoins">Photographed coins a collection needs to become Public.</param>
 /// <param name="UnverifiedMaxCoins">Coins an account may hold until its e-mail address is verified.</param>
-public sealed record AdminSettingsResponse(int MinPublicCoins, int UnverifiedMaxCoins);
+/// <param name="UnverifiedLifetimeDays">Days after which an account still unverified is deleted; 0: never.</param>
+public sealed record AdminSettingsResponse(int MinPublicCoins, int UnverifiedMaxCoins, int UnverifiedLifetimeDays);
 
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminSettingsRequest(
     [Range(SiteSettings.MinPublicCoinsMin, SiteSettings.MinPublicCoinsMax)] int MinPublicCoins,
     [Range(SiteSettings.UnverifiedMaxCoinsMin, SiteSettings.UnverifiedMaxCoinsMax)] int UnverifiedMaxCoins,
+    [Range(SiteSettings.UnverifiedLifetimeDaysMin, SiteSettings.UnverifiedLifetimeDaysMax)] int UnverifiedLifetimeDays,
     [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 /// <summary>What a minimum would mean before it is saved.</summary>

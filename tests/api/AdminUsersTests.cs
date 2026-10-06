@@ -155,6 +155,10 @@ public class AdminUsersTests(CoinPortalFactory factory)
         Assert.Equal(("Test", "User"), (detail.FirstName, detail.LastName));
         Assert.Equal((true, false), (detail.EmailConfirmed, bobs.EmailConfirmed));
         Assert.Equal((AdminUserStatus.Active, AdminUserStatus.Unverified), (detail.Status, bobs.Status));
+        // The unverified account's deletion date: its lifetime after sign-up
+        Assert.Null(detail.DeletionDueUtc);
+        var bobsDue = bobs.CreatedAtUtc.AddDays(CoinPortalFactory.UnverifiedLifetimeDays);
+        Assert.InRange(bobs.DeletionDueUtc!.Value, bobsDue.AddSeconds(-1), bobsDue.AddSeconds(1));
         Assert.Equal((2, 1, 1), (detail.CollectionCount, detail.PublicCollectionCount, detail.UnlistedCollectionCount));
         Assert.NotNull(detail.LastSignInAtUtc);
         Assert.True(detail.QuotaBytes > 0);

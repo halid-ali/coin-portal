@@ -194,6 +194,7 @@ public class EmailVerificationTests(CoinPortalFactory factory)
             TestUser.NewCoin(collection.Id, "Edited"));
 
         Assert.Equal(CoinPortalFactory.UnverifiedMaxCoins, me.UnverifiedMaxCoins);
+        Assert.NotNull(me.UnverifiedDeletionDueUtc);
         Assert.Equal("email_not_confirmed", await second.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
         Assert.Equal("unverified_coin_limit", await oneMore.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
         Assert.Equal("unverified_coin_limit", await withPhotos.ReadProblemCodeAsync(HttpStatusCode.Forbidden));
@@ -219,7 +220,8 @@ public class EmailVerificationTests(CoinPortalFactory factory)
         }
         await alice.CreateCoinAsync(collection.Id, "Beyond the limit");
         await alice.CreateCollectionAsync("Second");
-        Assert.Null((await alice.Client.GetJsonAsync<UserResponse>("/api/auth/me")).UnverifiedMaxCoins);
+        var confirmed = await alice.Client.GetJsonAsync<UserResponse>("/api/auth/me");
+        Assert.Equal((null, null), (confirmed.UnverifiedMaxCoins, confirmed.UnverifiedDeletionDueUtc));
     }
 
     [Fact]

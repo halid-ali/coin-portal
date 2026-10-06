@@ -1,3 +1,4 @@
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
@@ -11,7 +12,8 @@ namespace CoinPortal.Api.Controllers.Admin;
 /// the last photo sweep (it walks the folder), not from this request.
 /// </summary>
 [Route("api/admin/stats")]
-public class AdminStatsController(AppDbContext db, PhotoSweeper photoSweeper) : AdminControllerBase
+public class AdminStatsController(AppDbContext db, PhotoSweeper photoSweeper, UnverifiedAccountCleanup cleanup)
+    : AdminControllerBase
 {
     [HttpGet]
     public async Task<AdminStatsResponse> Get(CancellationToken ct)
@@ -36,6 +38,7 @@ public class AdminStatsController(AppDbContext db, PhotoSweeper photoSweeper) : 
             PhotoCount: await db.CoinPhotos.CountAsync(ct),
             StorageBytes: await db.CoinPhotos.SumAsync(p => p.SizeBytes, ct)
                 + await db.Collections.SumAsync(c => c.CoverSizeBytes, ct),
-            DiskCheck: photoSweeper.LastResult is { } sweep ? AdminDiskCheckResponse.From(sweep) : null);
+            DiskCheck: photoSweeper.LastResult is { } sweep ? AdminDiskCheckResponse.From(sweep) : null,
+            AccountCleanup: cleanup.LastResult is { } run ? AdminAccountCleanupResponse.From(run) : null);
     }
 }

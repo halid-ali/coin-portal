@@ -4,6 +4,7 @@ using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Tests;
 
@@ -88,6 +89,59 @@ public class SiteSettingsTests(CoinPortalFactory factory)
         }
     }
 
+    [Fact]
+    public async Task Lifetime_TurnedOnAgain_CountsFromThen()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var originalSince = await LifetimeSinceAsync();
+        try
+        {
+            using (var off = await admin.Client.PutAsync(Url,
+                Settings(CoinPortalFactory.MinPublicCoins, unverifiedLifetimeDays: 0, note: "Pause")))
+            {
+                Assert.Equal(0, (await off.ReadJsonAsync<AdminSettingsResponse>()).UnverifiedLifetimeDays);
+            }
+            Assert.Equal(originalSince, await LifetimeSinceAsync());
+            var before = DateTime.UtcNow;
+            using (var on = await admin.Client.PutAsync(Url,
+                Settings(CoinPortalFactory.MinPublicCoins, unverifiedLifetimeDays: 14)))
+            {
+                await on.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            }
+
+            // Accounts that signed up while it was off count from now
+            Assert.InRange(await LifetimeSinceAsync(), before.AddSeconds(-1), DateTime.UtcNow);
+            var entries = (await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+                    $"/api/admin/audit?action={AuditAction.SettingChanged}")).Items
+                .Where(e => e.ActorId == admin.User.Id)
+                .Select(e => (e.Setting, e.OldValue, e.NewValue, e.Note))
+                .ToList();
+            Assert.Equal([
+                (SiteSettings.UnverifiedLifetimeDaysName, "0", "14", null),
+                (SiteSettings.UnverifiedLifetimeDaysName, "30", "0", "Pause"),
+            ], entries);
+        }
+        finally
+        {
+            await RestoreAsync(admin);
+            await factory.WithDbAsync(db => db.SiteSettings.ExecuteUpdateAsync(s =>
+                s.SetProperty(x => x.UnverifiedLifetimeSinceUtc, originalSince)));
+        }
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(366)]
+    public async Task Update_RejectsLifetimesOutOfRange(int value)
+    {
+        var admin = await factory.SignUpAdminAsync();
+
+        using var response = await admin.Client.PutAsync(Url,
+            Settings(CoinPortalFactory.MinPublicCoins, unverifiedLifetimeDays: value));
+
+        Assert.Equal(["UnverifiedLifetimeDays"], await response.ReadValidationKeysAsync());
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(10_001)]
@@ -166,9 +220,13 @@ public class SiteSettingsTests(CoinPortalFactory factory)
         (await admin.Client.GetJsonAsync<AdminSettingsImpactResponse>($"{Url}/impact?minPublicCoins={minPublicCoins}"))
         .PublicCollectionsBelow;
 
+    private Task<DateTime> LifetimeSinceAsync() =>
+        factory.WithDbAsync(db => db.SiteSettings.Select(s => s.UnverifiedLifetimeSinceUtc).SingleAsync());
+
     private static AdminSettingsRequest Settings(int minPublicCoins,
-        int unverifiedMaxCoins = CoinPortalFactory.UnverifiedMaxCoins, string? note = null) =>
-        new(minPublicCoins, unverifiedMaxCoins, note);
+        int unverifiedMaxCoins = CoinPortalFactory.UnverifiedMaxCoins,
+        int unverifiedLifetimeDays = CoinPortalFactory.UnverifiedLifetimeDays, string? note = null) =>
+        new(minPublicCoins, unverifiedMaxCoins, unverifiedLifetimeDays, note);
 
     private static async Task RestoreAsync(TestUser admin)
     {

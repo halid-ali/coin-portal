@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 
@@ -15,29 +16,57 @@ public static class EmailTexts
     public static MailContent Verification(string? language, string name, string link, int hours)
     {
         var t = VerificationTexts(language, name, hours);
-        var text = $"""
-            {t.Greeting}
-
-            {t.OpenLink}
-
-            {link}
-
-            {t.Validity}
-            {t.Ignore}
-
-            CoinVitrine
-            """;
-        var html = EmailHtml.Page(language, t.Subject,
-            EmailHtml.Paragraph(t.Greeting)
-            + EmailHtml.Paragraph(t.ClickButton)
-            + EmailHtml.Button(link, t.Button)
-            + EmailHtml.LinkFallback(t.CopyLink, link)
-            + EmailHtml.SmallPrint(t.Validity, t.Ignore));
-        return new MailContent(t.Subject, text, html);
+        return Compose(language, t.Subject, t.Greeting, intro: null, t.OpenLink, t.ClickButton, t.Button,
+            CopyLink(language), link, t.Validity, t.Ignore);
     }
 
+    /// <summary>
+    /// Before an unverified account is deleted (Accounts.UnverifiedAccountCleanup): the date, and a
+    /// new verification link to keep the account.
+    /// </summary>
+    public static MailContent DeletionReminder(string? language, string name, string link, DateTime dueUtc,
+        int hours)
+    {
+        var date = dueUtc.ToString("d MMMM yyyy", Culture(language));
+        var v = VerificationTexts(language, name, hours);
+        var t = DeletionReminderTexts(language, date);
+        return Compose(language, t.Subject, v.Greeting, t.Intro, t.OpenLink, t.ClickButton, v.Button,
+            CopyLink(language), link, v.Validity, t.Ignore);
+    }
+
+    private static MailContent Compose(string? language, string subject, string greeting, string? intro,
+        string openLink, string clickButton, string button, string copyLink, string link, params string[] smallPrint)
+    {
+        var lead = intro is null ? "" : $"{intro}\n\n";
+        var text = $"{greeting}\n\n{lead}{openLink}\n\n{link}\n\n{string.Join("\n", smallPrint)}\n\nCoinVitrine";
+        var html = EmailHtml.Page(language, subject,
+            EmailHtml.Paragraph(greeting)
+            + (intro is null ? "" : EmailHtml.Paragraph(intro))
+            + EmailHtml.Paragraph(clickButton)
+            + EmailHtml.Button(link, button)
+            + EmailHtml.LinkFallback(copyLink, link)
+            + EmailHtml.SmallPrint(smallPrint));
+        return new MailContent(subject, text, html);
+    }
+
+    private static CultureInfo Culture(string? language) => CultureInfo.GetCultureInfo(language switch
+    {
+        "tr" => "tr-TR",
+        "de" => "de-DE",
+        "bg" => "bg-BG",
+        _ => "en-GB",
+    });
+
+    private static string CopyLink(string? language) => language switch
+    {
+        "tr" => "Buton çalışmazsa bu linki tarayıcına kopyala:",
+        "de" => "Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:",
+        "bg" => "Ако бутонът не работи, копирайте този линк в браузъра си:",
+        _ => "If the button does not work, copy this link into your browser:",
+    };
+
     private sealed record VerificationWords(string Subject, string Greeting, string OpenLink, string ClickButton,
-        string Button, string CopyLink, string Validity, string Ignore);
+        string Button, string Validity, string Ignore);
 
     private static VerificationWords VerificationTexts(string? language, string name, int hours) =>
         language switch
@@ -47,7 +76,6 @@ public static class EmailTexts
                 "CoinVitrine hesabının e-posta adresini doğrulamak için bu linki aç:",
                 "CoinVitrine hesabının e-posta adresini doğrulamak için butona tıkla:",
                 "E-posta adresimi doğrula",
-                "Buton çalışmazsa bu linki tarayıcına kopyala:",
                 $"Link {hours} saat geçerli. Süresi dolarsa giriş yap ve sitedeki uyarıdan yeni bir link iste.",
                 "Bu hesabı sen açmadıysan bu e-postayı yok sayabilirsin."),
             "de" => new("CoinVitrine: Bestätige deine E-Mail-Adresse",
@@ -55,7 +83,6 @@ public static class EmailTexts
                 "um die E-Mail-Adresse deines CoinVitrine-Kontos zu bestätigen, öffne diesen Link:",
                 "um die E-Mail-Adresse deines CoinVitrine-Kontos zu bestätigen, klicke auf den Button:",
                 "E-Mail-Adresse bestätigen",
-                "Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:",
                 $"Der Link ist {hours} Stunden gültig. Ist er abgelaufen, melde dich an und fordere über den Hinweis auf der Website einen neuen an.",
                 "Wenn du dieses Konto nicht erstellt hast, kannst du diese E-Mail ignorieren."),
             "bg" => new("CoinVitrine: потвърдете имейл адреса си",
@@ -63,7 +90,6 @@ public static class EmailTexts
                 "За да потвърдите имейл адреса на акаунта си в CoinVitrine, отворете този линк:",
                 "За да потвърдите имейл адреса на акаунта си в CoinVitrine, натиснете бутона:",
                 "Потвърждаване на имейл адреса",
-                "Ако бутонът не работи, копирайте този линк в браузъра си:",
                 $"Линкът е валиден {hours} часа. Ако изтече, влезте в акаунта си и поискайте нов от известието в сайта.",
                 "Ако не сте създали този акаунт, можете да пренебрегнете този имейл."),
             _ => new("CoinVitrine: confirm your email address",
@@ -71,9 +97,36 @@ public static class EmailTexts
                 "To confirm the email address of your CoinVitrine account, open this link:",
                 "To confirm the email address of your CoinVitrine account, click the button:",
                 "Confirm email address",
-                "If the button does not work, copy this link into your browser:",
                 $"The link is valid for {hours} hours. If it expires, sign in and request a new one from the notice on the site.",
                 "If you did not create this account, you can ignore this email."),
+        };
+
+    private sealed record DeletionReminderWords(string Subject, string Intro, string OpenLink, string ClickButton,
+        string Ignore);
+
+    private static DeletionReminderWords DeletionReminderTexts(string? language, string date) =>
+        language switch
+        {
+            "tr" => new($"CoinVitrine: hesabın {date} tarihinde silinecek",
+                $"CoinVitrine hesabının e-posta adresi henüz doğrulanmadı. Doğrulanmayan hesaplar bir süre sonra silinir: hesabın {date} tarihinde koleksiyonları, coin'leri ve fotoğraflarıyla birlikte silinecek.",
+                "Hesabını korumak için bu linki aç ve e-posta adresini doğrula:",
+                "Hesabını korumak için e-posta adresini doğrula:",
+                "Hesabı artık istemiyorsan bir şey yapmana gerek yok."),
+            "de" => new($"CoinVitrine: Dein Konto wird am {date} gelöscht",
+                $"die E-Mail-Adresse deines CoinVitrine-Kontos ist noch nicht bestätigt. Unbestätigte Konten werden nach einer Weile gelöscht: Dein Konto wird am {date} mit seinen Sammlungen, Münzen und Fotos gelöscht.",
+                "Um dein Konto zu behalten, öffne diesen Link und bestätige deine E-Mail-Adresse:",
+                "Um dein Konto zu behalten, bestätige deine E-Mail-Adresse:",
+                "Wenn du das Konto nicht mehr möchtest, musst du nichts tun."),
+            "bg" => new($"CoinVitrine: акаунтът ви ще бъде изтрит на {date}",
+                $"Имейл адресът на акаунта ви в CoinVitrine все още не е потвърден. Непотвърдените акаунти се изтриват след известно време: акаунтът ви ще бъде изтрит на {date} заедно с колекциите, монетите и снимките си.",
+                "За да запазите акаунта си, отворете този линк и потвърдете имейл адреса си:",
+                "За да запазите акаунта си, потвърдете имейл адреса си:",
+                "Ако вече не искате акаунта, не е нужно да правите нищо."),
+            _ => new($"CoinVitrine: your account will be deleted on {date}",
+                $"The email address of your CoinVitrine account has not been confirmed yet. Unconfirmed accounts are deleted after a while: your account will be deleted on {date}, with its collections, coins and photos.",
+                "To keep your account, open this link and confirm your email address:",
+                "To keep your account, confirm your email address:",
+                "If you no longer want the account, you do not need to do anything."),
         };
 }
 
