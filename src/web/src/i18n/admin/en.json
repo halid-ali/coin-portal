@@ -5,7 +5,8 @@
     "overview": "Overview",
     "users": "Users",
     "collections": "Collections",
-    "audit": "Audit log"
+    "audit": "Audit log",
+    "settings": "General settings"
   },
   "loadFailed": "The data could not be loaded. Please try again.",
   "actionFailed": "The action failed. Please try again.",
@@ -153,7 +154,8 @@
       "UserUnlocked": "User unlocked",
       "UserDeleted": "User deleted",
       "CollectionHidden": "Collection hidden",
-      "CollectionUnlocked": "Collection unlocked"
+      "CollectionUnlocked": "Collection unlocked",
+      "SettingChanged": "Setting changed"
     },
     "column": {
       "time": "Time",
@@ -161,10 +163,26 @@
       "action": "Action"
     },
     "deletedUser": "Deleted user",
-    "deletedCollection": "deleted collection"
+    "deletedCollection": "deleted collection",
+    "changedTo": "changed to"
   },
   "note": {
     "label": "Note (optional)",
     "hint": "Only shown in the audit log, never to the user."
+  },
+  "settings": {
+    "publicTitle": "Public collections",
+    "publicText": "A collection can be public only when every coin has a national side photo and at least the number of coins below has one.",
+    "minPublicCoins": "Minimum coins with photos",
+    "minPublicCoinsHint": "Between {{min}} and {{max}}.",
+    "impact": {
+      "one": "With this value, {{count}} public collection falls below the minimum. It stays public; the first change that lowers its photographed coins makes it link only.",
+      "other": "With this value, {{count}} public collections fall below the minimum. They stay public; the first change that lowers their photographed coins makes them link only."
+    },
+    "saved": "Saved.",
+    "unchanged": "The value is already {{value}}; there is nothing to save.",
+    "names": {
+      "MinPublicCoins": "Minimum coins with photos"
+    }
   }
 }

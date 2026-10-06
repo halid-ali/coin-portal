@@ -109,13 +109,19 @@ export interface AdminCollection {
 }
 
 export type AuditAction =
-  'UserLocked' | 'UserUnlocked' | 'UserDeleted' | 'CollectionHidden' | 'CollectionUnlocked';
+  | 'UserLocked'
+  | 'UserUnlocked'
+  | 'UserDeleted'
+  | 'CollectionHidden'
+  | 'CollectionUnlocked'
+  | 'SettingChanged';
 export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'UserLocked',
   'UserUnlocked',
   'UserDeleted',
   'CollectionHidden',
   'CollectionUnlocked',
+  'SettingChanged',
 ];
 
 export interface AdminAuditQuery {
@@ -137,7 +143,27 @@ export interface AdminAuditEntry {
   targetUserName: string | null;
   targetCollectionId: number | null;
   targetCollectionName: string | null;
+  /** SettingChanged: the site setting (e.g. MinPublicCoins) and its values before and after. */
+  setting: string | null;
+  oldValue: string | null;
+  newValue: string | null;
   note: string | null;
+}
+
+/** Site-wide settings (the panel's "General settings"). */
+export interface AdminSettings {
+  /** Photographed coins a collection needs to become Public. */
+  minPublicCoins: number;
+}
+
+/** Same range as the API (SiteSettings). */
+export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
+
+/** What a minimum would mean before it is saved. */
+export interface AdminSettingsImpact {
+  minPublicCoins: number;
+  /** Public collections with fewer photographed coins (they stay public until changed). */
+  publicCollectionsBelow: number;
 }
 
 /** Page sizes of the admin lists (the API allows up to 100). */

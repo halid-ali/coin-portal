@@ -5,7 +5,8 @@
     "overview": "Genel bakış",
     "users": "Kullanıcılar",
     "collections": "Koleksiyonlar",
-    "audit": "Denetim kaydı"
+    "audit": "Denetim kaydı",
+    "settings": "Genel ayarlar"
   },
   "loadFailed": "Veriler yüklenemedi. Lütfen tekrar dene.",
   "actionFailed": "İşlem yapılamadı. Lütfen tekrar dene.",
@@ -153,7 +154,8 @@
       "UserUnlocked": "Kullanıcının kilidi açıldı",
       "UserDeleted": "Kullanıcı silindi",
       "CollectionHidden": "Koleksiyon gizlendi",
-      "CollectionUnlocked": "Koleksiyonun kilidi kaldırıldı"
+      "CollectionUnlocked": "Koleksiyonun kilidi kaldırıldı",
+      "SettingChanged": "Ayar değiştirildi"
     },
     "column": {
       "time": "Zaman",
@@ -161,10 +163,26 @@
       "action": "İşlem"
     },
     "deletedUser": "Silinmiş kullanıcı",
-    "deletedCollection": "silinmiş koleksiyon"
+    "deletedCollection": "silinmiş koleksiyon",
+    "changedTo": "yeni değer"
   },
   "note": {
     "label": "Not (isteğe bağlı)",
     "hint": "Sadece denetim kaydında görünür, kullanıcıya gösterilmez."
+  },
+  "settings": {
+    "publicTitle": "Herkese açık koleksiyonlar",
+    "publicText": "Bir koleksiyon ancak bütün coin'lerinin ulusal yüz fotoğrafı varsa ve en az aşağıdaki sayıda fotoğraflı coin'i varsa herkese açık olabilir.",
+    "minPublicCoins": "En az fotoğraflı coin sayısı",
+    "minPublicCoinsHint": "{{min}} ile {{max}} arasında.",
+    "impact": {
+      "one": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalır; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçer.",
+      "other": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalırlar; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçerler."
+    },
+    "saved": "Kaydedildi.",
+    "unchanged": "Değer zaten {{value}}; kaydedilecek bir değişiklik yok.",
+    "names": {
+      "MinPublicCoins": "En az fotoğraflı coin sayısı"
+    }
   }
 }

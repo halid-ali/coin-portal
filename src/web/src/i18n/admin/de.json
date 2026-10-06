@@ -5,7 +5,8 @@
     "overview": "Übersicht",
     "users": "Benutzer",
     "collections": "Sammlungen",
-    "audit": "Protokoll"
+    "audit": "Protokoll",
+    "settings": "Allgemeine Einstellungen"
   },
   "loadFailed": "Die Daten konnten nicht geladen werden. Bitte versuche es erneut.",
   "actionFailed": "Die Aktion ist fehlgeschlagen. Bitte versuche es erneut.",
@@ -153,7 +154,8 @@
       "UserUnlocked": "Benutzer entsperrt",
       "UserDeleted": "Benutzer gelöscht",
       "CollectionHidden": "Sammlung ausgeblendet",
-      "CollectionUnlocked": "Sperre der Sammlung aufgehoben"
+      "CollectionUnlocked": "Sperre der Sammlung aufgehoben",
+      "SettingChanged": "Einstellung geändert"
     },
     "column": {
       "time": "Zeit",
@@ -161,10 +163,26 @@
       "action": "Aktion"
     },
     "deletedUser": "Gelöschter Benutzer",
-    "deletedCollection": "gelöschte Sammlung"
+    "deletedCollection": "gelöschte Sammlung",
+    "changedTo": "geändert auf"
   },
   "note": {
     "label": "Notiz (optional)",
     "hint": "Erscheint nur im Protokoll, nie für den Benutzer."
+  },
+  "settings": {
+    "publicTitle": "Öffentliche Sammlungen",
+    "publicText": "Eine Sammlung kann nur öffentlich sein, wenn jede Münze ein Foto der nationalen Seite hat und mindestens die unten angegebene Zahl von Münzen eines hat.",
+    "minPublicCoins": "Mindestzahl Münzen mit Foto",
+    "minPublicCoinsHint": "Zwischen {{min}} und {{max}}.",
+    "impact": {
+      "one": "Mit diesem Wert liegt {{count}} öffentliche Sammlung unter dem Minimum. Sie bleibt öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“.",
+      "other": "Mit diesem Wert liegen {{count}} öffentliche Sammlungen unter dem Minimum. Sie bleiben öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“."
+    },
+    "saved": "Gespeichert.",
+    "unchanged": "Der Wert ist bereits {{value}}; es gibt nichts zu speichern.",
+    "names": {
+      "MinPublicCoins": "Mindestzahl Münzen mit Foto"
+    }
   }
 }

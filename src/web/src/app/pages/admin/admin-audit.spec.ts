@@ -19,6 +19,9 @@ const entry = (id: number, changes: Partial<AdminAuditEntry>): AdminAuditEntry =
   targetUserName: 'jonas.weber',
   targetCollectionId: null,
   targetCollectionName: null,
+  setting: null,
+  oldValue: null,
+  newValue: null,
   note: null,
   ...changes,
 });
