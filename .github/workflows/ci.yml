@@ -4,7 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Run workflow by hand; "zap_active" turns the ZAP scan into a full one with attacks (from time
+  # to time, PROJECT_STATUS roadmap 19e). Never on push or release: it takes up to an hour
   workflow_dispatch:
+    inputs:
+      zap_active:
+        description: Active ZAP scan (attacks the e2e site; up to an hour)
+        type: boolean
+        default: false
   # release.yml runs the same checks on the tag it packages and deploys
   workflow_call:
     inputs:
@@ -16,7 +23,7 @@ on:
 # A newer run on the same branch or pull request cancels the older one. The workflow name keeps a
 # run called by release.yml (github.workflow is then "Release") apart from CI runs on main
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}${{ inputs.zap_active && '-zap-active' || '' }}
   cancel-in-progress: true
 
 permissions:
@@ -144,12 +151,12 @@ jobs:
   # The whole site in a browser (tests/e2e, Playwright): sign-up to coin with photo, share links,
   # sessions, moderation, plus an axe accessibility scan of each page. server/start.mjs builds the
   # client and the API and runs them on their own database in the SQL Server container. Then a
-  # ZAP baseline scan of the same site in Production mode; an alert not accepted in .zap/rules.tsv
-  # fails the job
+  # ZAP scan of the same site in Production mode (baseline; a full active scan when started by hand
+  # with zap_active); an alert not accepted in .zap/rules.tsv fails the job
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: ${{ inputs.zap_active && 120 || 35 }}
     services:
       sql:
         image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04
@@ -232,16 +239,24 @@ jobs:
           Kestrel__Certificates__Default__Path: ${{ runner.temp }}/zap-site.pfx
           Kestrel__Certificates__Default__Password: zap-site
 
-      - name: ZAP baseline scan
+      - name: ZAP scan
         id: zap
         run: |
           mkdir -p "$RUNNER_TEMP/zap"
           cp .zap/rules.tsv "$RUNNER_TEMP/zap/"
           chmod -R a+rwX "$RUNNER_TEMP/zap"
+          # The active scan (hand-started runs) sends attacks after the spider, within time limits
+          if [ "$ZAP_ACTIVE" = "true" ]; then
+            scan=(zap-full-scan.py -z "-config scanner.maxScanDurationInMins=60 -config scanner.maxRuleDurationInMins=5")
+          else
+            scan=(zap-baseline.py)
+          fi
           docker run --rm --network host -v "$RUNNER_TEMP/zap:/zap/wrk:rw" \
             zaproxy/zap-stable:20260807@sha256:71db37cd5b75663b35758d10aaec05bf6fbac23f5020e3046c70e628a5f84efa \
-            zap-baseline.py -t https://coinportal.test:5443 -j -m 3 -c rules.tsv -I \
+            "${scan[@]}" -t https://coinportal.test:5443 -j -m 3 -c rules.tsv -I \
               -r zap-report.html -w zap-report.md -J zap-report.json
+        env:
+          ZAP_ACTIVE: ${{ inputs.zap_active }}
 
       - name: Check ZAP alerts
         run: node .zap/check.mjs .zap/rules.tsv "$RUNNER_TEMP/zap/zap-report.json" coinportal.test

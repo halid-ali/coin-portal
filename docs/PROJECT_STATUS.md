@@ -5,7 +5,7 @@ koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararl
 haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
 (81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti;
 19d ZAP taraması ve site izolasyonu başlıkları (82–83, başlıklar yayınlanmadı) bitti; sıradaki 19e elle
-tarama (elle oturum yapıldı: 84, çıkış artık her yerden; kalan aktif ZAP). Önceki
+tarama (elle oturum: 84, çıkış artık her yerden; aktif ZAP elle: 85, ilk rapor bekleniyor). Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1575,6 +1575,12 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       değer varsa sahibi o alanı düzeltmeden kaydedemez (pek olası değil).
     - **Kabul, belgelendi:** kayıtta `DuplicateEmail` (Açık konular 24); düz HTTP'de `Host` yansıması (25,
       not). API testleri 354 (+15).
+85. **Elle başlatılan aktif ZAP taraması** (`feat/zap-active-scan`, 2026-10-06; yol haritası 19e'nin ikinci
+    parçası). Ayrı workflow yerine CI'ın `workflow_dispatch`'ine `zap_active` kutusu: işaretliyse E2E işi aynı
+    siteyi (Production + HTTPS, e2e testlerinin doldurduğu veritabanı) `zap-full-scan.py` ile tarar (spider +
+    aktif saldırılar; `scanner.maxRuleDurationInMins=5`, `maxScanDurationInMins=60`), iş süre sınırı 120 dk,
+    concurrency grubu ayrı (push'un koşusu aktif taramayı iptal etmez). Push, PR ve yayın koşuları değişmedi.
+    Aynı `rules.tsv` + `check.mjs`. Girişsiz; girişli aktif tarama ilk rapora göre düşünülecek.
 
 ## Yol haritası
 
@@ -1661,7 +1667,7 @@ mağaza için TWA.
         eksikliği beklenir (Açık konular 17).
   - [ ] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
         19b–19c'deki testlere eklenir. (İlk elle oturum 2026-10-06, Tamamlananlar 84: 1 orta + 2 düşük bulgu
-        düzeltildi; kalan: elle başlatılan aktif ZAP iş akışı.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
+        düzeltildi; aktif ZAP elle başlatılır, Tamamlananlar 85.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1718,7 +1724,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → **19e elle tarama** (elle oturum yapıldı, Tamamlananlar 84; sıradaki: elle başlatılan aktif ZAP iş akışı). Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → **19e elle tarama** (elle oturum: Tamamlananlar 84; aktif ZAP elle başlatılır: 85; sıradaki: ilk aktif taramanın raporu). Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
