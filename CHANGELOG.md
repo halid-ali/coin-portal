@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-06
+
+### Added
+
+- **api:** Require photographed coins for public collections
+- **api:** Publish endpoint and canBePublic
+- **client:** General settings in the admin panel
+- **client:** Public collection rule in the collection page and forms
+
 ## [1.4.0] - 2026-10-05
 
 ### Added
