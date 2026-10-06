@@ -29,6 +29,7 @@ import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { AdminStatusBadge } from './admin-status-badge';
+import { UnverifiedMark } from './unverified-mark';
 
 /**
  * Admin > Users > one user (/admin/users/:id): account data and counts (no content), the lock,
@@ -37,7 +38,7 @@ import { AdminStatusBadge } from './admin-status-badge';
  */
 @Component({
   selector: 'app-admin-user-detail',
-  imports: [RouterLink, TranslocoPipe, AdminStatusBadge],
+  imports: [RouterLink, TranslocoPipe, AdminStatusBadge, UnverifiedMark],
   template: `
     <div class="space-y-4">
       <a
@@ -58,6 +59,9 @@ import { AdminStatusBadge } from './admin-status-badge';
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <h2 class="text-lg font-semibold break-all text-shade-900">{{ u.userName }}</h2>
+                @if (!u.emailConfirmed) {
+                  <app-unverified-mark />
+                }
                 @if (u.isAdmin) {
                   <span
                     class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800"

@@ -41,6 +41,7 @@
   },
   "status": {
     "Active": "Aktif",
+    "Unverified": "Doğrulanmamış",
     "LockedOut": "Geçici kilitli",
     "Locked": "Kilitli"
   },
@@ -54,6 +55,7 @@
     },
     "empty": "Bu aramaya uyan kullanıcı yok.",
     "adminBadge": "Admin",
+    "unverifiedMark": "E-posta doğrulanmamış",
     "column": {
       "user": "Kullanıcı",
       "createdAt": "Kayıt",
@@ -181,10 +183,15 @@
       "one": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalır; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçer.",
       "other": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalırlar; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçerler."
     },
+    "unverifiedTitle": "E-postası doğrulanmamış hesaplar",
+    "unverifiedText": "E-posta adresini doğrulamamış bir hesap başka koleksiyon açamaz, koleksiyon paylaşamaz ve en fazla aşağıdaki sayıda coin tutabilir. Değeri düşürmek kimsenin coin'ini silmez; sınırın üstündeki hesaplar yeni coin ekleyemez.",
+    "unverifiedMaxCoins": "En fazla coin sayısı",
+    "unverifiedMaxCoinsHint": "{{min}} ile {{max}} arasında. 0: doğrulamadan coin eklenemez.",
     "saved": "Kaydedildi.",
-    "unchanged": "Değer zaten {{value}}; kaydedilecek bir değişiklik yok.",
+    "unchanged": "Değerler değişmedi; kaydedilecek bir şey yok.",
     "names": {
-      "MinPublicCoins": "En az fotoğraflı coin sayısı"
+      "MinPublicCoins": "En az fotoğraflı coin sayısı",
+      "UnverifiedMaxCoins": "Doğrulanmamış hesapta en fazla coin"
     }
   }
 }

@@ -20,6 +20,7 @@ import { Pagination } from '../../shared/pagination/pagination';
 import { SortHeader } from '../../shared/sort-header/sort-header';
 import { AdminListBase } from './admin-list-base';
 import { AdminStatusBadge } from './admin-status-badge';
+import { UnverifiedMark } from './unverified-mark';
 
 /** Sortable columns with the direction of their first click (the mobile select uses that one). */
 const SORTS: readonly { value: AdminUserSort; first: SortDirection }[] = [
@@ -41,6 +42,7 @@ const DEFAULT_SORT: AdminSortState<AdminUserSort> = { sort: 'CreatedAt', dir: 'D
     Pagination,
     SortHeader,
     AdminStatusBadge,
+    UnverifiedMark,
   ],
   templateUrl: './admin-users.html',
 })

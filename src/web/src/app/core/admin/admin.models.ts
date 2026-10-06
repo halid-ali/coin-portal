@@ -36,9 +36,17 @@ export interface AdminDiskCheck {
   removalSkipped: boolean;
 }
 
-/** Active, temporarily locked out after failed sign-ins, or locked by an admin. */
-export type AdminUserStatus = 'Active' | 'LockedOut' | 'Locked';
-export const ADMIN_USER_STATUSES: readonly AdminUserStatus[] = ['Active', 'LockedOut', 'Locked'];
+/**
+ * Active, e-mail address not verified yet, temporarily locked out after failed sign-ins, or locked
+ * by an admin; the weightiest one (a locked user may be unverified too: emailConfirmed).
+ */
+export type AdminUserStatus = 'Active' | 'Unverified' | 'LockedOut' | 'Locked';
+export const ADMIN_USER_STATUSES: readonly AdminUserStatus[] = [
+  'Active',
+  'Unverified',
+  'LockedOut',
+  'Locked',
+];
 
 export type AdminUserSort = 'CreatedAt' | 'UserName' | 'LastSeen' | 'Storage';
 
@@ -156,10 +164,13 @@ export interface AdminAuditEntry {
 export interface AdminSettings {
   /** Photographed coins a collection needs to become Public. */
   minPublicCoins: number;
+  /** Coins an account may hold until its e-mail address is verified. */
+  unverifiedMaxCoins: number;
 }
 
-/** Same range as the API (SiteSettings). */
+/** Same ranges as the API (SiteSettings). */
 export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
+export const UNVERIFIED_MAX_COINS_RANGE = { min: 0, max: 10_000 } as const;
 
 /** What a minimum would mean before it is saved. */
 export interface AdminSettingsImpact {

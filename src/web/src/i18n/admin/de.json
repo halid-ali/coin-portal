@@ -41,6 +41,7 @@
   },
   "status": {
     "Active": "Aktiv",
+    "Unverified": "Unbestätigt",
     "LockedOut": "Vorübergehend gesperrt",
     "Locked": "Gesperrt"
   },
@@ -54,6 +55,7 @@
     },
     "empty": "Keine Benutzer passen zu dieser Suche.",
     "adminBadge": "Admin",
+    "unverifiedMark": "E-Mail nicht bestätigt",
     "column": {
       "user": "Benutzer",
       "createdAt": "Registriert",
@@ -181,10 +183,15 @@
       "one": "Mit diesem Wert liegt {{count}} öffentliche Sammlung unter dem Minimum. Sie bleibt öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“.",
       "other": "Mit diesem Wert liegen {{count}} öffentliche Sammlungen unter dem Minimum. Sie bleiben öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“."
     },
+    "unverifiedTitle": "Konten mit unbestätigter E-Mail-Adresse",
+    "unverifiedText": "Ein Konto mit unbestätigter E-Mail-Adresse kann keine weitere Sammlung anlegen und keine Sammlungen teilen und hat höchstens die folgende Anzahl Münzen. Ein niedrigerer Wert löscht keine Münzen; Konten darüber können keine neuen hinzufügen.",
+    "unverifiedMaxCoins": "Höchstzahl an Münzen",
+    "unverifiedMaxCoinsHint": "Zwischen {{min}} und {{max}}. 0: keine Münzen vor der Bestätigung.",
     "saved": "Gespeichert.",
-    "unchanged": "Der Wert ist bereits {{value}}; es gibt nichts zu speichern.",
+    "unchanged": "Die Werte haben sich nicht geändert; es gibt nichts zu speichern.",
     "names": {
-      "MinPublicCoins": "Mindestzahl Münzen mit Foto"
+      "MinPublicCoins": "Mindestzahl Münzen mit Foto",
+      "UnverifiedMaxCoins": "Max. Münzen eines unbestätigten Kontos"
     }
   }
 }

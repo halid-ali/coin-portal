@@ -41,6 +41,7 @@
   },
   "status": {
     "Active": "Active",
+    "Unverified": "Unverified",
     "LockedOut": "Temporarily locked",
     "Locked": "Locked"
   },
@@ -54,6 +55,7 @@
     },
     "empty": "No users match this search.",
     "adminBadge": "Admin",
+    "unverifiedMark": "Email not verified",
     "column": {
       "user": "User",
       "createdAt": "Joined",
@@ -181,10 +183,15 @@
       "one": "With this value, {{count}} public collection falls below the minimum. It stays public; the first change that lowers its photographed coins makes it link only.",
       "other": "With this value, {{count}} public collections fall below the minimum. They stay public; the first change that lowers their photographed coins makes them link only."
     },
+    "unverifiedTitle": "Accounts with an unverified email",
+    "unverifiedText": "An account that has not verified its email address cannot open another collection or share collections, and holds at most the number of coins below. Lowering the value deletes no one's coins; accounts above it cannot add new ones.",
+    "unverifiedMaxCoins": "Maximum number of coins",
+    "unverifiedMaxCoinsHint": "Between {{min}} and {{max}}. 0: no coins before verifying.",
     "saved": "Saved.",
-    "unchanged": "The value is already {{value}}; there is nothing to save.",
+    "unchanged": "The values have not changed; there is nothing to save.",
     "names": {
-      "MinPublicCoins": "Minimum coins with photos"
+      "MinPublicCoins": "Minimum coins with photos",
+      "UnverifiedMaxCoins": "Max. coins of an unverified account"
     }
   }
 }

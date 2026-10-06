@@ -55,10 +55,13 @@ describe('AdminUsers', () => {
       items: [
         user('ayse.yilmaz', { isAdmin: true }),
         user('jonas.weber', { status: 'Locked', lastSeenAtUtc: new Date().toISOString() }),
+        // Locked and never verified: the status says locked, the mark says unverified
+        user('spam.account', { status: 'Locked', emailConfirmed: false }),
+        user('new.user', { status: 'Unverified', emailConfirmed: false }),
       ],
       page: 1,
       pageSize: 25,
-      totalCount: 2,
+      totalCount: 4,
       totalPages: 1,
     };
     request.flush(page);
@@ -70,7 +73,20 @@ describe('AdminUsers', () => {
       text = (fixture.nativeElement as HTMLElement).textContent ?? '';
       expect(text).toContain('Kilitli');
     });
-    expect(text).toContain('2 kullanıcı');
+    expect(text).toContain('4 kullanıcı');
+    expect(text).toContain('Doğrulanmamış');
+    // On the table and the phone cards, once per unverified user
+    const element = fixture.nativeElement as HTMLElement;
+    const marks = [...element.querySelectorAll('app-unverified-mark')];
+    expect(marks).toHaveLength(4);
+    expect(marks.every((m) => m.textContent!.includes('E-posta doğrulanmamış'))).toBe(true);
+    const rows = [...element.querySelectorAll('tbody tr')];
+    expect(rows.map((r) => r.querySelector('app-unverified-mark') !== null)).toEqual([
+      false,
+      false,
+      true,
+      true,
+    ]);
     expect(text).toContain('ayse.yilmaz');
     expect(text).toContain('Admin');
     expect(text).toContain('Kilitli');
