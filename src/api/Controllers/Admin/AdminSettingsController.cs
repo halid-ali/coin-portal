@@ -19,9 +19,10 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
     public async Task<AdminSettingsResponse> Get(CancellationToken ct)
     {
         var settings = await db.SiteSettings.AsNoTracking().SingleAsync(s => s.Id == SiteSettings.SingletonId, ct);
-        return new AdminSettingsResponse(settings.MinPublicCoins);
+        return ToResponse(settings);
     }
 
+    /// <summary>Each setting that changes gets its own audit entry, with the same note.</summary>
     [HttpPut]
     [ProducesResponseType<AdminSettingsResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -30,14 +31,17 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
         var settings = await db.SiteSettings.SingleAsync(s => s.Id == SiteSettings.SingletonId, ct);
         if (settings.MinPublicCoins != request.MinPublicCoins)
         {
-            Audit(db, AuditAction.SettingChanged, note: request.Note, setting: (
-                SiteSettings.MinPublicCoinsName,
-                settings.MinPublicCoins.ToString(CultureInfo.InvariantCulture),
-                request.MinPublicCoins.ToString(CultureInfo.InvariantCulture)));
+            AuditChange(SiteSettings.MinPublicCoinsName, settings.MinPublicCoins, request.MinPublicCoins, request.Note);
             settings.MinPublicCoins = request.MinPublicCoins;
-            await db.SaveChangesAsync(ct);
         }
-        return new AdminSettingsResponse(settings.MinPublicCoins);
+        if (settings.UnverifiedMaxCoins != request.UnverifiedMaxCoins)
+        {
+            AuditChange(SiteSettings.UnverifiedMaxCoinsName, settings.UnverifiedMaxCoins, request.UnverifiedMaxCoins,
+                request.Note);
+            settings.UnverifiedMaxCoins = request.UnverifiedMaxCoins;
+        }
+        await db.SaveChangesAsync(ct);
+        return ToResponse(settings);
     }
 
     /// <summary>How many Public collections have fewer photographed coins than this minimum.</summary>
@@ -52,4 +56,11 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
             .CountAsync(c => c.Coins.AsQueryable().Count(PublicationRules.IsPhotographed) < minPublicCoins, ct);
         return new AdminSettingsImpactResponse(minPublicCoins, below);
     }
+
+    private static AdminSettingsResponse ToResponse(SiteSettings settings) =>
+        new(settings.MinPublicCoins, settings.UnverifiedMaxCoins);
+
+    private void AuditChange(string name, int oldValue, int newValue, string? note) =>
+        Audit(db, AuditAction.SettingChanged, note: note, setting: (name,
+            oldValue.ToString(CultureInfo.InvariantCulture), newValue.ToString(CultureInfo.InvariantCulture)));
 }

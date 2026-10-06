@@ -177,7 +177,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("GET", "api/admin/settings", Access.Admin, _ => "/api/admin/settings"),
         // The current value: nothing changes
         new("PUT", "api/admin/settings", Access.Admin, _ => "/api/admin/settings",
-            _ => Json(new AdminSettingsRequest(CoinPortalFactory.MinPublicCoins, null))),
+            _ => Json(new AdminSettingsRequest(CoinPortalFactory.MinPublicCoins, CoinPortalFactory.UnverifiedMaxCoins, null))),
         new("GET", "api/admin/settings/impact", Access.Admin,
             _ => $"/api/admin/settings/impact?minPublicCoins={CoinPortalFactory.MinPublicCoins}"),
     ];

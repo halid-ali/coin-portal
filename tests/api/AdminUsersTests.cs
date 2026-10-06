@@ -74,13 +74,20 @@ public class AdminUsersTests(CoinPortalFactory factory)
         {
             await lockB.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         }
+        // b is unverified too: locked weighs more
+        await factory.WithDbAsync(db => db.Users
+            .Where(u => u.UserName == prefix + "b" || u.UserName == prefix + "c")
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.EmailConfirmed, false)));
 
         var locked = await ListAsync(admin, $"search={prefix}&status=Locked");
-        var active = await ListAsync(admin, $"search={prefix}&status=Active&sort=UserName&dir=Asc");
+        var unverified = await ListAsync(admin, $"search={prefix}&status=Unverified");
+        var active = await ListAsync(admin, $"search={prefix}&status=Active");
 
         Assert.Equal([prefix + "b"], locked.Items.Select(u => u.UserName));
-        Assert.Equal(AdminUserStatus.Locked, locked.Items[0].Status);
-        Assert.Equal([prefix + "a", prefix + "c"], active.Items.Select(u => u.UserName));
+        Assert.Equal((AdminUserStatus.Locked, false), (locked.Items[0].Status, locked.Items[0].EmailConfirmed));
+        Assert.Equal([prefix + "c"], unverified.Items.Select(u => u.UserName));
+        Assert.Equal(AdminUserStatus.Unverified, unverified.Items[0].Status);
+        Assert.Equal([prefix + "a"], active.Items.Select(u => u.UserName));
     }
 
     [Theory]
@@ -147,6 +154,7 @@ public class AdminUsersTests(CoinPortalFactory factory)
 
         Assert.Equal(("Test", "User"), (detail.FirstName, detail.LastName));
         Assert.Equal((true, false), (detail.EmailConfirmed, bobs.EmailConfirmed));
+        Assert.Equal((AdminUserStatus.Active, AdminUserStatus.Unverified), (detail.Status, bobs.Status));
         Assert.Equal((2, 1, 1), (detail.CollectionCount, detail.PublicCollectionCount, detail.UnlistedCollectionCount));
         Assert.NotNull(detail.LastSignInAtUtc);
         Assert.True(detail.QuotaBytes > 0);

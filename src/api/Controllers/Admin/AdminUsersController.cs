@@ -167,6 +167,7 @@ public class AdminUsersController(
             LockoutEnd = u.LockoutEnd,
             Status = u.LockedAtUtc != null ? AdminUserStatus.Locked
                 : u.LockoutEnd > now ? AdminUserStatus.LockedOut
+                : !u.EmailConfirmed ? AdminUserStatus.Unverified
                 : AdminUserStatus.Active,
             IsAdmin = db.UserRoles.Any(r => r.UserId == u.Id && r.RoleId == adminRoleId),
             CollectionCount = db.Collections.Count(c => c.OwnerId == u.Id),

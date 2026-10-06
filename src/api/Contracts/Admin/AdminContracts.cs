@@ -53,10 +53,15 @@ public sealed record AdminDiskCheckResponse(
         r.RemovalSkipped);
 }
 
-/// <summary>Active, temporarily locked out after failed sign-ins, or locked by an admin.</summary>
+/// <summary>
+/// Active, e-mail address not verified yet, temporarily locked out after failed sign-ins, or locked
+/// by an admin. One status, the weightiest: a locked account may be unverified as well
+/// (EmailConfirmed tells).
+/// </summary>
 public enum AdminUserStatus
 {
     Active,
+    Unverified,
     LockedOut,
     Locked,
 }
@@ -240,11 +245,13 @@ public sealed record AdminAuditEntryResponse(
 
 /// <summary>Site-wide settings (the panel's "General settings").</summary>
 /// <param name="MinPublicCoins">Photographed coins a collection needs to become Public.</param>
-public sealed record AdminSettingsResponse(int MinPublicCoins);
+/// <param name="UnverifiedMaxCoins">Coins an account may hold until its e-mail address is verified.</param>
+public sealed record AdminSettingsResponse(int MinPublicCoins, int UnverifiedMaxCoins);
 
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminSettingsRequest(
     [Range(SiteSettings.MinPublicCoinsMin, SiteSettings.MinPublicCoinsMax)] int MinPublicCoins,
+    [Range(SiteSettings.UnverifiedMaxCoinsMin, SiteSettings.UnverifiedMaxCoinsMax)] int UnverifiedMaxCoins,
     [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 /// <summary>What a minimum would mean before it is saved.</summary>
