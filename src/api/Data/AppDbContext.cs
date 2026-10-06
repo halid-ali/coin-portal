@@ -111,7 +111,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             // Case-insensitive through the default collation
             b.HasIndex(c => new { c.OwnerId, c.Name }).IsUnique();
 
-            b.Property(c => c.ShareToken).HasMaxLength(Collection.ShareTokenLength).IsFixedLength().IsUnicode(false);
+            // A binary collation: the secret must match exactly, the default one ignores case
+            b.Property(c => c.ShareToken).HasMaxLength(Collection.ShareTokenLength).IsFixedLength().IsUnicode(false)
+                .UseCollation("Latin1_General_BIN2");
             b.HasIndex(c => c.ShareToken).IsUnique().HasFilter("[ShareToken] IS NOT NULL");
 
             // Public listings (profile, explore)

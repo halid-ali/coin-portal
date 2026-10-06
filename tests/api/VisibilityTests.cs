@@ -179,6 +179,30 @@ public class VisibilityTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task ShareLink_WithItsLettersInOtherCase_DoesNotOpen()
+    {
+        // The database's default collation ignores case; the column has a binary one (until
+        // 2026-10-06 the link opened in any case)
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.SetVisibilityAsync(await alice.FirstCollectionAsync(), CollectionVisibility.Unlisted);
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        await alice.UploadPhotoAsync(coin.Id);
+        await alice.UploadCoverAsync(collection.Id);
+        var token = collection.ShareToken!;
+        // 22 base64url characters without a letter are practically impossible
+        var otherCase = new string(token.Select(c => char.IsUpper(c) ? char.ToLowerInvariant(c) : char.ToUpperInvariant(c))
+            .ToArray());
+        using var visitor = await factory.CreateAnonymousClientAsync();
+
+        Assert.NotEqual(token, otherCase);
+        await visitor.ExpectStatusAsync($"/api/public/shared/{token}", HttpStatusCode.OK);
+        await visitor.ExpectStatusAsync($"/api/public/shared/{otherCase}", HttpStatusCode.NotFound);
+        await visitor.ExpectStatusAsync($"/api/public/shared/{otherCase}/coins", HttpStatusCode.NotFound);
+        await visitor.ExpectStatusAsync($"/api/coins/{coin.Id}/photos/National/Thumb?s={otherCase}", HttpStatusCode.NotFound);
+        await visitor.ExpectStatusAsync($"/api/collections/{collection.Id}/cover?s={otherCase}", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task ShareToken_OfNonUnlistedCollection_IsRefused()
     {
         var alice = await factory.SignUpAsync();
