@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-10-06
+
+### Added
+
+- **api:** Site isolation headers; ZAP alerts fail the build unless accepted
+
+### Fixed
+
+- **api:** Match share links case-sensitively
+- **api:** Signing out ends every session of the user
+- **api:** Generic messages for malformed request bodies
+- **api:** Reject control characters in user text
+
 ## [1.5.1] - 2026-10-06
 
 ### Added
