@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
+using CoinPortal.Api.Validation;
 
 namespace CoinPortal.Api.Contracts.Admin;
 
@@ -130,10 +131,10 @@ public sealed record AdminUserDetailResponse(
 
 /// <summary>Body of the lock and unlock requests (users and collections); may be omitted.</summary>
 /// <param name="Note">The reason, kept in the audit log only.</param>
-public sealed record AdminLockRequest([StringLength(AuditLogEntry.NoteMaxLength)] string? Note);
+public sealed record AdminLockRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
-public sealed record AdminDeleteUserRequest([StringLength(AuditLogEntry.NoteMaxLength)] string? Note);
+public sealed record AdminDeleteUserRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 public enum AdminCollectionSort
 {
@@ -242,7 +243,7 @@ public sealed record AdminSettingsResponse(int MinPublicCoins);
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminSettingsRequest(
     [Range(SiteSettings.MinPublicCoinsMin, SiteSettings.MinPublicCoinsMax)] int MinPublicCoins,
-    [StringLength(AuditLogEntry.NoteMaxLength)] string? Note);
+    [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 /// <summary>What a minimum would mean before it is saved.</summary>
 /// <param name="PublicCollectionsBelow">Public collections with fewer photographed coins. They stay Public; the minimum applies at their next change that lowers the count.</param>

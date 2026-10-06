@@ -220,7 +220,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Oturum 14 gün, kullandıkça uzar; login'de "Beni hatırla" varsayılan işaretli, kayıt kalıcı oturum açar
   (işaretsiz login tarayıcı kapanınca biter). Login hesabın varlığını ve kilidini ele vermez: bilinmeyen
   kullanıcı, yanlış parola ve kilitli hesapta yanlış parola aynı 401 (bilinmeyen kullanıcıda da parola
-  hash'lenir, süre farkı olmasın); 423 sadece doğru parolayla döner.
+  hash'lenir, süre farkı olmasın); 423 sadece doğru parolayla döner. **Çıkış her yerden çıkıştır**
+  (kullanıcı kararı 2026-10-06): güvenlik damgası yenilenir, cookie'nin kopyaları ve kullanıcının diğer
+  cihazlardaki oturumları da en geç cookie doğrulama aralığında (1 dk) biter. Sadece cookie'yi silmek
+  kopyasını 14 gün geçerli bırakırdı. Kayıtta alınmış e-posta `DuplicateEmail` döner (e-postanın kayıtlı
+  olduğu anlaşılır; bilinçli, e-posta doğrulamasıyla çözülür, PROJECT_STATUS Açık konular).
   **Tek kimlik doğrulama şeması cookie + antiforgery kalır** (web, PWA, TWA; karar 2026-09-29): bearer/JWT
   şeması, CORS ya da "bearer'da antiforgery atla" kodu eklenmez; yeni uçlar düz `[Authorize]` + policy.
   Native mobil gerekirse önce cookie'yi koruyan yol denenir (`docs/reviews/2026-09-29-project-direction.md`).
@@ -371,7 +375,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   varsayılanı `App_Data/` altında. **Production ayarları repoya girmez:** connection string ve yollar
   hosting panelinin ortam değişkenlerinden ya da sunucuda elle oluşturulan dosyadan;
   `appsettings.Production.json` `.gitignore`'da. Lokal Production denemesinde ortam değişkeni kullanılır.
-- Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
+- Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner. Sözleşmeye
+  uymayan JSON gövdesinin mesajı geneldir (`AllowInputFormatterExceptionMessages = false`; serileştiricinin
+  mesajı iç tip adlarını ve konumu verir), anahtar (`$.visibility`) kalır.
+- **Kullanıcının yazdığı her metin alanı `[NoControlCharacters]` alır** (`Validation/`; ad, başlık, darphane
+  işareti, kayıttaki ad/soyad/e-posta; açıklama ve admin notu `AllowLineBreaks = true`, satır sonu ve sekme
+  serbest). Yeni bir metin alanı da alır; testleri `AbuseTests`'te.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
 - `UseHttpsRedirection()` sadece Development dışında.

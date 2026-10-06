@@ -118,6 +118,9 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Enums as names ("Euro2") in both directions; reject raw numbers like 999
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
+    // A body that does not fit the contract gets a generic message: the serializer's own names
+    // internal types and line positions. The client never shows API messages, the key is enough
+    options.AllowInputFormatterExceptionMessages = false;
 });
 
 // Coin photos: storage folder and limits from the "PhotoStorage" section.

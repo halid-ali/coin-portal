@@ -221,6 +221,31 @@ public class AuthTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task Logout_EndsEverySessionOfTheUser_EvenACopiedCookie()
+    {
+        // Signing out renews the security stamp: a copy of the cookie (another device, a shared
+        // computer) stops working too, not just the browser's own cookie (2026-10-06, pentest)
+        var alice = await factory.SignUpAsync(); // her other device
+        using var http = CoinPortalFactory.CreateHttpClient(factory);
+        var client = new ApiClient(http);
+        await client.RefreshAntiforgeryAsync();
+        using var login = await client.LoginAsync(alice.UserName, TestUser.Password);
+        var copied = login.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("coinportal.auth=")).Split(';')[0];
+
+        await client.LogoutAsync();
+
+        using var other = CoinPortalFactory.CreateHttpClient(factory);
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+        request.Headers.Add("Cookie", copied);
+        using var replay = await other.SendAsync(request);
+        await replay.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
+        await alice.Client.ExpectStatusAsync("/api/auth/me", HttpStatusCode.Unauthorized);
+        // Signing in again works as before
+        using var again = await client.LoginAsync(alice.UserName, TestUser.Password);
+        await again.ShouldHaveStatusAsync(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task UnsafeRequest_WithoutAntiforgeryToken_IsRejected()
     {
         var alice = await factory.SignUpAsync();

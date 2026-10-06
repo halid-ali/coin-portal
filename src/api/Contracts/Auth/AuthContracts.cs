@@ -9,12 +9,12 @@ namespace CoinPortal.Api.Contracts.Auth;
 /// <param name="AcceptTerms">The sign-up form's box "I have read the privacy policy and accept the terms
 /// of use"; required.</param>
 public sealed record RegisterRequest(
-    [Required, StringLength(100)] string FirstName,
-    [Required, StringLength(100)] string LastName,
+    [Required, StringLength(100), NoControlCharacters] string FirstName,
+    [Required, StringLength(100), NoControlCharacters] string LastName,
     [Required, RegularExpression("^[a-zA-Z0-9._-]{3,20}$",
         ErrorMessage = "Username must be 3-20 characters: letters, digits, '.', '_' or '-'.")]
     string UserName,
-    [Required, EmailAddress, StringLength(256)] string Email,
+    [Required, EmailAddress, StringLength(256), NoControlCharacters] string Email,
     [Required, MinimumAge(18)] DateOnly? BirthDate,
     [Required, StringLength(100, MinimumLength = 8)] string Password,
     [SupportedLanguage] string? Language = null,

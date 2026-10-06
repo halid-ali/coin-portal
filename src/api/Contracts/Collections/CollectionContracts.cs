@@ -1,16 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Publishing;
+using CoinPortal.Api.Validation;
 
 namespace CoinPortal.Api.Contracts.Collections;
 
 /// <summary>Used for both create (POST) and update (PUT).</summary>
 public class CollectionUpsertRequest
 {
-    [Required, StringLength(Collection.NameMaxLength)]
+    [Required, StringLength(Collection.NameMaxLength), NoControlCharacters]
     public string Name { get; set; } = string.Empty;
 
-    [StringLength(Collection.DescriptionMaxLength)]
+    [StringLength(Collection.DescriptionMaxLength), NoControlCharacters(AllowLineBreaks = true)]
     public string? Description { get; set; }
 
     /// <summary>
