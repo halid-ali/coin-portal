@@ -1,14 +1,16 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-05 (**devam eden iş: `feat/public-requirements`**, herkese açık koleksiyon kuralı;
-1. aşama (backend) bitti, 2. aşama (client) sırada, merge ikisinden sonra; kararlar "Herkese açık koleksiyon
-kuralı: kararlar", ilerleme Tamamlananlar 75. **`v1.4.0` yayında**: yeni logo (Tamamlananlar 72) ve yeni ana sayfa
+Son güncelleme: 2026-10-06 (**`feat/public-requirements`**, herkese açık koleksiyon kuralı: 1. aşama
+(backend), 2. aşama (client) ve review düzeltmeleri bitti, merge kullanıcı onayını bekliyor; 3. aşama (coin ikonları) sonra;
+kararlar "Herkese açık koleksiyon kuralı: kararlar", ilerleme Tamamlananlar 75. **`v1.4.0` yayında**: yeni logo (Tamamlananlar 72) ve yeni ana sayfa
 (Tamamlananlar 73), yayın Tamamlananlar 74. Önceki sürümler: `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
+- **Açık iş (2026-10-06):** branch `feat/public-requirements` commit'li, merge tarayıcı testini bekliyor; ayrıntı ve sıradaki
+  adım "Sıradaki adım > Devam eden iş". Yeni sohbette önce `git status -sb` ile branch ve değişiklikler görülür.
 - Durum: `main` güncel ve temiz; son etiket ve Release `v1.4.0` (2026-10-05, "latest"), canlıda `v1.4.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -1322,7 +1324,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     arama 200. Release notları `.notes/release-v1.4.0.md`, kullanıcı onayıyla Claude
     `.notes/scripts/create-release.js` ile yayınladı ("latest"). Pipeline'ı izlemek için yeni lokal betik
     `.notes/scripts/run-status.js <repo> <etiket>` (sadece okur; koşu, işler, onay bekleme durumu).
-75. **Herkese açık koleksiyon kuralı** (`feat/public-requirements`, 2026-10-05, **devam ediyor**; kararlar
+75. **Herkese açık koleksiyon kuralı** (`feat/public-requirements`, 2026-10-05/06; 1. ve 2. aşama bitti; kararlar
     "Herkese açık koleksiyon kuralı: kararlar"). 1. ve 2. aşama aynı branch'te, merge ikisinden sonra
     (`main`'de kuralı uygulayan ama arayüzü hazır olmayan bir ara durum olmasın).
     - **1. aşama, backend (bitti):**
@@ -1358,11 +1360,68 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
         koşmaz). Testlerde eşik 2 (`CoinPortalFactory.MinPublicCoins`); Public kuran eski testler
         `PublishAsync` / `CreatePublicCollectionAsync` / `CreatePhotographedCoinAsync` kullanır. e2e
         yardımcıları `createPhotographedCoin`, `publish` (e2e'de eşik varsayılan 10). API 243 test.
-    - **2. aşama, client (sırada):** panelde "Genel ayarlar" bölümü (eşik + etki sayısı), koleksiyon
-      sayfasının başında her zaman görünen uyarı ("7/10 fotoğraflı coin · 3 coin'in ulusal yüzü eksik · …";
-      şartlar sağlanınca "Hazır · Herkese açık yap" butonu), uyarı pencereleri (`would_unpublish`), görünürlük
-      seçiminde Public'in kapalı olması, coin formunun yeni coin'i fotoğraflarıyla tek istekte kaydetmesi,
-      fotoğrafsız filtresi, denetim kaydında `SettingChanged`, kullanım şartlarına kural cümlesi, e2e.
+    - **2. aşama, client (bitti):**
+      - Koleksiyon sayfası (sahip, Public değil, kilitli değil): başta her zaman görünen uyarı
+        ("Herkese açık yapmak için · 7/10 fotoğraflı coin · 3 coin'in ulusal yüzü eksik · Bu arada linkle
+        paylaşabilirsin."; son ipucu sadece Gizli'de, "eksik" linki `?photo=missing`). Şartlar sağlanınca yeşil
+        "Koleksiyonun vitrine hazır" + "Herkese açık yap" butonu (`PUT` ile, eski veride `public_requirements`
+        gelirse sayılar yenilenir). Fotoğraf filtresi (Tümü / Ulusal yüzü eksik / Ulusal yüzü var; sadece
+        sahip, URL `photo=missing|complete`); sahip modunda arama kutusu geniş ekranda tek sütun (altı filtre
+        bir satırda).
+      - Koleksiyon formu: "Herkese açık" şartlar sağlanana kadar seçilemez, altında sebep ve sayılar
+        ("Henüz seçilemez: 3/10 fotoğraflı coin · …"; yeni koleksiyonda "önce oluştur ve coin ekle"). Zaten
+        Public olan (eşik yükselmiş) seçebilir. `public_requirements` formun mesajlarında.
+      - `UnpublishConfirm` (`shared/`): coin formunda kaydet, taşı, coin sil ve ulusal yüz fotoğrafını sil
+        bundan geçer; pencere hangi koleksiyonun neden linkle paylaşılana geçeceğini ve herkese açık adresin
+        çalışmayacağını söyler. Vazgeçilirse değişiklik yapılmaz (fotoğraf silmede "değişiklik yapılmadı"
+        mesajı). Koleksiyon silme penceresi seçimin altında uyarı gösterir (hedef Public ve fotoğrafsız coin
+        varsa), adı yazmak onu da onaylar; sayfa eskiyse API'nin 409'u uyarıyı açar, ikinci tık onaylar.
+      - Coin formu: yeni coin seçilen fotoğraflarıyla tek istekte (`createWithPhotos`); fotoğraf hatası yüzün
+        adıyla gösterilir, coin oluşmaz.
+      - Yönetim paneli: "Genel ayarlar" bölümü (`/admin/settings`, kaydırıcı ikonu): en az fotoğraflı coin
+        (1–100), yazarken 300 ms sonra "bu değerle yayındaki N koleksiyon eşiğin altında kalır", isteğe bağlı
+        not, Kaydet. Denetim kaydında "Ayar değiştirildi" + "En az fotoğraflı coin: 10 → 12" (filtrede de).
+      - Kullanım şartları "İçeriğin" bölümüne kural paragrafı (4 dil, sayı yazılmadan: admin değiştirebilir),
+        `TERMS_UPDATED` 2026-10-05. Gizlilik değişmedi (yeni kişisel veri yok).
+      - Metinler 4 dilde (`publication.*`, `coinList.photo*`, admin `settings.*`); İngilizce, Almanca,
+        Bulgarca Claude'un.
+      - Testler: client `publication.spec`, `unpublish-confirm.spec`, `admin-settings.spec`, koleksiyon sayfası
+        (uyarı, buton, filtre), form penceresi (Public kapalı/açık), silme penceresi (uyarı, 409 sonrası onay);
+        e2e `publishing.spec.ts` (uyarı → eksik filtresi → yayına alma → ziyaretçi → coin silme penceresi →
+        linkle paylaşılan; panel ayarları; axe). Toplam: API 243, client 292, e2e 12. Tarayıcıda gözle
+        bakılmadı (e2e ve axe dışında); kullanıcının bakması önerildi.
+    - **Review düzeltmeleri (2026-10-06):** 2. aşamanın ayrı bir modelle yapılan incelemesinden (bulgular
+      sohbette değerlendirildi, hepsi kodda doğrulandı; kullanıcı onayıyla):
+      - API: `POST api/collections/{id}/publish` (sadece görünürlük: sayfanın eski kopyası adı/açıklamayı geri
+        yazamaz; kilitliyse 403 `moderation_locked`, şart yoksa 400 `public_requirements` + sayılar, zaten
+        Public ise aynen döner). Koleksiyon yanıtına `canBePublic` (`PublicationStatus`'tan; client kararı
+        API'ye bırakır, Euro dışı coin kuralı gelince sadece API değişir). `PublicationGuard.Unpublish`
+        Information log yazar ("koleksiyonum neden indi" sorusunun izi). Fotoğraf kaydında geçici klasörün
+        yerine taşınması Windows'ta virüs tarayıcısı yüzünden "Access denied" verebiliyor (testte görüldü):
+        silmedeki gibi kısa aralıklarla yeniden denenir.
+      - Koleksiyon sayfası: buton yeni ucu kullanır; **linkle paylaşılan koleksiyonda önce onay** ("Paylaşım
+        linki çalışmayacak", kullanıcı kararı); "N coin eksik" linki arama ve filtreleri bırakır (sıralama,
+        sayfa boyu, görünüm kalır); `publishError`/`deleteError` koleksiyon değişince sıfırlanır.
+      - Form penceresi: `public_requirements` gelince koleksiyonu yeniden yükler (sayılar gerçekten güncellenir,
+        seçim kayıtlı görünürlüğe döner, sayfa da taze sayıları alır); kapalı "Herkese açık"ın sebebi
+        `fieldset`'in açıklaması da (ekran okuyucu kapalı radyoyu atlayabiliyor).
+      - Silme penceresi: API'nin uyarısı `role="alert"`, buton "Yine de sil"; hedef değişince uyarı sıfırlanır;
+        sayfa fotoğrafsız coin bilmiyorsa sayısız metin (`publication.moveUnpublishesSome`).
+      - Coin formu: "herkese açık kalsın" denince fotoğraf silme geri alınır, hata yerine nötr bilgi
+        (`publication.unpublish.photoKept`), çıkışta soru yok. Onay penceresi koleksiyon sayısına göre tekil/çoğul,
+        adlar dilin tırnağı ve listesiyle (`Intl.ListFormat`: „A“ und „B“).
+      - Admin ayarları: değer aynıysa gönderilmez, "Değer zaten N" (not kaybolmasın diye). TR denetim kaydı
+        adı form etiketiyle aynı ("En az fotoğraflı coin sayısı").
+      - README özellik listesi kuralı ve genel ayarları anıyor.
+      - Testler: API +2 (yayın ucu: sadece görünürlük + link biter, başkasının 404 / girişsiz 401; kilitli 403
+        ve `canBePublic` mevcut testlere), client: yeni `coin-form.spec` (fotoğraflarla tek istek, yüz adlı hata,
+        409'da vazgeçme, fotoğraf silmeyi reddetme/onaylama), `toPhotographed`, form penceresinin
+        `public_requirements`'i, silme penceresinde hedef değişimi, iki koleksiyonlu onay metni, admin'de aynı
+        değer, sayfada linkle paylaşılan onayı ve eski veri. Toplam: API 245, client 309, e2e 12.
+      - Bilerek yapılmayanlar: otomatik indirmede "askıya alınmış Public" (karar Unlisted kaldı: yeni durum
+        bütün herkese açık okuyucuları etkiler, otomatik geri dönüş "yayına alma bilinçli adım" kararıyla
+        çelişir); yarış durumu (Açık konular 22); coin formunda önceden uyarı ve kartlarda ilerleme rozeti
+        (Açık konular 23).
     - **3. aşama (sonra):** coin ikonlarının düzeltilmesi (`.notes/designs/coin-icons/`), fotoğrafsız coin'de
       değere göre ikon, ortak yüz fotoğrafı yoksa yerinde değer ikonu.
 
@@ -1488,8 +1547,17 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Devam eden iş (2026-10-05):** `feat/public-requirements` 2. aşama (client), Tamamlananlar 75'teki listeye
-göre; sonra merge. 3. aşama (coin ikonları) ondan sonra, ikon hatalarına kullanıcıyla birlikte bakılır.
+**Devam eden iş (2026-10-06):** `feat/public-requirements` 1. ve 2. aşama ve review düzeltmeleri bitti
+(Tamamlananlar 75). **Durum, sohbet sonunda:** her şey branch'te commit'li (1. aşamanın 4 commit'i, review
+düzeltmeleri `feat(api): publish endpoint and canBePublic`, 2. aşama `feat(client)` × 2, `test(e2e)`, `docs`);
+**merge kullanıcının tarayıcı testinden sonra** (kullanıcı kararı 2026-10-06: branch'te kalınır). Geliştirme
+veritabanına migration uygulandı, seed yeniden çalıştırıldı (ayse ve elif'in herkese açık koleksiyonları yapay
+fotoğraflarla). Kullanıcının API'si yeni uç (`/publish`) için yeniden başlamalı. Tarayıcıda bulgu gelirse
+düzeltmeler bu branch'te yeni commit'lerle; sonra `git merge --no-ff --no-edit feat/public-requirements`.
+Merge'den önce yeniden: `dotnet test`, `ng test`, `ng build`, Prettier, e2e (2026-10-06'da hepsi temiz: API 245,
+client 309, e2e 12). 3. aşama (coin ikonları) ondan sonra, ikon hatalarına kullanıcıyla birlikte bakılır.
+Yayında: migration canlıdaki kurala uymayan Public koleksiyonları Linkle paylaşılana çeker (sunucu hazırlığı
+yok); **Release notlarına yazılır** (kullanıcıların herkese açık adresi çalışmaz olabilir).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
@@ -1961,6 +2029,18 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     [#35](https://github.com/halid-ali/coin-portal/issues/35)): `.form-input` kenarlığı `shade-300`, açık
     temada 1,5:1 (WCAG 1.4.11 3:1). `shade-400` önizlemesi fazla koyu bulundu, kullanıcı mevcut hali korudu.
     Seçenekler issue'da (koyu kenarlık, dolguyla ayrışma, sadece koyu temada). Karar kullanıcının.
+
+22. **Yayına alma ile fotoğrafsız coin eklemenin yarışı** (2026-10-06, review): Public'e geçiş sayıp
+    kaydeder; aynı anda gelen fotoğrafsız coin ekleme, koleksiyon henüz Public olmadığı için guard'dan geçer.
+    Sonuç fotoğrafsız coin'li bir Public koleksiyon olabilir. Aynı kullanıcının iki sekmesi ve çok dar bir an
+    gerekir; kapatmak yayına almayı ve coin eklemeyi aynı kilide (koleksiyon satırında `UPDLOCK`) almayı
+    ister. Kullanıcı kararı: şimdilik sadece not. Bir sonraki fotoğraf/sayı azaltan işlem koleksiyonu
+    zaten indirir.
+23. **Herkese açık kural için sonraki UX fikirleri** (2026-10-06, review; isteğe bağlı): coin formunda
+    önceden uyarı (silme onayına "koleksiyon linkle paylaşılana geçecek" cümlesi, Public hedefe fotoğrafsız
+    coin taşırken anında ipucu; iki pencere yerine bir) ve Koleksiyonlarım / pano kartlarında "7/10"
+    ilerleme rozeti. Önceden uyarı kuralın bir kopyasını client'a getirir (karar API'de kalmalı);
+    yapılırsa API'nin 409'u son söz olarak kalır.
 
 ## Yayın öncesi yapılacaklar
 

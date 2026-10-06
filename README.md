@@ -21,9 +21,11 @@ Live at https://coinvitrine.com.
 - Photos of the national and common side: client-side cropping, server-side validation and resizing
   to WebP thumbnails, previews and full-size images, with a per-user storage quota
 - List and grid views with filtering, sorting and paging kept in the URL
-- Public profiles and an Explore page across all public collections
+- Public profiles and an Explore page across all public collections; a collection becomes public once
+  every coin has a photo of its national side and a minimum number of coins (an admin setting) do
 - Interface in English, Turkish, German and Bulgarian; light, dark and system themes; accent colours
-- Admin panel for moderation: statistics, users (lock, delete), shared collections (hide), audit log
+- Admin panel for moderation: statistics, users (lock, delete), shared collections (hide), general
+  settings, audit log
 - Account data export (ZIP with all data and photos) and account deletion
 - Privacy policy, terms of use and contact pages
 - Installable as an app (web app manifest)

@@ -183,7 +183,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
   `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `account`).
   Eski `/collection…` adresleri yönlendirilir.
-  Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`; `adminGuard`).
+  Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`, `settings`; `adminGuard`).
   Girişsiz: `/privacy`, `/terms`, `/contact` (yasal sayfalar), `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
   koleksiyon), `/s/:token` (sadece linkle). Bilinmeyen adres `NotFound` (`'**'`, adres korunur,
   `noindex`). Koleksiyon sayfası tek bileşen, route data `mode`
@@ -194,13 +194,16 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
   **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
   sorgular, filtre (`photographed=`), kontroller ondan geçer, kuralı başka yerde yeniden yazma. Public'e
-  geçişte 400 `public_requirements` (+ sayılar). Public koleksiyonu bozacak her işlem `PublicationGuard.
+  geçişte 400 `public_requirements` (+ sayılar). **Karar API'de:** koleksiyon yanıtındaki `canBePublic`
+  (`PublicationStatus`); client sayıları gösterir, kuralı yeniden hesaplamaz. Koleksiyon sayfasındaki buton
+  `POST api/collections/{id}/publish` kullanır (sadece görünürlük; ad/açıklama gitmez). Public koleksiyonu bozacak her işlem `PublicationGuard.
   BrokenByAsync` ile kontrol edilir: onaysız 409 `would_unpublish` (+ `collections`), `?unpublish=true` ile
-  işlem yapılır ve koleksiyon aynı kayıtta Unlisted olur. **Coin'in fotoğraflarını, koleksiyonunu ya da
+  işlem yapılır ve koleksiyon aynı kayıtta Unlisted olur (`PublicationGuard.Unpublish`, Information log). **Coin'in fotoğraflarını, koleksiyonunu ya da
   varlığını değiştiren yeni bir uç da bu kontrolü yapar ve testiyle gelir.** Sayı kontrolü sadece sayıyı
   azaltan işlemde (eşik yükselince yayındakiler hemen inmez). Yeni coin fotoğraflarıyla tek istekte
   (`POST api/coins/with-photos` multipart: `coin` JSON + `national` / `common`). Kilit yok: aynı kullanıcının eşzamanlı
-  iki isteği sayıyı aşabilir (kota gibi bilinçli); fotoğraf kısmı her durumda tutar.
+  iki isteği sayıyı aşabilir (kota gibi bilinçli); aynı anda Public'e geçiş ve fotoğrafsız coin ekleme de
+  fotoğrafsız coin'li bir Public koleksiyon bırakabilir (PROJECT_STATUS Açık konular 22).
 
 - Auth: ASP.NET Core Identity + HttpOnly cookie `coinportal.auth` (JWT yok, SPA ile API aynı origin).
   Oturum 14 gün, kullandıkça uzar; login'de "Beni hatırla" varsayılan işaretli, kayıt kalıcı oturum açar
@@ -514,8 +517,18 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   API'nin sınırları kırpılmış JPEG'e (en fazla 1600 px) uygulanır. Tür kararı cropper'da: sadece resim
   olmayan dosya önceden reddedilir, HEIC açılamazsa kırpma penceresi `crop.heicFailed` gösterir.
   `accept` JPG/PNG kalır (iOS HEIC'i bu yüzden JPEG'e çevirir).
-- Coin formunda fotoğraf değişiklikleri (`PhotoSlot`, `PhotoChange`) **Kaydet'te** uygulanır: önce coin,
-  sonra yüzler sırayla. Fotoğraf hatasında coin kayıtlı kalır, adres düzenleme adresine çevrilir.
+- Coin formunda fotoğraf değişiklikleri (`PhotoSlot`, `PhotoChange`) **Kaydet'te** uygulanır. Yeni coin
+  seçilen fotoğraflarıyla tek istekte kaydedilir (`createWithPhotos`; fotoğraf hatası olursa hiçbir şey
+  oluşmaz, mesajı yüzün adıyla `coinWithPhotosErrorMessage`). Düzenlemede önce coin, sonra yüzler sırayla;
+  fotoğraf hatasında coin kayıtlı kalır, adres düzenleme adresine çevrilir.
+- **Herkese açık koleksiyonu bozabilecek her istek** (coin kaydet/taşı/sil, fotoğraf sil) `UnpublishConfirm.run(
+  unpublish => istek)` ile yapılır (`shared/unpublish-confirm.ts`): 409 `would_unpublish` gelirse sorar, evet
+  derse `unpublish=true` ile tekrarlar, hayırda `UNPUBLISH_DECLINED` döner (vazgeçmek hata değildir: coin
+  formunda reddedilen fotoğraf silme geri alınır, nötr bilgi gösterilir). Koleksiyon silme penceresi bunu
+  sormaz, uyarıyı seçimin altında gösterir (adı yazmak onu da onaylar). Kuralın client karşılığı
+  `core/collections/publication.ts` (`publicationProgress`: sayılar + API'nin `canBePublic`'i, `canChoosePublic`);
+  koleksiyon sayfasındaki uyarı ve formdaki "Herkese açık" seçeneği oradan. Linkle paylaşılan koleksiyonu
+  butonla yayına almak önce sorar (paylaşım linki çalışmaz olur).
 - Bekleyen görsel değişikliği tipi `ImageChange` (`shared/image-change.ts`); kapak da coin fotoğrafı gibi
   Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
   oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
