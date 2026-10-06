@@ -1,21 +1,18 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-06 (**`feat/public-requirements`**, herkese açık koleksiyon kuralı: 1. aşama
-(backend), 2. aşama (client) ve review düzeltmeleri bitti, merge kullanıcı onayını bekliyor; 3. aşama (coin ikonları) sonra;
-kararlar "Herkese açık koleksiyon kuralı: kararlar", ilerleme Tamamlananlar 75. **`v1.4.0` yayında**: yeni logo (Tamamlananlar 72) ve yeni ana sayfa
-(Tamamlananlar 73), yayın Tamamlananlar 74. Önceki sürümler: `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
+Son güncelleme: 2026-10-06 (**`v1.5.0` yayında**: herkese açık koleksiyon kuralı (Tamamlananlar 75, kararlar
+"Herkese açık koleksiyon kuralı: kararlar"), yayın Tamamlananlar 76; sıradaki iş 3. aşama (coin ikonları). Önceki
+sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- **Açık iş (2026-10-06):** branch `feat/public-requirements` commit'li, merge tarayıcı testini bekliyor; ayrıntı ve sıradaki
-  adım "Sıradaki adım > Devam eden iş". Yeni sohbette önce `git status -sb` ile branch ve değişiklikler görülür.
-- Durum: `main` güncel ve temiz; son etiket ve Release `v1.4.0` (2026-10-05, "latest"), canlıda `v1.4.0`.
+- Durum: `main` güncel ve temiz; son etiket `v1.5.0` (2026-10-06), canlıda `v1.5.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.4.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.5.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -1324,7 +1321,8 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     arama 200. Release notları `.notes/release-v1.4.0.md`, kullanıcı onayıyla Claude
     `.notes/scripts/create-release.js` ile yayınladı ("latest"). Pipeline'ı izlemek için yeni lokal betik
     `.notes/scripts/run-status.js <repo> <etiket>` (sadece okur; koşu, işler, onay bekleme durumu).
-75. **Herkese açık koleksiyon kuralı** (`feat/public-requirements`, 2026-10-05/06; 1. ve 2. aşama bitti; kararlar
+75. **Herkese açık koleksiyon kuralı** (`feat/public-requirements`, 2026-10-05/06; 1. ve 2. aşama bitti, `v1.5.0` ile
+    yayında (Tamamlananlar 76); kararlar
     "Herkese açık koleksiyon kuralı: kararlar"). 1. ve 2. aşama aynı branch'te, merge ikisinden sonra
     (`main`'de kuralı uygulayan ama arayüzü hazır olmayan bir ara durum olmasın).
     - **1. aşama, backend (bitti):**
@@ -1424,6 +1422,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
         (Açık konular 23).
     - **3. aşama (sonra):** coin ikonlarının düzeltilmesi (`.notes/designs/coin-icons/`), fotoğrafsız coin'de
       değere göre ikon, ortak yüz fotoğrafı yoksa yerinde değer ikonu.
+76. **`v1.5.0`** (`chore/release-v1.5.0`, 2026-10-06): herkese açık koleksiyon kuralı (Tamamlananlar 75).
+    Kullanıcı tarayıcıda denedi, bulgu yok; `feat/public-requirements` merge, `main` push, etiket. Yeni migration
+    (`AddPublicationRules`) olduğu için kullanıcı onaydan önce panelden veritabanı yedeği aldı ("Create BAK
+    file", manuel .bak). Pipeline (Release #8): Checks (API, Web, E2E), Package, onay, Deploy, hepsi başarılı;
+    canlı `/api/health` `1.5.0+fcff247`. **Canlı veri:** yayından önce iki Public koleksiyon vardı (`halid` /
+    "Koleksiyonum", `yurtsever.d` / "Euro", 1'er coin); migration ikisini Linkle paylaşılana çekti, Keşfet ve
+    profiller şimdilik boş (`api/public/collectors` `[]`, eski adresler 404). Eşik 10; sahipler fotoğraflı coin
+    ekleyince butonla yeniden yayına alır. Release notları `.notes/release-v1.5.0.md`.
 
 ## Yol haritası
 
@@ -1547,17 +1553,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Devam eden iş (2026-10-06):** `feat/public-requirements` 1. ve 2. aşama ve review düzeltmeleri bitti
-(Tamamlananlar 75). **Durum, sohbet sonunda:** her şey branch'te commit'li (1. aşamanın 4 commit'i, review
-düzeltmeleri `feat(api): publish endpoint and canBePublic`, 2. aşama `feat(client)` × 2, `test(e2e)`, `docs`);
-**merge kullanıcının tarayıcı testinden sonra** (kullanıcı kararı 2026-10-06: branch'te kalınır). Geliştirme
-veritabanına migration uygulandı, seed yeniden çalıştırıldı (ayse ve elif'in herkese açık koleksiyonları yapay
-fotoğraflarla). Kullanıcının API'si yeni uç (`/publish`) için yeniden başlamalı. Tarayıcıda bulgu gelirse
-düzeltmeler bu branch'te yeni commit'lerle; sonra `git merge --no-ff --no-edit feat/public-requirements`.
-Merge'den önce yeniden: `dotnet test`, `ng test`, `ng build`, Prettier, e2e (2026-10-06'da hepsi temiz: API 245,
-client 309, e2e 12). 3. aşama (coin ikonları) ondan sonra, ikon hatalarına kullanıcıyla birlikte bakılır.
-Yayında: migration canlıdaki kurala uymayan Public koleksiyonları Linkle paylaşılana çeker (sunucu hazırlığı
-yok); **Release notlarına yazılır** (kullanıcıların herkese açık adresi çalışmaz olabilir).
+**Sıradaki iş:** herkese açık koleksiyon kuralının 3. aşaması, coin ikonları (`.notes/designs/coin-icons/`):
+ikonların düzeltilmesi, fotoğrafsız coin'de değere göre ikon, ortak yüz fotoğrafı yoksa yerinde değer ikonu; ikon
+hatalarına kullanıcıyla birlikte bakılır. Kural `v1.5.0` ile yayında (Tamamlananlar 75–76).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
