@@ -105,7 +105,11 @@ terminallerinde sürekli çalışır halde tutuyor.
   önce yapılır. `workflow_dispatch` (etiket + `deploy`) bir etiketi yeniden paketler ve isterse kurar
   (yeniden kurulum, eski sürüme dönüş; veritabanı geri alınmaz). Elle kurulum yedek yol: PROJECT_STATUS
   "Yayın (deploy) adımları". Sonra Release'in notları yazılıp yayınlanır (kullanıcı onayıyla): kısa giriş,
-  öne çıkanlar ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil.
+  öne çıkanlar ve etiketteki CHANGELOG.md'ye link; "latest", pre-release değil (`.notes/scripts/create-release.js`).
+  **Yayın bu adımla biter:** pipeline Release'i taslak açar; README'deki release rozeti ve repo sayfasındaki
+  "Latest" en son *yayınlanmış* Release'i canlı okur (rozet elle güncellenmez). Betik sonunda
+  `releases/latest` yeni etiketi göstermeli ve taslak Release kalmamalı (betik kontrol eder, değilse hata
+  kodu verir; `v1.5.0` taslak kaldığı için ikisi de bir gün `v1.4.0`'da kaldı).
 - GitHub rulesets: `main`'de silme ve force-push, `v*` etiketlerinde silme, güncelleme ve force-push yasak.
   **Push edilmiş bir etiket düzeltilemez**; yanlışsa yeni bir patch sürümü atılır. Etiketi push etmeden
   önce doğru commit'te olduğunu kontrol et.

@@ -1,19 +1,19 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-06 (**`v1.5.0` yayında**: herkese açık koleksiyon kuralı (Tamamlananlar 75, kararlar
-"Herkese açık koleksiyon kuralı: kararlar"), yayın Tamamlananlar 76; 3. aşama coin değer ikonları bitti
-(Tamamlananlar 77), `v1.5.1` ile yayınlanacak; sonraki sürümün gündemi güvenlik testleri (yol haritası 19). Önceki
+Son güncelleme: 2026-10-06 (**`v1.5.1` yayında**: coin değer ikonları (Tamamlananlar 77–78); `v1.5.0` herkese açık
+koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararlar"). Sıradaki iş güvenlik testleri
+(yol haritası 19). Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket `v1.5.0` (2026-10-06), canlıda `v1.5.0`.
+- Durum: `main` güncel ve temiz; son etiket `v1.5.1` (2026-10-06), canlıda `v1.5.1`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.5.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.5.1`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
@@ -1452,6 +1452,16 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       dağılımı, zemin; `coin-thumb.spec`; görüntüleyicide ikonlu ortak yüz ve `denomination`'sız hal); API 245
       (değişmedi), e2e 12 geçti (axe dahil). Ekran görüntüleriyle (ayse.yilmaz, 4200) ızgara, tablo, telefon kartları, görüntüleyici iki temada
       kontrol edildi.
+78. **`v1.5.1`** (`chore/release-v1.5.1`, 2026-10-06): coin değer ikonları (Tamamlananlar 77). git-cliff 1.6.0
+    önerdi (`feat`), kullanıcı yama sürümü seçti. Migration yok, sunucu hazırlığı yok. Pipeline (Release #9):
+    Checks (API, Web, E2E), Package, onay, Deploy, hepsi başarılı; canlı `/api/health` `1.5.1+2420786`.
+    Release notları `.notes/release-v1.5.1.md`.
+    - **`v1.5.0`'ın Release'i taslak kalmıştı** (kullanıcı fark etti: repo sayfasında "Latest" ve README'deki
+      release rozeti `v1.4.0` gösteriyordu). Rozet canlıdır (shields.io, en son *yayınlanmış* Release), elle
+      güncellenmez; eksik adım Release'in yayınlanmasıydı. `v1.5.0` hazır notlarıyla, ardından `v1.5.1`
+      yayınlandı (latest `v1.5.1`, rozet doğrulandı). `.notes/scripts/create-release.js` artık sonunda
+      `releases/latest` = etiket ve taslak kalmadığını kontrol eder (değilse hata kodu); kural CLAUDE.md "Sürüm
+      ve yayın"da.
 
 ## Yol haritası
 
@@ -1590,9 +1600,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** coin değer ikonlarının (Tamamlananlar 77) `v1.5.1` ile yayını (kullanıcı kararı 2026-10-06:
-yeni bir özellik olsa da küçük bir tamamlama, yama sürümü; git-cliff `--bumped-version` 1.6.0 önerir).
-**Ondan sonraki sürümün gündemi:** güvenlik testleri (yol haritası 19).
+**Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
+19a CodeQL → 19b yetki matrisi → 19c kötüye kullanım testleri → 19d ZAP → 19e elle tarama. Coin değer ikonları
+`v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
@@ -1602,7 +1612,7 @@ yeni bir özellik olsa da küçük bir tamamlama, yama sürümü; git-cliff `--b
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
   - Pipeline birkaç sürüm sorunsuz çalışınca onay adımı kaldırılabilir (`production` ortamında
-    "Required reviewers"); karar kullanıcının. (`v1.1.0`–`v1.4.0` sorunsuz.)
+    "Required reviewers"); karar kullanıcının. (`v1.1.0`–`v1.5.1` sorunsuz.)
   - ~~Yetim süpürmenin canlı sonucu~~ (kullanıcı 2026-10-04'te baktı, çalışıyor).
   - Esc düzeltmesi (Tamamlananlar 64) canlıda bir kez denenir (kırpma penceresi). 2026-10-04: denenemedi,
     şirket bilgisayarından site açılmıyor (Defender), telefonda Esc yok; masaüstü bir tarayıcıda bakılır.
