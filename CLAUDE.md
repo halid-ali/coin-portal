@@ -208,13 +208,22 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
 - Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
   Unlisted iken var; başka görünürlüğe geçince silinir; `Collection.SetVisibility`) / `Public`.
-- **Paylaşmak doğrulanmış e-posta ister** (kullanıcı kararı 2026-10-06): e-postası doğrulanmamış kullanıcı
-  bir koleksiyonu yeni bir görünürlüğe (Unlisted ya da Public) alamaz, 403 `email_not_confirmed`
-  (`CollectionsController` Create/Update/Publish, `EmailConfirmedAsync` her istekte veritabanından).
-  Paylaşılmış olan kalır (doğrulamadan önceki hesaplar: canlıdaki mevcut kullanıcılar doğrulanmamış
-  başladı), adı değişebilir, linki yenilenebilir; sadece daha geniş paylaşım engellenir. Giriş ve
-  kendi koleksiyonları serbest. Client: üstte `layout/email-banner` (tekrar gönder), formda kapalı
-  seçenekler (`emailBlocked`), koleksiyon sayfasında yayın butonu yerine not.
+- **Doğrulanmamış hesap** (kullanıcı kararları 2026-10-06; kural tek yerde `Accounts/UnverifiedAccounts`,
+  her istekte veritabanından): e-postası doğrulanmamış kullanıcı (1) bir koleksiyonu yeni bir görünürlüğe
+  (Unlisted ya da Public) alamaz ve (2) kayıtta gelen koleksiyonun dışında koleksiyon açamaz, ikisi de 403
+  `email_not_confirmed` (`CollectionsController` Create/Update/Publish); (3) hesabında en fazla
+  `SiteSettings.UnverifiedMaxCoins` (admin ayarı, migration 20 ile başlatır, 0–10.000) coin olabilir,
+  coin eklemede 403 `unverified_coin_limit` + `maxCoins` (`CoinsController`, iki ekleme ucu). Sınır
+  `me`/giriş/kayıt yanıtında `unverifiedMaxCoins` (doğrulanınca null). **Olan kalır:** paylaşılmış
+  koleksiyon, fazla koleksiyon ve sınırın üstündeki coin'ler (doğrulamadan önceki hesaplar: canlıdaki
+  mevcut kullanıcılar doğrulanmamış başladı, kullanıcı kararı); düzenleme, silme, ad değiştirme, link
+  yenileme serbest, sadece yeni paylaşım ve ekleme engellenir. Client: üstte `layout/email-banner`
+  (sınırları söyler, tekrar gönder), formda kapalı seçenekler (`emailBlocked`), koleksiyon sayfasında
+  yayın butonu yerine not; "Yeni koleksiyon" yerine not (Koleksiyonlarım, ana sayfa); sınırdayken "Coin
+  ekle" yerine not (koleksiyon sayfası hesabın toplamını `api/coins/summary`'den alır, ana sayfa). Coin
+  formuna doğrudan gelinirse API'nin hatası gösterilir (`errors.unverifiedCoinLimit`). Panelde durum
+  `Unverified` (gri; kilit ağır basar) ve isim yanında zarf + saat ikonu (`pages/admin/unverified-mark`,
+  durumdan bağımsız, kilitli + doğrulanmamış ayırt edilir).
 - **Herkese açık koleksiyon kuralı** (`Publishing/`, kararlar PROJECT_STATUS'ta): Public olmak için bütün
   coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
   **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
@@ -289,7 +298,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
   Site geneli ayarlar `SiteSettings` tablosunda (tek satır, satırı migration ekler, `HasData` değil: bir
   model değişikliği admin'in değerini ezerdi), admin `api/admin/settings` ile değiştirir; değişiklik
-  `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır.
+  `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır (değişen her
+  ayar ayrı kayıt, aynı not). Ayarlar: `MinPublicCoins`, `UnverifiedMaxCoins`; yeni ayar `settings.names`
+  çevirisine de girer (denetim listesi).
   Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
   kendi hesaplarını Ayarlar'dan silemez (`admin_account`; paneldeki silmede `cannot_delete_admin`), önce
   ayardan çıkarılırlar.

@@ -1633,6 +1633,19 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - **Gizlilik:** `privacy.data.i5`, `purposes.i1`, `hosting.p1` dört dilde (hesap e-postaları, sadece
       hesapla ilgili, MonsterASP'tan gönderilir); `PRIVACY_UPDATED` 2026-10-06. Log maskesine `token=`.
       `THIRD-PARTY-NOTICES.md`: MailKit/MimeKit, BouncyCastle (MIT).
+    - **Doğrulanmamış hesabın sınırları** (kullanıcı kararları 2026-10-06, ikinci tur): doğrulamadan **yeni
+      koleksiyon yok** (kayıttaki koleksiyon kalır) ve hesapta en fazla **`SiteSettings.UnverifiedMaxCoins`**
+      coin (varsayılan 20, admin panelinden 0–10.000; migration `UnverifiedMaxCoins` satırı 20 ile başlatır).
+      Kuralı `Accounts/UnverifiedAccounts` tutar; 403 `email_not_confirmed` (yeni koleksiyon) ve
+      `unverified_coin_limit` (+ `maxCoins`). Mevcut hesaplar da doğrulanmamış başlar ve sınırlar onlara da
+      uygulanır (kullanıcı kararı: bant tek tıkla link gönderiyor); ellerindeki koleksiyon ve coin'ler kalır,
+      sadece ekleme engellenir. Sınırı düşürmek coin silmez. Client: bant sınırları söyler; "Yeni koleksiyon"
+      ve sınırda "Coin ekle" yerine not. Panel: durum **Doğrulanmamış** (gri rozet, filtrede; kilitli ve
+      geçici kilit ağır basar) ve isimde **zarf + saat ikonu** (seçim taslaklarla yapıldı: gri nokta, zarf,
+      kesik halka, kum saati, etiket arasından; durum "Kilitli" iken de doğrulanmamış olduğu görünsün diye).
+      Ayarlar sayfasında ikinci bölüm; değişen her ayar ayrı denetim kaydı. Durum sütununun genişliği
+      değişmedi (yeni metinler "Vorübergehend gesperrt"ten kısa). Sonra testler: API 373, client 331, e2e 14
+      (golden path artık koleksiyon açmadan önce e-postayı linkle doğrular).
     - **Testler:** API 13 yeni (`EmailVerificationTests`: dil, `SiteUrl`, HTML gövdesi ve adın kodlanması, çıkıştan sonra link, bozuk/süresi
       dolmuş/başka adres/kullanıcısız token, tekrar gönderme sınırı, sunucu kapalıyken kayıt + 503, paylaşma
       kuralı, eskiden paylaşılmışın kalması) + matris satırları + admin/dışa aktarma kontrolleri; testler
@@ -1787,8 +1800,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** e-posta doğrulama yapıldı (Tamamlananlar 88, yayınlanmadı); sıradaki şifre sıfırlama (aynı
-altyapı) ve yayın (önce sunucuda SMTP, "Yayın öncesi yapılacaklar"). Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** e-posta doğrulama yapıldı (Tamamlananlar 88, yayınlanmadı); sıradaki doğrulanmamış hesaba bir
+ömür (önerildi: 30 gün, 7 gün önce hatırlatma, mevcut hesaplarda süre yayın gününden; plan kullanıcıyla
+konuşulacak), şifre sıfırlama (aynı altyapı) ve yayın (önce sunucuda SMTP, "Yayın öncesi yapılacaklar"). Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
