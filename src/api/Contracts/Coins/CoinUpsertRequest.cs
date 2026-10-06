@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Validation;
 
 namespace CoinPortal.Api.Contracts.Coins;
 
@@ -8,10 +9,10 @@ namespace CoinPortal.Api.Contracts.Coins;
 /// </summary>
 public class CoinUpsertRequest : IValidatableObject
 {
-    [Required, StringLength(Coin.TitleMaxLength)]
+    [Required, StringLength(Coin.TitleMaxLength), NoControlCharacters]
     public string Title { get; set; } = string.Empty;
 
-    [StringLength(Coin.DescriptionMaxLength)]
+    [StringLength(Coin.DescriptionMaxLength), NoControlCharacters(AllowLineBreaks = true)]
     public string? Description { get; set; }
 
     // Nullable so a missing value fails [Required] instead of silently becoming 0
@@ -24,7 +25,7 @@ public class CoinUpsertRequest : IValidatableObject
     [Required, Range(Coin.MinYear, 9999)]
     public int? Year { get; set; }
 
-    [StringLength(Coin.MintMarkMaxLength)]
+    [StringLength(Coin.MintMarkMaxLength), NoControlCharacters]
     public string? MintMark { get; set; }
 
     public bool IsCommemorative { get; set; }

@@ -5,7 +5,7 @@ koleksiyon kuralı (75–76, kararlar "Herkese açık koleksiyon kuralı: kararl
 haritası 19) sürüyor: 19a CodeQL (Tamamlananlar 79), 19b yetki matrisi (80), 19c kötüye kullanım testleri
 (81; paylaşım linki büyük/küçük harf duyarsızdı, düzeltildi, **yayınlanmadı, migration'lı**) bitti;
 19d ZAP taraması ve site izolasyonu başlıkları (82–83, başlıklar yayınlanmadı) bitti; sıradaki 19e elle
-tarama. Önceki
+tarama (elle oturum yapıldı: 84, çıkış artık her yerden; kalan aktif ZAP). Önceki
 sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1551,6 +1551,30 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       `.zap/check.mjs` işi kırar (yeni bulgu sessizce geçmez), site raporda hiç yoksa da. `continue-on-error`
       kaldırıldı: ZAP adımı bozulursa da E2E işi ve yayın kırılır. `-I` kaldı (WARN'lar ZAP'ın çıkış kodunu
       değiştirmesin; karar `check.mjs`'te).
+84. **Elle pentest oturumu ve bulguların düzeltmesi** (`fix/pentest-findings`, 2026-10-06; yol haritası 19e'nin
+    ilk parçası). Lokal e2e sitesine (Production + HTTPS, kendi veritabanı) Node betikleri ve Edge
+    (Playwright) ile; betikler lokal (scratchpad), bulgular testlere girdi.
+    - **Temiz:** kayıtlı XSS (betikli başlık/açıklama/ad 7 sayfada, girişli ve girişsiz, düz metin), `returnUrl`
+      ile dışarı yönlendirme (8 deneme, hepsi sitede kaldı), dosya sızıntısı (`appsettings*.json`, DLL,
+      `.env`, Swagger 404; `/.git/config` gibi adresler SPA'nın `index.html`'i), TRACE/CONNECT reddedilir, yol
+      parametreleriyle dizin aşma 404, dışa aktarma ZIP'i (giriş adları sadece Id: zip slip yok), oturum
+      (girişte yeni cookie, "Beni hatırla" işaretsizken oturum cookie'si, 5 hatada kilit, 423 sadece doğru
+      parolayla, giriş süresi bilinen/bilinmeyen kullanıcıda ~42/45 ms).
+    - **Orta, düzeltildi: çıkış oturumu sunucuda bitirmiyordu.** Cookie'nin kopyası çıkıştan sonra 14 gün
+      geçerliydi. Seçenekler kullanıcıyla tartışıldı (her yerden çıkış / sunucu taraflı oturumlar / kabul);
+      **karar: her yerden çıkış** (küçük değişiklik, mevcut güvenlik damgası mekanizması, migration ve istek
+      başına yük yok; çıkışın önemli olduğu ortak bilgisayar senaryosunda daha güvenli; sunucu taraflı
+      oturumlar "aktif oturumlarım" özelliği istenirse). `AuthController.Logout` damgayı yeniler; test
+      `AuthTests.Logout_EndsEverySessionOfTheUser_EvenACopiedCookie`.
+    - **Düşük, düzeltildi: JSON hata mesajları iç tip adlarını veriyordu** (`System.Nullable`1[CoinPortal.Api.
+      Data.CollectionVisibility]`, satır/konum). `AllowInputFormatterExceptionMessages = false`; test
+      `AbuseTests.MalformedBody_IsRejected_WithoutInternalDetails`.
+    - **Düşük, düzeltildi: kontrol karakterleri kabul ediliyordu** (NUL'lu koleksiyon adı kaydediliyordu).
+      `Validation/NoControlCharactersAttribute` ad, başlık, darphane işareti, kayıttaki ad/soyad/e-posta ve
+      (satır sonu/sekme serbest) açıklamalar ile admin notlarında; testler `AbuseTests`. Canlıda böyle bir
+      değer varsa sahibi o alanı düzeltmeden kaydedemez (pek olası değil).
+    - **Kabul, belgelendi:** kayıtta `DuplicateEmail` (Açık konular 24); düz HTTP'de `Host` yansıması (25,
+      not). API testleri 354 (+15).
 
 ## Yol haritası
 
@@ -1636,7 +1660,8 @@ mağaza için TWA.
         kırar). **Canlı siteye tarama yok** (paylaşımlı hosting şartları, rate limit). İlk raporda tam CSP
         eksikliği beklenir (Açık konular 17).
   - [ ] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
-        19b–19c'deki testlere eklenir. Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
+        19b–19c'deki testlere eklenir. (İlk elle oturum 2026-10-06, Tamamlananlar 84: 1 orta + 2 düşük bulgu
+        düzeltildi; kalan: elle başlatılan aktif ZAP iş akışı.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1693,7 +1718,7 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 ## Sıradaki adım
 
 **Sıradaki iş:** güvenlik testleri (yol haritası 19, kullanıcı kararı 2026-10-06: bu sürümün gündemi); sıra
-~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → **19e elle tarama** (sıradaki). Coin değer ikonları
+~~19a CodeQL~~ (Tamamlananlar 79) → ~~19b yetki matrisi~~ (80) → ~~19c kötüye kullanım testleri~~ (81) → ~~19d ZAP~~ (82–83) → **19e elle tarama** (elle oturum yapıldı, Tamamlananlar 84; sıradaki: elle başlatılan aktif ZAP iş akışı). Coin değer ikonları
 `v1.5.1` ile yayında (Tamamlananlar 77–78).
 
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
@@ -2180,6 +2205,15 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     coin taşırken anında ipucu; iki pencere yerine bir) ve Koleksiyonlarım / pano kartlarında "7/10"
     ilerleme rozeti. Önceden uyarı kuralın bir kopyasını client'a getirir (karar API'de kalmalı);
     yapılırsa API'nin 409'u son söz olarak kalır.
+24. **Kayıtta e-postanın kayıtlı olduğu anlaşılıyor** (2026-10-06, pentest, Tamamlananlar 84): alınmış
+    e-postayla kayıt 400 `DuplicateEmail` döner, yani biri bir e-postanın hesabı olup olmadığını öğrenebilir
+    (kullanıcı adı zaten herkese açık). Kayıt `Auth` hız sınırında. Kullanıcı kararı: kabul, belgelendi.
+    Gerçek çözüm e-posta doğrulaması (yol haritası 15): kayıt her durumda "e-postanı kontrol et" der, kayıtlı
+    adrese "zaten hesabın var" e-postası gider.
+25. **Düz HTTP'de `Host` başlığı HTTPS yönlendirmesine yansır** (2026-10-06, pentest; not, bulgu değil):
+    `http://` + sahte `Host` → 307 `https://<sahte host>`. Canlıda `CanonicalHost` başka host adlarını önce
+    `coinvitrine.com`'a çevirdiği için etkisi yok; sitenin önünde paylaşılan bir önbellek de yok. `CanonicalHost`
+    kapatılırsa ya da önüne bir proxy/CDN önbelleği girerse yeniden değerlendirilir.
 
 ## Yayın öncesi yapılacaklar
 

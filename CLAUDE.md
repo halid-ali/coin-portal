@@ -375,7 +375,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   varsayılanı `App_Data/` altında. **Production ayarları repoya girmez:** connection string ve yollar
   hosting panelinin ortam değişkenlerinden ya da sunucuda elle oluşturulan dosyadan;
   `appsettings.Production.json` `.gitignore`'da. Lokal Production denemesinde ortam değişkeni kullanılır.
-- Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner.
+- Doğrulama hataları `ValidationProblem(ModelState)` ile 400 ProblemDetails olarak döner. Sözleşmeye
+  uymayan JSON gövdesinin mesajı geneldir (`AllowInputFormatterExceptionMessages = false`; serileştiricinin
+  mesajı iç tip adlarını ve konumu verir), anahtar (`$.visibility`) kalır.
+- **Kullanıcının yazdığı her metin alanı `[NoControlCharacters]` alır** (`Validation/`; ad, başlık, darphane
+  işareti, kayıttaki ad/soyad/e-posta; açıklama ve admin notu `AllowLineBreaks = true`, satır sonu ve sekme
+  serbest). Yeni bir metin alanı da alır; testleri `AbuseTests`'te.
 - Enum'lar JSON'da string (`JsonStringEnumConverter(allowIntegerValues: false)`).
 - Tüm `DateTime` değerleri UTC (`UtcDateTimeConverter`, alan adları `…Utc`).
 - `UseHttpsRedirection()` sadece Development dışında.

@@ -308,7 +308,7 @@ public class AbuseTests(CoinPortalFactory factory)
         Assert.Empty(explore.Items);
     }
 
-    // Malformed bodies
+    // Malformed bodies and invisible characters
 
     [Theory]
     [InlineData("""{"name":"x","visibility":"Bogus"}""")]
@@ -327,6 +327,80 @@ public class AbuseTests(CoinPortalFactory factory)
         Assert.DoesNotContain("CoinPortal.", body);
         Assert.DoesNotContain("System.", body);
         Assert.DoesNotContain("LineNumber", body);
+    }
+
+    [Theory]
+    [InlineData("name", "a\u0000b")]
+    [InlineData("name", "tab\there")]
+    [InlineData("name", "bell\u0007")]
+    [InlineData("description", "a\u0000b")]
+    [InlineData("description", "escape \u001b[31m")]
+    public async Task Collection_ControlCharacters_AreRejected(string field, string value)
+    {
+        var alice = await factory.SignUpAsync();
+        var request = new CollectionUpsertRequest { Name = "Clean", Description = "Clean" };
+        if (field == "name")
+        {
+            request.Name = value;
+        }
+        else
+        {
+            request.Description = value;
+        }
+
+        using var response = await alice.Client.PostAsync("/api/collections", request);
+
+        Assert.Contains(field, await response.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("title", "a\u0000b")]
+    [InlineData("mintMark", "A\u0000")]
+    [InlineData("description", "del\u007f")]
+    public async Task Coin_ControlCharacters_AreRejected(string field, string value)
+    {
+        var alice = await factory.SignUpAsync();
+        var coin = TestUser.NewCoin((await alice.FirstCollectionAsync()).Id);
+        switch (field)
+        {
+            case "title": coin.Title = value; break;
+            case "mintMark": coin.MintMark = value; break;
+            default: coin.Description = value; break;
+        }
+
+        using var response = await alice.Client.PostAsync("/api/coins", coin);
+
+        Assert.Contains(field, await response.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Descriptions_KeepLineBreaksAndTabs()
+    {
+        var alice = await factory.SignUpAsync();
+        const string text = "First line\r\nSecond line\n\tIndented";
+
+        var collection = await alice.CreateCollectionAsync();
+        using var update = await alice.Client.PutAsync($"/api/collections/{collection.Id}",
+            new CollectionUpsertRequest { Name = collection.Name, Description = text });
+        var coin = TestUser.NewCoin(collection.Id);
+        coin.Description = text;
+        using var create = await alice.Client.PostAsync("/api/coins", coin);
+
+        Assert.Equal(text, (await update.ReadJsonAsync<CollectionResponse>()).Description);
+        Assert.Equal(text, (await create.ReadJsonAsync<CoinResponse>()).Description);
+    }
+
+    [Fact]
+    public async Task SignUpNames_ControlCharacters_AreRejected()
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+        var request = TestUser.NewRegisterRequest() with { FirstName = "Ad\u0000a", LastName = "Love\u0007lace" };
+
+        using var response = await client.PostAsync("/api/auth/register", request);
+
+        var keys = await response.ReadValidationKeysAsync();
+        Assert.Contains("FirstName", keys, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("LastName", keys, StringComparer.OrdinalIgnoreCase);
     }
 
     private List<string> StoredFiles(TestUser user)
