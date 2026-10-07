@@ -4,6 +4,35 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-10-07
+
+### Added
+
+- **api:** E-mail sending behind IMailSender (SMTP or pickup folder)
+- **api:** E-mail verification link and endpoints
+- **api:** Sharing collections needs a confirmed e-mail address
+- **client:** E-mail verification notice and page; sharing waits for it
+- **client:** Privacy policy covers account e-mails
+- **api:** Verification e-mail with an HTML body and a button
+- **api:** Unverified accounts keep one collection and a few coins
+- **api:** Unverified status and coin limit in the admin panel
+- **client:** Unverified status, mark and coin limit in the admin panel
+- **client:** Unverified accounts see their limits
+- **api:** Unverified accounts are deleted after their lifetime
+- **api:** Admins delete selected users at once
+- **client:** Deletion date of unverified accounts, lifetime in the panel
+- **client:** Bulk deletion and e-mail filter in the admin user list
+- **client:** Tidier e-mail verification notice
+- **client:** Resend the verification link with a button
+- **client:** Gray add buttons while the account cannot use them
+- **api:** One-time verification request, manual confirmation by admins
+- **client:** Verification request and manual confirmation in the panel
+
+### Fixed
+
+- **client:** Buttons show the pointer cursor
+- **client:** Spaces around the dots in the publication notice
+
 ## [1.6.0] - 2026-10-06
 
 ### Added
