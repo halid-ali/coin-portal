@@ -330,7 +330,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Site geneli ayarlar `SiteSettings` tablosunda (tek satır, satırı migration ekler, `HasData` değil: bir
   model değişikliği admin'in değerini ezerdi), admin `api/admin/settings` ile değiştirir; değişiklik
   `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır (değişen her
-  ayar ayrı kayıt, aynı not). Ayarlar: `MinPublicCoins`, `UnverifiedMaxCoins`, `UnverifiedLifetimeDays`;
+  ayar ayrı kayıt, aynı not). Ayarlar: `MinPublicCoins`, `UnverifiedMaxCoins`, `UnverifiedLifetimeDays`,
+  `UserQuotaMegabytes`;
   yeni ayar `settings.names`
   çevirisine de girer (denetim listesi).
   Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
@@ -352,7 +353,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   yorumunda). Kütüphane değişirse yeni bir uygulama yazılır ve `Program.cs`'teki kayıt değişir; başka
   dosya kütüphaneye referans vermez. Coin fotoğrafı (`ProcessAsync`, kare) ve koleksiyon kapağı
   (`ProcessCoverAsync`, 16:9) aynı sözleşmede. Dosyalar sadece `IPhotoStorage` üzerinden okunur/yazılır
-  (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte; **yaklaşık**:
+  (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte; sınır site ayarı
+  `SiteSettings.UserQuotaMegabytes` (admin, 50–2000 MB, migration 300 ile başlattı; düşürmek bir şey silmez,
+  üstündeki kullanıcı yer açana kadar yükleyemez), kullanıcı kullanımını Ayarlar > Hesap'ta görür
+  (`GET api/settings/storage`); **yaklaşık**:
   kontrolle kayıt arasında kilit yok, aynı anda yapılan yüklemeler kotayı birkaç görsel (her biri en fazla
   ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
 - **E-posta sadece `IMailSender` arkasında** (`Email/`, MailKit; görsel kütüphanesi kuralının aynısı):
@@ -618,7 +622,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   animasyonu), `app-splash` (`index.html`'deki açılış ekranı),
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
   dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
-  `color-mix` ile, koyu tema ayarı da `styles.css`'te). Yeni ortak stil gerekirse buraya eklenir.
+  `color-mix` ile, koyu tema ayarı da `styles.css`'te), `usage-bar` + `usage-bar-fill` (`-warn`, `-full`;
+  bir sınırın doluluğu: tema rengi, dolmak üzereyken sabit turuncu, doluyken tehlike rengi). Yeni ortak stil
+  gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
   `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış
   metin ya da vazgeçilirse `null`. Geri alınamaz işlemde `typeToConfirm: { label, value }`: değer

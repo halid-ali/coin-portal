@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-07 (**görsel düzeltmeler `main`'de, yayında değil** (Tamamlananlar 90: admin seçim
-çubuğu, Genel ayarlar kartları, coin formu fotoğraf hizası, yayına alma bandı, sayfa yolu); sıradaki iş fotoğraf
-alanı (yol haritası 20). **`v1.7.0` yayında**: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+Son güncelleme: 2026-10-07 (**fotoğraf alanı** (yol haritası 20, Tamamlananlar 91) `feat/photo-quota-setting`'te,
+kullanıcıya kalan alan ve admin'e kota ayarı; **görsel düzeltmeler `main`'de, yayında değil** (Tamamlananlar 90:
+admin seçim çubuğu, Genel ayarlar kartları, coin formu fotoğraf hizası, yayına alma bandı, sayfa yolu). **`v1.7.0` yayında**: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
 hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
 doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
 e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
@@ -14,7 +14,7 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 ## Yeni sohbete başlarken
 
 - Durum: `main` güncel ve temiz; son etiket `v1.7.0` (2026-10-07), canlıda `v1.7.0`. `main`'de yayınlanmamış
-  görsel düzeltmeler var (Tamamlananlar 90); bir sonraki sürüme girer.
+  görsel düzeltmeler var (Tamamlananlar 90); bir sonraki sürüme girer. Fotoğraf alanı (91) kendi branch'inde.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -1722,9 +1722,28 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       coin formunda; üst sayfalar yuvarlak buton (D stili, kullanıcı seçti; gri yazı ve renkli link seçenekleri
       "belirgin değil" bulundu), bulunulan sayfa telefonda yok. Eski "‹ …" geri linkleri kalktı. "Keşfet" son
       Keşfet adresine döner (`ExploreReturn`). Coin formu artık coin'in koleksiyonunu adıyla gösteriyor. Kurallar
-      CLAUDE.md'de. Kullanıcı sitede bakacak; beğenmezse commit geri alınır.
+      CLAUDE.md'de. Kullanıcı sitede baktı ve beğendi (2026-10-07), kalıcı.
     - Sohbette konuşulan **fotoğraf alanı** (kullanıcıya kalan alan, admin'e kota ayarı) API ve migration istediği
       için yol haritası 20 oldu, sıradaki iş. Testler: client 342 (+5), e2e 15; API değişmedi.
+91. **Fotoğraf alanı** (`feat/photo-quota-setting`, 2026-10-07; yol haritası 20; ekranlar mockup'la seçildi).
+    - **Kota site ayarı oldu:** `SiteSettings.UserQuotaMegabytes` (migration `UserQuota`, başlangıç 300, check
+      constraint 50–2000; kullanıcı kararı aralık 50–2000 MB). `PhotoStorage:UserQuotaBytes` ayarı kalktı
+      (sunucudaki `web.config`'te varsa yok sayılır). `PhotoQuota` sınırı her yüklemede veritabanından okur
+      (`LimitBytesAsync`, `UsedBytesAsync`, `ExceededLimitAsync`); admin kullanıcı detayındaki kota da oradan.
+    - **Admin:** Genel ayarlar'da üçüncü kart "Fotoğraflar" (pembe fotoğraf ikonu, Genel bakış'taki gibi), MB
+      cinsinden; değişiklik denetim kaydına (`SettingChanged`, `UserQuotaMegabytes`). Kaydetmeden önce "bu
+      değerle N kullanıcı sınırın üstünde kalır" (kullanıcı kararı; `GET api/admin/settings/quota-impact`).
+      Düşürmek hiçbir şey silmez; üstündeki kullanıcı yer açana kadar yükleyemez.
+    - **Kullanıcı:** Ayarlar > Hesap'ın başında "Fotoğraf alanı" (`GET api/settings/storage`: kullanılan ve
+      sınır): doluluk çubuğu (`role="meter"`, `usage-bar`), "X / Y kullanıldı", "Z kaldı"; %90'dan itibaren
+      turuncu ve not, dolunca kırmızı ve not; sınır düşürülüp üstünde kalınca da "doldu". Çok küçük kullanım
+      ince bir dolguyla görünür (en az %1). Coin formunda kota hatası `/settings/account`'a link verir
+      ("Fotoğraf alanına bak"; koleksiyon penceresindeki kapak hatasında yok, pencere içinden sayfa
+      değiştirmek girdiyi kaybettirirdi).
+    - `formatBytes` admin'den `core/i18n/format-bytes.ts`'e taşındı (admin-format yeniden dışa aktarır).
+    - Testler: API 396 (+6: kota hatası artık site ayarıyla, düşürülen kota, aralık dışı, kendi kullanım, iki
+      yetki matrisi satırı), client 348 (+6), e2e 15 (iki ekran geçici bir testle iki temada ve telefonda axe'ten
+      geçti).
 
 ## Yol haritası
 
@@ -1813,8 +1832,8 @@ mağaza için TWA.
   - [x] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
         19b–19c'deki testlere eklenir. (İlk tur 2026-10-06: elle oturum, Tamamlananlar 84, 1 orta + 2 düşük bulgu
         düzeltildi; aktif ZAP elle başlatılır, ilk taraması temiz, Tamamlananlar 85. Ara sıra tekrarlanır.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
-- [ ] 20. **Fotoğraf alanı: kullanıcıya göster, admin ayarlasın** (kullanıcı 2026-10-07'de ekletti; **sıradaki
-      iş**, yeni sohbette). Bugün kota sunucu ayarında (`PhotoStorage:UserQuotaBytes`, 300 MB; değiştirmek
+- [x] 20. **Fotoğraf alanı: kullanıcıya göster, admin ayarlasın** (kullanıcı 2026-10-07'de ekletti; aynı gün
+      `feat/photo-quota-setting`'te yapıldı, Tamamlananlar 91; aşağısı yapılmadan önceki plan). Önceden kota sunucu ayarındaydı (`PhotoStorage:UserQuotaBytes`, 300 MB; değiştirmek
       `web.config` + yeniden başlatma ister), kullanıcı kullanımını hiçbir yerde görmüyor (sadece dolunca
       `quota_exceeded`), admin kullanıcı detayında görüyor. Önerilen (2026-10-07 sohbetinde konuşuldu, kodlamadan
       önce kullanıcıyla netleşir, ekranlar önce mockup'la):
@@ -1823,12 +1842,12 @@ mağaza için TWA.
         matrisine satırıyla).
   - Admin: kota `SiteSettings`'e taşınır (migration başlangıç değeri 300 MB, literal), Genel ayarlar'da üçüncü
         kart "Fotoğraflar" (Genel bakış'taki fotoğraflar ikonu ve rengi), MB cinsinden, önerilen aralık
-        10–10.000; değişiklik denetim kaydına (`SettingChanged`, `settings.names` çevirisi). Düşürmek hiçbir
+        10–10.000 (kullanıcı 50–2000 seçti); değişiklik denetim kaydına (`SettingChanged`, `settings.names` çevirisi). Düşürmek hiçbir
         şeyi silmez, sınırın üstündeki kullanıcı yer açana kadar yükleyemez (doğrulanmamış hesabın coin sınırı
         gibi). `PhotoStorage:UserQuotaBytes` ayarı kalkar (sunucudaki `web.config`'te varsa yok sayılır),
         `HostingTests`'teki kota testi site ayarıyla yazılır (`SiteSettingsCollection`).
-  - Karar bekleyen: ayrı branch (önerilen `feat/photo-quota-setting`); kaydetmeden önce "bu değerle şu kadar
-        kullanıcı sınırın üstünde kalır" bilgisi (en az fotoğraflı coin ayarındaki gibi) olsun mu.
+  - Kararlar: ayrı branch `feat/photo-quota-setting`; kaydetmeden önce "bu değerle şu kadar kullanıcı sınırın
+        üstünde kalır" bilgisi var (kullanıcı kararı).
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1884,9 +1903,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** **fotoğraf alanı** (yol haritası 20; kullanıcı 2026-10-07'de görsel düzeltmeler sohbetinin
-sonunda "sonraki iş" olarak ekletti): kullanıcıya kalan alan, admin'e Genel ayarlar'dan kota. Ondan sonra
-e-posta doğrulama (`v1.7.0` ile yayında, Tamamlananlar 88–89) üzerine **şifre sıfırlama**
+**Sıradaki iş:** fotoğraf alanı (yol haritası 20, Tamamlananlar 91) bitti; `main`'e alınıp görsel
+düzeltmelerle (90) birlikte bir sonraki sürüme girer (yayında migration `UserQuota` açılışta uygulanır,
+onaydan önce veritabanı yedeği). Ondan sonra e-posta doğrulama (`v1.7.0` ile yayında, Tamamlananlar 88–89) üzerine **şifre sıfırlama**
 (kullanıcıyla kararlaştırıldı, 2026-10-07): ayrı branch `feat/password-reset`, aynı e-posta altyapısı; "şifremi
 unuttum" her adres için aynı cevabı verir (Açık konular 24), sıfırlama linki e-postayı da doğrulamış sayılabilir. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
@@ -2211,7 +2230,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     Antiforgery multipart isteklerde de geçerli.
 - **Sınırlar (yapılandırılabilir):** yükleme başına 10 MB (2026-10-01'den beri kırpılmış JPEG'e
   uygulanır, seçilen dosyaya değil; Tamamlananlar 29), kaynak en fazla 4000x4000 piksel ve aynı anda iki
-  görsel (2026-10-02, Tamamlananlar 42; önce ~6000x6000), **kullanıcı başına 300 MB**. Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir
+  görsel (2026-10-02, Tamamlananlar 42; önce ~6000x6000), **kullanıcı başına 300 MB** (2026-10-07'den beri
+  admin ayarı, 50–2000 MB, Tamamlananlar 91). Her fotoğrafın toplam bayt boyutu veritabanında tutulur, kota tek sorguyla kontrol edilir
   (yaklaşık: aynı anda yüklemeler birkaç görsel aşabilir).
   (Üç boyut birlikte ~250-350 KB, yani kota ~1000 fotoğraf.)
 - **Görsel işleme kütüphanesi:** SixLabors ImageSharp 4.1.2 (tamamen managed, native bağımlılığı yok).
