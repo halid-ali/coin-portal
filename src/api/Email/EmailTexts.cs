@@ -47,7 +47,28 @@ public static class EmailTexts
             CopyLink(language), link, v.Validity);
     }
 
+    /// <summary>
+    /// The password reset link (Email.PasswordReset), with the username: someone who forgot the password
+    /// may have forgotten that too.
+    /// </summary>
+    public static MailContent PasswordReset(string? language, string name, string userName, string link,
+        TimeSpan validity)
+    {
+        var v = VerificationTexts(language, name, validity);
+        var t = PasswordResetTexts(language, userName, Hours(language, (int)validity.TotalHours));
+        return Compose(language, t.Subject, v.Greeting, t.Intro, t.OpenLink, t.ClickButton, t.Button,
+            CopyLink(language), link, t.Validity, t.Ignore);
+    }
+
     private static string Date(DateTime utc, string? language) => utc.ToString("d MMMM yyyy", Culture(language));
+
+    private static string Hours(string? language, int hours) => language switch
+    {
+        "tr" => $"{hours} saat",
+        "de" => hours == 1 ? "1 Stunde" : $"{hours} Stunden",
+        "bg" => hours == 1 ? "1 час" : $"{hours} часа",
+        _ => hours == 1 ? "1 hour" : $"{hours} hours",
+    };
 
     /// <summary>"The link is valid for 24 hours" or "for 7 days", then what to do when it expired.</summary>
     private static string Validity(string? language, TimeSpan validity)
@@ -151,6 +172,43 @@ public static class EmailTexts
             _ => new("CoinVitrine now asks you to confirm your email address",
                 $"CoinVitrine now asks every account to confirm its email address. Until you do, you cannot open new collections or share collections, and your account can hold at most {maxCoins} coins.",
                 date is null ? null : $"If you do not confirm it, your account will be deleted on {date}, with its collections, coins and photos."),
+        };
+
+    private sealed record PasswordResetWords(string Subject, string Intro, string OpenLink, string ClickButton,
+        string Button, string Validity, string Ignore);
+
+    // The page names match the client's link text (login.forgotPassword)
+    private static PasswordResetWords PasswordResetTexts(string? language, string userName, string hours) =>
+        language switch
+        {
+            "tr" => new("CoinVitrine: parolanı yenile",
+                $"CoinVitrine hesabın için parola yenileme istendi. Kullanıcı adın: {userName}",
+                "Yeni bir parola belirlemek için bu linki aç:",
+                "Yeni bir parola belirlemek için butona tıkla:",
+                "Yeni parola belirle",
+                $"Link {hours} geçerli ve bir kez kullanılabilir. Süresi dolarsa sitedeki \"Parolamı unuttum\" linkinden yeni bir link iste.",
+                "Bu isteği sen yapmadıysan bu e-postayı yok sayabilirsin, parolan değişmez."),
+            "de" => new("CoinVitrine: Setze dein Passwort zurück",
+                $"für dein CoinVitrine-Konto wurde ein neues Passwort angefordert. Dein Benutzername: {userName}",
+                "Um ein neues Passwort festzulegen, öffne diesen Link:",
+                "Um ein neues Passwort festzulegen, klicke auf den Button:",
+                "Neues Passwort festlegen",
+                $"Der Link ist {hours} gültig und kann einmal verwendet werden. Ist er abgelaufen, fordere über \"Passwort vergessen?\" auf der Website einen neuen an.",
+                "Wenn du das nicht angefordert hast, kannst du diese E-Mail ignorieren. Dein Passwort bleibt unverändert."),
+            "bg" => new("CoinVitrine: подновете паролата си",
+                $"Поискано е подновяване на паролата за акаунта ви в CoinVitrine. Вашето потребителско име: {userName}",
+                "За да зададете нова парола, отворете този линк:",
+                "За да зададете нова парола, натиснете бутона:",
+                "Задаване на нова парола",
+                $"Линкът е валиден {hours} и може да се използва веднъж. Ако изтече, поискайте нов чрез \"Забравена парола?\" в сайта.",
+                "Ако не сте поискали това, можете да пренебрегнете този имейл. Паролата ви остава същата."),
+            _ => new("CoinVitrine: reset your password",
+                $"A new password was requested for your CoinVitrine account. Your username: {userName}",
+                "To choose a new password, open this link:",
+                "To choose a new password, click the button:",
+                "Choose a new password",
+                $"The link is valid for {hours} and can be used once. If it expires, request a new one with \"Forgot password?\" on the site.",
+                "If you did not ask for this, you can ignore this email. Your password stays the same."),
         };
 
     private sealed record DeletionReminderWords(string Subject, string Intro, string OpenLink, string ClickButton,

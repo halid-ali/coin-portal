@@ -34,6 +34,32 @@ public sealed partial class FakeMailSender : IMailSender
         return Uri.UnescapeDataString(link.Groups["token"].Value);
     }
 
+    /// <summary>
+    /// The messages to this address once there are at least <paramref name="count"/>: for e-mails sent
+    /// in the background (password reset).
+    /// </summary>
+    public async Task<IReadOnlyList<MailMessage>> WaitForAsync(string address, int count = 1)
+    {
+        var until = DateTime.UtcNow.AddSeconds(10);
+        while (To(address).Count < count)
+        {
+            Assert.True(DateTime.UtcNow < until, $"Expected {count} e-mail(s) to {address}, got {To(address).Count}.");
+            await Task.Delay(20);
+        }
+        return To(address);
+    }
+
+    /// <summary>The token of the password reset link in the latest message to this address.</summary>
+    public string LatestResetToken(string address)
+    {
+        var link = ResetLink().Match(To(address).Last().Body);
+        Assert.True(link.Success, "No password reset link in the e-mail.");
+        return Uri.UnescapeDataString(link.Groups["token"].Value);
+    }
+
     [GeneratedRegex(@"/verify-email\?token=(?<token>[^\s]+)")]
     private static partial Regex VerificationLink();
+
+    [GeneratedRegex(@"/reset-password\?token=(?<token>[^\s]+)")]
+    private static partial Regex ResetLink();
 }

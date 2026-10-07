@@ -167,6 +167,10 @@ builder.Services.AddSingleton<IMailSender>(services =>
         : ActivatorUtilities.CreateInstance<PickupFolderMailSender>(services));
 builder.Services.AddSingleton<EmailVerificationTokens>();
 builder.Services.AddScoped<EmailVerification>();
+// "Forgot password": requests are queued, the links sent in the background
+builder.Services.AddSingleton<PasswordResetTokens>();
+builder.Services.AddSingleton<PasswordResetQueue>();
+builder.Services.AddHostedService<PasswordResetSender>();
 
 // What a Public collection must hold (photos, minimum from the admin's site settings)
 builder.Services.AddScoped<PublicationGuard>();
