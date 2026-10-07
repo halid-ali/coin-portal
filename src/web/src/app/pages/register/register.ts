@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
 import { FieldA11y } from '../../shared/field-a11y';
+import { PasswordField } from '../../shared/password-field/password-field';
 import {
   USER_NAME_PATTERN,
   latestBirthDate,
@@ -54,7 +55,7 @@ const REGISTER_MESSAGE_KEYS: Record<string, MessageKey> = {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe],
+  imports: [ReactiveFormsModule, FieldA11y, PasswordField, RouterLink, TranslocoPipe],
   templateUrl: './register.html',
 })
 export class Register {

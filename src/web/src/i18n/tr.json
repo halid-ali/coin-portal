@@ -26,7 +26,9 @@
     "coinCount": {
       "one": "{{count}} coin",
       "other": "{{count}} coin"
-    }
+    },
+    "showPassword": "Parolayı göster",
+    "capsLockOn": "Caps Lock açık"
   },
   "unsaved": {
     "title": "Kaydedilmemiş değişiklikler",

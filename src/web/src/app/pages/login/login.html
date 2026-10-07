@@ -35,14 +35,16 @@
           >{{ 'login.forgotPassword' | transloco }}</a
         >
       </div>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        appField
-        autocomplete="current-password"
-        class="form-input"
-      />
+      <app-password-field>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          appField
+          autocomplete="current-password"
+          class="form-input"
+        />
+      </app-password-field>
       @if (errorMessage(form.controls.password); as msg) {
         <p id="password-error" class="form-error">{{ msg }}</p>
       }

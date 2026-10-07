@@ -10,10 +10,11 @@ import { safeReturnUrl } from '../../core/auth/return-url';
 import { httpErrorMessage } from '../../core/http/problem-details';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
 import { FieldA11y } from '../../shared/field-a11y';
+import { PasswordField } from '../../shared/password-field/password-field';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe],
+  imports: [ReactiveFormsModule, FieldA11y, PasswordField, RouterLink, TranslocoPipe],
   templateUrl: './login.html',
 })
 export class Login {

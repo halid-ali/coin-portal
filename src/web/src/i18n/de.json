@@ -26,7 +26,9 @@
     "coinCount": {
       "one": "{{count}} Münze",
       "other": "{{count}} Münzen"
-    }
+    },
+    "showPassword": "Passwort anzeigen",
+    "capsLockOn": "Feststelltaste ist aktiviert"
   },
   "unsaved": {
     "title": "Ungespeicherte Änderungen",

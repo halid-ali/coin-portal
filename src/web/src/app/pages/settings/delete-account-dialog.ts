@@ -12,6 +12,7 @@ import { TranslocoPipe, translate } from '@jsverse/transloco';
 
 import { httpErrorMessage } from '../../core/http/problem-details';
 import { SettingsService } from '../../core/settings/settings.service';
+import { PasswordField } from '../../shared/password-field/password-field';
 import { ExportDownload } from './export-download';
 
 let nextId = 0;
@@ -23,7 +24,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-delete-account-dialog',
-  imports: [TranslocoPipe, ExportDownload],
+  imports: [TranslocoPipe, ExportDownload, PasswordField],
   template: `
     <dialog
       #dialog
@@ -76,15 +77,17 @@ let nextId = 0;
           <label [for]="titleId + '-password'" class="form-label">{{
             'settings.account.delete.password' | transloco
           }}</label>
-          <input
-            [id]="titleId + '-password'"
-            type="password"
-            class="form-input"
-            autocomplete="current-password"
-            autofocus
-            [value]="password()"
-            (input)="password.set($any($event.target).value); error.set(null)"
-          />
+          <app-password-field>
+            <input
+              [id]="titleId + '-password'"
+              type="password"
+              class="form-input"
+              autocomplete="current-password"
+              autofocus
+              [value]="password()"
+              (input)="password.set($any($event.target).value); error.set(null)"
+            />
+          </app-password-field>
         </div>
 
         @if (error()) {
