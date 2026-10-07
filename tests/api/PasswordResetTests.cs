@@ -101,6 +101,8 @@ public class PasswordResetTests(CoinPortalFactory factory)
         await oldPassword.ShouldHaveStatusAsync(HttpStatusCode.Unauthorized);
         using var login = await visitor.LoginAsync(alice.UserName, NewPassword);
         Assert.True((await login.ReadJsonAsync<UserResponse>()).EmailConfirmed);
+        // The owner hears of it (someone else may have had the mailbox)
+        Assert.Contains("password was changed", factory.Mail.To(alice.User.Email).Last().Subject);
 
         // Once
         using var checkAgain = await visitor.PostAsync("/api/auth/reset-password/check",

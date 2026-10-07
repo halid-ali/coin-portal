@@ -150,3 +150,28 @@ public sealed class PasswordResetSender(
         base.Dispose();
     }
 }
+
+/// <summary>
+/// "Your password was changed" (user decision 2026-10-07), after Settings and after a reset link: the
+/// owner learns of a change someone else made and gets the way back. A failed send is logged; the
+/// password is changed either way.
+/// </summary>
+public sealed class PasswordChangedNotice(
+    IMailSender sender, IOptions<EmailOptions> options, ILogger<PasswordChangedNotice> logger)
+{
+    public async Task SendAsync(ApplicationUser user, CancellationToken ct)
+    {
+        try
+        {
+            var o = options.Value;
+            var mail = EmailTexts.PasswordChanged(user.PreferredLanguage, user.FirstName, user.UserName!,
+                $"{o.SiteUrl}/forgot-password", o.FromAddress);
+            await sender.SendAsync(new MailMessage(user.Email!, $"{user.FirstName} {user.LastName}", mail.Subject,
+                mail.Text, mail.Html), ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            logger.LogError(e, "Password changed e-mail not sent: {UserId}", user.Id);
+        }
+    }
+}

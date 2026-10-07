@@ -91,6 +91,8 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("POST", "api/Auth/verify-email", Access.Anyone, _ => "/api/auth/verify-email",
             w => Json(new VerifyEmailRequest(w.VerificationToken))),
         new("POST", "api/Auth/verify-email/resend", Access.SignedIn, _ => "/api/auth/verify-email/resend"),
+        new("POST", "api/Auth/change-password", Access.SignedIn, _ => "/api/auth/change-password",
+            _ => Json(new ChangePasswordRequest(TestUser.Password, "Newpass456"))),
         new("POST", "api/Auth/forgot-password", Access.Anyone, _ => "/api/auth/forgot-password",
             w => Json(new ForgotPasswordRequest(w.Owner.UserName))),
         new("POST", "api/Auth/reset-password/check", Access.Anyone, _ => "/api/auth/reset-password/check",
