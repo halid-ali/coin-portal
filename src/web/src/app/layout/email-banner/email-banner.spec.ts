@@ -57,10 +57,11 @@ describe('EmailBanner', () => {
   it('names the day the account is deleted without verification', async () => {
     const fixture = await render({ ...USER, unverifiedDeletionDueUtc: '2026-11-06T22:30:00Z' });
 
-    // The UTC day, like the reminder e-mail's
+    // The UTC day, like the reminder e-mail's, in bold within the sentence
     expect(element(fixture).textContent).toContain(
-      "Doğrulamazsan hesabın 6 Kasım 2026 tarihinde koleksiyonların, coin'lerin ve fotoğraflarınla birlikte silinecek.",
+      'Doğrulamazsan hesabın 6 Kasım 2026 tarihinde silinecek.',
     );
+    expect(element(fixture).querySelector('strong')!.textContent).toBe('6 Kasım 2026');
   });
 
   it('is not shown signed out', async () => {
@@ -73,10 +74,14 @@ describe('EmailBanner', () => {
 
   it('asks to confirm the address and sends the link again', async () => {
     const fixture = await render(USER);
-    expect(element(fixture).textContent).toContain('alice@example.com adresine bir link gönderdik');
+    expect(element(fixture).textContent).toContain('E-posta adresini doğrula: alice@example.com');
     // What waits for the address, with the coin limit of the site
-    expect(element(fixture).textContent).toContain('yeni koleksiyon açamaz');
-    expect(element(fixture).textContent).toContain('en fazla 20 coin olabilir');
+    const limits = [...element(fixture).querySelectorAll('li')].map((li) => li.textContent!.trim());
+    expect(limits).toEqual([
+      '• Yeni koleksiyon açamazsın',
+      '• Koleksiyon paylaşamazsın',
+      '• En fazla 20 coin ekleyebilirsin',
+    ]);
     // No date while the lifetime is off
     expect(element(fixture).textContent).not.toContain('silinecek');
 

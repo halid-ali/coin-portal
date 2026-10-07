@@ -756,12 +756,16 @@
   },
   "emailBanner": {
     "label": "Email verification",
-    "text": {
-      "one": "Confirm your email address: we sent a link to {{email}}. Until you do, you cannot open new collections or share collections, and your account can hold at most {{count}} coin.",
-      "other": "Confirm your email address: we sent a link to {{email}}. Until you do, you cannot open new collections or share collections, and your account can hold at most {{count}} coins."
-    },
-    "deletion": "If you do not confirm it, your account will be deleted on {{date}} with your collections, coins and photos.",
+    "title": "Confirm your email address: {{email}}",
     "resend": "Send the link again",
+    "deletion": "If you do not confirm it, your account will be deleted on {{date}}.",
+    "until": "Until you do:",
+    "noNewCollection": "You cannot open new collections",
+    "noSharing": "You cannot share collections",
+    "maxCoins": {
+      "one": "You can add at most {{count}} coin",
+      "other": "You can add at most {{count}} coins"
+    },
     "sent": "A new link was sent to {{email}}.",
     "notSent": "The email could not be sent right now. Try again in a little while."
   },

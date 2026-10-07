@@ -756,12 +756,16 @@
   },
   "emailBanner": {
     "label": "E-posta doğrulama",
-    "text": {
-      "one": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {{count}} coin olabilir.",
-      "other": "E-posta adresini doğrula: {{email}} adresine bir link gönderdik. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {{count}} coin olabilir."
-    },
-    "deletion": "Doğrulamazsan hesabın {{date}} tarihinde koleksiyonların, coin'lerin ve fotoğraflarınla birlikte silinecek.",
+    "title": "E-posta adresini doğrula: {{email}}",
     "resend": "Linki tekrar gönder",
+    "deletion": "Doğrulamazsan hesabın {{date}} tarihinde silinecek.",
+    "until": "Doğrulayana kadar:",
+    "noNewCollection": "Yeni koleksiyon açamazsın",
+    "noSharing": "Koleksiyon paylaşamazsın",
+    "maxCoins": {
+      "one": "En fazla {{count}} coin ekleyebilirsin",
+      "other": "En fazla {{count}} coin ekleyebilirsin"
+    },
     "sent": "Yeni link {{email}} adresine gönderildi.",
     "notSent": "E-posta şu an gönderilemedi. Biraz sonra tekrar dene."
   },

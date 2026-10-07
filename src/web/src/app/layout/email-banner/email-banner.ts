@@ -7,11 +7,15 @@ import { httpErrorKey, problemCode } from '../../core/http/problem-details';
 import { LanguageService } from '../../core/i18n/language.service';
 import { PluralPipe } from '../../core/i18n/plural';
 
+/** Stands for the date in the deletion sentence, which is cut there to set the date in bold. */
+const DATE_MARK = '⁣';
+
 /**
  * Above every page while the signed-in user's e-mail address is not verified: sharing
  * collections, opening another one and more coins than the limit (unverifiedMaxCoins) need it,
  * and when the account is deleted without it. Sends the link again; the link itself opens
- * /verify-email.
+ * /verify-email. Layout (user's choice, 2026-10-07): the address with the resend link, the
+ * deletion date, both with an icon in one column, then what waits for the address.
  */
 @Component({
   selector: 'app-email-banner',
@@ -20,16 +24,27 @@ import { PluralPipe } from '../../core/i18n/plural';
   template: `
     @if (user(); as user) {
       <section
-        class="mb-6 rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800"
+        class="mb-6 grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800 sm:px-5 sm:py-4"
         [attr.aria-label]="'emailBanner.label' | transloco"
       >
-        <p>
-          {{ 'emailBanner.text' | plural: user.unverifiedMaxCoins ?? 0 : { email: user.email } }}
-        </p>
-        @if (deletionDate(); as date) {
-          <p class="mt-1 font-medium">{{ 'emailBanner.deletion' | transloco: { date } }}</p>
-        }
-        <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span class="flex h-6 items-center" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            class="size-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+            <path d="m3.5 7 8.5 6 8.5-6" />
+          </svg>
+        </span>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p class="text-base leading-6 font-semibold wrap-break-word">
+            {{ 'emailBanner.title' | transloco: { email: user.email } }}
+          </p>
           <button
             type="button"
             class="link font-medium whitespace-nowrap"
@@ -38,14 +53,53 @@ import { PluralPipe } from '../../core/i18n/plural';
           >
             {{ 'emailBanner.resend' | transloco }}
           </button>
-          <span role="status">
-            @if (sent()) {
-              {{ 'emailBanner.sent' | transloco: { email: user.email } }}
-            }
+        </div>
+
+        @if (deletionDate(); as date) {
+          <span class="flex h-5 items-center" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              class="size-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
           </span>
+          @let sentence = ('emailBanner.deletion' | transloco: { date: dateMark }).split(dateMark);
+          <p class="leading-5 font-medium">
+            {{ sentence[0] }}<strong class="font-bold">{{ date }}</strong
+            >{{ sentence[1] }}
+          </p>
+        }
+
+        <div class="col-start-2 text-[0.8125rem] text-info-700">
+          <p class="mt-1">{{ 'emailBanner.until' | transloco }}</p>
+          <ul class="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+            <li>
+              <span aria-hidden="true">• </span>{{ 'emailBanner.noNewCollection' | transloco }}
+            </li>
+            <li><span aria-hidden="true">• </span>{{ 'emailBanner.noSharing' | transloco }}</li>
+            <li>
+              <span aria-hidden="true">• </span
+              >{{ 'emailBanner.maxCoins' | plural: user.unverifiedMaxCoins ?? 0 }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-start-2" role="status">
+          @if (sent()) {
+            <p>{{ 'emailBanner.sent' | transloco: { email: user.email } }}</p>
+          }
         </div>
         @if (error(); as error) {
-          <p role="alert" class="mt-2 font-medium text-danger-700">{{ error | transloco }}</p>
+          <p role="alert" class="col-start-2 font-medium text-danger-700">
+            {{ error | transloco }}
+          </p>
         }
       </section>
     }
@@ -54,6 +108,8 @@ import { PluralPipe } from '../../core/i18n/plural';
 export class EmailBanner {
   private readonly auth = inject(AuthService);
   private readonly language = inject(LanguageService);
+
+  protected readonly dateMark = DATE_MARK;
 
   /** The user while the address is unverified, otherwise null (no banner). */
   protected readonly user = computed(() => {

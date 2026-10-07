@@ -1660,6 +1660,9 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       tarihi, Genel bakış'ta son çalışmanın özeti (gönderilen/gönderilemeyen hatırlatma, silinen hesap).
       Kullanım şartları (`terms.ending.p2`) ve gizlilik (`privacy.retention`) dört dilde, tarihleri 2026-10-07.
       Testler: API 384, client 333, e2e 15.
+      Bant düzeni (kullanıcı seçimi 2026-10-07, taslaklarla): 1. satır zarf ikonu + "E-posta adresini doğrula:
+      <adres>" ve sağda "Linki tekrar gönder"; 2. satır aynı sütunda, aynı boyutta saat ikonu + silinme tarihi
+      (tarih kalın); altında "Doğrulayana kadar:" ve üç madde (yeni koleksiyon, paylaşım, coin sınırı).
     - **Testler:** API 13 yeni (`EmailVerificationTests`: dil, `SiteUrl`, HTML gövdesi ve adın kodlanması, çıkıştan sonra link, bozuk/süresi
       dolmuş/başka adres/kullanıcısız token, tekrar gönderme sınırı, sunucu kapalıyken kayıt + 503, paylaşma
       kuralı, eskiden paylaşılmışın kalması) + matris satırları + admin/dışa aktarma kontrolleri; testler

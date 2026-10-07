@@ -756,12 +756,16 @@
   },
   "emailBanner": {
     "label": "E-Mail-Bestätigung",
-    "text": {
-      "one": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {{count}} Münze haben.",
-      "other": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} geschickt. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {{count}} Münzen haben."
-    },
-    "deletion": "Wenn du sie nicht bestätigst, wird dein Konto am {{date}} mit deinen Sammlungen, Münzen und Fotos gelöscht.",
+    "title": "Bestätige deine E-Mail-Adresse: {{email}}",
     "resend": "Link erneut senden",
+    "deletion": "Wenn du sie nicht bestätigst, wird dein Konto am {{date}} gelöscht.",
+    "until": "Bis dahin:",
+    "noNewCollection": "Du kannst keine neuen Sammlungen anlegen",
+    "noSharing": "Du kannst keine Sammlungen teilen",
+    "maxCoins": {
+      "one": "Du kannst höchstens {{count}} Münze hinzufügen",
+      "other": "Du kannst höchstens {{count}} Münzen hinzufügen"
+    },
     "sent": "Ein neuer Link wurde an {{email}} gesendet.",
     "notSent": "Die E-Mail konnte gerade nicht gesendet werden. Versuche es gleich noch einmal."
   },
