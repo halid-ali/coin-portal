@@ -93,6 +93,57 @@ describe('AccountSettings', () => {
     dialog.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
   }
 
+  const MB = 1024 * 1024;
+
+  async function openWithStorage(usedBytes: number, quotaBytes = 300 * MB): Promise<HTMLElement> {
+    await harness.navigateByUrl('/settings/account');
+    http.expectOne('/api/settings/storage').flush({ usedBytes, quotaBytes });
+    await harness.fixture.whenStable();
+    return page().querySelector<HTMLElement>('[role=meter]')!;
+  }
+
+  it('shows how much of the photo storage is used', async () => {
+    await signIn();
+    const meter = await openWithStorage(45 * MB);
+
+    expect(page().textContent).toContain('45 MB / 300 MB kullanıldı');
+    expect(page().textContent).toContain('255 MB kaldı');
+    expect(meter.getAttribute('aria-valuenow')).toBe(String(45 * MB));
+    expect(meter.getAttribute('aria-valuetext')).toBe('45 MB / 300 MB kullanıldı');
+    expect(meter.querySelector('.usage-bar-fill')!.classList).not.toContain('usage-bar-fill-warn');
+    expect(page().textContent).not.toContain('Alanın dolmak üzere');
+  });
+
+  it('warns when the storage is nearly full', async () => {
+    await signIn();
+    const meter = await openWithStorage(280 * MB);
+
+    expect(meter.querySelector('.usage-bar-fill')!.classList).toContain('usage-bar-fill-warn');
+    expect(page().textContent).toContain('Alanın dolmak üzere');
+  });
+
+  it('says it is full, also above a lowered limit', async () => {
+    await signIn();
+    const meter = await openWithStorage(320 * MB);
+
+    expect(meter.querySelector('.usage-bar-fill')!.classList).toContain('usage-bar-fill-full');
+    // The bar stops at full
+    expect(meter.getAttribute('aria-valuenow')).toBe(String(300 * MB));
+    expect(page().textContent).toContain(
+      'Alanın doldu: yer açana kadar yeni fotoğraf yükleyemezsin.',
+    );
+  });
+
+  it('says so when the storage cannot be read', async () => {
+    await signIn();
+    await harness.navigateByUrl('/settings/account');
+    http.expectOne('/api/settings/storage').flush(null, { status: 0, statusText: 'Unknown Error' });
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('[role=meter]')).toBeNull();
+    expect(page().querySelector('[role=alert]')).not.toBeNull();
+  });
+
   it('offers the data export as a plain download link', async () => {
     await signIn();
     await harness.navigateByUrl('/settings/account');

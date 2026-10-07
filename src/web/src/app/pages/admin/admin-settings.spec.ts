@@ -6,6 +6,13 @@ import { provideAdminTranslations } from '../../core/admin/admin-translations';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { AdminSettings } from './admin-settings';
 
+const stored = {
+  minPublicCoins: 10,
+  unverifiedMaxCoins: 20,
+  unverifiedLifetimeDays: 30,
+  userQuotaMegabytes: 300,
+};
+
 describe('AdminSettings', () => {
   let fixture: ComponentFixture<AdminSettings>;
   let http: HttpTestingController;
@@ -24,9 +31,7 @@ describe('AdminSettings', () => {
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(AdminSettings);
     await fixture.whenStable();
-    http
-      .expectOne('/api/admin/settings')
-      .flush({ minPublicCoins: 10, unverifiedMaxCoins: 20, unverifiedLifetimeDays: 30 });
+    http.expectOne('/api/admin/settings').flush(stored);
     await fixture.whenStable();
   });
 
@@ -47,6 +52,7 @@ describe('AdminSettings', () => {
     expect(input().value).toBe('10');
     expect(input('unverified-max-coins').value).toBe('20');
     expect(input('unverified-lifetime-days').value).toBe('30');
+    expect(input('user-quota-megabytes').value).toBe('300');
   });
 
   it('tells how many public collections a new value leaves below it', async () => {
@@ -73,13 +79,8 @@ describe('AdminSettings', () => {
     page().querySelector('form')!.dispatchEvent(new Event('submit'));
 
     const request = http.expectOne((r) => r.method === 'PUT');
-    expect(request.request.body).toEqual({
-      minPublicCoins: 12,
-      unverifiedMaxCoins: 20,
-      unverifiedLifetimeDays: 30,
-      note: 'More photos',
-    });
-    request.flush({ minPublicCoins: 12, unverifiedMaxCoins: 20, unverifiedLifetimeDays: 30 });
+    expect(request.request.body).toEqual({ ...stored, minPublicCoins: 12, note: 'More photos' });
+    request.flush({ ...stored, minPublicCoins: 12 });
     await vi.waitFor(() => expect(page().textContent).toContain('Kaydedildi.'));
     // A pending impact lookup of the typed value is not needed any more
     http.match((r) => r.url === '/api/admin/settings/impact').forEach((r) => r.flush(null));
@@ -90,16 +91,34 @@ describe('AdminSettings', () => {
     page().querySelector('form')!.dispatchEvent(new Event('submit'));
 
     const request = http.expectOne((r) => r.method === 'PUT');
-    expect(request.request.body).toEqual({
-      minPublicCoins: 10,
-      unverifiedMaxCoins: 0,
-      unverifiedLifetimeDays: 30,
-      note: '',
-    });
-    request.flush({ minPublicCoins: 10, unverifiedMaxCoins: 0, unverifiedLifetimeDays: 30 });
+    expect(request.request.body).toEqual({ ...stored, unverifiedMaxCoins: 0, note: '' });
+    request.flush({ ...stored, unverifiedMaxCoins: 0 });
     await vi.waitFor(() => expect(page().textContent).toContain('Kaydedildi.'));
     expect(input('unverified-max-coins').value).toBe('0');
     // The minimum did not change: no impact lookup
+    http.expectNone((r) => r.url === '/api/admin/settings/impact');
+  });
+
+  it('tells how many users a new photo storage leaves above it, and saves it', async () => {
+    await type('100', 'user-quota-megabytes');
+
+    const impact = await vi.waitFor(() =>
+      http.expectOne((r) => r.url === '/api/admin/settings/quota-impact'),
+    );
+    expect(impact.request.params.get('userQuotaMegabytes')).toBe('100');
+    impact.flush({ userQuotaMegabytes: 100, usersAbove: 3 });
+    await vi.waitFor(() =>
+      expect(page().textContent).toContain('Bu değerle 3 kullanıcı sınırın üstünde kalır.'),
+    );
+    // The unit sits in the field; screen readers get it with the label
+    expect(page().querySelector('label[for=user-quota-megabytes]')!.textContent).toContain('(MB)');
+
+    page().querySelector('form')!.dispatchEvent(new Event('submit'));
+    const request = http.expectOne((r) => r.method === 'PUT');
+    expect(request.request.body).toEqual({ ...stored, userQuotaMegabytes: 100, note: '' });
+    request.flush({ ...stored, userQuotaMegabytes: 100 });
+    await vi.waitFor(() => expect(page().textContent).toContain('Kaydedildi.'));
+    expect(page().textContent).not.toContain('sınırın üstünde kalır');
     http.expectNone((r) => r.url === '/api/admin/settings/impact');
   });
 
@@ -121,6 +140,7 @@ describe('AdminSettings', () => {
     await type('0');
     await type('-1', 'unverified-max-coins');
     await type('366', 'unverified-lifetime-days');
+    await type('49', 'user-quota-megabytes');
     page().querySelector('form')!.dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
@@ -128,5 +148,6 @@ describe('AdminSettings', () => {
     expect(input().getAttribute('aria-invalid')).toBe('true');
     expect(input('unverified-max-coins').getAttribute('aria-invalid')).toBe('true');
     expect(input('unverified-lifetime-days').getAttribute('aria-invalid')).toBe('true');
+    expect(input('user-quota-megabytes').getAttribute('aria-invalid')).toBe('true');
   });
 });

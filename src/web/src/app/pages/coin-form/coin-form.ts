@@ -23,7 +23,11 @@ import { CollectionReturn } from '../../core/coins/collection-return';
 import { CountryService } from '../../core/coins/country.service';
 import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
-import { coinWithPhotosErrorMessage, photoErrorMessage } from '../../core/coins/photo-errors';
+import {
+  coinWithPhotosErrorMessage,
+  isQuotaExceeded,
+  photoErrorMessage,
+} from '../../core/coins/photo-errors';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
 import { denominationLabel, suggestTitle } from '../../shared/coin-format';
@@ -119,6 +123,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected readonly submitting = signal(false);
   protected readonly deleting = signal(false);
   protected readonly formErrors = signal<string[]>([]);
+  /** A photo did not fit in the user's storage: the errors link to Settings > Account. */
+  protected readonly quotaExceeded = signal(false);
   /** The user kept the national side photo to keep the collection public: not an error. */
   protected readonly photoKept = signal(false);
 
@@ -254,6 +260,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
 
     this.submitting.set(true);
     this.formErrors.set([]);
+    this.quotaExceeded.set(false);
     this.photoKept.set(false);
 
     const request = this.toRequest();
@@ -274,6 +281,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       this.submitting.set(false);
       const error = err as HttpErrorResponse;
       const photoError = coinWithPhotosErrorMessage(error);
+      this.quotaExceeded.set(isQuotaExceeded(error));
       this.formErrors.set(
         photoError ? [photoError] : applyServerErrors(this.form, error, {}, this.saveMessageKeys),
       );
@@ -413,6 +421,9 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
           this.dropStoredPhoto(side);
           this.photoChanges[side].set(null);
           continue;
+        }
+        if (isQuotaExceeded(error)) {
+          this.quotaExceeded.set(true);
         }
         failures.push(`${translate(`coin.side.${side}.label`)}: ${photoErrorMessage(error)}`);
       }

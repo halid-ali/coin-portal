@@ -20,3 +20,8 @@ public sealed record UserSettingsRequest(
 
 /// <summary>Deleting one's own account (DELETE api/settings/account) asks for the password again.</summary>
 public sealed record DeleteAccountRequest([Required] string Password);
+
+/// <summary>The user's photo storage (Settings > Account).</summary>
+/// <param name="UsedBytes">Coin photos and collection covers together, as the quota counts them.</param>
+/// <param name="QuotaBytes">The limit every user has (site setting); used may be above it after it was lowered.</param>
+public sealed record StorageResponse(long UsedBytes, long QuotaBytes);

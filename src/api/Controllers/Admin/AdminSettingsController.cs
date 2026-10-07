@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Publishing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,12 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
             }
             settings.UnverifiedLifetimeDays = request.UnverifiedLifetimeDays;
         }
+        if (settings.UserQuotaMegabytes != request.UserQuotaMegabytes)
+        {
+            AuditChange(SiteSettings.UserQuotaMegabytesName, settings.UserQuotaMegabytes, request.UserQuotaMegabytes,
+                request.Note);
+            settings.UserQuotaMegabytes = request.UserQuotaMegabytes;
+        }
         await db.SaveChangesAsync(ct);
         return ToResponse(settings);
     }
@@ -68,8 +75,27 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
         return new AdminSettingsImpactResponse(minPublicCoins, below);
     }
 
+    /// <summary>
+    /// How many users already store more than this photo storage. Nothing of theirs is removed;
+    /// they cannot upload until they free space.
+    /// </summary>
+    [HttpGet("quota-impact")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<AdminQuotaImpactResponse> QuotaImpact(
+        [FromQuery, Range(SiteSettings.UserQuotaMegabytesMin, SiteSettings.UserQuotaMegabytesMax)] int userQuotaMegabytes,
+        CancellationToken ct)
+    {
+        var limit = userQuotaMegabytes * PhotoQuota.BytesPerMegabyte;
+        // Same sum as PhotoQuota: photos and covers
+        var above = await db.Users.CountAsync(u =>
+            (db.CoinPhotos.Where(p => p.Coin.OwnerId == u.Id).Sum(p => (long?)p.SizeBytes) ?? 0)
+            + (db.Collections.Where(c => c.OwnerId == u.Id).Sum(c => (long?)c.CoverSizeBytes) ?? 0) > limit, ct);
+        return new AdminQuotaImpactResponse(userQuotaMegabytes, above);
+    }
+
     private static AdminSettingsResponse ToResponse(SiteSettings settings) =>
-        new(settings.MinPublicCoins, settings.UnverifiedMaxCoins, settings.UnverifiedLifetimeDays);
+        new(settings.MinPublicCoins, settings.UnverifiedMaxCoins, settings.UnverifiedLifetimeDays,
+            settings.UserQuotaMegabytes);
 
     private void AuditChange(string name, int oldValue, int newValue, string? note) =>
         Audit(db, AuditAction.SettingChanged, note: note, setting: (name,

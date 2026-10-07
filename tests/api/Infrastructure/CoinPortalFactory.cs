@@ -105,7 +105,8 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             await db.SiteSettings.ExecuteUpdateAsync(s => s
                 .SetProperty(x => x.MinPublicCoins, MinPublicCoins)
                 .SetProperty(x => x.UnverifiedMaxCoins, UnverifiedMaxCoins)
-                .SetProperty(x => x.UnverifiedLifetimeDays, UnverifiedLifetimeDays));
+                .SetProperty(x => x.UnverifiedLifetimeDays, UnverifiedLifetimeDays)
+                .SetProperty(x => x.UserQuotaMegabytes, UserQuotaMegabytes));
         }
         _ = Services;
     }
@@ -121,6 +122,9 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
 
     /// <summary>Days an unverified account lives in tests (the site's default).</summary>
     public const int UnverifiedLifetimeDays = 30;
+
+    /// <summary>Photo storage of every user in tests (the site's default).</summary>
+    public const int UserQuotaMegabytes = 300;
 
     public override async ValueTask DisposeAsync()
     {

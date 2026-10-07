@@ -193,9 +193,9 @@ public class CoinsController(
             photos.Add((photo, files));
         }
         if (photos.Count > 0
-            && !await photoQuota.FitsAsync(userId, photos.Sum(p => p.Photo.SizeBytes), null, ct))
+            && await photoQuota.ExceededLimitAsync(userId, photos.Sum(p => p.Photo.SizeBytes), null, ct) is { } limit)
         {
-            return this.QuotaExceeded(photoQuota.LimitBytes);
+            return this.QuotaExceeded(limit);
         }
 
         var coin = new Coin { OwnerId = userId, CreatedAtUtc = now };

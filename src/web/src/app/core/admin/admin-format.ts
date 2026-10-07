@@ -3,6 +3,9 @@
 
 import { cachedIntl } from '../i18n/intl-cache';
 
+// Byte sizes are shown outside the panel too (Settings > Account)
+export { formatBytes } from '../i18n/format-bytes';
+
 /** Short date and time, e.g. "1 Eki 2026 14:05". */
 export function formatDateTime(iso: string, lang: string): string {
   return cachedIntl(
@@ -52,26 +55,4 @@ export function formatRelative(iso: string, lang: string, now: number = Date.now
     return rtf.format(Math.round(diff / (30 * DAY)), 'month');
   }
   return rtf.format(Math.round(diff / (365 * DAY)), 'year');
-}
-
-const BYTE_UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const;
-
-/** Binary steps with the usual short units: "512 B", "1,5 MB", "2 GB". */
-export function formatBytes(bytes: number, lang: string): string {
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return cachedIntl(
-    `bytes|${lang}|${unit}`,
-    () =>
-      new Intl.NumberFormat(lang, {
-        style: 'unit',
-        unit: BYTE_UNITS[unit],
-        unitDisplay: 'short',
-        maximumFractionDigits: unit === 0 ? 0 : 1,
-      }),
-  ).format(value);
 }

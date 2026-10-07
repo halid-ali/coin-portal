@@ -395,6 +395,7 @@
     "viewLarge": "Enlarge: {{side}}",
     "choose": "Choose photo",
     "fileHint": "JPG or PNG",
+    "seeStorage": "See your photo storage",
     "willUpload": "Uploaded when you save",
     "willDelete": "Deleted when you save",
     "willRemove": "Removed when you save",
@@ -583,6 +584,14 @@
     },
     "account": {
       "nav": "Account",
+      "storage": {
+        "title": "Photo storage",
+        "description": "Your coin photos and collection covers use this space.",
+        "used": "{{used}} of {{quota}} used",
+        "left": "{{left}} left",
+        "nearlyFull": "Your storage is nearly full. Delete photos you no longer need to free up space.",
+        "full": "Your storage is full: you cannot upload new photos until you free up space."
+      },
       "export": {
         "title": "Download your data",
         "description": "Your account details, collections, coins and photos in a single ZIP file: the data as JSON, the photos in their largest size.",

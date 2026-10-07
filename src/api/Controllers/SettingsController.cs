@@ -3,6 +3,7 @@ using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Hosting;
+using CoinPortal.Api.Photos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ namespace CoinPortal.Api.Controllers;
 
 /// <summary>
 /// The signed-in user's own settings (settings page): UI language, color theme and accent color,
-/// and the account itself (data export, deletion).
+/// and the account itself (photo storage, data export, deletion).
 /// </summary>
 [ApiController]
 [Authorize]
@@ -47,6 +48,11 @@ public class SettingsController(UserManager<ApplicationUser> userManager) : Cont
 
         return Ok(ToResponse(user));
     }
+
+    /// <summary>How much of the photo storage the user's photos and covers take.</summary>
+    [HttpGet("storage")]
+    public async Task<StorageResponse> Storage([FromServices] PhotoQuota quota, CancellationToken ct) =>
+        new(await quota.UsedBytesAsync(userManager.GetUserId(User)!, null, ct), await quota.LimitBytesAsync(ct));
 
     /// <summary>
     /// Everything the user stored, as a ZIP: account.json, collections.json, photos/ and covers/

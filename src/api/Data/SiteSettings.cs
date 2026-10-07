@@ -26,6 +26,12 @@ public class SiteSettings
     /// <summary>Name of <see cref="UnverifiedLifetimeDays"/> in the audit log.</summary>
     public const string UnverifiedLifetimeDaysName = "UnverifiedLifetimeDays";
 
+    public const int UserQuotaMegabytesMin = 50;
+    public const int UserQuotaMegabytesMax = 2000;
+
+    /// <summary>Name of <see cref="UserQuotaMegabytes"/> in the audit log.</summary>
+    public const string UserQuotaMegabytesName = "UserQuotaMegabytes";
+
     public int Id { get; set; }
 
     /// <summary>
@@ -52,4 +58,11 @@ public class SiteSettings
     /// after being 0.
     /// </summary>
     public DateTime UnverifiedLifetimeSinceUtc { get; set; }
+
+    /// <summary>
+    /// Photo storage of every user in MB, coin photos and collection covers together
+    /// (<see cref="Photos.PhotoQuota"/>). Lowering it removes nothing: users above it cannot upload
+    /// until they free space.
+    /// </summary>
+    public int UserQuotaMegabytes { get; set; }
 }

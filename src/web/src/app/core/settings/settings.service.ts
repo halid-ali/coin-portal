@@ -17,6 +17,14 @@ export interface UserSettings {
   accent: AccentColor | null;
 }
 
+/** The user's photo storage (GET api/settings/storage). */
+export interface PhotoStorage {
+  /** Coin photos and collection covers together, as the quota counts them. */
+  usedBytes: number;
+  /** The limit every user has; used may be above it after an admin lowered it. */
+  quotaBytes: number;
+}
+
 /**
  * The data export (a ZIP). A plain link: the browser's download manager streams it, so a large
  * file never sits in the page's memory.
@@ -36,6 +44,10 @@ export class SettingsService {
 
   get(): Observable<UserSettings> {
     return this.http.get<UserSettings>('/api/settings');
+  }
+
+  storage(): Observable<PhotoStorage> {
+    return this.http.get<PhotoStorage>('/api/settings/storage');
   }
 
   /**

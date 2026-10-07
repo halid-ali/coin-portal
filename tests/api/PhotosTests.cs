@@ -4,6 +4,7 @@ using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Contracts.Countries;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -145,6 +146,29 @@ public class PhotosTests(CoinPortalFactory factory)
             .Where(c => c.Id == collection.Id).Select(c => c.CoverSizeBytes).SingleAsync()));
         using var again = await alice.Client.DeleteAsync($"/api/collections/{collection.Id}/cover");
         await again.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Upload_OverTheQuota_IsQuotaExceeded_AndStoresNothing()
+    {
+        var alice = await factory.SignUpAsync();
+        var collection = await alice.FirstCollectionAsync();
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id);
+        // As if this photo took the whole storage
+        await factory.WithDbAsync(db => db.CoinPhotos.Where(p => p.Id == photo.Id).ExecuteUpdateAsync(s =>
+            s.SetProperty(p => p.SizeBytes, CoinPortalFactory.UserQuotaMegabytes * PhotoQuota.BytesPerMegabyte)));
+        var images = Directory.GetDirectories(Path.Combine(factory.PhotoRoot, alice.User.Id));
+
+        using var common = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/Common", TestImages.Png(200, 160));
+        using var cover = await alice.Client.PutFileAsync($"/api/collections/{collection.Id}/cover", TestImages.Png(640, 360));
+
+        Assert.Equal("quota_exceeded", await common.ReadProblemCodeAsync());
+        Assert.Equal("quota_exceeded", await cover.ReadProblemCodeAsync());
+        Assert.Equal(images, Directory.GetDirectories(Path.Combine(factory.PhotoRoot, alice.User.Id)));
+        // The photo being replaced does not count: the new one fits in its place
+        using var replaced = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/National", TestImages.Png(200, 160));
+        await replaced.ShouldHaveStatusAsync(HttpStatusCode.OK);
     }
 
     [Fact]

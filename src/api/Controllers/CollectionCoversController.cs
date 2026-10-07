@@ -70,9 +70,9 @@ public class CollectionCoversController(
 
         // The cover being replaced does not count against the quota
         var oldCoverId = collection.CoverImageId;
-        if (!await photoQuota.FitsAsync(collection.OwnerId, cover.Length, oldCoverId, ct))
+        if (await photoQuota.ExceededLimitAsync(collection.OwnerId, cover.Length, oldCoverId, ct) is { } limit)
         {
-            return this.QuotaExceeded(photoQuota.LimitBytes);
+            return this.QuotaExceeded(limit);
         }
 
         // File first, then the row; a failed save removes the new file again
