@@ -145,6 +145,19 @@ import { UnverifiedMark } from './unverified-mark';
                   {{ 'admin.user.deletionDue' | transloco: { date: dateTime(u.deletionDueUtc) } }}
                 </dd>
               }
+              @if (!u.emailConfirmed) {
+                <!-- For a user whose mail does not arrive; the admin knows the address is theirs -->
+                <dd class="mt-2">
+                  <button
+                    type="button"
+                    class="btn-secondary px-3 py-1.5 text-sm"
+                    [attr.aria-disabled]="busy() || null"
+                    (click)="confirmEmail(u)"
+                  >
+                    {{ 'admin.user.confirmEmail' | transloco }}
+                  </button>
+                </dd>
+              }
             </div>
             <div>
               <dt class="text-shade-500">{{ 'admin.user.createdAt' | transloco }}</dt>
@@ -325,6 +338,24 @@ export class AdminUserDetailPage {
     });
     if (note !== null) {
       await this.run(() => this.admin.lockUser(user.id, note));
+    }
+  }
+
+  protected async confirmEmail(user: AdminUserDetail): Promise<void> {
+    if (this.busy()) {
+      return;
+    }
+    const note = await this.confirm.confirmWithNote({
+      title: translate('admin.user.confirmEmailTitle'),
+      message: translate('admin.user.confirmEmailMessage', {
+        userName: user.userName,
+        email: user.email,
+      }),
+      confirmText: translate('admin.user.confirmEmail'),
+      note: this.noteField(),
+    });
+    if (note !== null) {
+      await this.run(() => this.admin.confirmEmail(user.id, note));
     }
   }
 

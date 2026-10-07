@@ -8,6 +8,7 @@ import { formatBytes, formatNumber, formatRelative } from '../../core/admin/admi
 import { AdminAccountCleanup, AdminStats } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { AdminVerificationRequestsPanel } from './admin-verification-requests';
 
 type TileIcon =
   | 'users'
@@ -242,7 +243,7 @@ function cleanupCount(
  */
 @Component({
   selector: 'app-admin-overview',
-  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, AdminVerificationRequestsPanel],
   template: `
     @if (loadError()) {
       <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
@@ -285,6 +286,8 @@ function cleanupCount(
             }
           </section>
         }
+        <!-- After the unverified accounts group: the one-time request to verify -->
+        <app-admin-verification-requests />
       </div>
     }
 

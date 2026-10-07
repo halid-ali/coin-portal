@@ -140,7 +140,9 @@ export type AuditAction =
   | 'UserDeleted'
   | 'CollectionHidden'
   | 'CollectionUnlocked'
-  | 'SettingChanged';
+  | 'SettingChanged'
+  | 'EmailConfirmed'
+  | 'VerificationEmailsRequested';
 export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'UserLocked',
   'UserUnlocked',
@@ -148,6 +150,8 @@ export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'CollectionHidden',
   'CollectionUnlocked',
   'SettingChanged',
+  'EmailConfirmed',
+  'VerificationEmailsRequested',
 ];
 
 export interface AdminAuditQuery {
@@ -190,6 +194,23 @@ export interface AdminSettings {
 export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
 export const UNVERIFIED_MAX_COINS_RANGE = { min: 0, max: 10_000 } as const;
 export const UNVERIFIED_LIFETIME_DAYS_RANGE = { min: 0, max: 365 } as const;
+
+/** The one-time request to verify the e-mail address (GET/POST api/admin/verification-requests). */
+export interface AdminVerificationRequests {
+  /** Unverified, unlocked accounts that have not had it yet. */
+  pending: number;
+  /** The running run or the last one since the API started; null before the first. */
+  lastRun: AdminVerificationRun | null;
+}
+
+export interface AdminVerificationRun {
+  startedAtUtc: string;
+  /** Null while it runs. */
+  finishedAtUtc: string | null;
+  total: number;
+  sent: number;
+  failed: number;
+}
 
 /** What a bulk deletion did; admins among the selected are skipped. */
 export interface AdminDeleteUsersResult {

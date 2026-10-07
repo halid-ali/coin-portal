@@ -142,7 +142,10 @@
     "noHistory": "No entries about this user.",
     "emailConfirmed": "Confirmed",
     "emailUnconfirmed": "Not confirmed",
-    "deletionDue": "Deleted unless verified: {{date}}"
+    "deletionDue": "Deleted unless verified: {{date}}",
+    "confirmEmail": "Mark email as verified",
+    "confirmEmailTitle": "Mark the email address as verified",
+    "confirmEmailMessage": "The address of @{{userName}} ({{email}}) counts as verified: the limits go and the account is not deleted. Only do this when you are sure the address is theirs."
   },
   "collections": {
     "search": "Search collection or username",
@@ -195,7 +198,9 @@
       "UserDeleted": "User deleted",
       "CollectionHidden": "Collection hidden",
       "CollectionUnlocked": "Collection unlocked",
-      "SettingChanged": "Setting changed"
+      "SettingChanged": "Setting changed",
+      "EmailConfirmed": "Email verified (admin)",
+      "VerificationEmailsRequested": "Verification emails sent"
     },
     "column": {
       "time": "Time",
@@ -204,7 +209,11 @@
     },
     "deletedUser": "Deleted user",
     "deletedCollection": "deleted collection",
-    "changedTo": "changed to"
+    "changedTo": "changed to",
+    "accounts": {
+      "one": "{{count}} account",
+      "other": "{{count}} accounts"
+    }
   },
   "note": {
     "label": "Note (optional)",
@@ -232,5 +241,23 @@
       "UnverifiedMaxCoins": "Max. coins of an unverified account",
       "UnverifiedLifetimeDays": "Lifetime of an unverified account (days)"
     }
+  },
+  "verification": {
+    "title": "Verification email (one-time)",
+    "text": "Sends the accounts from before email verification an email asking them to confirm their address. Each account gets it once; locked accounts are left out. It sends in the background, one email every few seconds. Make sure sending email works on the live site first.",
+    "start": {
+      "one": "Send to {{count}} account",
+      "other": "Send to {{count}} accounts"
+    },
+    "nothing": "No accounts left to send to.",
+    "running": "Sending: {{done}}/{{total}}",
+    "finished": "Last run {{time}}: {{sent}} sent, {{failed}} not sent.",
+    "confirmTitle": "Send verification emails",
+    "confirmMessage": {
+      "one": "A verification email goes to {{count}} account. Each account gets it once.",
+      "other": "A verification email goes to {{count}} accounts. Each account gets it once."
+    },
+    "send": "Send",
+    "failed": "The sending could not be started. Reload the page and try again."
   }
 }

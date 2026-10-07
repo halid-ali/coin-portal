@@ -142,7 +142,10 @@
     "noHistory": "Bu kullanıcıyla ilgili kayıt yok.",
     "emailConfirmed": "Doğrulandı",
     "emailUnconfirmed": "Doğrulanmadı",
-    "deletionDue": "Doğrulanmazsa silinecek: {{date}}"
+    "deletionDue": "Doğrulanmazsa silinecek: {{date}}",
+    "confirmEmail": "E-postayı doğrulanmış işaretle",
+    "confirmEmailTitle": "E-posta adresini doğrulanmış işaretle",
+    "confirmEmailMessage": "@{{userName}} kullanıcısının adresi ({{email}}) doğrulanmış sayılır: sınırları kalkar ve hesap silinmez. Bunu sadece adresin bu kişiye ait olduğundan eminsen yap."
   },
   "collections": {
     "search": "Koleksiyon veya kullanıcı adı ara",
@@ -195,7 +198,9 @@
       "UserDeleted": "Kullanıcı silindi",
       "CollectionHidden": "Koleksiyon gizlendi",
       "CollectionUnlocked": "Koleksiyonun kilidi kaldırıldı",
-      "SettingChanged": "Ayar değiştirildi"
+      "SettingChanged": "Ayar değiştirildi",
+      "EmailConfirmed": "E-posta doğrulandı (admin)",
+      "VerificationEmailsRequested": "Doğrulama e-postası gönderildi"
     },
     "column": {
       "time": "Zaman",
@@ -204,7 +209,11 @@
     },
     "deletedUser": "Silinmiş kullanıcı",
     "deletedCollection": "silinmiş koleksiyon",
-    "changedTo": "yeni değer"
+    "changedTo": "yeni değer",
+    "accounts": {
+      "one": "{{count}} hesap",
+      "other": "{{count}} hesap"
+    }
   },
   "note": {
     "label": "Not (isteğe bağlı)",
@@ -232,5 +241,23 @@
       "UnverifiedMaxCoins": "Doğrulanmamış hesapta en fazla coin",
       "UnverifiedLifetimeDays": "Doğrulanmamış hesabın ömrü (gün)"
     }
+  },
+  "verification": {
+    "title": "Doğrulama e-postası (bir seferlik)",
+    "text": "E-posta doğrulamasından önce açılmış hesaplara adreslerini doğrulamalarını isteyen bir e-posta gönderir. Her hesap bunu bir kez alır, kilitli hesaplar hariç. Gönderim arka planda, birkaç saniyede bir e-posta olarak yapılır. Önce canlıda e-posta gönderiminin çalıştığından emin ol.",
+    "start": {
+      "one": "{{count}} hesaba gönder",
+      "other": "{{count}} hesaba gönder"
+    },
+    "nothing": "Gönderilecek hesap yok.",
+    "running": "Gönderiliyor: {{done}}/{{total}}",
+    "finished": "Son gönderim {{time}}: {{sent}} gönderildi, {{failed}} gönderilemedi.",
+    "confirmTitle": "Doğrulama e-postası gönder",
+    "confirmMessage": {
+      "one": "{{count}} hesaba doğrulama e-postası gönderilecek. Her hesap bunu bir kez alır.",
+      "other": "{{count}} hesaba doğrulama e-postası gönderilecek. Her hesap bunu bir kez alır."
+    },
+    "send": "Gönder",
+    "failed": "Gönderim başlatılamadı. Sayfayı yenileyip tekrar dene."
   }
 }
