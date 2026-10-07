@@ -189,7 +189,7 @@ let nextId = 0;
                               | transloco: { photographed: p.photographed, required: p.required }
                           }}
                           @if (p.missing > 0) {
-                            <span aria-hidden="true">·</span>
+                            &ngsp;<span aria-hidden="true">·</span>&ngsp;
                             {{ 'publication.missing' | plural: p.missing }}
                           }
                         } @else {

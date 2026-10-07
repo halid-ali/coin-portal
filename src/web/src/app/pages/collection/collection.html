@@ -238,7 +238,7 @@
                   'publication.progress'
                     | transloco: { photographed: p.photographed, required: p.required }
                 }}
-                <span aria-hidden="true">·</span>
+                &ngsp;<span aria-hidden="true">·</span>&ngsp;
                 {{ 'publication.readyText' | transloco }}
               </p>
             </div>
@@ -286,13 +286,14 @@
                     | transloco: { photographed: p.photographed, required: p.required }
                 }}
                 @if (p.missing > 0) {
-                  <span aria-hidden="true">·</span>
+                  &ngsp;<span aria-hidden="true">·</span>&ngsp;
                   <a [routerLink]="[]" [queryParams]="missingPhotosQuery()" class="link">{{
                     'publication.missing' | plural: p.missing
                   }}</a>
                 }
-                @if (collection()?.visibility === 'Private') {
-                  <span aria-hidden="true">·</span>
+                <!-- Not while the address is unverified: sharing waits for it -->
+                @if (collection()?.visibility === 'Private' && !emailBlocked()) {
+                  &ngsp;<span aria-hidden="true">·</span>&ngsp;
                   {{ 'publication.shareByLinkMeanwhile' | transloco }}
                 }
               </p>
