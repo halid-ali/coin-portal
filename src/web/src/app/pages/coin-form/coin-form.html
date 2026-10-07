@@ -221,7 +221,7 @@
         <p class="form-hint mt-0 mb-3">
           {{ 'coinForm.photosHint' | transloco }}
         </p>
-        <div class="grid grid-cols-2 gap-4 sm:gap-6">
+        <div class="grid grid-cols-2 gap-x-4 sm:gap-x-6">
           @for (side of sides; track side) {
             <app-photo-slot
               [label]="'coin.side.' + side + '.label' | transloco"
