@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-10-07
+
+### Added
+
+- **client:** Compact bulk selection bar in the admin user list
+- **client:** Group cards and setting rows on the admin general settings page
+- **client:** Breadcrumbs on the profile, collection and coin form pages
+- **api:** Photo storage limit as an admin site setting
+- **client:** Photo storage on the account page and in the admin settings
+
+### Fixed
+
+- **client:** Align the photo boxes in the coin form
+- **client:** Clearer title for the publication notice
+
 ## [1.7.0] - 2026-10-07
 
 ### Added
