@@ -5,7 +5,7 @@ namespace CoinPortal.Api.Accounts;
 /// <summary>
 /// Configuration section "UserLimits": how much one account may hold. Far above a real
 /// collection (the dev seed has about 110 coins per user), they stop a script from filling the
-/// database. Photos have their own byte quota (PhotoStorage:UserQuotaBytes).
+/// database. Photos have their own byte quota (the site setting UserQuotaMegabytes).
 /// </summary>
 public sealed class UserLimitOptions
 {

@@ -96,6 +96,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("GET", "api/Settings", Access.SignedIn, _ => "/api/settings"),
         new("PUT", "api/Settings", Access.SignedIn, _ => "/api/settings",
             _ => Json(new UserSettingsRequest("tr", null, null))),
+        new("GET", "api/Settings/storage", Access.SignedIn, _ => "/api/settings/storage"),
         new("GET", "api/Settings/export", Access.SignedIn, _ => "/api/settings/export"),
         new("DELETE", "api/Settings/account", Access.SignedIn, _ => "/api/settings/account",
             _ => Json(new DeleteAccountRequest(TestUser.Password))),
@@ -188,9 +189,11 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         // The current value: nothing changes
         new("PUT", "api/admin/settings", Access.Admin, _ => "/api/admin/settings",
             _ => Json(new AdminSettingsRequest(CoinPortalFactory.MinPublicCoins, CoinPortalFactory.UnverifiedMaxCoins,
-                CoinPortalFactory.UnverifiedLifetimeDays, null))),
+                CoinPortalFactory.UnverifiedLifetimeDays, CoinPortalFactory.UserQuotaMegabytes, null))),
         new("GET", "api/admin/settings/impact", Access.Admin,
             _ => $"/api/admin/settings/impact?minPublicCoins={CoinPortalFactory.MinPublicCoins}"),
+        new("GET", "api/admin/settings/quota-impact", Access.Admin,
+            _ => $"/api/admin/settings/quota-impact?userQuotaMegabytes={CoinPortalFactory.UserQuotaMegabytes}"),
     ];
 
     public static TheoryData<string> Endpoints => new(Rows.Select(r => r.Key));

@@ -2,7 +2,9 @@ using System.Net;
 using CoinPortal.Api.Contracts.Admin;
 using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Contracts.Common;
+using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +28,7 @@ public class SiteSettingsTests(CoinPortalFactory factory)
         await alice.Client.ExpectStatusAsync(Url, HttpStatusCode.Forbidden);
         await visitor.ExpectStatusAsync(Url, HttpStatusCode.Unauthorized);
         await alice.Client.ExpectStatusAsync($"{Url}/impact?minPublicCoins=5", HttpStatusCode.Forbidden);
+        await alice.Client.ExpectStatusAsync($"{Url}/quota-impact?userQuotaMegabytes=50", HttpStatusCode.Forbidden);
         using var put = await alice.Client.PutAsync(Url, Settings(5));
         await put.ShouldHaveStatusAsync(HttpStatusCode.Forbidden);
         Assert.Equal(CoinPortalFactory.MinPublicCoins,
@@ -174,6 +177,72 @@ public class SiteSettingsTests(CoinPortalFactory factory)
     }
 
     [Fact]
+    public async Task LoweredQuota_KeepsThePhotos_ButStopsUploads_UntilSpaceIsFreed()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id);
+        var aboveBefore = await QuotaImpactAsync(admin, 50);
+        // As if alice stored 60 MB: within the current quota, above the lowest one
+        await factory.WithDbAsync(db => db.CoinPhotos.Where(p => p.Id == photo.Id).ExecuteUpdateAsync(s =>
+            s.SetProperty(p => p.SizeBytes, 60 * PhotoQuota.BytesPerMegabyte)));
+        try
+        {
+            Assert.Equal(aboveBefore + 1, await QuotaImpactAsync(admin, 50));
+            using (var lower = await admin.Client.PutAsync(Url,
+                       Settings(CoinPortalFactory.MinPublicCoins, userQuotaMegabytes: 50, note: "Disk")))
+            {
+                Assert.Equal(50, (await lower.ReadJsonAsync<AdminSettingsResponse>()).UserQuotaMegabytes);
+            }
+
+            // Nothing removed, the limit shown, no new upload
+            Assert.Equal(new StorageResponse(60 * PhotoQuota.BytesPerMegabyte, 50 * PhotoQuota.BytesPerMegabyte),
+                await alice.Client.GetJsonAsync<StorageResponse>("/api/settings/storage"));
+            using (var common = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/Common",
+                       TestImages.Png(200, 160)))
+            {
+                Assert.Equal("quota_exceeded", await common.ReadProblemCodeAsync());
+            }
+            var entry = Assert.Single((await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+                    $"/api/admin/audit?action={AuditAction.SettingChanged}")).Items,
+                e => e.ActorId == admin.User.Id);
+            Assert.Equal((SiteSettings.UserQuotaMegabytesName, "300", "50", "Disk"),
+                (entry.Setting, entry.OldValue, entry.NewValue, entry.Note));
+
+            // Freeing the space lets uploads in again
+            using (var delete = await alice.Client.DeleteAsync($"/api/coins/{coin.Id}/photos/National"))
+            {
+                await delete.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+            }
+            using var again = await alice.Client.PutFileAsync($"/api/coins/{coin.Id}/photos/Common",
+                TestImages.Png(200, 160));
+            await again.ShouldHaveStatusAsync(HttpStatusCode.OK);
+        }
+        finally
+        {
+            await RestoreAsync(admin);
+        }
+    }
+
+    [Theory]
+    [InlineData(49)]
+    [InlineData(2001)]
+    public async Task Update_RejectsQuotasOutOfRange(int value)
+    {
+        var admin = await factory.SignUpAdminAsync();
+
+        using var response = await admin.Client.PutAsync(Url,
+            Settings(CoinPortalFactory.MinPublicCoins, userQuotaMegabytes: value));
+        using var impact = await admin.Client.GetAsync($"{Url}/quota-impact?userQuotaMegabytes={value}");
+
+        Assert.Equal(["UserQuotaMegabytes"], await response.ReadValidationKeysAsync());
+        await impact.ShouldHaveStatusAsync(HttpStatusCode.BadRequest);
+        Assert.Equal(CoinPortalFactory.UserQuotaMegabytes,
+            (await admin.Client.GetJsonAsync<AdminSettingsResponse>(Url)).UserQuotaMegabytes);
+    }
+
+    [Fact]
     public async Task RaisedMinimum_KeepsPublicCollections_UntilAChangeLowersTheCount()
     {
         var admin = await factory.SignUpAdminAsync();
@@ -220,13 +289,18 @@ public class SiteSettingsTests(CoinPortalFactory factory)
         (await admin.Client.GetJsonAsync<AdminSettingsImpactResponse>($"{Url}/impact?minPublicCoins={minPublicCoins}"))
         .PublicCollectionsBelow;
 
+    private static async Task<int> QuotaImpactAsync(TestUser admin, int userQuotaMegabytes) =>
+        (await admin.Client.GetJsonAsync<AdminQuotaImpactResponse>(
+            $"{Url}/quota-impact?userQuotaMegabytes={userQuotaMegabytes}")).UsersAbove;
+
     private Task<DateTime> LifetimeSinceAsync() =>
         factory.WithDbAsync(db => db.SiteSettings.Select(s => s.UnverifiedLifetimeSinceUtc).SingleAsync());
 
     private static AdminSettingsRequest Settings(int minPublicCoins,
         int unverifiedMaxCoins = CoinPortalFactory.UnverifiedMaxCoins,
-        int unverifiedLifetimeDays = CoinPortalFactory.UnverifiedLifetimeDays, string? note = null) =>
-        new(minPublicCoins, unverifiedMaxCoins, unverifiedLifetimeDays, note);
+        int unverifiedLifetimeDays = CoinPortalFactory.UnverifiedLifetimeDays,
+        int userQuotaMegabytes = CoinPortalFactory.UserQuotaMegabytes, string? note = null) =>
+        new(minPublicCoins, unverifiedMaxCoins, unverifiedLifetimeDays, userQuotaMegabytes, note);
 
     private static async Task RestoreAsync(TestUser admin)
     {

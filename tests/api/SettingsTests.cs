@@ -2,7 +2,9 @@ using System.Net;
 using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Photos;
 using CoinPortal.Api.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoinPortal.Api.Tests;
 
@@ -16,6 +18,32 @@ public class SettingsTests(CoinPortalFactory factory)
         var settings = await alice.Client.GetJsonAsync<UserSettingsResponse>("/api/settings");
 
         Assert.Equal(new UserSettingsResponse("tr", null, null), settings);
+    }
+
+    [Fact]
+    public async Task Storage_CountsOwnPhotosAndCovers_AgainstTheQuota()
+    {
+        var alice = await factory.SignUpAsync();
+        var bob = await factory.SignUpAsync();
+        const long quota = CoinPortalFactory.UserQuotaMegabytes * PhotoQuota.BytesPerMegabyte;
+
+        Assert.Equal(new StorageResponse(0, quota),
+            await alice.Client.GetJsonAsync<StorageResponse>("/api/settings/storage"));
+
+        var collection = await alice.FirstCollectionAsync();
+        var coin = await alice.CreateCoinAsync(collection.Id);
+        await alice.UploadPhotoAsync(coin.Id);
+        await alice.UploadCoverAsync(collection.Id);
+        var bobCoin = await bob.CreateCoinAsync((await bob.FirstCollectionAsync()).Id);
+        await bob.UploadPhotoAsync(bobCoin.Id);
+        var stored = await factory.WithDbAsync(async db =>
+            await db.CoinPhotos.Where(p => p.CoinId == coin.Id).SumAsync(p => p.SizeBytes)
+            + await db.Collections.Where(c => c.Id == collection.Id).SumAsync(c => c.CoverSizeBytes));
+
+        // Photo and cover, not bob's
+        Assert.True(stored > 0);
+        Assert.Equal(new StorageResponse(stored, quota),
+            await alice.Client.GetJsonAsync<StorageResponse>("/api/settings/storage"));
     }
 
     [Fact]

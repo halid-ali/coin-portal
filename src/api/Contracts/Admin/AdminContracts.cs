@@ -298,15 +298,21 @@ public sealed record AdminAuditEntryResponse(
 /// <param name="MinPublicCoins">Photographed coins a collection needs to become Public.</param>
 /// <param name="UnverifiedMaxCoins">Coins an account may hold until its e-mail address is verified.</param>
 /// <param name="UnverifiedLifetimeDays">Days after which an account still unverified is deleted; 0: never.</param>
-public sealed record AdminSettingsResponse(int MinPublicCoins, int UnverifiedMaxCoins, int UnverifiedLifetimeDays);
+public sealed record AdminSettingsResponse(
+    int MinPublicCoins, int UnverifiedMaxCoins, int UnverifiedLifetimeDays, int UserQuotaMegabytes);
 
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminSettingsRequest(
     [Range(SiteSettings.MinPublicCoinsMin, SiteSettings.MinPublicCoinsMax)] int MinPublicCoins,
     [Range(SiteSettings.UnverifiedMaxCoinsMin, SiteSettings.UnverifiedMaxCoinsMax)] int UnverifiedMaxCoins,
     [Range(SiteSettings.UnverifiedLifetimeDaysMin, SiteSettings.UnverifiedLifetimeDaysMax)] int UnverifiedLifetimeDays,
+    [Range(SiteSettings.UserQuotaMegabytesMin, SiteSettings.UserQuotaMegabytesMax)] int UserQuotaMegabytes,
     [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 /// <summary>What a minimum would mean before it is saved.</summary>
 /// <param name="PublicCollectionsBelow">Public collections with fewer photographed coins. They stay Public; the minimum applies at their next change that lowers the count.</param>
 public sealed record AdminSettingsImpactResponse(int MinPublicCoins, int PublicCollectionsBelow);
+
+/// <summary>What a photo storage limit would mean before it is saved.</summary>
+/// <param name="UsersAbove">Users who store more already. Nothing of theirs is removed; they cannot upload until they free space.</param>
+public sealed record AdminQuotaImpactResponse(int UserQuotaMegabytes, int UsersAbove);

@@ -62,9 +62,9 @@ public class CoinPhotosController(
         var sizeBytes = files!.Values.Sum(f => (long)f.Length);
 
         // The photo being replaced does not count against the quota
-        if (!await photoQuota.FitsAsync(coin.OwnerId, sizeBytes, existing?.Id, ct))
+        if (await photoQuota.ExceededLimitAsync(coin.OwnerId, sizeBytes, existing?.Id, ct) is { } limit)
         {
-            return this.QuotaExceeded(photoQuota.LimitBytes);
+            return this.QuotaExceeded(limit);
         }
 
         // Files first, then the row: a failed save removes the new files again

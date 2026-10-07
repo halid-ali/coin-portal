@@ -30,10 +30,6 @@ public class PhotoOptions
     [Range(1, 16)]
     public int MaxConcurrentDecodes { get; set; } = 2;
 
-    /// <summary>Stored bytes allowed per user, all sizes of all photos together.</summary>
-    [Range(1, long.MaxValue)]
-    public long UserQuotaBytes { get; set; } = 300L * 1024 * 1024;
-
     /// <summary>Lossy WebP quality, 0-100.</summary>
     [Range(1, 100)]
     public int WebpQuality { get; set; } = 80;

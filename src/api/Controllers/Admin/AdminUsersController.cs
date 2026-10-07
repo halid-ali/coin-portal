@@ -21,7 +21,7 @@ namespace CoinPortal.Api.Controllers.Admin;
 /// </summary>
 [Route("api/admin/users")]
 public class AdminUsersController(
-    AppDbContext db, UserManager<ApplicationUser> userManager, PhotoQuota photoQuota,
+    AppDbContext db, UserManager<ApplicationUser> userManager,
     AccountDeletion deletion) : AdminControllerBase
 {
     [HttpGet]
@@ -69,7 +69,7 @@ public class AdminUsersController(
         var settings = await db.SiteSettings.AsNoTracking().SingleAsync(s => s.Id == SiteSettings.SingletonId, ct);
         var deletionDue = row.IsAdmin ? null : UnverifiedLifetime.DueUtc(row.EmailConfirmed, row.LockedAtUtc,
             row.CreatedAtUtc, row.DeletionReminderTriedAtUtc, settings, DateTime.UtcNow);
-        return row.ToDetail(photoQuota.LimitBytes, deletionDue);
+        return row.ToDetail(settings.UserQuotaMegabytes * PhotoQuota.BytesPerMegabyte, deletionDue);
     }
 
     /// <summary>Locks the user until unlocked; their sessions end within the cookie validation interval.</summary>
