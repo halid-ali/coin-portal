@@ -1663,6 +1663,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       Bant düzeni (kullanıcı seçimi 2026-10-07, taslaklarla): 1. satır zarf ikonu + "E-posta adresini doğrula:
       <adres>" ve sağda "Linki tekrar gönder"; 2. satır aynı sütunda, aynı boyutta saat ikonu + silinme tarihi
       (tarih kalın); altında "Doğrulayana kadar:" ve üç madde (yeni koleksiyon, paylaşım, coin sınırı).
+      "Linki tekrar gönder" her genişlikte ikincil buton. Ekleme butonları (yeni koleksiyon, coin) kullanılamazken
+      **yerinde ve gri** (`btn-unavailable`; soluk görünüm "işlem sürüyor" demek olduğu için ayrı), ayrı not ve
+      "coin sınırı" kutuları kaldırıldı: neden bantta, ekran okuyucu butondan banttaki maddeye gider (kullanıcı
+      kararları 2026-10-07). Bütün butonlara el imleci (Tailwind 4 ok yapıyordu; linkler el gösteriyordu).
     - **Testler:** API 13 yeni (`EmailVerificationTests`: dil, `SiteUrl`, HTML gövdesi ve adın kodlanması, çıkıştan sonra link, bozuk/süresi
       dolmuş/başka adres/kullanıcısız token, tekrar gönderme sınırı, sunucu kapalıyken kayıt + 503, paylaşma
       kuralı, eskiden paylaşılmışın kalması) + matris satırları + admin/dışa aktarma kontrolleri; testler

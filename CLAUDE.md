@@ -219,8 +219,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   mevcut kullanıcılar doğrulanmamış başladı, kullanıcı kararı); düzenleme, silme, ad değiştirme, link
   yenileme serbest, sadece yeni paylaşım ve ekleme engellenir. Client: üstte `layout/email-banner`
   (sınırları söyler, tekrar gönder), formda kapalı seçenekler (`emailBlocked`), koleksiyon sayfasında
-  yayın butonu yerine not; "Yeni koleksiyon" yerine not (Koleksiyonlarım, ana sayfa); sınırdayken "Coin
-  ekle" yerine not (koleksiyon sayfası hesabın toplamını `api/coins/summary`'den alır, ana sayfa). Coin
+  yayın butonu yerine not. "Yeni koleksiyon" (Koleksiyonlarım, ana sayfa) ve sınırdayken "Coin ekle"
+  (koleksiyon sayfası hesabın toplamını `api/coins/summary`'den alır, ana sayfa) **yerinde kalır, gri**
+  (`btn-unavailable`, `aria-disabled`; link olan "Coin ekle" gri bir `<button>` olur). Ayrı bir not ya da
+  kutu yok (kullanıcı kararı 2026-10-07: bant zaten söylüyor); ekran okuyucu için butonun
+  `aria-describedby`'ı banttaki maddeye gider (`EMAIL_LIMIT_IDS`). Coin
   formuna doğrudan gelinirse API'nin hatası gösterilir (`errors.unverifiedCoinLimit`). Panelde durum
   `Unverified` (gri; kilit ağır basar) ve isim yanında zarf + saat ikonu (`pages/admin/unverified-mark`,
   durumdan bağımsız, kilitli + doğrulanmamış ayırt edilir).
@@ -591,7 +594,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `not-allowed`'ını alır). Yeni bir tıklanır öğe gerçek `<button>` ya da link olur.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `form-checkbox`, `alert-error`, `btn-primary`, `btn-secondary`,
-  `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-danger` (kırmızı dolgu, sadece
+  `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-unavailable` (hesabın henüz
+  kullanamadığı buton, iki temada gri; meşgul butonun solukluğundan ayrı), `btn-danger` (kırmızı dolgu, sadece
   onay penceresinin butonu), `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış
   animasyonu), `app-splash` (`index.html`'deki açılış ekranı),
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
