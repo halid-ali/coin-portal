@@ -202,7 +202,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `account`).
   Eski `/collection…` adresleri yönlendirilir.
   Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`, `settings`; `adminGuard`).
-  Girişsiz: `/privacy`, `/terms`, `/contact` (yasal sayfalar), `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
+  Girişsiz: `/forgot-password` (girişliyken ana sayfaya), `/reset-password?token=` (e-postadaki link; girişliyken de
+  açılır), `/privacy`, `/terms`, `/contact` (yasal sayfalar), `/explore` (Keşfet), `/u/:userName` (profil), `/u/:userName/:collectionId` (herkese açık
   koleksiyon), `/s/:token` (sadece linkle). Bilinmeyen adres `NotFound` (`'**'`, adres korunur,
   `noindex`). Koleksiyon sayfası tek bileşen, route data `mode`
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
@@ -377,6 +378,15 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   api/auth/verify-email` girişsiz (`Auth` hız sınırı, geçersizse 400 `invalid_token`), `POST
   api/auth/verify-email/resend` girişli (`Email` politikası, kullanıcı başına 10 dk'da 3; gönderilemezse
   503 `email_not_sent`). Kayıtta gönderim hatası kaydı bozmaz (Error log). `token=` log maskesinde.
+  **Parola sıfırlama** (`Email/PasswordReset.cs`, kullanıcı kararları 2026-10-07): link `/reset-password?token=`,
+  kendi token'ı (kullanıcı Id + e-posta + security stamp, 1 saat): parola değişince ya da çıkış yapılınca biter,
+  admin'in kilitlediği hesapta hiç çalışmaz. `POST api/auth/forgot-password` **her durumda 204** (bilinmeyen hesap,
+  admin kilidi, hesap başına `RateLimiting:Email` sınırı sadece e-postanın gidip gitmediğini değiştirir); süre
+  farkı olmasın diye istek kuyruğa girer, e-postayı `PasswordResetSender` arka planda gönderir (testlerde
+  `factory.Mail.WaitForAsync`, `LatestResetToken`). Bu uca hesaba göre farklı bir cevap ya da senkron gönderim
+  eklenmez. `reset-password/check` kullanıcı adını döner, `reset-password` parolayı koyar, e-postayı doğrulanmış
+  sayar ve 5 hatalı girişin geçici kilidini kaldırır (oturumlar yeni damgayla biter); geçersiz link 400
+  `invalid_token`. Token istek gövdesinde gider, adreste değil.
 - Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar
   (`v`'siz istek `private, no-cache`, `ImageUploadExtensions.ImageCacheControl`).
   Yüklemede önce dosya yazılır, sonra satır; kayıt **hangi sebeple olursa olsun** başarısızsa yeni dosya
@@ -758,7 +768,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   sağlık kontrolü yönlendirmeyi (HTTP → HTTPS 307) "ayakta" sayar. Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
   dizüstünde zaman aşımı yapar); CI'da Chromium. Arayüz İngilizce (`locale: 'en-US'`), seçiciler rol ve
   görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`; e-postayı
-  `.build/data/mail`'deki `.eml`'den okunan linkle doğrular, `signUp(false)` doğrulamaz; `support/mail.ts`),
+  `.build/data/mail`'deki `.eml`'den okunan linkle doğrular, `signUp(false)` doğrulamaz; `support/mail.ts`: `verificationLink`, `resetLink`),
   girişli tarayıcı
   `user.browser(browser)`. Public koleksiyon `user.publish(c)` ile (e2e'de eşik varsayılan 10, yardımcı
   eksik fotoğraflı coin'leri ekler), Public koleksiyona coin `createPhotographedCoin` ile. Her sayfa `expectAccessible(page, ad)` (axe, WCAG 2.1 AA): **ciddi ve kritik
