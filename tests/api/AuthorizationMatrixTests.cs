@@ -11,6 +11,7 @@ using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoinPortal.Api.Tests;
@@ -66,6 +67,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
     private sealed record World(
         TestUser Owner,
         string VerificationToken,
+        string ResetToken,
         CollectionResponse Collection,
         CoinResponse Coin,
         CollectionResponse Shared,
@@ -89,6 +91,12 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("POST", "api/Auth/verify-email", Access.Anyone, _ => "/api/auth/verify-email",
             w => Json(new VerifyEmailRequest(w.VerificationToken))),
         new("POST", "api/Auth/verify-email/resend", Access.SignedIn, _ => "/api/auth/verify-email/resend"),
+        new("POST", "api/Auth/forgot-password", Access.Anyone, _ => "/api/auth/forgot-password",
+            w => Json(new ForgotPasswordRequest(w.Owner.UserName))),
+        new("POST", "api/Auth/reset-password/check", Access.Anyone, _ => "/api/auth/reset-password/check",
+            w => Json(new PasswordResetCheckRequest(w.ResetToken))),
+        new("POST", "api/Auth/reset-password", Access.Anyone, _ => "/api/auth/reset-password",
+            w => Json(new ResetPasswordRequest(w.ResetToken, "Newpass456"))),
         new("GET", "api/Health", Access.Anyone, _ => "/api/health"),
         new("GET", "api/Countries", Access.Anyone, _ => "/api/countries"),
 
@@ -296,6 +304,9 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         return new World(
             owner,
             factory.Services.GetRequiredService<EmailVerificationTokens>().Create(owner.User.Id, owner.User.Email),
+            factory.Services.GetRequiredService<PasswordResetTokens>().Create(owner.User.Id, owner.User.Email,
+                await factory.WithDbAsync(db => db.Users.Where(u => u.Id == owner.User.Id)
+                    .Select(u => u.SecurityStamp!).SingleAsync())),
             collection,
             coin,
             shared,

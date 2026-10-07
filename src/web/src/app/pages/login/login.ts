@@ -4,6 +4,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
 
+import { PasswordResetDoneState } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { safeReturnUrl } from '../../core/auth/return-url';
 import { httpErrorMessage } from '../../core/http/problem-details';
@@ -27,8 +28,16 @@ export class Login {
   protected readonly errorMessage = errorMessage;
   private readonly focusFirstInvalid = injectFocusFirstInvalid();
 
+  /** Here from a password reset (ResetPassword): says so; a reload does not repeat it. */
+  private readonly resetState = this.router.currentNavigation()?.extras.state as
+    Partial<PasswordResetDoneState> | undefined;
+  protected readonly passwordReset = this.resetState?.notice === 'passwordReset';
+
   protected readonly form = inject(NonNullableFormBuilder).group({
-    userNameOrEmail: ['', [Validators.required]],
+    userNameOrEmail: [
+      this.passwordReset ? (this.resetState?.userName ?? '') : '',
+      [Validators.required],
+    ],
     password: ['', [Validators.required]],
     // Checked by default: most sign-ins are on the user's own device, and the home screen app
     // would otherwise lose the session whenever it is closed. Unchecked on a shared computer

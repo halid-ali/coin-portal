@@ -52,3 +52,19 @@ public sealed record UserResponse(
 
 /// <param name="Token">The secret from the verification link (/verify-email?token=...).</param>
 public sealed record VerifyEmailRequest([Required, StringLength(2000)] string Token);
+
+/// <param name="UserNameOrEmail">Like the sign-in form's field.</param>
+/// <param name="Language">The page's language: the e-mail's, if the account never chose one.</param>
+public sealed record ForgotPasswordRequest(
+    [Required, StringLength(256), NoControlCharacters] string UserNameOrEmail,
+    [SupportedLanguage] string? Language = null);
+
+/// <param name="Token">The secret from the reset link (/reset-password?token=...).</param>
+public sealed record PasswordResetCheckRequest([Required, StringLength(2000)] string Token);
+
+/// <summary>Whose password the link sets: shown on the page, the username may be forgotten too.</summary>
+public sealed record PasswordResetCheckResponse(string UserName);
+
+public sealed record ResetPasswordRequest(
+    [Required, StringLength(2000)] string Token,
+    [Required, StringLength(100, MinimumLength = 8)] string NewPassword);

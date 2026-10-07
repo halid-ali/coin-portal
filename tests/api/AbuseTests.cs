@@ -403,6 +403,17 @@ public class AbuseTests(CoinPortalFactory factory)
         Assert.Contains("LastName", keys, StringComparer.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task ForgotPassword_ControlCharacters_AreRejected()
+    {
+        using var client = await factory.CreateAnonymousClientAsync();
+
+        using var response = await client.PostAsync("/api/auth/forgot-password",
+            new ForgotPasswordRequest("ada\u0000@example.test"));
+
+        Assert.Contains("UserNameOrEmail", await response.ReadValidationKeysAsync(), StringComparer.OrdinalIgnoreCase);
+    }
+
     private List<string> StoredFiles(TestUser user)
     {
         var folder = Path.Combine(factory.PhotoRoot, user.User.Id);

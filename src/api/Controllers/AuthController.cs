@@ -22,6 +22,7 @@ public class AuthController(
     IPasswordHasher<ApplicationUser> passwordHasher,
     EmailVerification emailVerification,
     EmailVerificationTokens verificationTokens,
+    PasswordResetTokens resetTokens,
     UnverifiedAccounts unverified,
     ILogger<AuthController> logger) : ControllerBase
 {
@@ -153,6 +154,72 @@ public class AuthController(
         return NoContent();
     }
 
+    /// <summary>
+    /// "Forgot password": the account's address gets a reset link. Always 204, sent or not (unknown
+    /// account, locked by an admin, enough links already): the response tells nothing about the account.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult ForgotPassword(ForgotPasswordRequest request, [FromServices] PasswordResetQueue queue)
+    {
+        queue.Enqueue(request.UserNameOrEmail, request.Language);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Whether a reset link still works, and whose password it sets: the page says so before the
+    /// new password is typed.
+    /// </summary>
+    [HttpPost("reset-password/check")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType<PasswordResetCheckResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PasswordResetCheckResponse>> CheckPasswordReset(PasswordResetCheckRequest request) =>
+        await resetTokens.FindUserAsync(userManager, request.Token) is { } user
+            ? Ok(new PasswordResetCheckResponse(user.UserName!))
+            : InvalidResetLink();
+
+    /// <summary>
+    /// Sets the new password with a reset link. Ends every session of the account (a new security
+    /// stamp, which also ends the link), confirms the address (the link reached it) and lifts the
+    /// temporary lockout after failed sign-ins, so the new password works at once. An admin's lock
+    /// stays: such an account gets no working link. The person signs in afterwards.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        if (await resetTokens.FindUserAsync(userManager, request.Token) is not { } user)
+            return InvalidResetLink();
+
+        // Saved together with the password by ResetPasswordAsync, or not at all
+        user.EmailConfirmed = true;
+        user.AccessFailedCount = 0;
+        user.LockoutEnd = null;
+        // Identity's own token, made and used here: the link carries ours (one value, its own lifetime)
+        var identityToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, identityToken, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            // The same link used at the same moment: the other request set the password
+            if (result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.ConcurrencyFailure)))
+                return InvalidResetLink();
+            // Too weak: like the sign-up, the codes are the keys (PasswordRequiresUpper, ...)
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(error.Code, error.Description);
+            return ValidationProblem(ModelState);
+        }
+
+        logger.LogInformation("Password reset with a link: {UserId}", user.Id);
+        return NoContent();
+    }
+
     [HttpPost("login")]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<ActionResult<UserResponse>> Login(LoginRequest request)
@@ -280,6 +347,9 @@ public class AuthController(
     // A hash of a random password, made once by the configured hasher (same algorithm and cost)
     private string DummyPasswordHash() =>
         dummyPasswordHash ??= passwordHasher.HashPassword(new ApplicationUser(), Guid.NewGuid().ToString());
+
+    private ObjectResult InvalidResetLink() =>
+        this.CodedProblem("invalid_token", "The link is invalid, has expired or was used already.");
 
     // Same message for unknown user and wrong password (no account enumeration)
     private ObjectResult InvalidCredentials() =>

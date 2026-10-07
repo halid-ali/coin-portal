@@ -2,7 +2,8 @@
 
 Son güncelleme: 2026-10-07 (**`v1.8.0` yayında** (Tamamlananlar 90–92): fotoğraf alanı (kullanıcıya kalan alan,
 admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları, coin formu
-fotoğraf hizası, yayına alma bandı, sayfa yolu). Sıradaki iş şifre sıfırlama. `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+fotoğraf hizası, yayına alma bandı, sayfa yolu). **Parola sıfırlama yapıldı** (Tamamlananlar 93, yayında değil);
+sıradaki iş Ayarlar > Güvenlik'te parola değiştirme, sonra `v1.9.0`. `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
 hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
 doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
 e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
@@ -1750,6 +1751,31 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     `v1.8.0`). Testler: API 396, client 348, e2e 15 (README rozeti 759). **Sürüm numarası** (kullanıcı sordu):
     minör 1.9.0'dan sonra 1.10.0 olur; 2.0.0 sadece `feat!` / `BREAKING CHANGE` ile ya da bilinçli bir kararla
     gelir. Öneri: 2.0.0 sosyal katmanın (yol haritası 13) ilk sürümüne; kullanıcı henüz karar vermedi.
+93. **Parola sıfırlama** (`feat/password-reset`, 2026-10-07; yol haritası 15'in parçası; ekranlar mockup'la seçildi,
+    `.notes/designs/password-reset/`). Kullanıcı kararları (önerilerin hepsi kabul):
+    - **Link:** 1 saat geçerli, tek kullanımlık. Kendi token'ımız (`Email/PasswordReset.cs`
+      `PasswordResetTokens`: Data Protection, kullanıcı Id + e-posta + **security stamp**); parola değişince
+      damga yenilenir ve link ölür. Çıkış yapmak da damgayı yeniler, o anda açık link geçersiz olur (kabul: yeni
+      link bir tık). Admin'in kilitlediği hesap için link hiç çalışmaz.
+    - **"Parolamı unuttum" her durumda aynı cevap** (204, aynı sayfa): bilinmeyen hesap, admin kilidi, hesap başına
+      sınır (`RateLimiting:Email`, 10 dakikada 3 e-posta) sadece e-postanın gidip gitmediğini değiştirir. Süre
+      farkı da olmasın diye istek kuyruğa girer (`PasswordResetQueue`, sınırlı kanal), e-postayı arka planda
+      `PasswordResetSender` sırayla gönderir; gönderilemezse Error log. Alan kullanıcı adı ya da e-posta (giriş
+      formundaki gibi); e-posta hesabın dilinde, seçmemişse sayfanın dilinde, **kullanıcı adını da yazar**.
+    - **Kaydetme** (`POST api/auth/reset-password`): bütün oturumlar kapanır (yeni damga), e-posta doğrulanmış
+      sayılır, 5 hatalı girişin geçici kilidi kalkar (yeni parola hemen çalışsın); hepsi tek güncellemede
+      (Identity'nin kendi token'ı sunucuda üretilip `ResetPasswordAsync` ile). Otomatik giriş yok: giriş sayfasına
+      yeşil mesaj ve dolu kullanıcı adıyla döner. Aynı anda iki kullanım: ikincisi `invalid_token`.
+    - **Link kontrolü** (`POST api/auth/reset-password/check`): sayfa açılınca hesabın kullanıcı adı gösterilir,
+      geçersizse parola yazdırmadan "Link geçersiz" ekranı. Token gövdede (adreste değil, log).
+    - **Client:** giriş sayfasında parola etiketinin sağında "Parolamı unuttum" (1A; yazılan kullanıcı adını
+      navigation state ile taşır), `/forgot-password` (girişsiz, gönderince odak "E-postanı kontrol et"
+      başlığına, "Tekrar dene" forma döner), `/reset-password?token=` (token adresten silinir, `noindex`;
+      girişli biri açarsa kaydettikten sonra çıkış yapılır). Metin kararı (kullanıcı): "Girişe dön" yerine
+      "Giriş sayfasına dön", formun altında "Parolanı hatırladın mı? Giriş yap".
+    - Gizlilik metni: hesap e-postalarına parola yenileme linki eklendi (`privacy.data.i5`, `purposes.i1`, dört dil).
+    - Testler: API 413 (+17: `PasswordResetTests`, kontrol karakteri, üç yetki matrisi satırı), client 360 (+12),
+      e2e 17 (+2: tam akış axe ile, geçersiz link).
 
 ## Yol haritası
 
@@ -1810,7 +1836,7 @@ mağaza için TWA.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
       bölümleri eklenir (panelin kendisi 12. adımda). Turnstile giriş formuna da (Açık konular 16).
-      E-posta doğrulama 2026-10-06'da yapıldı (Tamamlananlar 88); sıradaki parça şifre sıfırlama (aynı altyapı).
+      E-posta doğrulama 2026-10-06'da yapıldı (Tamamlananlar 88), parola sıfırlama 2026-10-07'de (Tamamlananlar 93).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
 - [ ] 18. **Euro dışı coin'ler** (kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
@@ -1909,10 +1935,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** fotoğraf alanı (yol haritası 20) ve görsel düzeltmeler `v1.8.0` ile yayında (Tamamlananlar
-90–92). Sıradaki, e-posta doğrulama (`v1.7.0` ile yayında, Tamamlananlar 88–89) üzerine **şifre sıfırlama**
-(kullanıcıyla kararlaştırıldı, 2026-10-07): ayrı branch `feat/password-reset`, aynı e-posta altyapısı; "şifremi
-unuttum" her adres için aynı cevabı verir (Açık konular 24), sıfırlama linki e-postayı da doğrulamış sayılabilir. Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** parola sıfırlama yapıldı (`feat/password-reset`, Tamamlananlar 93, yayında değil). Sıradaki,
+kullanıcıyla 2026-10-07'de konuşuldu: **Ayarlar > Güvenlik'te girişliyken parola değiştirme** (ayrı branch
+`feat/change-password`, mevcut parola + yeni parola; aynı sürümde çıkabilir), sonra `v1.9.0`. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
@@ -2408,8 +2433,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     adrese "zaten hesabın var" e-postası gider. 2026-10-06'da doğrulama geldi (Tamamlananlar 88) ama kayıt
     hâlâ oturum açıyor (karar: "paylaşmak için doğrula"); bu çözüm "doğrulamadan giriş yok" modelini ister,
     o yüzden konu açık kalıyor. 2026-10-07 önerisi: kabul kalsın (sızan bilgi küçük, kullanıcı adları zaten açık;
-    çözüm "doğrulamadan giriş yok" modelini ister; kayıt hız sınırında). **Şifre sıfırlama bu açığı vermez:**
-    "e-postanı kontrol et" her durumda aynı cevap olur. Kötüye kullanım görülürse kayda CAPTCHA düşünülür.
+    çözüm "doğrulamadan giriş yok" modelini ister; kayıt hız sınırında). **Parola sıfırlama bu açığı vermez**
+    (Tamamlananlar 93): "e-postanı kontrol et" her durumda aynı cevap, e-posta arka planda gider (süre farkı da yok). Kötüye kullanım görülürse kayda CAPTCHA düşünülür.
 25. **Düz HTTP'de `Host` başlığı HTTPS yönlendirmesine yansır** (2026-10-06, pentest; not, bulgu değil):
     `http://` + sahte `Host` → 307 `https://<sahte host>`. Canlıda `CanonicalHost` başka host adlarını önce
     `coinvitrine.com`'a çevirdiği için etkisi yok; sitenin önünde paylaşılan bir önbellek de yok. `CanonicalHost`
