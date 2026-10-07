@@ -231,8 +231,18 @@
     "unverifiedText": "Ein Konto mit unbestätigter E-Mail-Adresse kann keine weitere Sammlung anlegen und keine Sammlungen teilen und hat höchstens die folgende Anzahl Münzen. Ein niedrigerer Wert löscht keine Münzen; Konten darüber können keine neuen hinzufügen. Ein Konto, das unbestätigt bleibt, wird nach der folgenden Zeit mit seinen Inhalten gelöscht (außer Admins und gesperrten Konten).",
     "unverifiedMaxCoins": "Höchstzahl an Münzen",
     "unverifiedMaxCoinsHint": "Zwischen {{min}} und {{max}}. 0: keine Münzen vor der Bestätigung.",
-    "unverifiedLifetimeDays": "Zeit bis zur Löschung (Tage)",
+    "unverifiedLifetimeDays": "Zeit bis zur Löschung",
     "unverifiedLifetimeDaysHint": "Ab der Registrierung, zwischen {{min}} und {{max}}. 0: Konten werden nicht gelöscht. 7 Tage und 1 Tag vorher wird versucht, eine Erinnerungs-E-Mail zu senden; kein Konto wird früher als einen Tag nach dem ersten Erinnerungsversuch gelöscht.",
+    "unit": {
+      "coins": {
+        "one": "Münze",
+        "other": "Münzen"
+      },
+      "days": {
+        "one": "Tag",
+        "other": "Tage"
+      }
+    },
     "saved": "Gespeichert.",
     "unchanged": "Die Werte haben sich nicht geändert; es gibt nichts zu speichern.",
     "names": {
