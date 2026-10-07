@@ -117,7 +117,7 @@ describe('Collection', () => {
   it('shows how far a private collection is from public, linking the coins without photos', async () => {
     await open('/collections/5', 3, pageWithCoin(), { photographedCoinCount: 1 });
 
-    expect(banner()!.textContent).toContain('Herkese açık yapmak için');
+    expect(banner()!.textContent).toContain('Koleksiyonunu yayına almak için');
     expect(banner()!.textContent).toContain('1/10 fotoğraflı coin');
     expect(banner()!.textContent).toContain('Bu arada linkle paylaşabilirsin.');
     const missing = banner()!.querySelector('a')!;

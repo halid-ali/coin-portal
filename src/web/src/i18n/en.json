@@ -513,7 +513,7 @@
     "submitAnyway": "Delete anyway"
   },
   "publication": {
-    "notReadyTitle": "To make it public",
+    "notReadyTitle": "To publish your collection",
     "progress": "{{photographed}}/{{required}} coins with photos",
     "missing": {
       "one": "{{count}} coin is missing its national side",

@@ -513,7 +513,7 @@
     "submitAnyway": "Yine de sil"
   },
   "publication": {
-    "notReadyTitle": "Herkese açık yapmak için",
+    "notReadyTitle": "Koleksiyonunu yayına almak için",
     "progress": "{{photographed}}/{{required}} fotoğraflı coin",
     "missing": {
       "one": "{{count}} coin'in ulusal yüzü eksik",

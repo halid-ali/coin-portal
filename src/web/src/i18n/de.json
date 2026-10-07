@@ -513,7 +513,7 @@
     "submitAnyway": "Trotzdem löschen"
   },
   "publication": {
-    "notReadyTitle": "Damit sie öffentlich werden kann",
+    "notReadyTitle": "Um deine Sammlung zu veröffentlichen",
     "progress": "{{photographed}}/{{required}} Münzen mit Foto",
     "missing": {
       "one": "Bei {{count}} Münze fehlt die nationale Seite",

@@ -513,7 +513,7 @@
     "submitAnyway": "Изтрий въпреки това"
   },
   "publication": {
-    "notReadyTitle": "За да стане публична",
+    "notReadyTitle": "За да публикувате колекцията си",
     "progress": "{{photographed}}/{{required}} монети със снимка",
     "missing": {
       "one": "На {{count}} монета липсва националната страна",
