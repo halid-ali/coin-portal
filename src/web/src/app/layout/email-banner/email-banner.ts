@@ -14,8 +14,9 @@ const DATE_MARK = '⁣';
  * Above every page while the signed-in user's e-mail address is not verified: sharing
  * collections, opening another one and more coins than the limit (unverifiedMaxCoins) need it,
  * and when the account is deleted without it. Sends the link again; the link itself opens
- * /verify-email. Layout (user's choice, 2026-10-07): the address with the resend link, the
- * deletion date, both with an icon in one column, then what waits for the address.
+ * /verify-email. Layout (user's choice, 2026-10-07): the address with the resend button, the
+ * deletion date, both with an icon in one column, then what waits for the address. The resend
+ * action is a button on every width (the envelope is centered on its row from sm up).
  */
 @Component({
   selector: 'app-email-banner',
@@ -27,7 +28,7 @@ const DATE_MARK = '⁣';
         class="mb-6 grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800 sm:px-5 sm:py-4"
         [attr.aria-label]="'emailBanner.label' | transloco"
       >
-        <span class="flex h-6 items-center" aria-hidden="true">
+        <span class="flex h-6 items-center sm:h-9" aria-hidden="true">
           <svg
             viewBox="0 0 24 24"
             class="size-5"
@@ -41,13 +42,13 @@ const DATE_MARK = '⁣';
             <path d="m3.5 7 8.5 6 8.5-6" />
           </svg>
         </span>
-        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <p class="text-base leading-6 font-semibold wrap-break-word">
             {{ 'emailBanner.title' | transloco: { email: user.email } }}
           </p>
           <button
             type="button"
-            class="link font-medium whitespace-nowrap"
+            class="btn-secondary px-3.5 py-1.5 text-sm whitespace-nowrap"
             [attr.aria-disabled]="sending() || null"
             (click)="resend()"
           >
