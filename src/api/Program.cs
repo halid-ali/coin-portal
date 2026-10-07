@@ -171,6 +171,7 @@ builder.Services.AddScoped<EmailVerification>();
 builder.Services.AddSingleton<PasswordResetTokens>();
 builder.Services.AddSingleton<PasswordResetQueue>();
 builder.Services.AddHostedService<PasswordResetSender>();
+builder.Services.AddSingleton<PasswordChangedNotice>();
 
 // What a Public collection must hold (photos, minimum from the admin's site settings)
 builder.Services.AddScoped<PublicationGuard>();

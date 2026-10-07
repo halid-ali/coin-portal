@@ -144,6 +144,14 @@ export class AuthService {
       .pipe(switchMap(() => (this.user() ? this.logout() : of(undefined))));
   }
 
+  /**
+   * Settings > Security: a new password with the current one. The other sessions end; this one
+   * goes on (the API renews its cookie), so nothing changes here.
+   */
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${API}/change-password`, { currentPassword, newPassword });
+  }
+
   /** Keeps the current user in step after a change elsewhere (e.g. the settings page). */
   patchUser(changes: Partial<UserResponse>): void {
     this.user.update((user) => user && { ...user, ...changes });

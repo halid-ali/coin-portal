@@ -20,6 +20,14 @@ public static partial class SpaHosting
         // Unknown API addresses stay a 404 instead of answering with the app's page
         app.MapFallback("api/{**path}", () => Results.NotFound());
 
+        // The well-known address of the page to change a password (W3C): password managers send
+        // their users there, e.g. Chrome after finding a leaked password. Signed out, the page's
+        // guard asks to sign in first
+        app.MapGet(".well-known/change-password", () => Results.Redirect("/settings/security"));
+        // Any other well-known address does not exist. Browsers check that with a made-up one
+        // before they trust change-password; the app's page with 200 would make them ignore it
+        app.MapFallback(".well-known/{**path}", () => Results.NotFound());
+
         if (HasClient(app))
         {
             // The plain fallback skips paths whose last segment looks like a file name ("nonfile"),

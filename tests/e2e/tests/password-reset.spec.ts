@@ -31,6 +31,11 @@ test('a user who forgot the password sets a new one with the link from the email
   await expect(page.getByText(user.userName, { exact: true })).toBeVisible();
   await expectAccessible(page, 'new password');
   await page.getByLabel('New password', { exact: true }).fill(newPassword);
+  // The eye button shows what was typed (every password field has one)
+  const show = page.getByRole('button', { name: 'Show password' }).first();
+  await show.click();
+  await expect(show).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('New password', { exact: true })).toHaveAttribute('type', 'text');
   await page.getByLabel('Confirm new password').fill(newPassword);
   await page.getByRole('button', { name: 'Save password' }).click();
 

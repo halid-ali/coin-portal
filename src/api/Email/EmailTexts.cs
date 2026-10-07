@@ -60,6 +60,19 @@ public static class EmailTexts
             CopyLink(language), link, t.Validity, t.Ignore);
     }
 
+    /// <summary>
+    /// After the password changed (Settings, or a reset link): if it was not the owner, the button
+    /// leads to "Forgot password" and the address to write to is named.
+    /// </summary>
+    public static MailContent PasswordChanged(string? language, string name, string userName,
+        string forgotPasswordLink, string contactAddress)
+    {
+        var v = VerificationTexts(language, name, TimeSpan.Zero);
+        var t = PasswordChangedTexts(language, userName, contactAddress);
+        return Compose(language, t.Subject, v.Greeting, t.Intro, t.OpenLink, t.ClickButton, t.Button,
+            CopyLink(language), forgotPasswordLink, t.WasYou, t.Contact);
+    }
+
     private static string Date(DateTime utc, string? language) => utc.ToString("d MMMM yyyy", Culture(language));
 
     private static string Hours(string? language, int hours) => language switch
@@ -209,6 +222,42 @@ public static class EmailTexts
                 "Choose a new password",
                 $"The link is valid for {hours} and can be used once. If it expires, request a new one with \"Forgot password?\" on the site.",
                 "If you did not ask for this, you can ignore this email. Your password stays the same."),
+        };
+
+    private sealed record PasswordChangedWords(string Subject, string Intro, string OpenLink, string ClickButton,
+        string Button, string WasYou, string Contact);
+
+    private static PasswordChangedWords PasswordChangedTexts(string? language, string userName, string contact) =>
+        language switch
+        {
+            "tr" => new("CoinVitrine: parolan değişti",
+                $"CoinVitrine hesabının ({userName}) parolası değiştirildi. Diğer cihazlardaki oturumlar kapandı.",
+                "Bu değişikliği sen yapmadıysan hemen bu linki açıp yeni bir parola belirle:",
+                "Bu değişikliği sen yapmadıysan hemen yeni bir parola belirle:",
+                "Parolamı yenile",
+                "Bu değişikliği sen yaptıysan bir şey yapmana gerek yok.",
+                $"Bir sorun varsa {contact} adresine yaz."),
+            "de" => new("CoinVitrine: Dein Passwort wurde geändert",
+                $"das Passwort deines CoinVitrine-Kontos ({userName}) wurde geändert. Sitzungen auf anderen Geräten wurden beendet.",
+                "Wenn du das nicht warst, öffne sofort diesen Link und lege ein neues Passwort fest:",
+                "Wenn du das nicht warst, lege sofort ein neues Passwort fest:",
+                "Passwort zurücksetzen",
+                "Wenn du es selbst geändert hast, musst du nichts tun.",
+                $"Bei Problemen schreib an {contact}."),
+            "bg" => new("CoinVitrine: паролата ви е променена",
+                $"Паролата на акаунта ви в CoinVitrine ({userName}) е променена. Сесиите на други устройства са прекратени.",
+                "Ако не сте го направили вие, веднага отворете този линк и задайте нова парола:",
+                "Ако не сте го направили вие, веднага задайте нова парола:",
+                "Подновяване на паролата",
+                "Ако промяната е ваша, не е нужно да правите нищо.",
+                $"При проблем пишете на {contact}."),
+            _ => new("CoinVitrine: your password was changed",
+                $"The password of your CoinVitrine account ({userName}) was changed. Sessions on other devices were ended.",
+                "If this was not you, open this link right away and choose a new password:",
+                "If this was not you, choose a new password right away:",
+                "Reset my password",
+                "If you changed it yourself, you do not need to do anything.",
+                $"If something is wrong, write to {contact}."),
         };
 
     private sealed record DeletionReminderWords(string Subject, string Intro, string OpenLink, string ClickButton,

@@ -561,6 +561,11 @@
     cursor: pointer;
   }
 
+  /* Every password field has its own show/hide button (shared/password-field): not Edge's too */
+  input::-ms-reveal {
+    display: none;
+  }
+
   /* Freeze page scrolling while a modal <dialog> is open */
   html:has(dialog:modal) {
     overflow: hidden;

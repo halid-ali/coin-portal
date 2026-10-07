@@ -68,3 +68,7 @@ public sealed record PasswordResetCheckResponse(string UserName);
 public sealed record ResetPasswordRequest(
     [Required, StringLength(2000)] string Token,
     [Required, StringLength(100, MinimumLength = 8)] string NewPassword);
+
+public sealed record ChangePasswordRequest(
+    [Required, StringLength(100)] string CurrentPassword,
+    [Required, StringLength(100, MinimumLength = 8)] string NewPassword);

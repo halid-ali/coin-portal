@@ -15,6 +15,7 @@ import {
 } from '../../core/http/problem-details';
 import { firstQueryParam } from '../../core/http/query-params';
 import { FieldA11y } from '../../shared/field-a11y';
+import { PasswordField } from '../../shared/password-field/password-field';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
 import { passwordMatchValidator, passwordStrengthValidator } from '../../shared/validators';
 
@@ -42,7 +43,7 @@ type ResetState = 'checking' | 'ready' | 'invalid' | 'failed';
  */
 @Component({
   selector: 'app-reset-password',
-  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe],
+  imports: [ReactiveFormsModule, FieldA11y, PasswordField, RouterLink, TranslocoPipe],
   templateUrl: './reset-password.html',
 })
 export class ResetPassword implements OnInit {

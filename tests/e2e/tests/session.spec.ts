@@ -6,7 +6,7 @@ import { TestUser } from '../support/users';
 /** Fills the sign-in form of the current page. */
 async function signIn(page: Page, user: TestUser, remember: boolean) {
   await page.getByLabel('Username or email').fill(user.userName);
-  await page.getByLabel('Password').fill(user.password);
+  await page.getByLabel('Password', { exact: true }).fill(user.password);
   await page.getByRole('checkbox', { name: 'Remember me' }).setChecked(remember);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('button', { name: /Account menu/ })).toBeVisible();

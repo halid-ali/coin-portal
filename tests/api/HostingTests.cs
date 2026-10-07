@@ -234,6 +234,32 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
     }
 
     [Fact]
+    public async Task ChangePasswordWellKnownAddress_LeadsToTheSecuritySettings()
+    {
+        // Password managers open it; with or without a client build (the API serves it either way)
+        using var http = CoinPortalFactory.CreateHttpClient(factory);
+
+        using var response = await http.GetAsync("/.well-known/change-password");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal("/settings/security", response.Headers.Location?.ToString());
+    }
+
+    [Fact]
+    public async Task OtherWellKnownAddresses_AreNotFound_NotTheAppsPage()
+    {
+        // Before using change-password, browsers check that a made-up well-known address is not a
+        // 200: a site answering everything with its page would make them ignore it
+        await using var host = HostWithClient();
+        using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
+
+        using var response = await client.GetAsync(
+            "/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200");
+
+        await response.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task WebAppManifest_IsServedWithItsType()
     {
         await using var host = HostWithClient();

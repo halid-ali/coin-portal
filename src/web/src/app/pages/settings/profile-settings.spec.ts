@@ -44,23 +44,15 @@ describe('ProfileSettings', () => {
     return (fixture.nativeElement as HTMLElement).textContent ?? '';
   }
 
-  // Same formatting as the component: the device's time zone, so not a fixed string
-  const formatted = (lang: string) =>
-    new Intl.DateTimeFormat(lang, { dateStyle: 'long', timeStyle: 'short' }).format(
-      new Date(USER.previousSignInAtUtc!),
-    );
-
-  it('shows the previous sign-in in the UI language', async () => {
-    expect(await renderedText()).toContain('Önceki giriş');
-    expect(await renderedText()).toContain(formatted('tr'));
+  it('shows the account details, the date of birth in the UI language', async () => {
+    const text = await renderedText();
+    expect(text).toContain('ayse.yilmaz');
+    expect(text).toContain('ayse@example.com');
+    expect(text).toContain('17 Mayıs 1990');
+    // Moved to Settings > Security
+    expect(text).not.toContain('Önceki giriş');
 
     await useTestLanguage('de');
-    expect(await renderedText()).toContain(formatted('de'));
-  });
-
-  it('says so when no previous sign-in is recorded', async () => {
-    user.set({ ...USER, previousSignInAtUtc: null });
-
-    expect(await renderedText()).toContain('Kayıtlı önceki giriş yok');
+    expect(await renderedText()).toContain('17. Mai 1990');
   });
 });

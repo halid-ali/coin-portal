@@ -26,7 +26,9 @@
     "coinCount": {
       "one": "{{count}} Münze",
       "other": "{{count}} Münzen"
-    }
+    },
+    "showPassword": "Passwort anzeigen",
+    "capsLockOn": "Feststelltaste ist aktiviert"
   },
   "unsaved": {
     "title": "Ungespeicherte Änderungen",
@@ -579,12 +581,29 @@
       "lastName": "Nachname",
       "userName": "Benutzername",
       "email": "E-Mail-Adresse",
-      "birthDate": "Geburtsdatum",
-      "previousSignIn": "Vorherige Anmeldung",
-      "noPreviousSignIn": "Keine frühere Anmeldung gespeichert"
+      "birthDate": "Geburtsdatum"
     },
     "appearance": {
       "nav": "Darstellung"
+    },
+    "security": {
+      "nav": "Sicherheit",
+      "password": {
+        "title": "Passwort ändern",
+        "description": "Beim Speichern wirst du auf deinen anderen Geräten abgemeldet; auf diesem bleibst du angemeldet.",
+        "current": "Aktuelles Passwort",
+        "new": "Neues Passwort",
+        "confirm": "Neues Passwort bestätigen",
+        "submit": "Passwort ändern",
+        "submitting": "Wird geändert…",
+        "done": "Dein Passwort wurde geändert. Auf deinen anderen Geräten musst du dich neu anmelden.",
+        "wrongCurrent": "Das aktuelle Passwort ist falsch."
+      },
+      "previousSignIn": {
+        "title": "Vorherige Anmeldung",
+        "description": "Deine Anmeldung vor dieser Sitzung. Erkennst du den Zeitpunkt nicht, ändere dein Passwort.",
+        "none": "Keine frühere Anmeldung gespeichert"
+      }
     },
     "account": {
       "nav": "Konto",
@@ -672,11 +691,11 @@
       "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
       "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
       "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Links zum Teilen werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch der Hosting-Anbieter schreibt IP-Adresse, Zeitpunkt, Adresse, Ergebnis und Browserangaben jeder Anfrage in seine eigenen Serverprotokolle und bewahrt sie 6 Monate auf.",
-      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse; Konto-E-Mails, die wir dir senden (die Links zur Bestätigung deiner E-Mail-Adresse und zum Zurücksetzen deines Passworts), und ob deine Adresse bestätigt ist."
+      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse; Konto-E-Mails, die wir dir senden (die Links zur Bestätigung deiner E-Mail-Adresse und zum Zurücksetzen deines Passworts, ein Hinweis, wenn sich dein Passwort ändert), und ob deine Adresse bestätigt ist."
     },
     "purposes": {
       "title": "Zwecke und Rechtsgrundlagen",
-      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (die Links zur Bestätigung und zum Zurücksetzen des Passworts), keine Newsletter und keine Werbung.",
+      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (die Links zur Bestätigung und zum Zurücksetzen des Passworts, den Hinweis auf eine Passwortänderung), keine Newsletter und keine Werbung.",
       "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i3": "Um die Website zu betreiben, als Gesamtzahlen: zum Beispiel die Zahl der Konten, die die Website in den letzten 30 Tagen genutzt haben. Diese Zahlen dienen nicht der Bewertung einzelner Personen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i4": "Um deine E-Mails an uns zu beantworten: deine E-Mail-Adresse und deine Nachricht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",

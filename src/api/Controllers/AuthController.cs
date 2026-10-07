@@ -23,6 +23,7 @@ public class AuthController(
     EmailVerification emailVerification,
     EmailVerificationTokens verificationTokens,
     PasswordResetTokens resetTokens,
+    PasswordChangedNotice changedNotice,
     UnverifiedAccounts unverified,
     ILogger<AuthController> logger) : ControllerBase
 {
@@ -217,6 +218,39 @@ public class AuthController(
         }
 
         logger.LogInformation("Password reset with a link: {UserId}", user.Id);
+        await changedNotice.SendAsync(user, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Settings > Security: a new password with the current one. Every other session ends (a new
+    /// security stamp); this one goes on with a renewed cookie. A wrong current password is a field
+    /// error under Identity's code (PasswordMismatch); guessing it is limited like the sign-in.
+    /// </summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
+            return Unauthorized();
+
+        var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            // Like the sign-up: the codes are the keys (PasswordMismatch, PasswordRequiresUpper, ...)
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(error.Code, error.Description);
+            return ValidationProblem(ModelState);
+        }
+
+        // The cookie carries the old stamp: renewed, this session stays (and keeps "remember me")
+        await signInManager.RefreshSignInAsync(user);
+        logger.LogInformation("Password changed: {UserId}", user.Id);
+        await changedNotice.SendAsync(user, HttpContext.RequestAborted);
         return NoContent();
     }
 
