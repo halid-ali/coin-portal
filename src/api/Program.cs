@@ -142,6 +142,7 @@ builder.Services.AddHostedService<PhotoSweepService>();
 builder.Services.AddScoped<AccountExport>();
 builder.Services.AddScoped<AccountDeletion>();
 builder.Services.AddScoped<UnverifiedAccounts>();
+builder.Services.AddSingleton<VerificationRequests>();
 // Deletes accounts left unverified (SiteSettings.UnverifiedLifetimeDays, AccountCleanup:IntervalHours)
 builder.Services.AddSingleton<UnverifiedAccountCleanup>();
 builder.Services.AddHostedService<UnverifiedCleanupService>();

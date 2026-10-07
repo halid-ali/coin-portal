@@ -73,6 +73,8 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["PhotoStorage:SweepIntervalHours"] = "0",
                 // Tests run the cleanup of unverified accounts themselves (UnverifiedCleanupTests)
                 ["AccountCleanup:IntervalHours"] = "0",
+                // Bulk e-mails without a pause (VerificationRequestsTests)
+                ["Email:BulkDelaySeconds"] = "0",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
                 ["Email:SiteUrl"] = SiteUrl,
                 // Console only, and ASP.NET Core's default key location

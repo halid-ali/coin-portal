@@ -47,4 +47,8 @@ public class ApplicationUser : IdentityUser
     public DateTime? DeletionReminderTriedAtUtc { get; set; }
     public DateTime? DeletionReminderSentAtUtc { get; set; }
     public DateTime? FinalDeletionReminderSentAtUtc { get; set; }
+
+    // The one-time request to verify (Accounts.VerificationRequests) reached the mail server: an
+    // account gets it once
+    public DateTime? VerificationRequestSentAtUtc { get; set; }
 }

@@ -9,6 +9,10 @@ public enum AuditAction
     CollectionUnlocked = 4,
     UserDeleted = 5,
     SettingChanged = 6,
+    /// <summary>An admin marked a user's e-mail address verified.</summary>
+    EmailConfirmed = 7,
+    /// <summary>An admin started the one-time verification request; NewValue: the accounts it was for.</summary>
+    VerificationEmailsRequested = 8,
 }
 
 /// <summary>

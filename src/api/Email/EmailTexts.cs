@@ -13,9 +13,9 @@ namespace CoinPortal.Api.Email;
 /// </summary>
 public static class EmailTexts
 {
-    public static MailContent Verification(string? language, string name, string link, int hours)
+    public static MailContent Verification(string? language, string name, string link, TimeSpan validity)
     {
-        var t = VerificationTexts(language, name, hours);
+        var t = VerificationTexts(language, name, validity);
         return Compose(language, t.Subject, t.Greeting, intro: null, t.OpenLink, t.ClickButton, t.Button,
             CopyLink(language), link, t.Validity, t.Ignore);
     }
@@ -25,13 +25,46 @@ public static class EmailTexts
     /// new verification link to keep the account.
     /// </summary>
     public static MailContent DeletionReminder(string? language, string name, string link, DateTime dueUtc,
-        int hours)
+        TimeSpan validity)
     {
-        var date = dueUtc.ToString("d MMMM yyyy", Culture(language));
-        var v = VerificationTexts(language, name, hours);
-        var t = DeletionReminderTexts(language, date);
+        var v = VerificationTexts(language, name, validity);
+        var t = DeletionReminderTexts(language, Date(dueUtc, language));
         return Compose(language, t.Subject, v.Greeting, t.Intro, t.OpenLink, t.ClickButton, v.Button,
             CopyLink(language), link, v.Validity, t.Ignore);
+    }
+
+    /// <summary>
+    /// The one-time request to accounts from before verification existed: what waits for the address
+    /// (at most <paramref name="maxCoins"/> coins) and, when the lifetime is on, the deletion date.
+    /// </summary>
+    public static MailContent VerificationRequest(string? language, string name, string link, int maxCoins,
+        DateTime? dueUtc, TimeSpan validity)
+    {
+        var v = VerificationTexts(language, name, validity);
+        var t = VerificationRequestTexts(language, maxCoins, dueUtc is { } due ? Date(due, language) : null);
+        var intro = t.Deletion is null ? t.Intro : $"{t.Intro} {t.Deletion}";
+        return Compose(language, t.Subject, v.Greeting, intro, v.OpenLink, v.ClickButton, v.Button,
+            CopyLink(language), link, v.Validity);
+    }
+
+    private static string Date(DateTime utc, string? language) => utc.ToString("d MMMM yyyy", Culture(language));
+
+    /// <summary>"The link is valid for 24 hours" or "for 7 days", then what to do when it expired.</summary>
+    private static string Validity(string? language, TimeSpan validity)
+    {
+        var days = validity.TotalDays >= 2 && validity.TotalDays % 1 == 0 ? (int)validity.TotalDays : (int?)null;
+        var hours = (int)validity.TotalHours;
+        return language switch
+        {
+            "tr" => (days is { } d ? $"Link {d} gün geçerli." : $"Link {hours} saat geçerli.")
+                + " Süresi dolarsa giriş yap ve sitedeki uyarıdan yeni bir link iste.",
+            "de" => (days is { } d ? $"Der Link ist {d} Tage gültig." : $"Der Link ist {hours} Stunden gültig.")
+                + " Ist er abgelaufen, melde dich an und fordere über den Hinweis auf der Website einen neuen an.",
+            "bg" => (days is { } d ? $"Линкът е валиден {d} дни." : $"Линкът е валиден {hours} часа.")
+                + " Ако изтече, влезте в акаунта си и поискайте нов от известието в сайта.",
+            _ => (days is { } d ? $"The link is valid for {d} days." : $"The link is valid for {hours} hours.")
+                + " If it expires, sign in and request a new one from the notice on the site.",
+        };
     }
 
     private static MailContent Compose(string? language, string subject, string greeting, string? intro,
@@ -68,7 +101,7 @@ public static class EmailTexts
     private sealed record VerificationWords(string Subject, string Greeting, string OpenLink, string ClickButton,
         string Button, string Validity, string Ignore);
 
-    private static VerificationWords VerificationTexts(string? language, string name, int hours) =>
+    private static VerificationWords VerificationTexts(string? language, string name, TimeSpan validity) =>
         language switch
         {
             "tr" => new("CoinVitrine: e-posta adresini doğrula",
@@ -76,29 +109,48 @@ public static class EmailTexts
                 "CoinVitrine hesabının e-posta adresini doğrulamak için bu linki aç:",
                 "CoinVitrine hesabının e-posta adresini doğrulamak için butona tıkla:",
                 "E-posta adresimi doğrula",
-                $"Link {hours} saat geçerli. Süresi dolarsa giriş yap ve sitedeki uyarıdan yeni bir link iste.",
+                Validity(language, validity),
                 "Bu hesabı sen açmadıysan bu e-postayı yok sayabilirsin."),
             "de" => new("CoinVitrine: Bestätige deine E-Mail-Adresse",
                 $"Hallo {name},",
                 "um die E-Mail-Adresse deines CoinVitrine-Kontos zu bestätigen, öffne diesen Link:",
                 "um die E-Mail-Adresse deines CoinVitrine-Kontos zu bestätigen, klicke auf den Button:",
                 "E-Mail-Adresse bestätigen",
-                $"Der Link ist {hours} Stunden gültig. Ist er abgelaufen, melde dich an und fordere über den Hinweis auf der Website einen neuen an.",
+                Validity(language, validity),
                 "Wenn du dieses Konto nicht erstellt hast, kannst du diese E-Mail ignorieren."),
             "bg" => new("CoinVitrine: потвърдете имейл адреса си",
                 $"Здравейте, {name},",
                 "За да потвърдите имейл адреса на акаунта си в CoinVitrine, отворете този линк:",
                 "За да потвърдите имейл адреса на акаунта си в CoinVitrine, натиснете бутона:",
                 "Потвърждаване на имейл адреса",
-                $"Линкът е валиден {hours} часа. Ако изтече, влезте в акаунта си и поискайте нов от известието в сайта.",
+                Validity(language, validity),
                 "Ако не сте създали този акаунт, можете да пренебрегнете този имейл."),
             _ => new("CoinVitrine: confirm your email address",
                 $"Hello {name},",
                 "To confirm the email address of your CoinVitrine account, open this link:",
                 "To confirm the email address of your CoinVitrine account, click the button:",
                 "Confirm email address",
-                $"The link is valid for {hours} hours. If it expires, sign in and request a new one from the notice on the site.",
+                Validity(language, validity),
                 "If you did not create this account, you can ignore this email."),
+        };
+
+    private sealed record VerificationRequestWords(string Subject, string Intro, string? Deletion);
+
+    private static VerificationRequestWords VerificationRequestTexts(string? language, int maxCoins, string? date) =>
+        language switch
+        {
+            "tr" => new("CoinVitrine artık e-posta doğrulaması istiyor",
+                $"CoinVitrine artık hesapların e-posta adresinin doğrulanmasını istiyor. Doğrulayana kadar yeni koleksiyon açamaz ve koleksiyon paylaşamazsın; hesabında en fazla {maxCoins} coin olabilir.",
+                date is null ? null : $"Doğrulamazsan hesabın {date} tarihinde koleksiyonları, coin'leri ve fotoğraflarıyla birlikte silinecek."),
+            "de" => new("CoinVitrine bittet jetzt um die Bestätigung deiner E-Mail-Adresse",
+                $"CoinVitrine bittet jetzt bei jedem Konto um die Bestätigung der E-Mail-Adresse. Bis dahin kannst du keine neuen Sammlungen anlegen und keine Sammlungen teilen, und dein Konto kann höchstens {maxCoins} Münzen haben.",
+                date is null ? null : $"Wenn du sie nicht bestätigst, wird dein Konto am {date} mit seinen Sammlungen, Münzen und Fotos gelöscht."),
+            "bg" => new("CoinVitrine вече изисква потвърждение на имейл адреса",
+                $"CoinVitrine вече изисква потвърждение на имейл адреса на всеки акаунт. Дотогава не можете да създавате нови колекции и да споделяте колекции, а акаунтът ви може да има най-много {maxCoins} монети.",
+                date is null ? null : $"Ако не го потвърдите, акаунтът ви ще бъде изтрит на {date} заедно с колекциите, монетите и снимките си."),
+            _ => new("CoinVitrine now asks you to confirm your email address",
+                $"CoinVitrine now asks every account to confirm its email address. Until you do, you cannot open new collections or share collections, and your account can hold at most {maxCoins} coins.",
+                date is null ? null : $"If you do not confirm it, your account will be deleted on {date}, with its collections, coins and photos."),
         };
 
     private sealed record DeletionReminderWords(string Subject, string Intro, string OpenLink, string ClickButton,

@@ -47,7 +47,7 @@ public class EmailVerificationTests(CoinPortalFactory factory)
     {
         // Names may hold anything but control characters
         var mail = EmailTexts.Verification("en", """<img src=x onerror="alert(1)"> & Co""",
-            "https://example.com/verify-email?token=a&b", 24);
+            "https://example.com/verify-email?token=a&b", TimeSpan.FromHours(24));
 
         Assert.DoesNotContain("<img", mail.Html);
         Assert.Contains("&lt;img src=x onerror=&quot;alert(1)&quot;&gt; &amp; Co", mail.Html);

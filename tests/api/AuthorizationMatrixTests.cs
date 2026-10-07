@@ -168,6 +168,13 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("PUT", "api/admin/users/{id}/lock", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}/lock"),
         new("DELETE", "api/admin/users/{id}/lock", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}/lock"),
         new("DELETE", "api/admin/users/{id}", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}"),
+        // Verified already: nothing changes
+        new("POST", "api/admin/users/{id}/confirm-email", Access.Admin,
+            w => $"/api/admin/users/{w.Owner.User.Id}/confirm-email"),
+        new("GET", "api/admin/verification-requests", Access.Admin, _ => "/api/admin/verification-requests"),
+        // A note the validation refuses (400 gets through): a run would mail every unverified test account
+        new("POST", "api/admin/verification-requests", Access.Admin, _ => "/api/admin/verification-requests",
+            _ => Json(new AdminNoteRequest("\u0000"))),
         // No such user: nothing is deleted
         new("POST", "api/admin/users/bulk-delete", Access.Admin, _ => "/api/admin/users/bulk-delete",
             _ => Json(new AdminDeleteUsersRequest([Guid.NewGuid().ToString()], null))),

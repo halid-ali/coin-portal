@@ -1,5 +1,6 @@
 using System.Net;
 using CoinPortal.Api.Contracts.Admin;
+using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Contracts.Public;
@@ -95,6 +96,33 @@ public class AdminUsersTests(CoinPortalFactory factory)
         Assert.Equal([prefix + "b", prefix + "c"], unconfirmed.Items.Select(u => u.UserName));
         Assert.Equal([prefix + "a"], confirmed.Items.Select(u => u.UserName));
         Assert.Equal([prefix + "b"], lockedUnconfirmed.Items.Select(u => u.UserName));
+    }
+
+    [Fact]
+    public async Task ConfirmEmail_MarksTheAddressVerified_Once()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var bob = await factory.SignUpAsync(confirmEmail: false);
+        var url = $"/api/admin/users/{bob.User.Id}/confirm-email";
+
+        using (var confirm = await admin.Client.PostAsync(url, new AdminNoteRequest("Wrote from it")))
+        {
+            await confirm.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        using (var again = await admin.Client.PostAsync(url, new AdminNoteRequest("Again")))
+        {
+            await again.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        using var unknown = await admin.Client.PostAsync($"/api/admin/users/{Guid.NewGuid()}/confirm-email");
+
+        await unknown.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        var me = await bob.Client.GetJsonAsync<UserResponse>("/api/auth/me");
+        Assert.Equal((true, null), (me.EmailConfirmed, me.UnverifiedMaxCoins));
+        // Recorded once, for the change
+        var entry = Assert.Single((await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+                $"/api/admin/audit?action={AuditAction.EmailConfirmed}&pageSize=100")).Items,
+            e => e.TargetUserId == bob.User.Id);
+        Assert.Equal((admin.User.Id, "Wrote from it"), (entry.ActorId, entry.Note));
     }
 
     [Fact]

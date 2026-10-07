@@ -160,6 +160,23 @@ public sealed record AdminUserDetailResponse(
 /// <param name="Note">The reason, kept in the audit log only.</param>
 public sealed record AdminLockRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
+/// <summary>Body of admin actions that only take the reason (may be omitted).</summary>
+/// <param name="Note">The admin's reason, only kept in the audit log.</param>
+public sealed record AdminNoteRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
+
+/// <summary>The one-time verification request (VerificationRequests).</summary>
+/// <param name="Pending">Unverified, unlocked accounts that have not had it yet.</param>
+/// <param name="LastRun">The running run or the last one since the app started; null before the first.</param>
+public sealed record AdminVerificationRequestsResponse(int Pending, AdminVerificationRunResponse? LastRun);
+
+/// <param name="FinishedAtUtc">Null while it runs.</param>
+public sealed record AdminVerificationRunResponse(
+    DateTime StartedAtUtc, DateTime? FinishedAtUtc, int Total, int Sent, int Failed)
+{
+    public static AdminVerificationRunResponse? From(VerificationRequestRun? run) =>
+        run is null ? null : new(run.StartedAtUtc, run.FinishedAtUtc, run.Total, run.Sent, run.Failed);
+}
+
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminDeleteUserRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 

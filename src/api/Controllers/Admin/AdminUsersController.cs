@@ -160,6 +160,30 @@ public class AdminUsersController(
     }
 
     /// <summary>
+    /// Marks the user's e-mail address verified, for one whose mail does not arrive while the admin
+    /// knows the address is theirs (e.g. they wrote from it). Already verified: 204, nothing recorded.
+    /// </summary>
+    [HttpPost("{id}/confirm-email")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmEmail(string id,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AdminNoteRequest? request, CancellationToken ct)
+    {
+        var user = await userManager.FindByIdAsync(id);
+        if (user is null)
+        {
+            return NotFound();
+        }
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            Audit(db, AuditAction.EmailConfirmed, user, note: request?.Note);
+            await db.SaveChangesAsync(ct);
+        }
+        return NoContent();
+    }
+
+    /// <summary>
     /// Deletes the users selected in the list (spam accounts, at most a page), one after another,
     /// each like <see cref="Delete"/> with its own audit entry and the same note. Admins among them
     /// are skipped and counted, not refused: a selection may hold one.

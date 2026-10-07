@@ -27,6 +27,13 @@ public sealed class EmailOptions : IValidatableObject
     /// <summary>Folder for .eml files when no SMTP host is set; relative to the content root.</summary>
     public string PickupPath { get; set; } = "App_Data/mail";
 
+    /// <summary>
+    /// Seconds between two e-mails of a bulk send (Accounts.VerificationRequests): the host's sending
+    /// limit is unknown. 0 in tests.
+    /// </summary>
+    [Range(0, 600)]
+    public int BulkDelaySeconds { get; set; } = 5;
+
     public SmtpSettings Smtp { get; set; } = new();
 
     public bool UsesSmtp => !string.IsNullOrWhiteSpace(Smtp.Host);
