@@ -199,7 +199,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
 - Rotalar: `/` (ana sayfa: girişsiz `HomeWelcome` tanıtım, girişli `HomeDashboard` pano; `pages/home/`),
   `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
-  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `account`).
+  `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `security`, `account`).
   Eski `/collection…` adresleri yönlendirilir.
   Admin: `/admin/<bölüm>` (`overview`, `users`, `users/:id`, `collections`, `audit`, `settings`; `adminGuard`).
   Girişsiz: `/forgot-password` (girişliyken ana sayfaya), `/reset-password?token=` (e-postadaki link; girişliyken de
@@ -295,7 +295,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `no-cache`. Lokalde `wwwroot` yok, client'ı `ng serve` sunar. Genel fallback son parçası dosya adına
   benzeyen (noktalı) adresleri atlar, eksik bir `.js` 404 kalsın diye; `/u/…` (noktalı kullanıcı adları)
   kendi fallback'ini alır. **Son parçasında nokta olabilen yeni bir client rotası** da `SpaHosting`'e
-  eklenir ve `HostingTests`'teki listeye girer.
+  eklenir ve `HostingTests`'teki listeye girer. `/.well-known/change-password` (parola yöneticilerinin standart
+  adresi) `/settings/security`'ye yönlenir; Güvenlik bölümü taşınırsa o da değişir. `/.well-known/` altındaki diğer
+  adresler 404 (uygulamanın sayfası değil): tarayıcılar uydurma bir adresle bunu kontrol etmeden change-password'e güvenmez.
 - Güvenlik başlıkları `Hosting/SecurityHeaders`: her yanıtta `nosniff`, `X-Frame-Options: DENY` +
   CSP `frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`,
   site izolasyonu: `Cross-Origin-Opener-Policy: same-origin`, `-Resource-Policy: same-origin`,
@@ -386,7 +388,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `factory.Mail.WaitForAsync`, `LatestResetToken`). Bu uca hesaba göre farklı bir cevap ya da senkron gönderim
   eklenmez. `reset-password/check` kullanıcı adını döner, `reset-password` parolayı koyar, e-postayı doğrulanmış
   sayar ve 5 hatalı girişin geçici kilidini kaldırır (oturumlar yeni damgayla biter); geçersiz link 400
-  `invalid_token`. Token istek gövdesinde gider, adreste değil.
+  `invalid_token`. Token istek gövdesinde gider, adreste değil. **Parola değiştirme** (Ayarlar > Güvenlik, `POST
+  api/auth/change-password`): yanlış mevcut parola 400 `PasswordMismatch`, diğer oturumlar biter, bu oturum
+  `RefreshSignInAsync` ile sürer. Parola nasıl değişirse değişsin (Ayarlar, sıfırlama linki; yeni bir yol da)
+  `PasswordChangedNotice` "parolan değişti" e-postasını gönderir (kullanıcı kararı 2026-10-07).
 - Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar
   (`v`'siz istek `private, no-cache`, `ImageUploadExtensions.ImageCacheControl`).
   Yüklemede önce dosya yazılır, sonra satır; kayıt **hangi sebeple olursa olsun** başarısızsa yeni dosya
@@ -543,6 +548,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   sonra `injectFocusFirstInvalid()` ile ilk hatalı alana odak. Hata kutuları `role="alert"`, yükleme
   metinleri `role="status"`, yeniden yüklenen liste `[attr.aria-busy]`. Sayfa iskeletinde "İçeriğe atla"
   linki; yol değişince (sorgu değil) sayfa başa kayar ve odak `main`'e geçer (`app.ts`).
+  **Her parola alanı** `<app-password-field>` içinde (`shared/password-field`; kullanıcı kararı 2026-10-07): göz
+  ikonlu göster/gizle butonu (`aria-pressed`) ve fiziksel klavyede "Caps Lock açık" notu; input içeride kalır,
+  `formControlName`/`appField`/`id` onda. Edge'in kendi göz ikonu `styles.css`'te gizli. e2e'de `getByLabel('Password')`
+  butonun adına da uyar: `{ exact: true }`.
 - Liste sayfalarında **URL tek doğruluk kaynağı**: filtre/sıralama/sayfa query param'larda,
   `withComponentInputBinding()` ile input'lara bağlı, varsayılanlar URL'e yazılmaz; yükleme
   `toObservable(query)` + `switchMap`. Query param input'ları `input(undefined, { transform:
@@ -749,7 +758,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
     bileşen testlerinde `provideAdminTranslations()` de verilir; scope kendi dinamik import'uyla yüklendiği
     için `whenStable` beklemez, metin `vi.waitFor` ile beklenir (bkz. `admin-users.spec.ts`).
   - Ayarlar sayfası: soldaki bölüm menüsü `pages/settings/settings.ts` `SECTIONS`, her bölüm
-    `settings.routes.ts` içinde bir alt rota.
+    `settings.routes.ts` içinde bir alt rota. Telefonda menü yana kayan sekme satırı; seçili sekme görünür alana
+    kaydırılır (`revealIfActive`).
 - **Client birim testleri** (Vitest + jsdom, kodun yanında `*.spec.ts`): çekirdek servisler (`core/`),
   paylaşılan bileşenler (`shared/`), her pencere (Esc ve meşgulken davranış) ve formların sunucu hata
   eşlemesi spec'iyle gelir. HTTP `HttpTestingController` ile (istek sırası `expectNone` ile de kontrol

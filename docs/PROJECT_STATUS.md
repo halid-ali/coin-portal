@@ -2,8 +2,8 @@
 
 Son güncelleme: 2026-10-07 (**`v1.8.0` yayında** (Tamamlananlar 90–92): fotoğraf alanı (kullanıcıya kalan alan,
 admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları, coin formu
-fotoğraf hizası, yayına alma bandı, sayfa yolu). **Parola sıfırlama yapıldı** (Tamamlananlar 93, yayında değil);
-sıradaki iş Ayarlar > Güvenlik'te parola değiştirme, sonra `v1.9.0`. `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+fotoğraf hizası, yayına alma bandı, sayfa yolu). **Parola sıfırlama ve parola değiştirme yapıldı** (Tamamlananlar
+93–94, yayında değil); sıradaki `v1.9.0` (önce kullanıcının soruları). `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
 hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
 doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
 e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
@@ -1776,6 +1776,31 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Gizlilik metni: hesap e-postalarına parola yenileme linki eklendi (`privacy.data.i5`, `purposes.i1`, dört dil).
     - Testler: API 413 (+17: `PasswordResetTests`, kontrol karakteri, üç yetki matrisi satırı), client 360 (+12),
       e2e 17 (+2: tam akış axe ile, geçersiz link).
+94. **Parola değiştirme, Ayarlar > Güvenlik** (`feat/change-password`, 2026-10-07; mockup'la seçildi,
+    `.notes/designs/change-password/`). Kullanıcı kararları: ayrı bir "Güvenlik" bölümü (A; Görünüm ile Hesap
+    arasında, kilit ikonu), önceki giriş Profil'den oraya taşındı, parola değişince e-postayla haber verilir.
+    - **API:** `POST api/auth/change-password` (girişli, `Auth` hız sınırı: mevcut parolayı tahmin etmek giriş
+      gibi sınırlı): Identity `ChangePasswordAsync`, yanlış mevcut parola 400 `PasswordMismatch` (alan hatası),
+      zayıf parola Identity kodlarıyla. Yeni damga diğer oturumları bitirir, `RefreshSignInAsync` bu oturumu
+      yeni cookie'yle sürdürür ("Beni hatırla" korunur; antiforgery token'ı kullanıcı Id'sine bağlı, geçerli kalır).
+    - **"Parolan değişti" e-postası** (`PasswordChangedNotice`, `EmailTexts.PasswordChanged`, dört dil): hem
+      Ayarlar'dan değişince hem sıfırlama linkiyle; kullanıcı adı, "sen yapmadıysan" butonu `/forgot-password`'e,
+      yazılacak adres `Email:FromAddress`. Gönderilemezse Error log, parola yine değişir.
+    - **Client:** `pages/settings/security-settings.ts`: "Parolayı değiştir" kartı (mevcut, yeni, tekrar; başarıda
+      form temizlenir ve yeşil mesaj) ve "Önceki giriş" kartı ("tanımadığın bir zaman görürsen parolanı değiştir").
+      Telefonda bölüm sekmeleri yana kayıyor: seçili sekme artık görünür alana kaydırılıyor (`revealIfActive`;
+      Almanca/Bulgarca'da "Güvenlik" ve "Hesap" sağ kenarda yarım kalıyordu).
+    - Gizlilik metni: hesap e-postalarına parola değişikliği bildirimi eklendi (dört dil).
+    - **Parola alanları** (kullanıcı "parolayla ilgili başka ne var" diye sordu, üç öneri kabul; mockup
+      `.notes/designs/password-fields/`): `shared/password-field` her parola alanında (giriş, kayıt, yeni parola,
+      Güvenlik, hesap silme): göz ikonlu göster/gizle (A seçildi; "Göster" yazısı B elendi), Caps Lock açıkken
+      altında gri "Caps Lock açık" notu (fiziksel klavyede; telefon klavyeleri durumu bildirmez). Edge'in kendi
+      göz ikonu gizlendi. `/.well-known/change-password` → `/settings/security` (302; Chrome sızan parolada
+      kullanıcıyı oraya gönderir); `/.well-known/` altındaki diğer adresler 404 (önceden SPA fallback 200 dönüyordu,
+      tarayıcının güvenilirlik kontrolünü bozardı; kullanıcının test sorusunda bulundu). Önerilip ileriye bırakılanlar: sızdırılmış parola kontrolü (Have I Been Pwned;
+      dış servis, gizlilik metni) ve parola kurallarının uzunluğa dayalı olması.
+    - Testler: API 420 (+7: `ChangePasswordTests`, sıfırlamada bildirim, yetki matrisi satırı, iki well-known
+      testi), client 369 (+9), e2e 18 (+1, axe ile; sıfırlama testi göster butonunu da dener).
 
 ## Yol haritası
 
@@ -1935,9 +1960,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** parola sıfırlama yapıldı (`feat/password-reset`, Tamamlananlar 93, yayında değil). Sıradaki,
-kullanıcıyla 2026-10-07'de konuşuldu: **Ayarlar > Güvenlik'te girişliyken parola değiştirme** (ayrı branch
-`feat/change-password`, mevcut parola + yeni parola; aynı sürümde çıkabilir), sonra `v1.9.0`. Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** parola sıfırlama (Tamamlananlar 93) ve Ayarlar > Güvenlik'te parola değiştirme (94) yapıldı,
+yayında değil. Sıradaki `v1.9.0` ikisiyle; kullanıcı 2026-10-07'de "işi bitince v1.9.0'a geçme, sormak
+istediklerim olacak" dedi: yayından önce kullanıcının soruları. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
@@ -1976,7 +2001,7 @@ Diğer adaylar (kullanıcı 2026-09-30'da ayrıca logo çalışmasını ve Angul
 3. **Profil bilgilerinin düzenlenmesi** (kullanıcı 2026-09-28'de kaydettirdi): Ayarlar > Profil şimdilik
    salt okunur. Hangi alanların değiştirilebileceğine kullanıcıyla karar verilecek (isim/soyisim kolay;
    kullanıcı adı paylaşım linklerini `/u/…` bozar; e-posta doğrulama ister; doğum tarihi 18+ kuralına
-   bağlı). Ayarlar'da ayrıca Güvenlik (parola değiştirme) bölümü düşünülüyor.
+   bağlı). Ayarlar > Güvenlik (parola değiştirme, önceki giriş) 2026-10-07'de geldi (Tamamlananlar 94).
 4. Diğer adaylar (sıra değişebilir): gelişmiş filtreler, istatistikler, referans katalog / eksik listesi.
 5. **Angular 22'ye yükseltme** (2026-09-29'da Dependabot gösterdi): `ng update @angular/core @angular/cli`
    ile ayrı bir branch'te, Vitest 5 ve jsdom 30 ile birlikte; testler ve görsel kontrol. Dependabot bu
