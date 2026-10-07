@@ -3,12 +3,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
- * Sections in menu order; each is a child route (settings.routes.ts). New ones (security, …)
- * are added here and there.
+ * Sections in menu order; each is a child route (settings.routes.ts). New ones are added here
+ * and there.
  */
 const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
   { path: 'profile', labelKey: 'settings.profile.nav', icon: 'profile' },
   { path: 'appearance', labelKey: 'settings.appearance.nav', icon: 'appearance' },
+  { path: 'security', labelKey: 'settings.security.nav', icon: 'security' },
   { path: 'account', labelKey: 'settings.account.nav', icon: 'account' },
 ];
 
@@ -31,9 +32,11 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
             @for (section of sections; track section.path) {
               <li>
                 <a
+                  #link
                   [routerLink]="section.path"
                   routerLinkActive="!bg-brand-50 !text-brand-800 ring-1 ring-brand-200"
                   ariaCurrentWhenActive="page"
+                  (isActiveChange)="revealIfActive($event, link)"
                   class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap
                          text-shade-600 transition-colors hover:bg-shade-100 hover:text-shade-900
                          focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
@@ -63,6 +66,11 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
                         <circle cx="10" cy="7" r="1" />
                         <circle cx="14.5" cy="7" r="1" />
                       }
+                      @case ('security') {
+                        <!-- padlock -->
+                        <rect x="5" y="11" width="14" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                      }
                       @case ('account') {
                         <!-- shield with a key hole: the account itself -->
                         <path d="M12 3 5 6v5c0 4.5 3 8.2 7 10 4-1.8 7-5.5 7-10V6z" />
@@ -87,4 +95,14 @@ const SECTIONS: readonly { path: string; labelKey: string; icon: string }[] = [
 })
 export class Settings {
   protected readonly sections = SECTIONS;
+
+  /**
+   * On a phone the tab row scrolls sideways: the chosen section is moved into view (opened from
+   * an address, a later tab may sit past the edge). Only the row scrolls, not the page.
+   */
+  protected revealIfActive(active: boolean, link: HTMLElement): void {
+    if (active) {
+      link.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    }
+  }
 }

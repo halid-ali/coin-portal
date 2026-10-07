@@ -12,6 +12,10 @@ export const SETTINGS_ROUTES: Routes = [
     loadComponent: () => import('./appearance-settings').then((m) => m.AppearanceSettings),
   },
   {
+    path: 'security',
+    loadComponent: () => import('./security-settings').then((m) => m.SecuritySettings),
+  },
+  {
     path: 'account',
     loadComponent: () => import('./account-settings').then((m) => m.AccountSettings),
   },
