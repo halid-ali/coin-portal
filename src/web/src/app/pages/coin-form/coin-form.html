@@ -1,11 +1,9 @@
 <section class="mx-auto w-full max-w-2xl">
-  <div class="mb-6 flex items-center justify-between gap-3">
+  <div class="mb-6">
+    <app-breadcrumbs class="mb-2" [items]="breadcrumbs()" />
     <h1 class="text-2xl font-semibold text-shade-900">
       {{ (isEdit() ? 'coinForm.titleEdit' : 'coinForm.titleNew') | transloco }}
     </h1>
-    <a [routerLink]="returnTree()" class="link text-sm"
-      ><span aria-hidden="true">‹</span> {{ 'coinForm.backToCollection' | transloco }}</a
-    >
   </div>
 
   @if (notFound()) {

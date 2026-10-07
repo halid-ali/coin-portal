@@ -557,9 +557,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Sayfalama satırı: solda görünüm butonları (`<app-pagination>` içine projeksiyon), ortada sayfa
   butonları, sağda sayfa başına. Telefonda tek satır: listenin altındaki `placement="bottom"` sadece
   sayfa butonlarını gösterir, üstteki ilk/son butonlarını ve aralığı gizler.
-- Detay/form sayfalarından listeye dönüşler (geri linki, Vazgeç, kaydet/sil sonrası) koleksiyon
+- Detay/form sayfalarından listeye dönüşler (Vazgeç, kaydet/sil sonrası, sayfa yolundaki koleksiyon) koleksiyon
   sayfasının son adresiyle yapılır (`CollectionReturn` servisi, `returnTree()`); yoksa coin'in
   koleksiyonuna dönülür. Düz bir link koleksiyonu, görünümü ve filtreleri kaybettirir.
+- **Sayfa yolu (breadcrumbs)** `shared/breadcrumbs` (kullanıcı kararı 2026-10-07): üst sayfalar yuvarlak buton
+  linkler (Keşfet ve Koleksiyonlarım üst menünün ikonuyla, kullanıcı baş harf avatarıyla), bulunulan sayfa düz
+  yazı ve **telefonda gösterilmez** (başlık söylüyor). Sadece dört sayfada: profil (Keşfet › @kullanıcı), herkese
+  açık koleksiyon (Keşfet › @kullanıcı › ad), kendi koleksiyonu (Koleksiyonlarım › ad), coin formu
+  (Koleksiyonlarım › koleksiyon › Coin ekle/düzenle). Sadece linkle paylaşılan koleksiyonda yok (profilde ve
+  Keşfet'te görünmez), Ayarlar ve Yönetim'de yok (bölüm menüsü var). "Keşfet" son Keşfet adresine döner
+  (`ExploreReturn`, `CollectionReturn` gibi bellekte); koleksiyon adımı `CollectionReturn`'ün adresini sadece
+  aynı koleksiyonunsa kullanır.
 - Koleksiyon silme: ad birebir yazılmadan silinemez (boş olsa da); dolu koleksiyonda varsayılan seçenek
   coin'leri taşımak. Tek koleksiyon silinemez (API `last_collection`). Coin'li bir koleksiyonu coin'leriyle
   silmek açık seçim ister (`deleteCoins=true`; taşıma hedefi de yoksa 409 `has_coins`): eski bir sayfa
@@ -571,7 +579,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `dark:` ve düz palet (`slate-*`, `amber-*`, `bg-white`) yazılmaz. İstisna: iki temada aynı görünmesi
   gerekenler (tehlike butonunun dolgusu, fotoğraf görüntüleyici, tema önizlemeleri, renk örnekleri, coin
   değer ikonu)
-  ve `dark:` kullanan iki yer: baş harf avatarı (header, profil) ve bayrak çerçevesi (`shared/flag`).
+  ve `dark:` kullanan iki yer: baş harf avatarı (header, profil, sayfa yolu) ve bayrak çerçevesi (`shared/flag`).
   Logo (`shared/logo`) temaya göre değişir, kendi değişkenleriyle: `--logo-coin` / `--logo-sign` (açıkta
   koyu para + altın €, koyuda altın para + koyu €; kullanıcı kararı 2026-10-04), tema rengine bağlı değil.
   Tema tercihi dil gibi hesapta (`me` → `theme`, `PUT api/settings`), değişiklik `ThemePreference.change()`.

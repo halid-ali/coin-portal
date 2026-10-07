@@ -96,6 +96,9 @@
     "skipToContent": "Skip to content",
     "language": "Language"
   },
+  "breadcrumbs": {
+    "label": "Breadcrumb"
+  },
   "notFound": {
     "title": "Page not found",
     "message": "There is no page at this address. The link may be mistyped or cut off; if it is a share link, make sure you copied all of it.",

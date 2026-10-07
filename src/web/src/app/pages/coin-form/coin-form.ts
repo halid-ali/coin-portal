@@ -25,6 +25,7 @@ import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
 import { coinWithPhotosErrorMessage, photoErrorMessage } from '../../core/coins/photo-errors';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
+import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
 import { denominationLabel, suggestTitle } from '../../shared/coin-format';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
 import { integerValidator } from '../../shared/validators';
@@ -39,7 +40,15 @@ import { PhotoSlot } from './photo-slot';
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
 @Component({
   selector: 'app-coin-form',
-  imports: [ReactiveFormsModule, FieldA11y, RouterLink, TranslocoPipe, PhotoSlot, PhotoViewer],
+  imports: [
+    ReactiveFormsModule,
+    FieldA11y,
+    RouterLink,
+    TranslocoPipe,
+    Breadcrumbs,
+    PhotoSlot,
+    PhotoViewer,
+  ],
   templateUrl: './coin-form.html',
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
 })
@@ -77,6 +86,27 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     return this.router.createUrlTree(
       collectionId ? ['/collections', collectionId] : ['/collections'],
     );
+  });
+
+  /**
+   * My collections > the coin's collection > Add coin / Edit coin. The collection step leads to
+   * the list the user came from when it is that collection's (view, filters, page), otherwise to
+   * the collection itself; without a known collection the step is left out.
+   */
+  protected readonly breadcrumbs = computed<readonly Crumb[]>(() => {
+    const home: Crumb = { key: 'nav.collections', link: '/collections', icon: 'collections' };
+    const current: Crumb = { key: this.isEdit() ? 'coinForm.titleEdit' : 'coinForm.titleNew' };
+    const collectionId = this.coin()?.collectionId ?? (Number(this.collection()) || null);
+    const name = this.collections()?.find((c) => c.id === collectionId)?.name;
+    if (collectionId === null || name === undefined) {
+      return [home, current];
+    }
+    const remembered = this.collectionReturn.url();
+    const link =
+      remembered?.split('?')[0] === `/collections/${collectionId}`
+        ? this.router.parseUrl(remembered)
+        : ['/collections', collectionId];
+    return [home, { text: name, link }, current];
   });
 
   /** Id of the saved coin: set on load in edit mode and after the first save in create mode. */

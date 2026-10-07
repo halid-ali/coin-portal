@@ -35,10 +35,12 @@ import { httpErrorKey, httpErrorMessage } from '../../core/http/problem-details'
 import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
+import { ExploreReturn } from '../../core/public/explore-return';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { EMAIL_LIMIT_IDS } from '../../layout/email-banner/email-banner';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
+import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
 import { scrollToTop } from '../../shared/motion';
@@ -86,6 +88,7 @@ type QueryParamValue = string | number | boolean | null;
     PhotoViewer,
     ViewToggle,
     VisibilityBadge,
+    Breadcrumbs,
     CollectionFormDialog,
     CollectionDeleteDialog,
   ],
@@ -100,6 +103,7 @@ export class Collection {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly collectionReturn = inject(CollectionReturn);
+  private readonly exploreReturn = inject(ExploreReturn);
   private readonly title = inject(Title);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
@@ -126,6 +130,34 @@ export class Collection {
   protected readonly collectionCover = computed(() => {
     const header = this.header();
     return header ? coverUrl(header, this.shareToken()) : null;
+  });
+  /**
+   * Own collection: My collections > name; public one: Explore > @owner > name. None on Explore
+   * itself and on a link-only collection (not reachable from the profile or Explore).
+   */
+  protected readonly breadcrumbs = computed<readonly Crumb[] | null>(() => {
+    const header = this.header();
+    switch (this.mode()) {
+      case 'owner':
+        return [
+          { key: 'nav.collections', link: '/collections', icon: 'collections' },
+          { text: header?.name ?? '' },
+        ];
+      case 'public':
+        return header?.ownerUserName
+          ? [
+              { key: 'nav.explore', link: this.exploreReturn.link(), icon: 'explore' },
+              {
+                text: '@' + header.ownerUserName,
+                link: ['/u', header.ownerUserName],
+                avatar: header.ownerUserName.charAt(0).toUpperCase(),
+              },
+              { text: header.name },
+            ]
+          : null;
+      default:
+        return null;
+    }
   });
   protected readonly editing = signal(false);
   /** All collections while the delete dialog is open (it offers the others as move targets). */
@@ -319,12 +351,19 @@ export class Collection {
   constructor() {
     this.countryService.load();
 
-    // The coin form returns to this exact list (collection, view, filters, sort, page). The route
-    // data, not the mode input: inputs are bound after this first, synchronous emission
+    // The coin form returns to this exact list (collection, view, filters, sort, page), the
+    // breadcrumbs of a profile or public collection to this exact Explore. The route data, not the
+    // mode input: inputs are bound after this first, synchronous emission
     combineLatest([this.route.paramMap, this.route.queryParams])
       .pipe(takeUntilDestroyed())
       .subscribe(([params, queryParams]) => {
-        if (this.route.snapshot.data['mode'] !== 'owner') {
+        const mode = this.route.snapshot.data['mode'];
+        if (mode === 'explore') {
+          this.exploreReturn.remember(
+            this.router.serializeUrl(this.router.createUrlTree(['/explore'], { queryParams })),
+          );
+        }
+        if (mode !== 'owner') {
           return;
         }
         this.collectionReturn.remember(

@@ -96,6 +96,9 @@
     "skipToContent": "İçeriğe atla",
     "language": "Dil"
   },
+  "breadcrumbs": {
+    "label": "Sayfa yolu"
+  },
   "notFound": {
     "title": "Sayfa bulunamadı",
     "message": "Bu adreste bir sayfa yok. Link yanlış yazılmış ya da eksik kopyalanmış olabilir; paylaşım linkiyse tamamını kopyaladığından emin ol.",

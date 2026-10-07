@@ -9,14 +9,16 @@ import { catchError, of, switchMap, tap } from 'rxjs';
 import { httpErrorKey } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
+import { ExploreReturn } from '../../core/public/explore-return';
 import { PublicProfile } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
+import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
 
 /** Public profile (/u/:userName): the user's public collections. Works signed out. */
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, TranslocoPipe, PluralPipe, CollectionCard],
+  imports: [RouterLink, TranslocoPipe, PluralPipe, Breadcrumbs, CollectionCard],
   template: `
     <section class="space-y-6">
       @if (notFound()) {
@@ -32,27 +34,30 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
       } @else if (loadError(); as key) {
         <div role="alert" class="alert-error">{{ key | transloco }}</div>
       } @else if (profile(); as p) {
-        <div class="flex items-center gap-4">
-          <span
-            aria-hidden="true"
-            class="grid size-14 shrink-0 place-items-center rounded-full bg-slate-800 text-xl font-semibold text-white dark:bg-slate-700"
-          >
-            {{ initial() }}
-          </span>
-          <div class="min-w-0">
-            <h1 class="truncate text-2xl font-semibold text-shade-900">&#64;{{ p.userName }}</h1>
-            <p class="text-sm text-shade-600">
-              {{ 'profile.publicCollectionCount' | plural: p.collections.length }} ·
-              {{ 'common.coinCount' | plural: totalCoins() }}
-            </p>
+        <div>
+          <app-breadcrumbs class="mb-3" [items]="breadcrumbs()" />
+          <div class="flex items-center gap-4">
+            <span
+              aria-hidden="true"
+              class="grid size-14 shrink-0 place-items-center rounded-full bg-slate-800 text-xl font-semibold text-white dark:bg-slate-700"
+            >
+              {{ initial() }}
+            </span>
+            <div class="min-w-0">
+              <h1 class="truncate text-2xl font-semibold text-shade-900">&#64;{{ p.userName }}</h1>
+              <p class="text-sm text-shade-600">
+                {{ 'profile.publicCollectionCount' | plural: p.collections.length }} ·
+                {{ 'common.coinCount' | plural: totalCoins() }}
+              </p>
+            </div>
+            <a
+              [routerLink]="['/explore']"
+              [queryParams]="{ owner: p.userName }"
+              class="btn-secondary ml-auto"
+            >
+              {{ 'profile.allCoins' | transloco }}
+            </a>
           </div>
-          <a
-            [routerLink]="['/explore']"
-            [queryParams]="{ owner: p.userName }"
-            class="btn-secondary ml-auto"
-          >
-            {{ 'profile.allCoins' | transloco }}
-          </a>
         </div>
 
         <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,6 +79,7 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
 export class Profile {
   private readonly publicService = inject(PublicService);
   private readonly title = inject(Title);
+  private readonly exploreReturn = inject(ExploreReturn);
 
   /** Route param, bound by withComponentInputBinding(). */
   readonly userName = input.required<string>();
@@ -86,6 +92,11 @@ export class Profile {
   protected readonly initial = computed(
     () => this.profile()?.userName.charAt(0).toUpperCase() ?? '',
   );
+  /** Explore > @user: profiles are reached from Explore (or a link from outside). */
+  protected readonly breadcrumbs = computed<readonly Crumb[]>(() => [
+    { key: 'nav.explore', link: this.exploreReturn.link(), icon: 'explore' },
+    { text: '@' + (this.profile()?.userName ?? this.userName()), avatar: this.initial() },
+  ]);
   protected readonly totalCoins = computed(() =>
     (this.profile()?.collections ?? []).reduce((sum, c) => sum + c.coinCount, 0),
   );
