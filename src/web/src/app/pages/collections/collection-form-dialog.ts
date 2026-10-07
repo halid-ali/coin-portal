@@ -138,11 +138,20 @@ let nextId = 0;
         } @else {
           <!-- The reason Public is not available yet also describes the group: screen readers
                often skip a disabled radio, and with it its own description -->
-          <fieldset [attr.aria-describedby]="publicBlocked() ? titleId + '-public-needs' : null">
+          <fieldset [attr.aria-describedby]="groupDescription()">
             <legend class="form-label">{{ 'collectionForm.visibility' | transloco }}</legend>
+            @if (emailBlocked()) {
+              <!-- Sharing needs a verified address; what is shared already stays -->
+              <p [id]="titleId + '-email-needs'" class="mb-2 text-sm text-shade-700">
+                {{ 'collectionForm.emailNeeded' | transloco }}
+              </p>
+            }
             <div class="space-y-2">
               @for (option of visibilityOptions; track option) {
-                @let blocked = option === 'Public' && publicBlocked();
+                @let unverified =
+                  emailBlocked() && option !== 'Private' && option !== savedVisibility();
+                @let publicNeeds = option === 'Public' && publicBlocked() && !unverified;
+                @let blocked = unverified || publicNeeds;
                 <label
                   class="flex items-start gap-3 rounded-lg border border-shade-200 p-3 transition-colors has-checked:border-brand-400 has-checked:bg-brand-50"
                   [class]="
@@ -154,7 +163,13 @@ let nextId = 0;
                     formControlName="visibility"
                     [value]="option"
                     [attr.disabled]="blocked ? '' : null"
-                    [attr.aria-describedby]="blocked ? titleId + '-public-needs' : null"
+                    [attr.aria-describedby]="
+                      unverified
+                        ? titleId + '-email-needs'
+                        : publicNeeds
+                          ? titleId + '-public-needs'
+                          : null
+                    "
                     class="mt-1 accent-brand-500"
                   />
                   <span class="text-sm">
@@ -164,7 +179,7 @@ let nextId = 0;
                     <span class="mt-1 block text-shade-600">{{
                       'visibility.' + option + '.description' | transloco
                     }}</span>
-                    @if (blocked) {
+                    @if (publicNeeds) {
                       <!-- Why it cannot be chosen yet, with the numbers -->
                       <span [id]="titleId + '-public-needs'" class="mt-1 block text-shade-700">
                         @if (progress(); as p) {
@@ -174,7 +189,7 @@ let nextId = 0;
                               | transloco: { photographed: p.photographed, required: p.required }
                           }}
                           @if (p.missing > 0) {
-                            <span aria-hidden="true">·</span>
+                            &ngsp;<span aria-hidden="true">·</span>&ngsp;
                             {{ 'publication.missing' | plural: p.missing }}
                           }
                         } @else {
@@ -302,6 +317,19 @@ export class CollectionFormDialog {
   protected readonly visibilityOptions = VISIBILITIES;
   /** Public needs photographed coins (publicationProgress); a new collection has none yet. */
   protected readonly publicBlocked = computed(() => !canChoosePublic(this.saved()));
+  /** Sharing needs a verified e-mail address (the API answers 403 email_not_confirmed). */
+  protected readonly emailBlocked = computed(
+    () => this.auth.currentUser()?.emailConfirmed === false,
+  );
+  protected readonly savedVisibility = computed(() => this.saved()?.visibility ?? 'Private');
+  /** Why options are closed, for the whole group: screen readers often skip a disabled radio. */
+  protected readonly groupDescription = computed(() =>
+    this.emailBlocked()
+      ? this.titleId + '-email-needs'
+      : this.publicBlocked()
+        ? this.titleId + '-public-needs'
+        : null,
+  );
   protected readonly progress = computed(() => {
     const saved = this.saved();
     return saved ? publicationProgress(saved) : null;

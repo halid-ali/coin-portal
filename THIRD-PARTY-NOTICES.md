@@ -24,6 +24,8 @@ main ones:
 |---|---|
 | ASP.NET Core, Entity Framework Core, Microsoft.Data.SqlClient | [MIT](https://github.com/dotnet/aspnetcore/blob/main/LICENSE.txt) |
 | SixLabors.ImageSharp | [Six Labors Split License 1.0](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE) |
+| MailKit, MimeKit | [MIT](https://github.com/jstedfast/MailKit/blob/master/LICENSE) |
+| BouncyCastle.Cryptography (used by MimeKit) | [MIT](https://github.com/bcgit/bc-csharp/blob/master/LICENSE.html) |
 | Serilog, Serilog.AspNetCore and its sinks | [Apache-2.0](https://github.com/serilog/serilog/blob/dev/LICENSE) |
 | Swashbuckle.AspNetCore.SwaggerUI (development only) | [MIT](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/LICENSE) |
 

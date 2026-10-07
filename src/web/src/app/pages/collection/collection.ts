@@ -37,6 +37,7 @@ import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
+import { EMAIL_LIMIT_IDS } from '../../layout/email-banner/email-banner';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
@@ -167,6 +168,27 @@ export class Collection {
       : null;
   });
   protected readonly publishing = signal(false);
+  /** Sharing needs a verified e-mail address (API 403 email_not_confirmed). */
+  protected readonly emailBlocked = computed(
+    () => this.auth.currentUser()?.emailConfirmed === false,
+  );
+  /** The account's coin limit while the e-mail address is unverified, otherwise null. */
+  protected readonly unverifiedMaxCoins = computed(
+    () => this.auth.currentUser()?.unverifiedMaxCoins ?? null,
+  );
+  /**
+   * Coins in the whole account (the limit counts every collection), loaded with the own
+   * collection while the address is unverified; null otherwise.
+   */
+  private readonly accountCoinCount = signal<number | null>(null);
+  /** The reasons in the e-mail notice, for the gray "Add coin" (aria-describedby). */
+  protected readonly limitIds = EMAIL_LIMIT_IDS;
+  /** Unverified and at the limit: the API refuses another coin (403 unverified_coin_limit). */
+  protected readonly coinLimitReached = computed(() => {
+    const max = this.unverifiedMaxCoins();
+    const count = this.accountCoinCount();
+    return max !== null && count !== null && count >= max;
+  });
   /** Translation key when making the collection public failed. */
   protected readonly publishError = signal<string | null>(null);
   /**
@@ -319,6 +341,7 @@ export class Collection {
       .pipe(
         tap(() => {
           this.collection.set(null);
+          this.accountCoinCount.set(null);
           this.header.set(null);
           this.notFound.set(false);
           this.headerError.set(null);
@@ -379,6 +402,7 @@ export class Collection {
       case 'owner':
         return this.collectionService.get(this.collectionIdNumber()).pipe(
           tap((collection) => this.setOwnCollection(collection)),
+          switchMap(() => this.loadAccountCoinCount()),
           catchError(notFound),
         );
       case 'public':
@@ -404,6 +428,17 @@ export class Collection {
           catchError(() => of(null)),
         );
     }
+  }
+
+  /** Only while the address is unverified; without the count, "Add coin" stays (the API decides). */
+  private loadAccountCoinCount(): Observable<unknown> {
+    if (this.unverifiedMaxCoins() === null) {
+      return of(null);
+    }
+    return this.coinService.summary().pipe(
+      tap((summary) => this.accountCoinCount.set(summary.coinCount)),
+      catchError(() => of(null)),
+    );
   }
 
   private loadCoins(

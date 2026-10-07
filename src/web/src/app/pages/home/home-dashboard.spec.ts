@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
@@ -121,6 +121,31 @@ describe('HomeDashboard', () => {
     expect(text()).toContain('Hatıra paraları');
     // No public collection: no profile link
     expect(text()).not.toContain('Vitrinin herkese açık');
+  });
+
+  it('grays out a new collection before the address is verified, and adding coins at the limit', async () => {
+    const currentUser = TestBed.inject(AuthService).currentUser as WritableSignal<UserResponse>;
+    currentUser.set({ ...user, emailConfirmed: false, unverifiedMaxCoins: 20 });
+    const counts = { countryCount: 3, commemorativeCount: 0 };
+    const element = () => fixture.nativeElement as HTMLElement;
+    const control = (label: string) =>
+      [...element().querySelectorAll('a, button')].find((e) => e.textContent!.includes(label))!;
+
+    await open([collection(1, 'Koleksiyonum', 'Private')], { coinCount: 19, ...counts });
+    expect(control('Coin ekle').tagName).toBe('A');
+    // There, but gray; the reason is the e-mail notice's line
+    const newCollection = control('Yeni koleksiyon');
+    expect(newCollection.getAttribute('aria-disabled')).toBe('true');
+    expect(newCollection.getAttribute('aria-describedby')).toBe('email-limit-collections');
+    (newCollection as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(element().querySelector('app-collection-form-dialog')).toBeNull();
+
+    await open([collection(1, 'Koleksiyonum', 'Private')], { coinCount: 20, ...counts });
+    const addCoin = control('Coin ekle');
+    expect(addCoin.tagName).toBe('BUTTON');
+    expect(addCoin.getAttribute('aria-disabled')).toBe('true');
+    expect(addCoin.getAttribute('aria-describedby')).toBe('email-limit-coins');
   });
 
   it('invites to add the first coin and hides recent coins when there are none', async () => {

@@ -1,5 +1,6 @@
 using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Email;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -52,6 +53,12 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
     /// <summary>Photo storage folder of this run (PhotoStorage:RootPath).</summary>
     public string PhotoRoot { get; }
 
+    /// <summary>Every e-mail the app sends in this run, kept instead of sent.</summary>
+    public FakeMailSender Mail { get; } = new();
+
+    /// <summary>The site address in e-mail links (Email:SiteUrl).</summary>
+    public const string SiteUrl = "https://coinvitrine.test";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Not Development: production cookie rules (Secure) and HTTPS redirection apply,
@@ -64,7 +71,12 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["PhotoStorage:RootPath"] = PhotoRoot,
                 // Tests run the photo sweep themselves (PhotoSweepTests)
                 ["PhotoStorage:SweepIntervalHours"] = "0",
+                // Tests run the cleanup of unverified accounts themselves (UnverifiedCleanupTests)
+                ["AccountCleanup:IntervalHours"] = "0",
+                // Bulk e-mails without a pause (VerificationRequestsTests)
+                ["Email:BulkDelaySeconds"] = "0",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
+                ["Email:SiteUrl"] = SiteUrl,
                 // Console only, and ASP.NET Core's default key location
                 ["Logs:Path"] = "",
                 ["DataProtection:KeysPath"] = "",
@@ -76,8 +88,11 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             }));
         // The app checks the cookie against the database once a minute; tests check every request,
         // so a lock or role change shows at once instead of after a wait
-        builder.ConfigureTestServices(services => services.Configure<SecurityStampValidatorOptions>(
-            options => options.ValidationInterval = TimeSpan.Zero));
+        builder.ConfigureTestServices(services =>
+        {
+            services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
+            services.AddSingleton<IMailSender>(Mail);
+        });
     }
 
     public async ValueTask InitializeAsync()
@@ -87,7 +102,10 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
         await using (var db = new AppDbContext(options))
         {
             await db.Database.MigrateAsync();
-            await db.SiteSettings.ExecuteUpdateAsync(s => s.SetProperty(x => x.MinPublicCoins, MinPublicCoins));
+            await db.SiteSettings.ExecuteUpdateAsync(s => s
+                .SetProperty(x => x.MinPublicCoins, MinPublicCoins)
+                .SetProperty(x => x.UnverifiedMaxCoins, UnverifiedMaxCoins)
+                .SetProperty(x => x.UnverifiedLifetimeDays, UnverifiedLifetimeDays));
         }
         _ = Services;
     }
@@ -97,6 +115,12 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
     /// can be tested. Tests that change it belong to the <see cref="SiteSettingsCollection"/>.
     /// </summary>
     public const int MinPublicCoins = 2;
+
+    /// <summary>Coins an unverified account may hold in tests: low, so reaching it needs few coins.</summary>
+    public const int UnverifiedMaxCoins = 3;
+
+    /// <summary>Days an unverified account lives in tests (the site's default).</summary>
+    public const int UnverifiedLifetimeDays = 30;
 
     public override async ValueTask DisposeAsync()
     {
@@ -158,8 +182,11 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(settings));
         });
 
-    /// <summary>Signs up a new user with a unique name; the client is signed in as that user.</summary>
-    public async Task<TestUser> SignUpAsync(string? language = "en", string? userName = null)
+    /// <summary>
+    /// Signs up a new user with a unique name; the client is signed in as that user. The e-mail
+    /// address is confirmed unless asked not to (sharing collections needs it).
+    /// </summary>
+    public async Task<TestUser> SignUpAsync(string? language = "en", string? userName = null, bool confirmEmail = true)
     {
         var client = await CreateAnonymousClientAsync();
         var request = TestUser.NewRegisterRequest(language);
@@ -168,8 +195,21 @@ public sealed class CoinPortalFactory : WebApplicationFactory<Program>, IAsyncLi
             request = request with { UserName = userName, Email = $"{userName}@example.test" };
         }
         var user = await client.RegisterAsync(request);
+        if (confirmEmail)
+        {
+            await ConfirmEmailAsync(user.Id);
+            user = user with { EmailConfirmed = true, UnverifiedMaxCoins = null, UnverifiedDeletionDueUtc = null };
+        }
         return new TestUser(client, user);
     }
+
+    /// <summary>
+    /// What the link in the e-mail does, without the round trip: users signed up on another host
+    /// (<see cref="WithSettings"/>) need it to open a second collection or add coins freely.
+    /// </summary>
+    public Task ConfirmEmailAsync(string userId) =>
+        WithDbAsync(db => db.Users.Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.EmailConfirmed, true)));
 
     /// <summary>
     /// Signs up a user and gives them the Admin role directly (not through the configuration),
@@ -214,7 +254,8 @@ public static class AdminCollection
 
 /// <summary>
 /// Tests that change a site setting (SiteSettings) run alone, while no other test runs: every
-/// publishing test depends on <see cref="CoinPortalFactory.MinPublicCoins"/>. They put the value
+/// publishing test depends on <see cref="CoinPortalFactory.MinPublicCoins"/>, the unverified tests on
+/// <see cref="CoinPortalFactory.UnverifiedMaxCoins"/>. They put the value
 /// back when done.
 /// </summary>
 [CollectionDefinition(Name, DisableParallelization = true)]

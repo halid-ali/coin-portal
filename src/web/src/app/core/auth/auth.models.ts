@@ -7,6 +7,18 @@ export interface UserResponse {
   id: string;
   userName: string;
   email: string;
+  /**
+   * Verified with the link from the e-mail; sharing collections, opening another one and holding
+   * more than unverifiedMaxCoins coins need it.
+   */
+  emailConfirmed: boolean;
+  /** Coins the account may hold until the address is verified (site setting); null once it is. */
+  unverifiedMaxCoins: number | null;
+  /**
+   * When the account is deleted unless the address is verified (ISO, UTC); null once it is, or
+   * when it never would be (the lifetime is off, admins, locked accounts).
+   */
+  unverifiedDeletionDueUtc: string | null;
   firstName: string;
   lastName: string;
   birthDate: string; // ISO date (yyyy-MM-dd)

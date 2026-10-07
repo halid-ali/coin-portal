@@ -37,10 +37,19 @@
     "removedFiles": "Temizlenen",
     "removedFilesHint": "kaydı olmayan klasörler, son kontrolde",
     "missingFiles": "Eksik dosya",
-    "missingFilesHint": "kaydı var, dosyası yok"
+    "missingFilesHint": "kaydı var, dosyası yok",
+    "unverified": "Doğrulanmamış hesaplar",
+    "notRunYet": "Henüz çalışmadı (açılıştan iki dakika sonra, sonra 6 saatte bir)",
+    "cleanupOff": "Kapalı: süre 0 gün (Ayarlar)",
+    "remindersSent": "Gönderilen hatırlatma",
+    "remindersFailed": "Gönderilemeyen hatırlatma",
+    "accountsDeleted": "Silinen hesap",
+    "lastRunHint": "son çalışmada",
+    "remindersFailedAlert": "Son çalışmada bazı hatırlatma e-postaları gönderilemedi. Sonraki çalışmada tekrar denenirler, silme onları beklemez; e-posta ayarlarına ve loglara bak."
   },
   "status": {
     "Active": "Aktif",
+    "Unverified": "Doğrulanmamış",
     "LockedOut": "Geçici kilitli",
     "Locked": "Kilitli"
   },
@@ -48,12 +57,40 @@
     "search": "Kullanıcı adı veya e-posta ara",
     "status": "Durum",
     "allStatuses": "Tüm durumlar",
+    "emailFilter": "E-posta",
+    "allEmails": "Tüm e-postalar",
+    "emailConfirmed": "E-postası doğrulanmış",
+    "emailUnconfirmed": "E-postası doğrulanmamış",
     "count": {
       "one": "{{count}} kullanıcı",
       "other": "{{count}} kullanıcı"
     },
     "empty": "Bu aramaya uyan kullanıcı yok.",
     "adminBadge": "Admin",
+    "unverifiedMark": "E-posta doğrulanmamış",
+    "select": "Seç: {{userName}}",
+    "selectPage": "Bu sayfadakilerin hepsini seç",
+    "selected": {
+      "one": "{{count}} kullanıcı seçili",
+      "other": "{{count}} kullanıcı seçili"
+    },
+    "clearSelection": "Seçimi kaldır",
+    "deleteSelected": "Seçilenleri sil",
+    "bulkDeleteTitle": "Seçilen kullanıcıları sil",
+    "bulkDeleteMessage": {
+      "one": "{{count}} hesap, tüm koleksiyonları, coin'leri, fotoğrafları ve paylaşım linkleriyle hemen silinir. Admin hesapları seçilmişse atlanır. Geri alınamaz.",
+      "other": "{{count}} hesap, tüm koleksiyonları, coin'leri, fotoğrafları ve paylaşım linkleriyle hemen silinir. Admin hesapları seçilmişse atlanır. Geri alınamaz."
+    },
+    "bulkDeleteType": "Onaylamak için silinecek hesap sayısını yaz:",
+    "bulkDeleted": {
+      "one": "{{count}} hesap silindi.",
+      "other": "{{count}} hesap silindi."
+    },
+    "bulkSkippedAdmins": {
+      "one": "{{count}} admin hesabı atlandı.",
+      "other": "{{count}} admin hesabı atlandı."
+    },
+    "bulkFailed": "Silme tamamlanamadı. Liste yenilendi; kalanları tekrar dene.",
     "column": {
       "user": "Kullanıcı",
       "createdAt": "Kayıt",
@@ -102,7 +139,13 @@
     "deleteTypeName": "Onaylamak için kullanıcı adını yaz:",
     "adminNote": "Admin'ler panelden kilitlenemez ve silinemez; ayardan çıkarılırlar.",
     "history": "Geçmiş",
-    "noHistory": "Bu kullanıcıyla ilgili kayıt yok."
+    "noHistory": "Bu kullanıcıyla ilgili kayıt yok.",
+    "emailConfirmed": "Doğrulandı",
+    "emailUnconfirmed": "Doğrulanmadı",
+    "deletionDue": "Doğrulanmazsa silinecek: {{date}}",
+    "confirmEmail": "E-postayı doğrulanmış işaretle",
+    "confirmEmailTitle": "E-posta adresini doğrulanmış işaretle",
+    "confirmEmailMessage": "@{{userName}} kullanıcısının adresi ({{email}}) doğrulanmış sayılır: sınırları kalkar ve hesap silinmez. Bunu sadece adresin bu kişiye ait olduğundan eminsen yap."
   },
   "collections": {
     "search": "Koleksiyon veya kullanıcı adı ara",
@@ -155,7 +198,9 @@
       "UserDeleted": "Kullanıcı silindi",
       "CollectionHidden": "Koleksiyon gizlendi",
       "CollectionUnlocked": "Koleksiyonun kilidi kaldırıldı",
-      "SettingChanged": "Ayar değiştirildi"
+      "SettingChanged": "Ayar değiştirildi",
+      "EmailConfirmed": "E-posta doğrulandı (admin)",
+      "VerificationEmailsRequested": "Doğrulama e-postası gönderildi"
     },
     "column": {
       "time": "Zaman",
@@ -164,7 +209,11 @@
     },
     "deletedUser": "Silinmiş kullanıcı",
     "deletedCollection": "silinmiş koleksiyon",
-    "changedTo": "yeni değer"
+    "changedTo": "yeni değer",
+    "accounts": {
+      "one": "{{count}} hesap",
+      "other": "{{count}} hesap"
+    }
   },
   "note": {
     "label": "Not (isteğe bağlı)",
@@ -179,10 +228,36 @@
       "one": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalır; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçer.",
       "other": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalırlar; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçerler."
     },
+    "unverifiedTitle": "E-postası doğrulanmamış hesaplar",
+    "unverifiedText": "E-posta adresini doğrulamamış bir hesap başka koleksiyon açamaz, koleksiyon paylaşamaz ve en fazla aşağıdaki sayıda coin tutabilir. Değeri düşürmek kimsenin coin'ini silmez; sınırın üstündeki hesaplar yeni coin ekleyemez. Doğrulanmayan hesap aşağıdaki süre dolunca içindekilerle birlikte silinir (admin'ler ve kilitli hesaplar hariç).",
+    "unverifiedMaxCoins": "En fazla coin sayısı",
+    "unverifiedMaxCoinsHint": "{{min}} ile {{max}} arasında. 0: doğrulamadan coin eklenemez.",
+    "unverifiedLifetimeDays": "Silinmeden önceki süre (gün)",
+    "unverifiedLifetimeDaysHint": "Kayıttan itibaren, {{min}} ile {{max}} arasında. 0: hesaplar silinmez. Silmeden 7 ve 1 gün önce hatırlatma e-postası gönderilmeye çalışılır; hiçbir hesap ilk hatırlatma denemesinden 1 gün geçmeden silinmez.",
     "saved": "Kaydedildi.",
-    "unchanged": "Değer zaten {{value}}; kaydedilecek bir değişiklik yok.",
+    "unchanged": "Değerler değişmedi; kaydedilecek bir şey yok.",
     "names": {
-      "MinPublicCoins": "En az fotoğraflı coin sayısı"
+      "MinPublicCoins": "En az fotoğraflı coin sayısı",
+      "UnverifiedMaxCoins": "Doğrulanmamış hesapta en fazla coin",
+      "UnverifiedLifetimeDays": "Doğrulanmamış hesabın ömrü (gün)"
     }
+  },
+  "verification": {
+    "title": "Doğrulama e-postası (bir seferlik)",
+    "text": "E-posta doğrulamasından önce açılmış hesaplara adreslerini doğrulamalarını isteyen bir e-posta gönderir. Her hesap bunu bir kez alır, kilitli hesaplar hariç. Gönderim arka planda, birkaç saniyede bir e-posta olarak yapılır. Önce canlıda e-posta gönderiminin çalıştığından emin ol.",
+    "start": {
+      "one": "{{count}} hesaba gönder",
+      "other": "{{count}} hesaba gönder"
+    },
+    "nothing": "Gönderilecek hesap yok.",
+    "running": "Gönderiliyor: {{done}}/{{total}}",
+    "finished": "Son gönderim {{time}}: {{sent}} gönderildi, {{failed}} gönderilemedi.",
+    "confirmTitle": "Doğrulama e-postası gönder",
+    "confirmMessage": {
+      "one": "{{count}} hesaba doğrulama e-postası gönderilecek. Her hesap bunu bir kez alır.",
+      "other": "{{count}} hesaba doğrulama e-postası gönderilecek. Her hesap bunu bir kez alır."
+    },
+    "send": "Gönder",
+    "failed": "Gönderim başlatılamadı. Sayfayı yenileyip tekrar dene."
   }
 }

@@ -6,6 +6,7 @@ using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Collections;
 using CoinPortal.Api.Contracts.Settings;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Email;
 using CoinPortal.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -59,10 +60,12 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
 
     /// <summary>
     /// The owner's data: a private collection with a coin, its photo and a cover, an unlisted one,
-    /// and the share link of a collection that went private again. Plus the other callers.
+    /// the share link of a collection that went private again, and a verification link secret.
+    /// Plus the other callers.
     /// </summary>
     private sealed record World(
         TestUser Owner,
+        string VerificationToken,
         CollectionResponse Collection,
         CoinResponse Coin,
         CollectionResponse Shared,
@@ -83,6 +86,9 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("POST", "api/Auth/logout", Access.SignedIn, _ => "/api/auth/logout"),
         new("GET", "api/Auth/me", Access.SignedIn, _ => "/api/auth/me"),
         new("GET", "api/Auth/antiforgery", Access.Anyone, _ => "/api/auth/antiforgery"),
+        new("POST", "api/Auth/verify-email", Access.Anyone, _ => "/api/auth/verify-email",
+            w => Json(new VerifyEmailRequest(w.VerificationToken))),
+        new("POST", "api/Auth/verify-email/resend", Access.SignedIn, _ => "/api/auth/verify-email/resend"),
         new("GET", "api/Health", Access.Anyone, _ => "/api/health"),
         new("GET", "api/Countries", Access.Anyone, _ => "/api/countries"),
 
@@ -162,6 +168,16 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("PUT", "api/admin/users/{id}/lock", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}/lock"),
         new("DELETE", "api/admin/users/{id}/lock", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}/lock"),
         new("DELETE", "api/admin/users/{id}", Access.Admin, w => $"/api/admin/users/{w.Owner.User.Id}"),
+        // Verified already: nothing changes
+        new("POST", "api/admin/users/{id}/confirm-email", Access.Admin,
+            w => $"/api/admin/users/{w.Owner.User.Id}/confirm-email"),
+        new("GET", "api/admin/verification-requests", Access.Admin, _ => "/api/admin/verification-requests"),
+        // A note the validation refuses (400 gets through): a run would mail every unverified test account
+        new("POST", "api/admin/verification-requests", Access.Admin, _ => "/api/admin/verification-requests",
+            _ => Json(new AdminNoteRequest("\u0000"))),
+        // No such user: nothing is deleted
+        new("POST", "api/admin/users/bulk-delete", Access.Admin, _ => "/api/admin/users/bulk-delete",
+            _ => Json(new AdminDeleteUsersRequest([Guid.NewGuid().ToString()], null))),
         new("GET", "api/admin/collections", Access.Admin, _ => "/api/admin/collections"),
         new("PUT", "api/admin/collections/{id:int}/lock", Access.Admin,
             w => $"/api/admin/collections/{w.Shared.Id}/lock"),
@@ -171,7 +187,8 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("GET", "api/admin/settings", Access.Admin, _ => "/api/admin/settings"),
         // The current value: nothing changes
         new("PUT", "api/admin/settings", Access.Admin, _ => "/api/admin/settings",
-            _ => Json(new AdminSettingsRequest(CoinPortalFactory.MinPublicCoins, null))),
+            _ => Json(new AdminSettingsRequest(CoinPortalFactory.MinPublicCoins, CoinPortalFactory.UnverifiedMaxCoins,
+                CoinPortalFactory.UnverifiedLifetimeDays, null))),
         new("GET", "api/admin/settings/impact", Access.Admin,
             _ => $"/api/admin/settings/impact?minPublicCoins={CoinPortalFactory.MinPublicCoins}"),
     ];
@@ -275,6 +292,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
 
         return new World(
             owner,
+            factory.Services.GetRequiredService<EmailVerificationTokens>().Create(owner.User.Id, owner.User.Email),
             collection,
             coin,
             shared,

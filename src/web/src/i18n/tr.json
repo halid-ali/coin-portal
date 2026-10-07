@@ -43,7 +43,9 @@
     "invalidRequest": "Gönderilen bilgiler kabul edilmedi. Kontrol edip tekrar dene.",
     "rateLimited": "Kısa sürede çok fazla istek gönderildi. Biraz bekleyip tekrar dene.",
     "collectionLimit": "Bir hesapta en fazla 50 koleksiyon olabilir. Yenisini eklemek için birini sil.",
-    "coinLimit": "Bir hesapta en fazla 10.000 coin olabilir."
+    "coinLimit": "Bir hesapta en fazla 10.000 coin olabilir.",
+    "emailNotConfirmed": "Bunun için önce e-posta adresini doğrula.",
+    "unverifiedCoinLimit": "E-posta adresini doğrulamadan daha fazla coin ekleyemezsin."
   },
   "validation": {
     "required": "Bu alan zorunludur.",
@@ -76,7 +78,8 @@
     "editCoin": "Coin'i düzenle",
     "settings": "Ayarlar",
     "admin": "Yönetim",
-    "notFound": "Sayfa bulunamadı"
+    "notFound": "Sayfa bulunamadı",
+    "verifyEmail": "E-posta doğrulama"
   },
   "nav": {
     "main": "Ana menü",
@@ -477,7 +480,8 @@
     "noteLinkWillBeCreated": "Kaydedince gizli bir paylaşım linki oluşturulur.",
     "noteWillBePublic": "Kaydedince koleksiyon herkese açık olur.",
     "coverFailed": "Koleksiyon kaydedildi, ancak kapak kaydedilemedi:",
-    "moderationLocked": "Bu koleksiyon yönetici tarafından gizlendi. Kilit kalkana kadar özel kalır; adını ve açıklamasını değiştirebilirsin."
+    "moderationLocked": "Bu koleksiyon yönetici tarafından gizlendi. Kilit kalkana kadar özel kalır; adını ve açıklamasını değiştirebilirsin.",
+    "emailNeeded": "Paylaşmak için önce e-posta adresini doğrula; linki sayfanın üstündeki uyarıdan tekrar isteyebilirsin."
   },
   "cover": {
     "title": "Kapak fotoğrafı",
@@ -544,7 +548,8 @@
       "quoted": "\"{{name}}\"",
       "confirm": "Devam et",
       "photoKept": "Ulusal yüz fotoğrafı silinmedi; koleksiyon herkese açık kaldı."
-    }
+    },
+    "emailNeeded": "Yayına almak için önce e-posta adresini doğrula."
   },
   "profile": {
     "notFound": "Bu kullanıcının herkese açık bir koleksiyonu yok ya da kullanıcı bulunamadı.",
@@ -651,11 +656,11 @@
       "i2": "Tercihler ve zamanlar: dil, tema ve renk seçimlerin; kayıt olduğun, giriş yaptığın ve siteyi son kullandığın zamanlar.",
       "i3": "İçeriğin: koleksiyonların, coin bilgilerin ve yüklediğin fotoğraflar. Fotoğraflardaki konum dahil tüm ek bilgiler (EXIF) yüklemede silinir.",
       "i4": "Teknik kayıtlar: sunucu her isteğin adresini, zamanını ve sonucunu kaydeder ve 30 gün saklar. Adresteki arama terimleri, Keşfet'teki kullanıcı filtresi ve paylaşım linklerinin anahtarları kayda yazılmaz. IP adresin sadece bir istek sınırı aşıldığında kaydedilir. Barındırma sağlayıcısı da kendi sunucu kayıtlarına her isteğin IP adresini, zamanını, adresini, sonucunu ve tarayıcı bilgisini yazar ve bunları 6 ay saklar.",
-      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin."
+      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin; sana gönderdiğimiz hesap e-postaları (e-posta adresini doğrulama linki) ve adresinin doğrulanıp doğrulanmadığı."
     },
     "purposes": {
       "title": "Neden işliyoruz (hukuki dayanak)",
-      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır.",
+      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır. E-posta adresine sadece hesabınla ilgili e-postalar (doğrulama linki) göndeririz; bülten ya da reklam göndermeyiz.",
       "i2": "Siteyi güvende tutmak için: teknik kayıtlar, istek sınırları, hatalı girişlerden sonraki geçici kilit ve kötüye kullanıma karşı moderasyon (GDPR md. 6/1-f, meşru menfaat).",
       "i3": "Siteyi işletmek için toplu sayılar: örneğin son 30 günde siteyi kullanan hesap sayısı. Bu sayılar kişi bazında değerlendirme için kullanılmaz (GDPR md. 6/1-f, meşru menfaat).",
       "i4": "Bize yazdığın e-postaları cevaplamak için: e-posta adresin ve mesajın (GDPR md. 6/1-f, meşru menfaat).",
@@ -675,11 +680,11 @@
     },
     "hosting": {
       "title": "Barındırma",
-      "p1": "Site, MonsterASP.NET s.r.o. şirketinin (Prag, Çek Cumhuriyeti) Avrupa Birliği'ndeki veri merkezlerinde bulunan sunucularında çalışır; veriler ve iletişim adresimize gelen e-postalar orada saklanır. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler (GDPR md. 28'e göre veri işleme sözleşmesi). Verilerin başka kimseyle paylaşılmaz."
+      "p1": "Site, MonsterASP.NET s.r.o. şirketinin (Prag, Çek Cumhuriyeti) Avrupa Birliği'ndeki veri merkezlerinde bulunan sunucularında çalışır; veriler ve iletişim adresimize gelen e-postalar orada saklanır, sitenin hesap e-postaları da oradan gönderilir. Sağlayıcı verileri sadece bizim adımıza ve talimatımızla işler (GDPR md. 28'e göre veri işleme sözleşmesi). Verilerin başka kimseyle paylaşılmaz."
     },
     "retention": {
       "title": "Ne kadar saklıyoruz",
-      "p1": "Verilerin hesabın var olduğu sürece saklanır. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir. Yöneticilerin denetim kaydındaki girişler (işlem, zaman, gerekçe) kalır, ama adın onlardan kaldırılır; bir yöneticinin gerekçe olarak yazdığı metin olduğu gibi kalır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısı site dosyalarını, veritabanını ve e-posta kutularını her gün yedekler ve yedekleri 21 gün saklar; silinen veriler bu yedeklerde en fazla 21 gün daha kalır. Sağlayıcının sunucu kayıtları 6 ay sonra silinir. Bize yazdığın e-postalar, talebini cevaplamak için gerektiği sürece saklanır ve sonra silinir."
+      "p1": "Verilerin hesabın var olduğu sürece saklanır. E-posta adresini doğrulamadığın bir hesap, yöneticinin belirlediği süre dolunca bütün verileriyle silinir; silinme tarihi sitedeki uyarıda yazar. Hesabını sildiğinde hesabın, koleksiyonların, coin'lerin ve fotoğrafların hemen silinir. Yöneticilerin denetim kaydındaki girişler (işlem, zaman, gerekçe) kalır, ama adın onlardan kaldırılır; bir yöneticinin gerekçe olarak yazdığı metin olduğu gibi kalır. Teknik kayıtlar 30 gün sonra silinir. Barındırma sağlayıcısı site dosyalarını, veritabanını ve e-posta kutularını her gün yedekler ve yedekleri 21 gün saklar; silinen veriler bu yedeklerde en fazla 21 gün daha kalır. Sağlayıcının sunucu kayıtları 6 ay sonra silinir. Bize yazdığın e-postalar, talebini cevaplamak için gerektiği sürece saklanır ve sonra silinir."
     },
     "rights": {
       "title": "Hakların",
@@ -731,7 +736,8 @@
     },
     "ending": {
       "title": "Hesabın sona ermesi",
-      "p1": "Hesabını istediğin zaman Ayarlar > Hesap'tan silebilirsin; tüm verilerin hemen silinir. Site kapanacaksa bu, mümkün olduğunca önceden sitede duyurulur ve verilerini indirmen için zaman tanınır."
+      "p1": "Hesabını istediğin zaman Ayarlar > Hesap'tan silebilirsin; tüm verilerin hemen silinir. Site kapanacaksa bu, mümkün olduğunca önceden sitede duyurulur ve verilerini indirmen için zaman tanınır.",
+      "p2": "E-posta adresini doğrulamadığın bir hesap, yöneticinin belirlediği süre dolunca koleksiyonları, coin'leri ve fotoğraflarıyla birlikte silinir; silinme tarihi sitedeki uyarıda yazar. Silmeden önce sana hatırlatma e-postası göndermeye çalışırız, ama ulaşacağını garanti edemeyiz. Yöneticinin kilitlediği hesaplar bu yolla silinmez."
     },
     "changes": {
       "title": "Değişiklikler",
@@ -747,5 +753,30 @@
     "source": "Kaynak kodu",
     "sourceHint": "Proje açık kaynaklı; hataları orada da bildirebilirsin.",
     "licenses": "Kullanılan açık kaynak yazılımların lisansları"
+  },
+  "emailBanner": {
+    "label": "E-posta doğrulama",
+    "title": "E-posta adresini doğrula: {{email}}",
+    "resend": "Linki tekrar gönder",
+    "deletion": "Doğrulamazsan hesabın {{date}} tarihinde silinecek.",
+    "until": "Doğrulayana kadar:",
+    "noNewCollection": "Yeni koleksiyon açamazsın",
+    "noSharing": "Koleksiyon paylaşamazsın",
+    "maxCoins": {
+      "one": "En fazla {{count}} coin ekleyebilirsin",
+      "other": "En fazla {{count}} coin ekleyebilirsin"
+    },
+    "sent": "Yeni link {{email}} adresine gönderildi.",
+    "notSent": "E-posta şu an gönderilemedi. Biraz sonra tekrar dene."
+  },
+  "verifyEmail": {
+    "verifying": "E-posta adresin doğrulanıyor…",
+    "doneTitle": "E-posta adresin doğrulandı",
+    "doneText": "Artık koleksiyonlarını herkese açık ya da linkle paylaşabilirsin.",
+    "toCollections": "Koleksiyonlarıma git",
+    "signIn": "Giriş yap",
+    "invalidTitle": "Link geçersiz ya da süresi dolmuş",
+    "invalidText": "Doğrulama linki 24 saat geçerli. Giriş yap ve sayfanın üstündeki uyarıdan yeni bir link iste.",
+    "failedTitle": "E-posta adresi doğrulanamadı"
   }
 }

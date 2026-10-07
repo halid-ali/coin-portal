@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Validation;
 
@@ -31,12 +32,23 @@ public sealed record LoginRequest(
 /// <param name="PreviousSignInAtUtc">The sign-in before the current session's, for the profile;
 /// null if none is recorded (new account, or none since the field was added).</param>
 /// <param name="Roles">Identity roles (AppRoles), e.g. ["Admin"]; empty for most users.</param>
+/// <param name="EmailConfirmed">The address is verified (link from the e-mail); needed to share collections,
+/// open another collection and hold more coins than <paramref name="UnverifiedMaxCoins"/>.</param>
+/// <param name="UnverifiedMaxCoins">Coins the account may hold until the address is verified (site
+/// setting); null once it is.</param>
+/// <param name="UnverifiedDeletionDueUtc">When the account is deleted unless the address is verified;
+/// null once it is, or when it never would be (lifetime 0, admins, locked accounts).</param>
 public sealed record UserResponse(
-    string Id, string UserName, string Email,
+    string Id, string UserName, string Email, bool EmailConfirmed, int? UnverifiedMaxCoins,
+    DateTime? UnverifiedDeletionDueUtc,
     string FirstName, string LastName, DateOnly BirthDate, string? Language, ThemePreference? Theme,
     AccentColor? Accent, DateTime? PreviousSignInAtUtc, IReadOnlyList<string> Roles)
 {
-    public static UserResponse From(ApplicationUser u, IEnumerable<string> roles) =>
-        new(u.Id, u.UserName!, u.Email!, u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage,
-            u.PreferredTheme, u.PreferredAccent, u.PreviousSignInAtUtc, roles.Order().ToList());
+    public static UserResponse From(ApplicationUser u, IEnumerable<string> roles, UnverifiedLimits? limits) =>
+        new(u.Id, u.UserName!, u.Email!, u.EmailConfirmed, limits?.MaxCoins, limits?.DeletionDueUtc,
+            u.FirstName, u.LastName, u.BirthDate, u.PreferredLanguage, u.PreferredTheme, u.PreferredAccent,
+            u.PreviousSignInAtUtc, roles.Order().ToList());
 }
+
+/// <param name="Token">The secret from the verification link (/verify-email?token=...).</param>
+public sealed record VerifyEmailRequest([Required, StringLength(2000)] string Token);

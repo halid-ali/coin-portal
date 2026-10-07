@@ -21,6 +21,7 @@ const jonas = (changes: Partial<AdminUserDetail> = {}): AdminUserDetail => ({
   lastSignInAtUtc: null,
   status: 'Active',
   isAdmin: false,
+  emailConfirmed: true,
   collectionCount: 2,
   coinCount: 10,
   storageBytes: 1024,
@@ -30,6 +31,7 @@ const jonas = (changes: Partial<AdminUserDetail> = {}): AdminUserDetail => ({
   unlistedCollectionCount: 0,
   photoCount: 3,
   quotaBytes: 300 * 1024 * 1024,
+  deletionDueUtc: null,
   ...changes,
 });
 
@@ -110,6 +112,26 @@ describe('AdminUserDetailPage', () => {
     expect(button(page, 'Kilitle')).toBeUndefined();
     // The pressed button is gone: the focus goes to the first action
     expect(document.activeElement).toBe(button(page, 'Kilidi aç'));
+  });
+
+  it('marks the e-mail address verified after asking, and the button goes', async () => {
+    const page = await open(jonas({ emailConfirmed: false, status: 'Unverified' }));
+
+    button(page, 'E-postayı doğrulanmış işaretle').click();
+    await harness.fixture.whenStable();
+
+    expect(confirmWithNote).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'E-posta adresini doğrulanmış işaretle' }),
+    );
+    const request = http.expectOne('/api/admin/users/u1/confirm-email');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ note: 'Spam' });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await harness.fixture.whenStable();
+    await load(jonas());
+    await harness.fixture.whenStable();
+
+    expect(button(page, 'E-postayı doğrulanmış işaretle')).toBeUndefined();
   });
 
   it('does nothing when the question is cancelled', async () => {

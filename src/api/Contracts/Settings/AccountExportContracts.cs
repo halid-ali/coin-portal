@@ -14,6 +14,7 @@ public sealed record AccountExportFile(
     DateTime ExportedAtUtc,
     string UserName,
     string Email,
+    bool EmailConfirmed,
     string FirstName,
     string LastName,
     DateOnly BirthDate,

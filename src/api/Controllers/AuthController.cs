@@ -1,5 +1,8 @@
+using CoinPortal.Api.Accounts;
+using CoinPortal.Api.Authorization;
 using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Data;
+using CoinPortal.Api.Email;
 using CoinPortal.Api.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,7 +19,11 @@ public class AuthController(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    IPasswordHasher<ApplicationUser> passwordHasher) : ControllerBase
+    IPasswordHasher<ApplicationUser> passwordHasher,
+    EmailVerification emailVerification,
+    EmailVerificationTokens verificationTokens,
+    UnverifiedAccounts unverified,
+    ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
@@ -71,7 +78,79 @@ public class AuthController(
         // signing up is almost always done on one's own device
         await signInManager.SignInAsync(user, isPersistent: true);
         await RecordSignInAsync(user);
-        return Ok(UserResponse.From(user, []));
+
+        // The account exists either way: a mail server that is down must not fail the sign-up, the
+        // user can ask for the link again from the notice in the client
+        try
+        {
+            await emailVerification.SendAsync(user, HttpContext.RequestAborted);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            logger.LogError(e, "Verification e-mail not sent at sign-up: {UserId}", user.Id);
+        }
+        return Ok(UserResponse.From(user, [],
+            await unverified.LimitsForAsync(user, isAdmin: false, HttpContext.RequestAborted)));
+    }
+
+    /// <summary>
+    /// Confirms the e-mail address with the secret of a verification link. Signed out as well:
+    /// the link may be opened on another device. Confirmed already: 204 again.
+    /// </summary>
+    [HttpPost("verify-email")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyEmail(VerifyEmailRequest request)
+    {
+        // Forged, damaged, expired, or for an address the account no longer has: all look the same
+        if (verificationTokens.Read(request.Token) is not { } claim
+            || await userManager.FindByIdAsync(claim.UserId) is not { } user
+            || !string.Equals(user.Email, claim.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            return this.CodedProblem("invalid_token", "The link is invalid or has expired.");
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            // Not ConfirmEmailAsync: that checks Identity's own token. The security stamp stays,
+            // no session ends
+            user.EmailConfirmed = true;
+            var result = await userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(string.Join("; ", result.Errors.Select(e => e.Code)));
+            }
+        }
+        return NoContent();
+    }
+
+    /// <summary>Sends the verification link again; nothing to do when the address is confirmed.</summary>
+    [Authorize]
+    [HttpPost("verify-email/resend")]
+    [EnableRateLimiting(RateLimitPolicies.Email)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> ResendVerificationEmail(CancellationToken ct)
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
+            return Unauthorized();
+        if (user.EmailConfirmed)
+            return NoContent();
+
+        try
+        {
+            await emailVerification.SendAsync(user, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            logger.LogError(e, "Verification e-mail not sent: {UserId}", user.Id);
+            return this.CodedProblem("email_not_sent", "The e-mail could not be sent. Try again later.",
+                StatusCodes.Status503ServiceUnavailable);
+        }
+        return NoContent();
     }
 
     [HttpPost("login")]
@@ -181,8 +260,12 @@ public class AuthController(
     }
 
     // Roles from the database, not the cookie: current even before the cookie is refreshed
-    private async Task<UserResponse> ToResponseAsync(ApplicationUser user) =>
-        UserResponse.From(user, await userManager.GetRolesAsync(user));
+    private async Task<UserResponse> ToResponseAsync(ApplicationUser user)
+    {
+        var roles = await userManager.GetRolesAsync(user);
+        return UserResponse.From(user, roles,
+            await unverified.LimitsForAsync(user, roles.Contains(AppRoles.Admin), HttpContext.RequestAborted));
+    }
 
     // Without a code: the temporary lockout after failed attempts
     private ObjectResult LockedOut(ApplicationUser user) =>

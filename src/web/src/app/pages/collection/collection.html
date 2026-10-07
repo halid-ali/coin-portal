@@ -195,12 +195,25 @@
               </svg>
               <span class="hidden md:inline">{{ 'common.delete' | transloco }}</span>
             </button>
-            <a
-              routerLink="/coins/new"
-              [queryParams]="{ collection: collectionId() }"
-              class="btn-primary"
-              ><span aria-hidden="true" class="mr-1">+</span>{{ 'coinList.addCoin' | transloco }}</a
-            >
+            @if (coinLimitReached()) {
+              <!-- A link cannot be disabled: a gray button, the reason in the e-mail notice -->
+              <button
+                type="button"
+                class="btn-unavailable"
+                aria-disabled="true"
+                [attr.aria-describedby]="limitIds.coins"
+              >
+                <span aria-hidden="true" class="mr-1">+</span>{{ 'coinList.addCoin' | transloco }}
+              </button>
+            } @else {
+              <a
+                routerLink="/coins/new"
+                [queryParams]="{ collection: collectionId() }"
+                class="btn-primary"
+                ><span aria-hidden="true" class="mr-1">+</span
+                >{{ 'coinList.addCoin' | transloco }}</a
+              >
+            }
           </div>
         }
       </div>
@@ -228,18 +241,23 @@
                   'publication.progress'
                     | transloco: { photographed: p.photographed, required: p.required }
                 }}
-                <span aria-hidden="true">·</span>
+                &ngsp;<span aria-hidden="true">·</span>&ngsp;
                 {{ 'publication.readyText' | transloco }}
               </p>
             </div>
-            <button
-              type="button"
-              class="btn-primary whitespace-nowrap"
-              [attr.aria-disabled]="publishing() || null"
-              (click)="publish()"
-            >
-              {{ (publishing() ? 'publication.publishing' : 'publication.publish') | transloco }}
-            </button>
+            @if (emailBlocked()) {
+              <!-- Sharing needs a verified address (the notice above the page sends the link) -->
+              <p class="text-sm font-medium">{{ 'publication.emailNeeded' | transloco }}</p>
+            } @else {
+              <button
+                type="button"
+                class="btn-primary whitespace-nowrap"
+                [attr.aria-disabled]="publishing() || null"
+                (click)="publish()"
+              >
+                {{ (publishing() ? 'publication.publishing' : 'publication.publish') | transloco }}
+              </button>
+            }
           </section>
         } @else {
           <section
@@ -271,13 +289,14 @@
                     | transloco: { photographed: p.photographed, required: p.required }
                 }}
                 @if (p.missing > 0) {
-                  <span aria-hidden="true">·</span>
+                  &ngsp;<span aria-hidden="true">·</span>&ngsp;
                   <a [routerLink]="[]" [queryParams]="missingPhotosQuery()" class="link">{{
                     'publication.missing' | plural: p.missing
                   }}</a>
                 }
-                @if (collection()?.visibility === 'Private') {
-                  <span aria-hidden="true">·</span>
+                <!-- Not while the address is unverified: sharing waits for it -->
+                @if (collection()?.visibility === 'Private' && !emailBlocked()) {
+                  &ngsp;<span aria-hidden="true">·</span>&ngsp;
                   {{ 'publication.shareByLinkMeanwhile' | transloco }}
                 }
               </p>
@@ -569,12 +588,23 @@
             </button>
           } @else if (mode() === 'owner') {
             <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
-            <a
-              routerLink="/coins/new"
-              [queryParams]="{ collection: collectionId() }"
-              class="btn-primary mt-4"
-              >{{ 'coinList.addFirstCoin' | transloco }}</a
-            >
+            @if (coinLimitReached()) {
+              <button
+                type="button"
+                class="btn-unavailable mt-4"
+                aria-disabled="true"
+                [attr.aria-describedby]="limitIds.coins"
+              >
+                {{ 'coinList.addFirstCoin' | transloco }}
+              </button>
+            } @else {
+              <a
+                routerLink="/coins/new"
+                [queryParams]="{ collection: collectionId() }"
+                class="btn-primary mt-4"
+                >{{ 'coinList.addFirstCoin' | transloco }}</a
+              >
+            }
           } @else if (mode() === 'explore') {
             <p class="text-shade-600">{{ 'coinList.noPublicCollections' | transloco }}</p>
           } @else {

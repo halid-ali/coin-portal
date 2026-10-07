@@ -29,6 +29,7 @@ import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { AdminStatusBadge } from './admin-status-badge';
+import { UnverifiedMark } from './unverified-mark';
 
 /**
  * Admin > Users > one user (/admin/users/:id): account data and counts (no content), the lock,
@@ -37,7 +38,7 @@ import { AdminStatusBadge } from './admin-status-badge';
  */
 @Component({
   selector: 'app-admin-user-detail',
-  imports: [RouterLink, TranslocoPipe, AdminStatusBadge],
+  imports: [RouterLink, TranslocoPipe, AdminStatusBadge, UnverifiedMark],
   template: `
     <div class="space-y-4">
       <a
@@ -58,6 +59,9 @@ import { AdminStatusBadge } from './admin-status-badge';
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <h2 class="text-lg font-semibold break-all text-shade-900">{{ u.userName }}</h2>
+                @if (!u.emailConfirmed) {
+                  <app-unverified-mark />
+                }
                 @if (u.isAdmin) {
                   <span
                     class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800"
@@ -130,6 +134,30 @@ import { AdminStatusBadge } from './admin-status-badge';
             <div class="min-w-0">
               <dt class="text-shade-500">{{ 'admin.user.email' | transloco }}</dt>
               <dd class="font-medium break-all text-shade-900">{{ u.email }}</dd>
+              <dd class="text-shade-600">
+                {{
+                  (u.emailConfirmed ? 'admin.user.emailConfirmed' : 'admin.user.emailUnconfirmed')
+                    | transloco
+                }}
+              </dd>
+              @if (u.deletionDueUtc) {
+                <dd class="text-shade-600">
+                  {{ 'admin.user.deletionDue' | transloco: { date: dateTime(u.deletionDueUtc) } }}
+                </dd>
+              }
+              @if (!u.emailConfirmed) {
+                <!-- For a user whose mail does not arrive; the admin knows the address is theirs -->
+                <dd class="mt-2">
+                  <button
+                    type="button"
+                    class="btn-secondary px-3 py-1.5 text-sm"
+                    [attr.aria-disabled]="busy() || null"
+                    (click)="confirmEmail(u)"
+                  >
+                    {{ 'admin.user.confirmEmail' | transloco }}
+                  </button>
+                </dd>
+              }
             </div>
             <div>
               <dt class="text-shade-500">{{ 'admin.user.createdAt' | transloco }}</dt>
@@ -310,6 +338,24 @@ export class AdminUserDetailPage {
     });
     if (note !== null) {
       await this.run(() => this.admin.lockUser(user.id, note));
+    }
+  }
+
+  protected async confirmEmail(user: AdminUserDetail): Promise<void> {
+    if (this.busy()) {
+      return;
+    }
+    const note = await this.confirm.confirmWithNote({
+      title: translate('admin.user.confirmEmailTitle'),
+      message: translate('admin.user.confirmEmailMessage', {
+        userName: user.userName,
+        email: user.email,
+      }),
+      confirmText: translate('admin.user.confirmEmail'),
+      note: this.noteField(),
+    });
+    if (note !== null) {
+      await this.run(() => this.admin.confirmEmail(user.id, note));
     }
   }
 

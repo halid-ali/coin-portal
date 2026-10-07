@@ -25,6 +25,9 @@ const alice: UserResponse = {
   theme: 'Light',
   accent: null,
   previousSignInAtUtc: null,
+  emailConfirmed: true,
+  unverifiedMaxCoins: null,
+  unverifiedDeletionDueUtc: null,
   roles: [],
 };
 

@@ -40,12 +40,21 @@ namespace CoinPortal.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletionReminderSentAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletionReminderTriedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("FinalDeletionReminderSentAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -112,6 +121,9 @@ namespace CoinPortal.Api.Data.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("VerificationRequestSentAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -196,7 +208,7 @@ namespace CoinPortal.Api.Data.Migrations
 
                     b.ToTable("AuditLog", null, t =>
                         {
-                            t.HasCheckConstraint("CK_AuditLog_Action", "[Action] IN (1, 2, 3, 4, 5, 6)");
+                            t.HasCheckConstraint("CK_AuditLog_Action", "[Action] IN (1, 2, 3, 4, 5, 6, 7, 8)");
                         });
                 });
 
@@ -517,6 +529,15 @@ namespace CoinPortal.Api.Data.Migrations
                     b.Property<int>("MinPublicCoins")
                         .HasColumnType("int");
 
+                    b.Property<int>("UnverifiedLifetimeDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UnverifiedLifetimeSinceUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UnverifiedMaxCoins")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("SiteSettings", t =>
@@ -524,6 +545,10 @@ namespace CoinPortal.Api.Data.Migrations
                             t.HasCheckConstraint("CK_SiteSettings_Id", "[Id] = 1");
 
                             t.HasCheckConstraint("CK_SiteSettings_MinPublicCoins", "[MinPublicCoins] BETWEEN 1 AND 100");
+
+                            t.HasCheckConstraint("CK_SiteSettings_UnverifiedLifetimeDays", "[UnverifiedLifetimeDays] BETWEEN 0 AND 365");
+
+                            t.HasCheckConstraint("CK_SiteSettings_UnverifiedMaxCoins", "[UnverifiedMaxCoins] BETWEEN 0 AND 10000");
                         });
                 });
 

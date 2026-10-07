@@ -75,6 +75,12 @@ export const routes: Routes = [
     title: 'titles.contact',
     loadComponent: () => import('./pages/legal/contact').then((m) => m.Contact),
   },
+  // The link from the verification e-mail; signed out too (another device)
+  {
+    path: 'verify-email',
+    title: 'titles.verifyEmail',
+    loadComponent: () => import('./pages/verify-email/verify-email').then((m) => m.VerifyEmail),
+  },
   {
     path: 's/:token',
     title: 'titles.sharedCollection',

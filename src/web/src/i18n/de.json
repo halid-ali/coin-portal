@@ -43,7 +43,9 @@
     "invalidRequest": "Die gesendeten Angaben wurden nicht angenommen. Prüfe sie und versuche es erneut.",
     "rateLimited": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es erneut.",
     "collectionLimit": "Ein Konto kann höchstens 50 Sammlungen haben. Lösche eine, um eine neue anzulegen.",
-    "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben."
+    "coinLimit": "Ein Konto kann höchstens 10.000 Münzen haben.",
+    "emailNotConfirmed": "Bestätige zuerst deine E-Mail-Adresse.",
+    "unverifiedCoinLimit": "Bis du deine E-Mail-Adresse bestätigst, kannst du keine weiteren Münzen hinzufügen."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich.",
@@ -76,7 +78,8 @@
     "editCoin": "Münze bearbeiten",
     "settings": "Einstellungen",
     "admin": "Verwaltung",
-    "notFound": "Seite nicht gefunden"
+    "notFound": "Seite nicht gefunden",
+    "verifyEmail": "E-Mail-Bestätigung"
   },
   "nav": {
     "main": "Hauptmenü",
@@ -477,7 +480,8 @@
     "noteLinkWillBeCreated": "Beim Speichern wird ein privater Link zum Teilen erstellt.",
     "noteWillBePublic": "Beim Speichern wird die Sammlung öffentlich.",
     "coverFailed": "Die Sammlung wurde gespeichert, aber das Titelbild konnte nicht gespeichert werden:",
-    "moderationLocked": "Ein Administrator hat diese Sammlung ausgeblendet. Sie bleibt privat, bis die Sperre aufgehoben wird; Name und Beschreibung kannst du weiterhin ändern."
+    "moderationLocked": "Ein Administrator hat diese Sammlung ausgeblendet. Sie bleibt privat, bis die Sperre aufgehoben wird; Name und Beschreibung kannst du weiterhin ändern.",
+    "emailNeeded": "Bestätige zuerst deine E-Mail-Adresse, um zu teilen; den Link kannst du über den Hinweis oben auf der Seite erneut anfordern."
   },
   "cover": {
     "title": "Titelbild",
@@ -544,7 +548,8 @@
       "quoted": "„{{name}}“",
       "confirm": "Fortfahren",
       "photoKept": "Das Foto der nationalen Seite wurde nicht gelöscht; die Sammlung bleibt öffentlich."
-    }
+    },
+    "emailNeeded": "Bestätige zuerst deine E-Mail-Adresse, um sie zu veröffentlichen."
   },
   "profile": {
     "notFound": "Dieser Nutzer hat keine öffentlichen Sammlungen, oder es gibt ihn nicht.",
@@ -651,11 +656,11 @@
       "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
       "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
       "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Links zum Teilen werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch der Hosting-Anbieter schreibt IP-Adresse, Zeitpunkt, Adresse, Ergebnis und Browserangaben jeder Anfrage in seine eigenen Serverprotokolle und bewahrt sie 6 Monate auf.",
-      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse."
+      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse; Konto-E-Mails, die wir dir senden (der Link zur Bestätigung deiner E-Mail-Adresse), und ob deine Adresse bestätigt ist."
     },
     "purposes": {
       "title": "Zwecke und Rechtsgrundlagen",
-      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren.",
+      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (den Bestätigungslink), keine Newsletter und keine Werbung.",
       "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i3": "Um die Website zu betreiben, als Gesamtzahlen: zum Beispiel die Zahl der Konten, die die Website in den letzten 30 Tagen genutzt haben. Diese Zahlen dienen nicht der Bewertung einzelner Personen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i4": "Um deine E-Mails an uns zu beantworten: deine E-Mail-Adresse und deine Nachricht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
@@ -675,11 +680,11 @@
     },
     "hosting": {
       "title": "Hosting",
-      "p1": "Die Website läuft auf Servern der MonsterASP.NET s.r.o. (Prag, Tschechien) in Rechenzentren in der Europäischen Union; dort werden die Daten und die E-Mails an unsere Kontaktadresse gespeichert. Der Anbieter verarbeitet die Daten nur in unserem Auftrag und nach unseren Weisungen (Auftragsverarbeitungsvertrag nach Art. 28 DSGVO). Deine Daten werden an niemanden sonst weitergegeben."
+      "p1": "Die Website läuft auf Servern der MonsterASP.NET s.r.o. (Prag, Tschechien) in Rechenzentren in der Europäischen Union; dort werden die Daten und die E-Mails an unsere Kontaktadresse gespeichert, und von dort werden die Konto-E-Mails der Website gesendet. Der Anbieter verarbeitet die Daten nur in unserem Auftrag und nach unseren Weisungen (Auftragsverarbeitungsvertrag nach Art. 28 DSGVO). Deine Daten werden an niemanden sonst weitergegeben."
     },
     "retention": {
       "title": "Speicherdauer",
-      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht. Einträge im Protokoll der Administratoren (Aktion, Zeitpunkt, Begründung) bleiben bestehen, aber dein Name wird daraus entfernt; eine von einem Administrator geschriebene Begründung bleibt unverändert. Technische Protokolle werden nach 30 Tagen gelöscht. Der Hosting-Anbieter sichert die Dateien der Website, die Datenbank und die Postfächer täglich und bewahrt die Sicherungen 21 Tage auf; gelöschte Daten bleiben darin also bis zu 21 Tage erhalten. Die Serverprotokolle des Anbieters werden nach 6 Monaten gelöscht. E-Mails, die du uns schreibst, werden aufbewahrt, solange es für die Beantwortung deines Anliegens nötig ist, und danach gelöscht."
+      "p1": "Deine Daten werden gespeichert, solange dein Konto besteht. Ein Konto, dessen E-Mail-Adresse du nicht bestätigst, wird nach der vom Administrator festgelegten Zeit mit allen Daten gelöscht; das Datum steht im Hinweis auf der Website. Wenn du dein Konto löschst, werden Konto, Sammlungen, Münzen und Fotos sofort gelöscht. Einträge im Protokoll der Administratoren (Aktion, Zeitpunkt, Begründung) bleiben bestehen, aber dein Name wird daraus entfernt; eine von einem Administrator geschriebene Begründung bleibt unverändert. Technische Protokolle werden nach 30 Tagen gelöscht. Der Hosting-Anbieter sichert die Dateien der Website, die Datenbank und die Postfächer täglich und bewahrt die Sicherungen 21 Tage auf; gelöschte Daten bleiben darin also bis zu 21 Tage erhalten. Die Serverprotokolle des Anbieters werden nach 6 Monaten gelöscht. E-Mails, die du uns schreibst, werden aufbewahrt, solange es für die Beantwortung deines Anliegens nötig ist, und danach gelöscht."
     },
     "rights": {
       "title": "Deine Rechte",
@@ -731,7 +736,8 @@
     },
     "ending": {
       "title": "Ende deines Kontos",
-      "p1": "Du kannst dein Konto jederzeit unter Einstellungen > Konto löschen; alle deine Daten werden sofort gelöscht. Wird die Website eingestellt, wird das so früh wie möglich auf der Website angekündigt, mit Zeit, deine Daten herunterzuladen."
+      "p1": "Du kannst dein Konto jederzeit unter Einstellungen > Konto löschen; alle deine Daten werden sofort gelöscht. Wird die Website eingestellt, wird das so früh wie möglich auf der Website angekündigt, mit Zeit, deine Daten herunterzuladen.",
+      "p2": "Ein Konto, dessen E-Mail-Adresse du nicht bestätigst, wird nach der vom Administrator festgelegten Zeit mit seinen Sammlungen, Münzen und Fotos gelöscht; das Datum steht im Hinweis auf der Website. Wir versuchen, dir vor der Löschung eine Erinnerungs-E-Mail zu senden, können aber nicht garantieren, dass sie ankommt. Von einem Administrator gesperrte Konten werden nicht auf diese Weise gelöscht."
     },
     "changes": {
       "title": "Änderungen",
@@ -747,5 +753,30 @@
     "source": "Quellcode",
     "sourceHint": "Das Projekt ist Open Source; Fehler kannst du auch dort melden.",
     "licenses": "Lizenzen der verwendeten Open-Source-Software"
+  },
+  "emailBanner": {
+    "label": "E-Mail-Bestätigung",
+    "title": "Bestätige deine E-Mail-Adresse: {{email}}",
+    "resend": "Link erneut senden",
+    "deletion": "Wenn du sie nicht bestätigst, wird dein Konto am {{date}} gelöscht.",
+    "until": "Bis dahin:",
+    "noNewCollection": "Du kannst keine neuen Sammlungen anlegen",
+    "noSharing": "Du kannst keine Sammlungen teilen",
+    "maxCoins": {
+      "one": "Du kannst höchstens {{count}} Münze hinzufügen",
+      "other": "Du kannst höchstens {{count}} Münzen hinzufügen"
+    },
+    "sent": "Ein neuer Link wurde an {{email}} gesendet.",
+    "notSent": "Die E-Mail konnte gerade nicht gesendet werden. Versuche es gleich noch einmal."
+  },
+  "verifyEmail": {
+    "verifying": "Deine E-Mail-Adresse wird bestätigt…",
+    "doneTitle": "Deine E-Mail-Adresse ist bestätigt",
+    "doneText": "Du kannst deine Sammlungen jetzt öffentlich oder per Link teilen.",
+    "toCollections": "Zu meinen Sammlungen",
+    "signIn": "Anmelden",
+    "invalidTitle": "Der Link ist ungültig oder abgelaufen",
+    "invalidText": "Ein Bestätigungslink ist 24 Stunden gültig. Melde dich an und fordere über den Hinweis oben auf der Seite einen neuen an.",
+    "failedTitle": "Die E-Mail-Adresse konnte nicht bestätigt werden"
   }
 }

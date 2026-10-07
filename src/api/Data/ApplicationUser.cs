@@ -40,4 +40,15 @@ public class ApplicationUser : IdentityUser
     // maximum as well) and their shared collections are hidden (CollectionAccess). Not the
     // temporary lockout after failed sign-ins, which only sets LockoutEnd
     public DateTime? LockedAtUtc { get; set; }
+
+    // While the e-mail address is unverified (Accounts.UnverifiedAccountCleanup): when the first
+    // reminder of the deletion was tried (the deletion waits at least a day after it), and when
+    // the 7-day and the 1-day reminder reached the mail server
+    public DateTime? DeletionReminderTriedAtUtc { get; set; }
+    public DateTime? DeletionReminderSentAtUtc { get; set; }
+    public DateTime? FinalDeletionReminderSentAtUtc { get; set; }
+
+    // The one-time request to verify (Accounts.VerificationRequests) reached the mail server: an
+    // account gets it once
+    public DateTime? VerificationRequestSentAtUtc { get; set; }
 }

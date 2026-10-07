@@ -24,6 +24,9 @@ const user: UserResponse = {
   theme: null,
   accent: null,
   previousSignInAtUtc: null,
+  emailConfirmed: true,
+  unverifiedMaxCoins: null,
+  unverifiedDeletionDueUtc: null,
   roles: [],
 };
 

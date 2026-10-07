@@ -24,6 +24,9 @@ public static class RateLimitPolicies
 
     /// <summary>The data export (a ZIP of up to 300 MB): per signed-in user, not per address.</summary>
     public const string Export = "export";
+
+    /// <summary>Sending a verification e-mail again: per signed-in user, a mailbox must not be flooded.</summary>
+    public const string Email = "email";
 }
 
 /// <summary>Requests one client may send in a window.</summary>
@@ -50,6 +53,8 @@ public sealed class RateLimitOptions
 
     public RateLimitRule Export { get; set; } = new() { PermitLimit = 3, WindowSeconds = 600 };
 
+    public RateLimitRule Email { get; set; } = new() { PermitLimit = 3, WindowSeconds = 600 };
+
     /// <summary>
     /// Every change a signed-in user makes (POST, PUT, PATCH, DELETE), per user: a script cannot fill
     /// the database or keep the image decoder busy. Far above what a person clicks.
@@ -62,7 +67,7 @@ public static class AppRateLimiting
     public static IServiceCollection AddAppRateLimiting(this IServiceCollection services)
     {
         services.AddOptions<RateLimitOptions>().BindConfiguration(RateLimitOptions.SectionName)
-            .Validate(o => new[] { o.Auth, o.Public, o.Photos, o.Export, o.Writes }
+            .Validate(o => new[] { o.Auth, o.Public, o.Photos, o.Export, o.Email, o.Writes }
                 .All(r => r.PermitLimit > 0 && r.WindowSeconds > 0),
                 "Every RateLimiting rule needs a PermitLimit and WindowSeconds above 0.")
             .ValidateOnStart();
@@ -74,6 +79,7 @@ public static class AppRateLimiting
             options.AddPolicy(RateLimitPolicies.Public, http => PerClient(http, o => o.Public, signedInExempt: true));
             options.AddPolicy(RateLimitPolicies.Photos, http => PerClient(http, o => o.Photos, signedInExempt: true));
             options.AddPolicy(RateLimitPolicies.Export, http => PerUser(http, o => o.Export));
+            options.AddPolicy(RateLimitPolicies.Email, http => PerUser(http, o => o.Email));
             // On top of the endpoint policies, for every request
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(WritesPerUser);
             options.OnRejected = OnRejectedAsync;

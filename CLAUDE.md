@@ -34,7 +34,7 @@ tamamlanan özellikler, sıradaki adım, açık konular ve alınmış kararları
 ## Çalışan uygulamalar
 
 Kullanıcı API'yi (`dotnet run --launch-profile http`, 5080) ve client'ı (`ng serve`, 4200) kendi
-terminallerinde sürekli çalışır halde tutuyor.
+terminallerinde sürekli çalışır halde tutuyor; e-posta denemelerinde ayrıca smtp4dev'i (5050, "Komutlar").
 
 - Bunları durdurmak gerekirse (ör. `bin/` kilidi, migration, API'nin yeni kodla yeniden başlaması)
   **önce kullanıcıya sor**, sadece onay verirse durdur.
@@ -130,7 +130,7 @@ terminallerinde sürekli çalışır halde tutuyor.
 Repo kökünden (`/c/repos/private/coin-web-portal`):
 
 ```bash
-dotnet tool restore                                   # dotnet-ef local tool (fresh clone)
+dotnet tool restore                                   # local tools: dotnet-ef, smtp4dev (fresh clone)
 dotnet build                                          # backend build
 dotnet test                                           # API tests (tests/api), own LocalDB database per run
 dotnet test --project tests/api --filter-class "*CoinsTests"   # one test class (xUnit v3 filters)
@@ -142,6 +142,9 @@ cd src/api && dotnet run --launch-profile http
 cd src/api && dotnet run --launch-profile http -- --seed-dev-data   # dev data, then exits
 dotnet publish src/api -c Release -o <dir>            # whole site: API + Angular build in wwwroot
 dotnet publish src/api -c Release -o <dir> -p:SkipWebClient=true   # API only
+
+# Local mail server for the dev API's e-mails (inbox http://localhost:5050, SMTP localhost:2525)
+dotnet smtp4dev --urls=http://localhost:5050 --smtpport=2525 --imapport= --pop3port=
 
 # Client (http://localhost:4200, /api proxied to 5080)
 cd src/web && npm install && ng serve
@@ -205,6 +208,53 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`owner` | `public` | `shared` | `explore`); `owner` dışı modlar salt okunur.
 - Görünürlük koleksiyon başına: `Private` (varsayılan) / `Unlisted` (128 bit `ShareToken`, sadece
   Unlisted iken var; başka görünürlüğe geçince silinir; `Collection.SetVisibility`) / `Public`.
+- **Doğrulanmamış hesap** (kullanıcı kararları 2026-10-06; kural tek yerde `Accounts/UnverifiedAccounts`,
+  her istekte veritabanından): e-postası doğrulanmamış kullanıcı (1) bir koleksiyonu yeni bir görünürlüğe
+  (Unlisted ya da Public) alamaz ve (2) kayıtta gelen koleksiyonun dışında koleksiyon açamaz, ikisi de 403
+  `email_not_confirmed` (`CollectionsController` Create/Update/Publish); (3) hesabında en fazla
+  `SiteSettings.UnverifiedMaxCoins` (admin ayarı, migration 20 ile başlatır, 0–10.000) coin olabilir,
+  coin eklemede 403 `unverified_coin_limit` + `maxCoins` (`CoinsController`, iki ekleme ucu). Sınır
+  `me`/giriş/kayıt yanıtında `unverifiedMaxCoins` (doğrulanınca null). **Olan kalır:** paylaşılmış
+  koleksiyon, fazla koleksiyon ve sınırın üstündeki coin'ler (doğrulamadan önceki hesaplar: canlıdaki
+  mevcut kullanıcılar doğrulanmamış başladı, kullanıcı kararı); düzenleme, silme, ad değiştirme, link
+  yenileme serbest, sadece yeni paylaşım ve ekleme engellenir. Client: üstte `layout/email-banner`
+  (sınırları söyler, tekrar gönder), formda kapalı seçenekler (`emailBlocked`), koleksiyon sayfasında
+  yayın butonu yerine not. "Yeni koleksiyon" (Koleksiyonlarım, ana sayfa) ve sınırdayken "Coin ekle"
+  (koleksiyon sayfası hesabın toplamını `api/coins/summary`'den alır, ana sayfa) **yerinde kalır, gri**
+  (`btn-unavailable`, `aria-disabled`; link olan "Coin ekle" gri bir `<button>` olur). Ayrı bir not ya da
+  kutu yok (kullanıcı kararı 2026-10-07: bant zaten söylüyor); ekran okuyucu için butonun
+  `aria-describedby`'ı banttaki maddeye gider (`EMAIL_LIMIT_IDS`). Coin
+  formuna doğrudan gelinirse API'nin hatası gösterilir (`errors.unverifiedCoinLimit`). Panelde durum
+  `Unverified` (gri; kilit ağır basar) ve isim yanında zarf + saat ikonu (`pages/admin/unverified-mark`,
+  durumdan bağımsız, kilitli + doğrulanmamış ayırt edilir).
+- **Doğrulanmamış hesabın ömrü** (kullanıcı kararları 2026-10-07): `SiteSettings.UnverifiedLifetimeDays`
+  (admin ayarı, migration 30 ile başlatır, 0–365; 0 = kapalı) gün sonra hesap içindekilerle silinir. Süre
+  kayıttan, ama `UnverifiedLifetimeSinceUtc`'den (migration'ın çalıştığı an; 0'dan açılınca o an) önceden
+  değil: mevcut hesaplar yayın gününden sayar. Tarih tek yerde `Accounts/UnverifiedLifetime.DueUtc` (`me`
+  `unverifiedDeletionDueUtc`, admin detayı, silme işi). `Accounts/UnverifiedAccountCleanup`
+  (`UnverifiedCleanupService`, iki dakika sonra ve `AccountCleanup:IntervalHours`'te bir, varsayılan 6;
+  testlerde ve e2e'de 0) 7 gün ve 1 gün önce hatırlatma e-postası **dener** (`EmailTexts.DeletionReminder`,
+  yeni doğrulama linkiyle; gönderilemeyen sonraki çalışmada, zamanı geçmediyse tekrar denenir), süre
+  dolunca `AccountDeletion` ile siler (Warning log). **Söz verilmez:** silme e-postanın ulaşmasını
+  beklemez; tek güvence hiçbir hesabın ilk hatırlatma denemesinden 1 gün geçmeden silinmemesi (kısaltılan
+  süre önce uyarır). Admin'ler ve admin'in kilitlediği hesaplar silinmez (kilitli spam hesabı adresi
+  tutmaya devam eder; admin toplu siler). Son çalışma bellekte, panelde Genel bakış'ta. Metinler (bant,
+  şartlar `terms.ending.p2`, gizlilik `privacy.retention`) teslimat vaat etmez.
+- **Bir seferlik doğrulama isteği** (kullanıcı kararı 2026-10-07; `Accounts/VerificationRequests`): admin Genel
+  bakış'tan başlatır (`POST api/admin/verification-requests`, not ile; denetim kaydına hesap sayısıyla
+  `VerificationEmailsRequested`), arka planda `Email:BulkDelaySeconds`'de (5; testlerde 0) bir e-posta
+  gönderir. Doğrulanmamış, kilitli olmayan, henüz almamış hesaplara (`ApplicationUser.VerificationRequestSentAtUtc`):
+  her hesap bir kez alır, tekrar başlatmak sadece kaçanlara gider; çalışırken 409 `already_running`. Durum
+  bellekte, panel çalışırken iki saniyede bir sorar. **Linkler:** hatırlatma ve bu istek 7 gün
+  (`EmailVerificationTokens.LongLifetime`), kayıt ve tekrar gönder 24 saat.
+- **Admin'in elle doğrulaması:** kullanıcı detayında "E-postayı doğrulanmış işaretle" (`POST
+  api/admin/users/{id}/confirm-email`, not ile; zaten doğrulanmışsa 204 ve kayıt yok), denetim kaydında
+  `EmailConfirmed`. E-postası ulaşmayan ama adresi kendisine ait olan kullanıcı için.
+- **Toplu silme** (admin): kullanıcı listesinde sayfadaki kullanıcılar seçilir (admin'lerin kutusu yok),
+  "Seçilenleri sil" sayıyı yazarak onaylanır; `POST api/admin/users/bulk-delete` (en fazla 100 Id, not),
+  her kullanıcı tek tek silmedeki gibi `AccountDeletion` + kendi denetim kaydı; admin'ler atlanır ve
+  sayılır, GUID olmayan ya da bulunmayan Id sayılır (`AdminDeleteUsersResponse`). Listeye `emailConfirmed`
+  filtresi (Durum ile birlikte: kilitli + doğrulanmamış).
 - **Herkese açık koleksiyon kuralı** (`Publishing/`, kararlar PROJECT_STATUS'ta): Public olmak için bütün
   coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
   **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
@@ -279,7 +329,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   kilidini kaldırabilir; denetim kaydında görünür (admin'e güvenilir, ayarda olması bunun ifadesi).
   Site geneli ayarlar `SiteSettings` tablosunda (tek satır, satırı migration ekler, `HasData` değil: bir
   model değişikliği admin'in değerini ezerdi), admin `api/admin/settings` ile değiştirir; değişiklik
-  `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır.
+  `SettingChanged` olarak `Setting` / `OldValue` / `NewValue` ile denetim kaydına yazılır (değişen her
+  ayar ayrı kayıt, aynı not). Ayarlar: `MinPublicCoins`, `UnverifiedMaxCoins`, `UnverifiedLifetimeDays`;
+  yeni ayar `settings.names`
+  çevirisine de girer (denetim listesi).
   Admin bir kullanıcıyı silebilir (adı yazarak onay, `DELETE api/admin/users/{id}`); admin'ler silinemez ve
   kendi hesaplarını Ayarlar'dan silemez (`admin_account`; paneldeki silmede `cannot_delete_admin`), önce
   ayardan çıkarılırlar.
@@ -302,6 +355,24 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`{ownerId}/{imageId}/{dosya}.webp`). Kota `PhotoQuota` ile, fotoğraf + kapak birlikte; **yaklaşık**:
   kontrolle kayıt arasında kilit yok, aynı anda yapılan yüklemeler kotayı birkaç görsel (her biri en fazla
   ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
+- **E-posta sadece `IMailSender` arkasında** (`Email/`, MailKit; görsel kütüphanesi kuralının aynısı):
+  `Email:Smtp:Host` doluysa `SmtpMailSender`, boşsa `PickupFolderMailSender` (`Email:PickupPath`'e
+  `.eml`; e2e, `Email__Smtp__Host` boş verilerek). Lokalde (`appsettings.Development.json`) e-postalar
+  **smtp4dev**'e gider (`localhost:2525`, şifresiz; gelen kutusu http://localhost:5050, komut "Komutlar"da;
+  kapalıysa e-posta gönderilemez: kayıt olur, Error log, tekrar gönder 503). Canlıda SMTP ayarları ve parola sunucudaki `web.config`'te
+  (`Email__Smtp__Host`, `__Port`, `__UserName`, `__Password`, `Email__SiteUrl`), repoya girmez; SMTP
+  yoksa Development dışında açılışta Warning. **Linkler `Email:SiteUrl`'den kurulur, isteğin `Host`'undan
+  asla** (sahte Host başlığı linki saldırganın sitesine çevirirdi); loopback ise Development dışında
+  Warning. E-posta metinleri **API'de** (`Email/EmailTexts`, dört dil, kaynak Türkçe; "arayüz metni API'de
+  üretilmez" kuralının bilinçli istisnası) ve kullanıcının diline göre. Her e-posta iki parçalı
+  (`multipart/alternative`): düz metin + aynı kelimelerle HTML (`EmailHtml`: tablolar, satır içi stil, hex
+  renkler; dışarıdan görsel ya da kaynak yok; **her metin `EmailHtml.Encode`'dan geçer**, ad kullanıcının).
+  **Doğrulama linki**
+  `/verify-email?token=`: `EmailVerificationTokens` (Data Protection, kullanıcı Id + e-posta, 24 saat;
+  Identity'nin token'ı değil, o güvenlik damgasına bağlı ve çıkış damgayı yeniler). `POST
+  api/auth/verify-email` girişsiz (`Auth` hız sınırı, geçersizse 400 `invalid_token`), `POST
+  api/auth/verify-email/resend` girişli (`Email` politikası, kullanıcı başına 10 dk'da 3; gönderilemezse
+  503 `email_not_sent`). Kayıtta gönderim hatası kaydı bozmaz (Error log). `token=` log maskesinde.
 - Fotoğraflar statik sunulmaz; API sürümlü URL (`?v=<photoId>`) + `immutable` önbellekle sunar
   (`v`'siz istek `private, no-cache`, `ImageUploadExtensions.ImageCacheControl`).
   Yüklemede önce dosya yazılır, sonra satır; kayıt **hangi sebeple olursa olsun** başarısızsa yeni dosya
@@ -342,7 +413,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   **Yeni dil eklerken kontrol edilecekler:** yeni `i18n/<dil>.json` ve `i18n/admin/<dil>.json`
   dosyalarında tüm anahtarlar (test eşliği kontrol eder), admin tablolarının sütun genişlikleri
   (`admin-users.html`, `admin-collections.html`, `admin-audit.ts`; ölçülen metinler yorumlarda),
-  `Collection.DefaultNameFor`, dil seçicideki bayrak (`shared/flag`) ve
+  `Collection.DefaultNameFor`, `Email/EmailTexts`, dil seçicideki bayrak (`shared/flag`) ve
   coin tablosunun sütun genişlikleri: yeni dildeki sütun başlıkları ve **ülke adları** mevcut en uzundan
   (şu an "Нидерландия") uzunsa `collection.html` `<colgroup>` genişlikleri headless ölçümle büyütülür
   (ölçüm yöntemi colgroup'un üstündeki yorumda).
@@ -367,8 +438,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`search=`) ve Keşfet filtresi (`owner=`) maskelenir (`MaskLoggedAddress`). URL'e yeni bir gizli değer
   (token, anahtar) ya da kişisel veri girerse maskeye eklenir. Dosyalar `Logs:RetainedDays` gün tutulur. Loga parola,
   cookie, token ya da istek gövdesi yazılmaz.
-- **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi ve
-  admin'in silmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)
+- **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi,
+  admin'in tekli ve toplu silmesi, doğrulanmamış hesabın otomatik silinmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)
   eklenince ikisi de güncellenir:** kullanıcı satırından cascade ile silinmeli (olmuyorsa
   `AccountDeletion` transaction'ında elle) ve dışa aktarmada yer almalı; testleri `AccountTests`'te.
   Yeni bir görsel dosyası ayrıca `PhotoSweeper`'a girer. Dışa aktarmada dosyası bulunamayan görsel
@@ -403,7 +474,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `https://localhost`, yani production cookie kuralları) gerçek SQL Server'a karşı çalışır; SQLite
   kullanılmaz (collation, `CHARINDEX`, filtreli index'ler). Koşu başına `CoinPortal_Tests_<zaman>_<id>`
   veritabanı migration'larla kurulur, sonunda silinir (sunucu: LocalDB, CI'da `COINPORTAL_TEST_SQL`).
-  Testler seed kullanmaz, kendi kullanıcılarını açar (`factory.SignUpAsync()`); `ApiClient` SPA gibi
+  Testler seed kullanmaz, kendi kullanıcılarını açar (`factory.SignUpAsync()`; e-postası doğrulanmış,
+  `confirmEmail: false` ile doğrulanmamış); gönderilen e-postalar `factory.Mail`'de (`FakeMailSender`:
+  `To(adres)`, `LatestVerificationToken`, `FailWhen`); `ApiClient` SPA gibi
   cookie ve antiforgery token'ı taşır. **Yeni bir uç ya da erişim kuralı testleriyle gelir** (başkasının
   kaynağı 404, girişsiz 401, görünürlük). Test projesi görsel kütüphanesine referans vermez (`TestImages`
   PNG'yi elle üretir). xUnit v3 4.x Microsoft Testing Platform ister (`global.json` → `test.runner`).
@@ -525,9 +598,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (dokunmatikte yok); `title` işaretçiyi alan elemana verilir (ızgaradaki kaplama butonu). Satır başına tekrar
   eden butonun erişilebilir adı satırı içerir (`Gizle: <ad>`). Hareket: geçişler `motion-safe:`, sayfa başına
   kaydırma `scrollToTop()` (`shared/motion.ts`, `prefers-reduced-motion`'da anında).
+- **Butonlarda el imleci** (kullanıcı kararı 2026-10-07): Tailwind 4 butonları ok imlecine çeker, buton
+  görünümlü linkler el gösterir; `styles.css` base katmanındaki kural `button`, `[role=button]` ve
+  `[role=option]`'a el imleci verir (devre dışı ve `aria-disabled` olanlar hariç, onlar `btn-*`'in
+  `not-allowed`'ını alır). Yeni bir tıklanır öğe gerçek `<button>` ya da link olur.
 - UI kütüphanesi yok. Ortak stiller `styles.css` içinde `@apply` class'ları: `card`, `form-label`,
   `form-input`, `form-error`, `form-hint`, `form-checkbox`, `alert-error`, `btn-primary`, `btn-secondary`,
-  `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-danger` (kırmızı dolgu, sadece
+  `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-unavailable` (hesabın henüz
+  kullanamadığı buton, iki temada gri; meşgul butonun solukluğundan ayrı), `btn-danger` (kırmızı dolgu, sadece
   onay penceresinin butonu), `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış
   animasyonu), `app-splash` (`index.html`'deki açılış ekranı),
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
@@ -665,7 +743,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ister), adresleri `E2E_URLS`'ten, sertifikayı `Kestrel__Certificates__Default__Path`/`Password`'den alır;
   sağlık kontrolü yönlendirmeyi (HTTP → HTTPS 307) "ayakta" sayar. Lokalde kurulu Edge (`channel: 'msedge'`, indirme yok), 4 worker (daha fazlası
   dizüstünde zaman aşımı yapar); CI'da Chromium. Arayüz İngilizce (`locale: 'en-US'`), seçiciler rol ve
-  görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`), girişli tarayıcı
+  görünen adla. Testler kendi kullanıcılarını API'den açar (`support/users.ts` `TestUser`; e-postayı
+  `.build/data/mail`'deki `.eml`'den okunan linkle doğrular, `signUp(false)` doğrulamaz; `support/mail.ts`),
+  girişli tarayıcı
   `user.browser(browser)`. Public koleksiyon `user.publish(c)` ile (e2e'de eşik varsayılan 10, yardımcı
   eksik fotoğraflı coin'leri ekler), Public koleksiyona coin `createPhotographedCoin` ile. Her sayfa `expectAccessible(page, ad)` (axe, WCAG 2.1 AA): **ciddi ve kritik
   bulgu testi kırar** (kullanıcı kararı 2026-10-04), azı raporda; tarama animasyonlar bitince yapılır

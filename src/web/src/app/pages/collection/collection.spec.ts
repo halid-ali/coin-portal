@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { Coin, PagedResponse } from '../../core/coins/coin.models';
 import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection as CoinCollection } from '../../core/collections/collection.models';
@@ -122,6 +123,47 @@ describe('Collection', () => {
     const missing = banner()!.querySelector('a')!;
     expect(missing.textContent).toContain("2 coin'in ulusal yüzü eksik");
     expect(missing.getAttribute('href')).toBe('/collections/5?photo=missing');
+    // Each part apart from the dots (the template drops the spaces between elements)
+    expect(banner()!.textContent!.replace(/\s+/g, ' ')).toContain(
+      "1/10 fotoğraflı coin · 2 coin'in ulusal yüzü eksik · Bu arada linkle paylaşabilirsin.",
+    );
+  });
+
+  it('leaves out the link tip and grays out Add coin at the limit while unverified', async () => {
+    const loaded = TestBed.inject(AuthService).loadMe();
+    http.expectOne('/api/auth/me').flush({
+      id: '1',
+      userName: 'alice',
+      email: 'alice@example.com',
+      emailConfirmed: false,
+      unverifiedMaxCoins: 20,
+      unverifiedDeletionDueUtc: null,
+      firstName: 'Alice',
+      lastName: 'Smith',
+      birthDate: '1990-01-01',
+      language: null,
+      theme: null,
+      accent: null,
+      previousSignInAtUtc: null,
+      roles: [],
+    });
+    await loaded;
+    await open('/collections/5', 3, pageWithCoin(), { photographedCoinCount: 1 });
+    // The coin limit counts the whole account
+    http
+      .expectOne('/api/coins/summary')
+      .flush({ coinCount: 20, countryCount: 1, commemorativeCount: 0 });
+    await harness.fixture.whenStable();
+
+    expect(banner()!.textContent).toContain('1/10 fotoğraflı coin');
+    expect(banner()!.textContent).not.toContain('linkle paylaşabilirsin');
+    // 20 coins in the account: no link to the form, a gray button pointing at the reason
+    const addCoin = [...page().querySelectorAll('a, button')].find((e) =>
+      e.textContent!.includes('Coin ekle'),
+    )!;
+    expect(addCoin.tagName).toBe('BUTTON');
+    expect(addCoin.getAttribute('aria-disabled')).toBe('true');
+    expect(addCoin.getAttribute('aria-describedby')).toBe('email-limit-coins');
   });
 
   it('lists every coin without photos from the banner, whatever the filters', async () => {

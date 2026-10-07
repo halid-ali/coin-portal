@@ -71,10 +71,12 @@ export function mapValidationProblem(
   return result;
 }
 
-/** Account-wide limits (UserLimits in the API), whatever the form. */
+/** Account-wide codes (UserLimits in the API, the unverified e-mail), whatever the form. */
 const CODE_MESSAGE_KEYS: Record<string, string> = {
   collection_limit: 'errors.collectionLimit',
   coin_limit: 'errors.coinLimit',
+  email_not_confirmed: 'errors.emailNotConfirmed',
+  unverified_coin_limit: 'errors.unverifiedCoinLimit',
 };
 
 /** The machine code of a coded problem (`this.CodedProblem(code, …)` in the API), if any. */
@@ -124,6 +126,10 @@ export function applyServerErrors(
  * A key, so a signal can hold it and the template translates it in the current language.
  */
 export function httpErrorKey(error: HttpErrorResponse): string {
+  const code = problemCode(error);
+  if (code && CODE_MESSAGE_KEYS[code]) {
+    return CODE_MESSAGE_KEYS[code];
+  }
   switch (error.status) {
     case 0:
       return 'errors.network';

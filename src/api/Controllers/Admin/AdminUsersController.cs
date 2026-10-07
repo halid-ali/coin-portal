@@ -14,7 +14,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CoinPortal.Api.Controllers.Admin;
 
 /// <summary>
-/// Users for the panel: list, details (account data and counts, no content) and the admin lock.
+/// Users for the panel: list, details (account data and counts, no content), the admin lock and
+/// deletion, one at a time or the ones selected on a page.
 /// A locked user cannot sign in and their shared collections are hidden until unlocked.
 /// Admins cannot be locked or deleted here; they are removed from the configuration (Admin:UserIds).
 /// </summary>
@@ -37,6 +38,10 @@ public class AdminUsersController(
         {
             rows = rows.Where(r => r.Status == status);
         }
+        if (query.EmailConfirmed is { } confirmed)
+        {
+            rows = rows.Where(r => r.EmailConfirmed == confirmed);
+        }
 
         var desc = query.Dir == SortDirection.Desc;
         var ordered = query.Sort switch
@@ -48,7 +53,7 @@ public class AdminUsersController(
         };
         // Id keeps paging stable when the sort key is equal
         return await ordered.ThenBy(r => r.Id).ToPagedAsync(query.Page, query.PageSize,
-            r => new AdminUserResponse(r.Id, r.UserName, r.Email, r.CreatedAtUtc, r.LastSeenAtUtc, r.Status,
+            r => new AdminUserResponse(r.Id, r.UserName, r.Email, r.EmailConfirmed, r.CreatedAtUtc, r.LastSeenAtUtc, r.Status,
                 r.IsAdmin, r.CollectionCount, r.CoinCount, r.StorageBytes), ct);
     }
 
@@ -57,7 +62,14 @@ public class AdminUsersController(
     public async Task<ActionResult<AdminUserDetailResponse>> Get(string id, CancellationToken ct)
     {
         var row = await (await RowsAsync(ct)).FirstOrDefaultAsync(r => r.Id == id, ct);
-        return row is null ? NotFound() : row.ToDetail(photoQuota.LimitBytes);
+        if (row is null)
+        {
+            return NotFound();
+        }
+        var settings = await db.SiteSettings.AsNoTracking().SingleAsync(s => s.Id == SiteSettings.SingletonId, ct);
+        var deletionDue = row.IsAdmin ? null : UnverifiedLifetime.DueUtc(row.EmailConfirmed, row.LockedAtUtc,
+            row.CreatedAtUtc, row.DeletionReminderTriedAtUtc, settings, DateTime.UtcNow);
+        return row.ToDetail(photoQuota.LimitBytes, deletionDue);
     }
 
     /// <summary>Locks the user until unlocked; their sessions end within the cookie validation interval.</summary>
@@ -147,6 +159,62 @@ public class AdminUsersController(
         return NoContent();
     }
 
+    /// <summary>
+    /// Marks the user's e-mail address verified, for one whose mail does not arrive while the admin
+    /// knows the address is theirs (e.g. they wrote from it). Already verified: 204, nothing recorded.
+    /// </summary>
+    [HttpPost("{id}/confirm-email")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmEmail(string id,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AdminNoteRequest? request, CancellationToken ct)
+    {
+        var user = await userManager.FindByIdAsync(id);
+        if (user is null)
+        {
+            return NotFound();
+        }
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            Audit(db, AuditAction.EmailConfirmed, user, note: request?.Note);
+            await db.SaveChangesAsync(ct);
+        }
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Deletes the users selected in the list (spam accounts, at most a page), one after another,
+    /// each like <see cref="Delete"/> with its own audit entry and the same note. Admins among them
+    /// are skipped and counted, not refused: a selection may hold one.
+    /// </summary>
+    [HttpPost("bulk-delete")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<AdminDeleteUsersResponse> DeleteMany(AdminDeleteUsersRequest request, CancellationToken ct)
+    {
+        var (deleted, admins, notFound) = (0, 0, 0);
+        foreach (var id in request.UserIds.Distinct())
+        {
+            // Ids are GUIDs: anything else is no user, and is not looked up
+            var user = Guid.TryParse(id, out _) ? await userManager.FindByIdAsync(id) : null;
+            if (user is null)
+            {
+                notFound++;
+            }
+            else if (await userManager.IsInRoleAsync(user, AppRoles.Admin))
+            {
+                admins++;
+            }
+            else
+            {
+                await deletion.DeleteAsync(user, beforeSave: () =>
+                    Audit(db, AuditAction.UserDeleted, user, note: request.Note).TargetUserName = null, ct);
+                deleted++;
+            }
+        }
+        return new AdminDeleteUsersResponse(deleted, admins, notFound);
+    }
+
     private async Task<IQueryable<UserRow>> RowsAsync(CancellationToken ct)
     {
         var adminRoleId = await db.Roles.Where(r => r.Name == AppRoles.Admin).Select(r => r.Id)
@@ -157,6 +225,7 @@ public class AdminUsersController(
             Id = u.Id,
             UserName = u.UserName!,
             Email = u.Email!,
+            EmailConfirmed = u.EmailConfirmed,
             FirstName = u.FirstName,
             LastName = u.LastName,
             CreatedAtUtc = u.CreatedAtUtc,
@@ -164,8 +233,10 @@ public class AdminUsersController(
             LastSeenAtUtc = u.LastSeenAtUtc,
             LockedAtUtc = u.LockedAtUtc,
             LockoutEnd = u.LockoutEnd,
+            DeletionReminderTriedAtUtc = u.DeletionReminderTriedAtUtc,
             Status = u.LockedAtUtc != null ? AdminUserStatus.Locked
                 : u.LockoutEnd > now ? AdminUserStatus.LockedOut
+                : !u.EmailConfirmed ? AdminUserStatus.Unverified
                 : AdminUserStatus.Active,
             IsAdmin = db.UserRoles.Any(r => r.UserId == u.Id && r.RoleId == adminRoleId),
             CollectionCount = db.Collections.Count(c => c.OwnerId == u.Id),
@@ -195,6 +266,7 @@ public class AdminUsersController(
         public required string Id { get; init; }
         public required string UserName { get; init; }
         public required string Email { get; init; }
+        public bool EmailConfirmed { get; init; }
         public required string FirstName { get; init; }
         public required string LastName { get; init; }
         public DateTime CreatedAtUtc { get; init; }
@@ -202,6 +274,7 @@ public class AdminUsersController(
         public DateTime? LastSeenAtUtc { get; init; }
         public DateTime? LockedAtUtc { get; init; }
         public DateTimeOffset? LockoutEnd { get; init; }
+        public DateTime? DeletionReminderTriedAtUtc { get; init; }
         public AdminUserStatus Status { get; init; }
         public bool IsAdmin { get; init; }
         public int CollectionCount { get; init; }
@@ -211,10 +284,11 @@ public class AdminUsersController(
         public int PhotoCount { get; init; }
         public long StorageBytes { get; init; }
 
-        public AdminUserDetailResponse ToDetail(long quotaBytes) => new(Id, UserName, Email, FirstName, LastName,
+        public AdminUserDetailResponse ToDetail(long quotaBytes, DateTime? deletionDueUtc) => new(Id, UserName,
+            Email, EmailConfirmed, FirstName, LastName,
             CreatedAtUtc, LastSignInAtUtc, LastSeenAtUtc, Status, LockedAtUtc,
             Status == AdminUserStatus.LockedOut ? LockoutEnd?.UtcDateTime : null,
             IsAdmin, CollectionCount, PublicCollectionCount, UnlistedCollectionCount, CoinCount, PhotoCount,
-            StorageBytes, quotaBytes);
+            StorageBytes, quotaBytes, deletionDueUtc);
     }
 }

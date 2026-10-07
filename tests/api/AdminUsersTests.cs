@@ -1,5 +1,6 @@
 using System.Net;
 using CoinPortal.Api.Contracts.Admin;
+using CoinPortal.Api.Contracts.Auth;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Contracts.Common;
 using CoinPortal.Api.Contracts.Public;
@@ -74,13 +75,95 @@ public class AdminUsersTests(CoinPortalFactory factory)
         {
             await lockB.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
         }
+        // b is unverified too: locked weighs more
+        await factory.WithDbAsync(db => db.Users
+            .Where(u => u.UserName == prefix + "b" || u.UserName == prefix + "c")
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.EmailConfirmed, false)));
 
         var locked = await ListAsync(admin, $"search={prefix}&status=Locked");
-        var active = await ListAsync(admin, $"search={prefix}&status=Active&sort=UserName&dir=Asc");
+        var unverified = await ListAsync(admin, $"search={prefix}&status=Unverified");
+        var active = await ListAsync(admin, $"search={prefix}&status=Active");
+        // Locked or not
+        var unconfirmed = await ListAsync(admin, $"search={prefix}&emailConfirmed=false&sort=UserName&dir=Asc");
+        var confirmed = await ListAsync(admin, $"search={prefix}&emailConfirmed=true");
+        var lockedUnconfirmed = await ListAsync(admin, $"search={prefix}&status=Locked&emailConfirmed=false");
 
         Assert.Equal([prefix + "b"], locked.Items.Select(u => u.UserName));
-        Assert.Equal(AdminUserStatus.Locked, locked.Items[0].Status);
-        Assert.Equal([prefix + "a", prefix + "c"], active.Items.Select(u => u.UserName));
+        Assert.Equal((AdminUserStatus.Locked, false), (locked.Items[0].Status, locked.Items[0].EmailConfirmed));
+        Assert.Equal([prefix + "c"], unverified.Items.Select(u => u.UserName));
+        Assert.Equal(AdminUserStatus.Unverified, unverified.Items[0].Status);
+        Assert.Equal([prefix + "a"], active.Items.Select(u => u.UserName));
+        Assert.Equal([prefix + "b", prefix + "c"], unconfirmed.Items.Select(u => u.UserName));
+        Assert.Equal([prefix + "a"], confirmed.Items.Select(u => u.UserName));
+        Assert.Equal([prefix + "b"], lockedUnconfirmed.Items.Select(u => u.UserName));
+    }
+
+    [Fact]
+    public async Task ConfirmEmail_MarksTheAddressVerified_Once()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var bob = await factory.SignUpAsync(confirmEmail: false);
+        var url = $"/api/admin/users/{bob.User.Id}/confirm-email";
+
+        using (var confirm = await admin.Client.PostAsync(url, new AdminNoteRequest("Wrote from it")))
+        {
+            await confirm.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        using (var again = await admin.Client.PostAsync(url, new AdminNoteRequest("Again")))
+        {
+            await again.ShouldHaveStatusAsync(HttpStatusCode.NoContent);
+        }
+        using var unknown = await admin.Client.PostAsync($"/api/admin/users/{Guid.NewGuid()}/confirm-email");
+
+        await unknown.ShouldHaveStatusAsync(HttpStatusCode.NotFound);
+        var me = await bob.Client.GetJsonAsync<UserResponse>("/api/auth/me");
+        Assert.Equal((true, null), (me.EmailConfirmed, me.UnverifiedMaxCoins));
+        // Recorded once, for the change
+        var entry = Assert.Single((await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+                $"/api/admin/audit?action={AuditAction.EmailConfirmed}&pageSize=100")).Items,
+            e => e.TargetUserId == bob.User.Id);
+        Assert.Equal((admin.User.Id, "Wrote from it"), (entry.ActorId, entry.Note));
+    }
+
+    [Fact]
+    public async Task DeleteMany_DeletesTheSelected_SkipsAdmins_AndCountsUnknownIds()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var spam = await factory.SignUpAsync(confirmEmail: false);
+        var more = await factory.SignUpAsync(confirmEmail: false);
+        await spam.UploadCoverAsync((await spam.FirstCollectionAsync()).Id);
+
+        using var response = await admin.Client.PostAsync("/api/admin/users/bulk-delete",
+            new AdminDeleteUsersRequest(
+                [spam.User.Id, more.User.Id, more.User.Id, admin.User.Id, Guid.NewGuid().ToString(), "not-an-id"],
+                "Spam wave"));
+
+        Assert.Equal(new AdminDeleteUsersResponse(2, 1, 2), await response.ReadJsonAsync<AdminDeleteUsersResponse>());
+        await admin.Client.ExpectStatusAsync($"/api/admin/users/{spam.User.Id}", HttpStatusCode.NotFound);
+        await admin.Client.ExpectStatusAsync($"/api/admin/users/{more.User.Id}", HttpStatusCode.NotFound);
+        await admin.Client.ExpectStatusAsync($"/api/admin/users/{admin.User.Id}", HttpStatusCode.OK);
+        Assert.False(Directory.Exists(Path.Combine(factory.PhotoRoot, spam.User.Id)));
+        // One entry each, with the note and without the name
+        var entries = (await admin.Client.GetJsonAsync<PagedResponse<AdminAuditEntryResponse>>(
+                $"/api/admin/audit?action={AuditAction.UserDeleted}&pageSize=100")).Items
+            .Where(e => e.TargetUserId == spam.User.Id || e.TargetUserId == more.User.Id)
+            .ToList();
+        Assert.Equal(2, entries.Count);
+        Assert.All(entries, e => Assert.Equal(("Spam wave", null, admin.User.Id), (e.Note, e.TargetUserName, e.ActorId)));
+    }
+
+    [Fact]
+    public async Task DeleteMany_NeedsOneToAPageOfIds()
+    {
+        var admin = await factory.SignUpAdminAsync();
+
+        using var none = await admin.Client.PostAsync("/api/admin/users/bulk-delete",
+            new AdminDeleteUsersRequest([], null));
+        using var tooMany = await admin.Client.PostAsync("/api/admin/users/bulk-delete",
+            new AdminDeleteUsersRequest(Enumerable.Range(0, 101).Select(_ => Guid.NewGuid().ToString()).ToList(), null));
+
+        Assert.Equal(["UserIds"], await none.ReadValidationKeysAsync());
+        Assert.Equal(["UserIds"], await tooMany.ReadValidationKeysAsync());
     }
 
     [Theory]
@@ -139,11 +222,19 @@ public class AdminUsersTests(CoinPortalFactory factory)
         var alice = await factory.SignUpAsync();
         await alice.PublishAsync(await alice.FirstCollectionAsync());
         await alice.CreateCollectionAsync(visibility: CollectionVisibility.Unlisted);
+        var bob = await factory.SignUpAsync(confirmEmail: false);
 
         var detail = await admin.Client.GetJsonAsync<AdminUserDetailResponse>($"/api/admin/users/{alice.User.Id}");
+        var bobs = await admin.Client.GetJsonAsync<AdminUserDetailResponse>($"/api/admin/users/{bob.User.Id}");
         using var unknown = await admin.Client.GetAsync($"/api/admin/users/{Guid.NewGuid()}");
 
         Assert.Equal(("Test", "User"), (detail.FirstName, detail.LastName));
+        Assert.Equal((true, false), (detail.EmailConfirmed, bobs.EmailConfirmed));
+        Assert.Equal((AdminUserStatus.Active, AdminUserStatus.Unverified), (detail.Status, bobs.Status));
+        // The unverified account's deletion date: its lifetime after sign-up
+        Assert.Null(detail.DeletionDueUtc);
+        var bobsDue = bobs.CreatedAtUtc.AddDays(CoinPortalFactory.UnverifiedLifetimeDays);
+        Assert.InRange(bobs.DeletionDueUtc!.Value, bobsDue.AddSeconds(-1), bobsDue.AddSeconds(1));
         Assert.Equal((2, 1, 1), (detail.CollectionCount, detail.PublicCollectionCount, detail.UnlistedCollectionCount));
         Assert.NotNull(detail.LastSignInAtUtc);
         Assert.True(detail.QuotaBytes > 0);

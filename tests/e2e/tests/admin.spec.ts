@@ -84,3 +84,34 @@ test('an admin hides a public collection', async ({ browser }) => {
     user.dispose(),
   ]);
 });
+
+// Spam accounts go together: found with the e-mail filter, selected on the page, deleted at once
+// with the count typed to confirm
+test('an admin deletes selected users at once', async ({ browser }) => {
+  const spam = [await TestUser.signUp(false), await TestUser.signUp(false)];
+  const { admin, context, page } = await adminPage(browser);
+
+  // Newest first: these two lead the list, other tests' users are left alone
+  await page.goto('/admin/users?emailConfirmed=false&pageSize=100');
+  for (const user of spam) {
+    await page
+      .getByRole('checkbox', { name: `Select ${user.userName}` })
+      .filter({ visible: true })
+      .check();
+  }
+  await expect(page.getByText('2 users selected')).toBeVisible();
+  await expectAccessible(page, 'admin users selected');
+
+  await page.getByRole('button', { name: 'Delete selected' }).click();
+  const confirm = page.getByRole('dialog', { name: 'Delete the selected users' });
+  await expectAccessible(page, 'bulk delete dialog');
+  await confirm.getByLabel('Type the number of accounts to confirm:').fill('2');
+  await confirm.getByLabel('Note (optional)').fill('e2e spam');
+  await confirm.getByRole('button', { name: 'Delete selected' }).click();
+
+  await expect(page.getByText('2 accounts deleted.')).toBeVisible();
+  for (const user of spam) {
+    await expect(page.getByRole('link', { name: user.userName })).toHaveCount(0);
+  }
+  await Promise.all([context.close(), admin.dispose(), ...spam.map((user) => user.dispose())]);
+});

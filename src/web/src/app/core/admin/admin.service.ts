@@ -8,12 +8,14 @@ import {
   AdminAuditQuery,
   AdminCollection,
   AdminCollectionQuery,
+  AdminDeleteUsersResult,
   AdminSettings,
   AdminSettingsImpact,
   AdminStats,
   AdminUser,
   AdminUserDetail,
   AdminUserQuery,
+  AdminVerificationRequests,
 } from './admin.models';
 
 const API = '/api/admin';
@@ -66,6 +68,25 @@ export class AdminService {
   /** Deletes the user with everything they own (not admins: 403 cannot_delete_admin). */
   deleteUser(id: string, note: string): Observable<void> {
     return this.http.delete<void>(`${API}/users/${encodeURIComponent(id)}`, { body: { note } });
+  }
+
+  /** Marks the user's e-mail address verified (nothing happens when it is already). */
+  confirmEmail(id: string, note: string): Observable<void> {
+    return this.http.post<void>(`${API}/users/${encodeURIComponent(id)}/confirm-email`, { note });
+  }
+
+  verificationRequests(): Observable<AdminVerificationRequests> {
+    return this.http.get<AdminVerificationRequests>(`${API}/verification-requests`);
+  }
+
+  /** Starts sending in the background; 409 already_running while a run goes. */
+  startVerificationRequests(note: string): Observable<AdminVerificationRequests> {
+    return this.http.post<AdminVerificationRequests>(`${API}/verification-requests`, { note });
+  }
+
+  /** Deletes the selected users like deleteUser, one audit entry each; admins are skipped. */
+  deleteUsers(userIds: readonly string[], note: string): Observable<AdminDeleteUsersResult> {
+    return this.http.post<AdminDeleteUsersResult>(`${API}/users/bulk-delete`, { userIds, note });
   }
 
   /** Hides the collection: private, share link removed, locked against sharing. */

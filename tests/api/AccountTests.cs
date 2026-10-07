@@ -43,8 +43,8 @@ public class AccountTests(CoinPortalFactory factory)
             names);
 
         var account = Read<AccountExportFile>(zip, "account.json");
-        Assert.Equal((alice.UserName, alice.User.Email, "Test", "User"),
-            (account.UserName, account.Email, account.FirstName, account.LastName));
+        Assert.Equal((alice.UserName, alice.User.Email, true, "Test", "User"),
+            (account.UserName, account.Email, account.EmailConfirmed, account.FirstName, account.LastName));
         Assert.Equal(new DateOnly(1990, 1, 1), account.BirthDate);
         Assert.Empty(account.MissingImages);
 

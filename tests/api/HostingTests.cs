@@ -81,9 +81,9 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
             ["RateLimiting:Writes:PermitLimit"] = "2",
         });
         using var alice = await CoinPortalFactory.CreateAnonymousClientAsync(host);
-        await alice.RegisterAsync(TestUser.NewRegisterRequest());
+        await factory.ConfirmEmailAsync((await alice.RegisterAsync(TestUser.NewRegisterRequest())).Id);
         using var bob = await CoinPortalFactory.CreateAnonymousClientAsync(host);
-        await bob.RegisterAsync(TestUser.NewRegisterRequest());
+        await factory.ConfirmEmailAsync((await bob.RegisterAsync(TestUser.NewRegisterRequest())).Id);
 
         for (var i = 0; i < 2; i++)
         {
@@ -109,7 +109,7 @@ public sealed class HostingTests(CoinPortalFactory factory) : IDisposable
             ["UserLimits:MaxCoins"] = "1",
         });
         using var client = await CoinPortalFactory.CreateAnonymousClientAsync(host);
-        await client.RegisterAsync(TestUser.NewRegisterRequest());
+        await factory.ConfirmEmailAsync((await client.RegisterAsync(TestUser.NewRegisterRequest())).Id);
         var first = Assert.Single(await client.GetJsonAsync<List<CollectionResponse>>("/api/collections"));
 
         // The first collection comes with sign-up: one more fits

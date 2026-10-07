@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ADMIN, BASE_URL, PORT } from '../support/env.mjs';
+import { ADMIN, BASE_URL, MAIL_DIR, PORT } from '../support/env.mjs';
 
 const e2eDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(e2eDir, '../..');
@@ -62,8 +62,14 @@ function startApi(adminId, url) {
     RateLimiting__Photos__PermitLimit: '100000',
     PhotoStorage__RootPath: path.join(build, 'data/photos'),
     PhotoStorage__SweepIntervalHours: '0',
+    AccountCleanup__IntervalHours: '0',
     Logs__Path: path.join(build, 'data/logs'),
     DataProtection__KeysPath: path.join(build, 'data/keys'),
+    // E-mails as .eml files the tests read (verification links point to this site), not to the
+    // developer's smtp4dev from appsettings.Development.json
+    Email__Smtp__Host: '',
+    Email__PickupPath: MAIL_DIR,
+    Email__SiteUrl: BASE_URL,
   };
   // Content root src/api (appsettings, dev seed); the client from the e2e build
   api = spawn(

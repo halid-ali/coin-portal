@@ -172,6 +172,9 @@ import { AdminListBase } from './admin-list-base';
         } @else if (e.targetCollectionId) {
           <span> · {{ 'admin.audit.deletedCollection' | transloco }}</span>
         }
+        @if (e.action === 'VerificationEmailsRequested' && e.newValue !== null) {
+          <span>{{ 'admin.audit.accounts' | plural: +e.newValue }}</span>
+        }
         @if (e.setting) {
           <span
             >{{ 'admin.settings.names.' + e.setting | transloco }}: {{ e.oldValue }}

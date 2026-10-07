@@ -5,9 +5,10 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatBytes, formatNumber, formatRelative } from '../../core/admin/admin-format';
-import { AdminStats } from '../../core/admin/admin.models';
+import { AdminAccountCleanup, AdminStats } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { AdminVerificationRequestsPanel } from './admin-verification-requests';
 
 type TileIcon =
   | 'users'
@@ -22,7 +23,9 @@ type TileIcon =
   | 'photo'
   | 'storage'
   | 'cleanup'
-  | 'missing';
+  | 'missing'
+  | 'mail'
+  | 'mailFailed';
 
 /**
  * Hue of the icon circle (styles.css stat-icon-<color>): fixed per meaning, not the accent color,
@@ -51,7 +54,7 @@ interface TileGroup {
   tiles: readonly Tile[];
 }
 
-/** Shown for the disk figures before the first photo sweep. */
+/** Shown for the disk and cleanup figures before their first run. */
 const NONE = '–';
 
 /** Groups of tiles; the counts come from GET api/admin/stats. */
@@ -182,16 +185,65 @@ const GROUPS: readonly TileGroup[] = [
       },
     ],
   },
+  {
+    titleKey: 'admin.overview.unverified',
+    note: (s, l) =>
+      !s.accountCleanup
+        ? { key: 'admin.overview.notRunYet' }
+        : !s.accountCleanup.enabled
+          ? { key: 'admin.overview.cleanupOff' }
+          : {
+              key: 'admin.overview.lastCheck',
+              params: { time: formatRelative(s.accountCleanup.checkedAtUtc, l) },
+            },
+    alert: (s) =>
+      s.accountCleanup && s.accountCleanup.remindersFailed > 0
+        ? 'admin.overview.remindersFailedAlert'
+        : null,
+    tiles: [
+      {
+        labelKey: 'admin.overview.remindersSent',
+        hintKey: 'admin.overview.lastRunHint',
+        icon: 'mail',
+        color: 'sky',
+        value: (s, l) => cleanupCount(s, l, (c) => c.remindersSent),
+      },
+      {
+        labelKey: 'admin.overview.remindersFailed',
+        hintKey: 'admin.overview.lastRunHint',
+        icon: 'mailFailed',
+        color: 'orange',
+        value: (s, l) => cleanupCount(s, l, (c) => c.remindersFailed),
+      },
+      {
+        labelKey: 'admin.overview.accountsDeleted',
+        hintKey: 'admin.overview.lastRunHint',
+        icon: 'cleanup',
+        color: 'red',
+        value: (s, l) => cleanupCount(s, l, (c) => c.accountsDeleted),
+      },
+    ],
+  },
 ];
+
+/** A count of the last cleanup of unverified accounts; none before it ran or while it is off. */
+function cleanupCount(
+  stats: AdminStats,
+  lang: string,
+  count: (cleanup: AdminAccountCleanup) => number,
+): string {
+  return stats.accountCleanup?.enabled ? formatNumber(count(stats.accountCleanup), lang) : NONE;
+}
 
 /**
  * Admin > Overview: site-wide numbers, each tile with an icon of what it counts; the locked,
  * public, link-only and hidden tiles open the filtered lists. The disk group shows the API's last
- * photo sweep: the real size on disk, leftovers it removed, records whose file is missing.
+ * photo sweep: the real size on disk, leftovers it removed, records whose file is missing. The
+ * last group shows the last cleanup of unverified accounts: reminders tried, accounts deleted.
  */
 @Component({
   selector: 'app-admin-overview',
-  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, AdminVerificationRequestsPanel],
   template: `
     @if (loadError()) {
       <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
@@ -234,6 +286,8 @@ const GROUPS: readonly TileGroup[] = [
             }
           </section>
         }
+        <!-- After the unverified accounts group: the one-time request to verify -->
+        <app-admin-verification-requests />
       </div>
     }
 
@@ -318,6 +372,15 @@ const GROUPS: readonly TileGroup[] = [
                 <!-- photo, struck through -->
                 <rect x="3" y="5" width="18" height="14" rx="2" />
                 <path d="M3 3l18 18" />
+              }
+              @case ('mail') {
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+                <path d="m3.5 7 8.5 6 8.5-6" />
+              }
+              @case ('mailFailed') {
+                <!-- envelope, struck through -->
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+                <path d="m3.5 7 8.5 6 8.5-6M3 3l18 18" />
               }
             }
           </svg>

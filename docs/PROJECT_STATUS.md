@@ -3,7 +3,8 @@
 Son güncelleme: 2026-10-06 (**`v1.6.0` yayında**: güvenlik testleri, yol haritası 19 bitti (Tamamlananlar
 79–87): CodeQL, yetki matrisi, kötüye kullanım testleri, CI'da ZAP, elle pentest; düzeltmeler: paylaşım linki
 büyük/küçük harf duyarlı (migration), her yerden çıkış, site izolasyonu başlıkları, genel JSON hata mesajları,
-kontrol karakteri kuralı. `v1.5.1` coin değer ikonları (77–78), `v1.5.0` herkese açık koleksiyon kuralı
+kontrol karakteri kuralı. **E-posta doğrulama** (88, `feat/email-verification`, yayınlanmadı; yayından
+önce sunucuda SMTP ayarı gerekir). `v1.5.1` coin değer ikonları (77–78), `v1.5.0` herkese açık koleksiyon kuralı
 (75–76). Önceki sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
@@ -1600,6 +1601,90 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     başarılı. Canlı `/api/health` `1.6.0+b408ab7`, `Cross-Origin-*` başlıkları canlıda. Migration
     `ShareTokenCaseSensitive` açılışta uygulandı. Release notları `.notes/release-v1.6.0.md`, yayınlandı
     (latest `v1.6.0`). Testler: API 354, client 319, e2e 12 (README rozeti 685).
+88. **E-posta doğrulama** (`feat/email-verification`, 2026-10-06; yol haritası 15'in e-posta kısmı, **yayınlanmadı**).
+    Kullanıcı kararları (2026-10-06): önce doğrulama, şifre sıfırlama ayrı ve sonraki iş; **paylaşmak için
+    doğrulama şart** (giriş ve kendi koleksiyonları serbest); mevcut kullanıcılar doğrulanmamış başlar ama
+    paylaşılmış koleksiyonları yerinde kalır (migration yok: kayıt hiç `EmailConfirmed` işaretlemiyordu,
+    seed kullanıcıları zaten işaretli).
+    - **Altyapı** (`src/api/Email/`): `IMailSender` (MailKit 4.18.1 sadece burada), `SmtpMailSender` /
+      `PickupFolderMailSender` (SMTP yoksa `.eml` dosyası), `EmailOptions` (`Email` bölümü, açılışta
+      doğrulanır; `SiteUrl` http(s), yolsuz). Açılış logu e-postanın nereye gittiğini yazar; Development
+      dışında SMTP yoksa ya da `SiteUrl` loopback ise Warning. Linkler `Email:SiteUrl`'den, `Host`'tan değil.
+    - **Token** `EmailVerificationTokens`: Data Protection (`CoinPortal.EmailVerification`), kullanıcı Id +
+      e-posta, 24 saat. Identity'nin `GenerateEmailConfirmationTokenAsync`'i kullanılmadı: güvenlik damgasına
+      bağlı ve çıkış artık damgayı yeniliyor (Tamamlananlar 84), kayıttan sonra çıkış yapanın linki
+      bozulurdu. E-postaya bağlı: ileride e-posta değişirse eski link işe yaramaz.
+    - **Uçlar:** kayıt e-postayı gönderir (hata kaydı bozmaz, Error log); `POST api/auth/verify-email`
+      (girişsiz, `Auth` hız sınırı, 400 `invalid_token`, tekrar 204); `POST api/auth/verify-email/resend`
+      (girişli, yeni `Email` politikası 10 dk'da 3, 503 `email_not_sent`). `me`/login/kayıt yanıtında
+      `emailConfirmed`; admin kullanıcı listesi ve detayında, dışa aktarmada (`account.json`) da.
+      Koleksiyon Create/Update/Publish yeni paylaşımda 403 `email_not_confirmed`.
+    - **E-posta metni** dört dilde (`Email/EmailTexts`; Almanca "du", Bulgarca "Вие", mevcut
+      çevirilerle aynı). Gönderen `CoinVitrine <contact@coinvitrine.com>`. Düz metin + HTML (kullanıcı kararı
+      2026-10-06: smtp4dev düz metindeki linki tıklanabilir göstermiyordu, programlara göre değişir): HTML'de
+      amber "doğrula" butonu, altında linkin kendisi; sade kart, dışarıdan görsel yok (engellenir, okunduğunu
+      ele verir), ad HTML'e kodlanarak (`EmailHtml`, test `HtmlBody_EncodesTheName`). Masaüstü ve 360 px'te
+      headless Edge'de bakıldı.
+    - **Client:** `layout/email-banner` (her sayfanın üstünde, tekrar gönder; `role="status"`/`alert`),
+      `/verify-email` sayfası (girişsiz de; token adres çubuğundan silinir, `noindex`; girişliyse `me`
+      yenilenir), koleksiyon formunda kapalı seçenekler + gerekçe, koleksiyon sayfasında yayın butonu
+      yerine not, admin detayında "Doğrulandı/Doğrulanmadı". `email_not_confirmed` hesap geneli kod
+      (`CODE_MESSAGE_KEYS`); `httpErrorKey` artık bu tabloya da bakar.
+    - **Gizlilik:** `privacy.data.i5`, `purposes.i1`, `hosting.p1` dört dilde (hesap e-postaları, sadece
+      hesapla ilgili, MonsterASP'tan gönderilir); `PRIVACY_UPDATED` 2026-10-06. Log maskesine `token=`.
+      `THIRD-PARTY-NOTICES.md`: MailKit/MimeKit, BouncyCastle (MIT).
+    - **Doğrulanmamış hesabın sınırları** (kullanıcı kararları 2026-10-06, ikinci tur): doğrulamadan **yeni
+      koleksiyon yok** (kayıttaki koleksiyon kalır) ve hesapta en fazla **`SiteSettings.UnverifiedMaxCoins`**
+      coin (varsayılan 20, admin panelinden 0–10.000; migration `UnverifiedMaxCoins` satırı 20 ile başlatır).
+      Kuralı `Accounts/UnverifiedAccounts` tutar; 403 `email_not_confirmed` (yeni koleksiyon) ve
+      `unverified_coin_limit` (+ `maxCoins`). Mevcut hesaplar da doğrulanmamış başlar ve sınırlar onlara da
+      uygulanır (kullanıcı kararı: bant tek tıkla link gönderiyor); ellerindeki koleksiyon ve coin'ler kalır,
+      sadece ekleme engellenir. Sınırı düşürmek coin silmez. Client: bant sınırları söyler; "Yeni koleksiyon"
+      ve sınırda "Coin ekle" yerine not. Panel: durum **Doğrulanmamış** (gri rozet, filtrede; kilitli ve
+      geçici kilit ağır basar) ve isimde **zarf + saat ikonu** (seçim taslaklarla yapıldı: gri nokta, zarf,
+      kesik halka, kum saati, etiket arasından; durum "Kilitli" iken de doğrulanmamış olduğu görünsün diye).
+      Ayarlar sayfasında ikinci bölüm; değişen her ayar ayrı denetim kaydı. Durum sütununun genişliği
+      değişmedi (yeni metinler "Vorübergehend gesperrt"ten kısa). Sonra testler: API 373, client 331, e2e 14
+      (golden path artık koleksiyon açmadan önce e-postayı linkle doğrular).
+    - **Doğrulanmamış hesabın ömrü ve toplu silme** (kullanıcı kararları 2026-10-07, üçüncü tur): süre admin
+      ayarı (varsayılan 30 gün, 0 = kapalı); mevcut hesaplarda süre yayın gününden (`UnverifiedLifetimeSinceUtc`,
+      migration `UnverifiedLifetime` `SYSUTCDATETIME()` ile); **iki hatırlatma** (7 gün ve 1 gün önce);
+      **kilitli hesaplar silinmez** (adres engelli kalsın). Kullanıcının uyarısı (2026-10-07): hatırlatma
+      gönderilemezse silme onu beklemez, son gün gönderilemeyen hatırlatma silinen hesaba tekrar denenmez;
+      metinler e-postanın ulaşacağına söz vermez ("göndermeye çalışırız, garanti edemeyiz"). Tek güvence:
+      silme, ilk hatırlatma *denemesinden* en az 1 gün sonra (kısaltılan süre önce uyarır, e-posta sunucusu
+      bozuksa silme takılmaz). İş birkaç saatte bir çalışır (günde bir yerine 6 saat: 1 günlük hatırlatma
+      penceresini kaçırmasın). Kilitli spam hesapları için kullanıcı isteği: **toplu silme** (sayfadaki
+      seçilenler, sayıyı yazarak onay, en fazla 100; "filtredeki herkesi sil" bilinçli olarak yok: görünmeyen
+      sayfaları da silerdi) ve listede **E-posta filtresi**. Panel: Ayarlar'da süre, kullanıcı detayında silinme
+      tarihi, Genel bakış'ta son çalışmanın özeti (gönderilen/gönderilemeyen hatırlatma, silinen hesap).
+      Kullanım şartları (`terms.ending.p2`) ve gizlilik (`privacy.retention`) dört dilde, tarihleri 2026-10-07.
+      Testler: API 384, client 333, e2e 15.
+    - **Bir seferlik doğrulama isteği ve elle doğrulama** (kullanıcı kararları 2026-10-07): mevcut hesaplar
+      yayında e-postayla haberdar edilir; admin Genel bakış'tan başlatır (canlıda e-posta ayarı denendikten
+      sonra), arka planda 5 saniyede bir, her hesaba bir kez, kilitliler hariç; e-postada sınırlar ve (süre
+      açıksa) silinme tarihi. Hatırlatma ve bu istekteki linkler 7 gün geçerli (kullanıcı onayı; kayıt ve
+      "tekrar gönder" 24 saat). Admin, e-postası ulaşmayan kullanıcının adresini detay sayfasından
+      doğrulanmış işaretleyebilir (denetim kaydında `EmailConfirmed`). Açık konular 24 için öneri: kabul
+      kalsın (şifre sıfırlama aynı açığı vermesin). Testler: API 390, client 337.
+      Bant düzeni (kullanıcı seçimi 2026-10-07, taslaklarla): 1. satır zarf ikonu + "E-posta adresini doğrula:
+      <adres>" ve sağda "Linki tekrar gönder"; 2. satır aynı sütunda, aynı boyutta saat ikonu + silinme tarihi
+      (tarih kalın); altında "Doğrulayana kadar:" ve üç madde (yeni koleksiyon, paylaşım, coin sınırı).
+      "Linki tekrar gönder" her genişlikte ikincil buton. Ekleme butonları (yeni koleksiyon, coin) kullanılamazken
+      **yerinde ve gri** (`btn-unavailable`; soluk görünüm "işlem sürüyor" demek olduğu için ayrı), ayrı not ve
+      "coin sınırı" kutuları kaldırıldı: neden bantta, ekran okuyucu butondan banttaki maddeye gider (kullanıcı
+      kararları 2026-10-07). Bütün butonlara el imleci (Tailwind 4 ok yapıyordu; linkler el gösteriyordu).
+    - **Testler:** API 13 yeni (`EmailVerificationTests`: dil, `SiteUrl`, HTML gövdesi ve adın kodlanması, çıkıştan sonra link, bozuk/süresi
+      dolmuş/başka adres/kullanıcısız token, tekrar gönderme sınırı, sunucu kapalıyken kayıt + 503, paylaşma
+      kuralı, eskiden paylaşılmışın kalması) + matris satırları + admin/dışa aktarma kontrolleri; testler
+      `FakeMailSender` ile, `SignUpAsync` varsayılan doğrulanmış. Client: `email-banner.spec`,
+      `verify-email.spec`, formda doğrulanmamış seçenekler. E2E: `email-verification.spec` (bant, tekrar
+      gönder, `.eml`'deki link, axe) ve e2e kullanıcıları kayıtta linkle doğrulanır (`support/mail.ts`).
+    - **Yayından önce sunucuda** (Yayın öncesi yapılacaklar): SMTP ayarları ve `Email__SiteUrl`.
+    - **Lokal posta sunucusu** (kullanıcı kararı 2026-10-06): smtp4dev 3.15.0 repo'nun yerel .NET aracı
+      (`.config/dotnet-tools.json`; NuGet'ten, kurulum ve yönetici yetkisi istemez; MailHog bakımsız, Mailpit
+      GitHub'dan exe ister). Geliştirmede varsayılan (`appsettings.Development.json` → `localhost:2525`,
+      `Security: None`), gelen kutusu http://localhost:5050; e2e `.eml` klasöründe kalır.
 
 ## Yol haritası
 
@@ -1660,6 +1745,7 @@ mağaza için TWA.
 - [ ] 14. Bildirim + Web Push.
 - [ ] 15. Yorum + şikayet + engelleme + e-posta doğrulama; yönetici paneline "Şikayetler" ve "Yorumlar"
       bölümleri eklenir (panelin kendisi 12. adımda). Turnstile giriş formuna da (Açık konular 16).
+      E-posta doğrulama 2026-10-06'da yapıldı (Tamamlananlar 88); sıradaki parça şifre sıfırlama (aynı altyapı).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
 - [ ] 18. **Euro dışı coin'ler** (kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
@@ -1742,7 +1828,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** kullanıcıyla seçilecek ("Aksiyon planı", "Yol haritası"). Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** e-posta doğrulama, doğrulanmamış hesabın sınırları, ömrü ve toplu silme yapıldı (Tamamlananlar
+88, yayınlanmadı); sıradaki şifre sıfırlama (aynı altyapı) ve yayın (önce sunucuda SMTP, "Yayın öncesi yapılacaklar"). Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
@@ -2234,11 +2321,23 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     e-postayla kayıt 400 `DuplicateEmail` döner, yani biri bir e-postanın hesabı olup olmadığını öğrenebilir
     (kullanıcı adı zaten herkese açık). Kayıt `Auth` hız sınırında. Kullanıcı kararı: kabul, belgelendi.
     Gerçek çözüm e-posta doğrulaması (yol haritası 15): kayıt her durumda "e-postanı kontrol et" der, kayıtlı
-    adrese "zaten hesabın var" e-postası gider.
+    adrese "zaten hesabın var" e-postası gider. 2026-10-06'da doğrulama geldi (Tamamlananlar 88) ama kayıt
+    hâlâ oturum açıyor (karar: "paylaşmak için doğrula"); bu çözüm "doğrulamadan giriş yok" modelini ister,
+    o yüzden konu açık kalıyor. 2026-10-07 önerisi: kabul kalsın (sızan bilgi küçük, kullanıcı adları zaten açık;
+    çözüm "doğrulamadan giriş yok" modelini ister; kayıt hız sınırında). **Şifre sıfırlama bu açığı vermez:**
+    "e-postanı kontrol et" her durumda aynı cevap olur. Kötüye kullanım görülürse kayda CAPTCHA düşünülür.
 25. **Düz HTTP'de `Host` başlığı HTTPS yönlendirmesine yansır** (2026-10-06, pentest; not, bulgu değil):
     `http://` + sahte `Host` → 307 `https://<sahte host>`. Canlıda `CanonicalHost` başka host adlarını önce
     `coinvitrine.com`'a çevirdiği için etkisi yok; sitenin önünde paylaşılan bir önbellek de yok. `CanonicalHost`
     kapatılırsa ya da önüne bir proxy/CDN önbelleği girerse yeniden değerlendirilir.
+26. **Yarıda bırakılan istek "500 / severe error" diye loglanıyor** (2026-10-06, e2e'de görüldü; kullanıcı
+    "not edelim" dedi): sayfadan hemen ayrılınca tarayıcı süren isteği iptal eder, `RequestAborted` SQL
+    komutunu keser ve SqlClient bunu `OperationCanceledException` yerine `SqlException` ("A severe error
+    occurred on the current command") olarak fırlatır; istek logu Error seviyesinde 500 yazar (e2e: kayıttan
+    hemen sonra doğrulama linkine geçince ana sayfanın `GET /api/coins?sort=Newest`'i). Kullanıcıya etkisi yok
+    (yanıtı bekleyen kimse yok), ama loglarda sahte hata ve 500 sayısı. Olası çözüm: istek iptal edilmişse
+    (`HttpContext.RequestAborted.IsCancellationRequested`) hatayı 499 / Information'a indiren bir ara katman
+    ya da exception handler; önce lokalde tekrar üretilip mevcut davranış doğrulanır.
 
 ## Yayın öncesi yapılacaklar
 
@@ -2256,6 +2355,13 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [x] Alan adı (2026-10-03): coinvitrine.com (Cloudflare), `www` ile birlikte HTTPS'li (Tamamlananlar 51).
 - [x] `contact@coinvitrine.com` kutusu ve e-posta DNS kayıtları (2026-10-03; SPF, DKIM, DMARC `PASS`,
       Tamamlananlar 51).
+- [ ] **E-posta doğrulamalı ilk yayından önce** (Tamamlananlar 88), sunucudaki `web.config`'e:
+      `Email__SiteUrl=https://coinvitrine.com`, `Email__Smtp__Host` / `__Port` / `__UserName` /
+      `__Password` (MonsterASP posta sunucusu, `contact@coinvitrine.com` kutusu; parola sadece sunucuda).
+      Yoksa e-postalar sunucuda bir klasöre yazılır, kimse doğrulayamaz ve paylaşamaz (açılış logunda
+      Warning). Sonra bir deneme hesabı: e-posta geliyor mu, spam'e düşüyor mu (SPF/DKIM uyumu), link
+      `https://coinvitrine.com/verify-email`'i açıyor mu. Gönderim sağlayıcısı değişirse gizlilik metni
+      (`privacy.hosting.p1`) de değişir.
 - [ ] Yayında sunucudaki `web.config`'e `CanonicalHost__Host=coinvitrine.com`; ardından
       `https://coinportal.runasp.net/x` ve `https://www.coinvitrine.com/x` → 308 `https://coinvitrine.com/x`.
 - [x] Impressum kararı (2026-10-03): şimdilik adres yok, bilinen risk (Açık konular 14).

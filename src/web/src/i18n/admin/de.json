@@ -37,10 +37,19 @@
     "removedFiles": "Bereinigt",
     "removedFilesHint": "Ordner ohne Datensatz, letzte Prüfung",
     "missingFiles": "Fehlende Dateien",
-    "missingFilesHint": "Datensatz ohne Datei"
+    "missingFilesHint": "Datensatz ohne Datei",
+    "unverified": "Unbestätigte Konten",
+    "notRunYet": "Noch nicht gelaufen (zwei Minuten nach dem Start, dann alle 6 Stunden)",
+    "cleanupOff": "Aus: die Zeit ist 0 Tage (Einstellungen)",
+    "remindersSent": "Gesendete Erinnerungen",
+    "remindersFailed": "Nicht gesendete Erinnerungen",
+    "accountsDeleted": "Gelöschte Konten",
+    "lastRunHint": "im letzten Lauf",
+    "remindersFailedAlert": "Im letzten Lauf konnten einige Erinnerungs-E-Mails nicht gesendet werden. Sie werden beim nächsten Lauf erneut versucht, die Löschung wartet nicht darauf; prüfe die E-Mail-Einstellungen und die Logs."
   },
   "status": {
     "Active": "Aktiv",
+    "Unverified": "Unbestätigt",
     "LockedOut": "Vorübergehend gesperrt",
     "Locked": "Gesperrt"
   },
@@ -48,12 +57,40 @@
     "search": "Benutzername oder E-Mail suchen",
     "status": "Status",
     "allStatuses": "Alle Status",
+    "emailFilter": "E-Mail",
+    "allEmails": "Alle E-Mails",
+    "emailConfirmed": "E-Mail bestätigt",
+    "emailUnconfirmed": "E-Mail nicht bestätigt",
     "count": {
       "one": "{{count}} Benutzer",
       "other": "{{count}} Benutzer"
     },
     "empty": "Keine Benutzer passen zu dieser Suche.",
     "adminBadge": "Admin",
+    "unverifiedMark": "E-Mail nicht bestätigt",
+    "select": "{{userName}} auswählen",
+    "selectPage": "Alle auf dieser Seite auswählen",
+    "selected": {
+      "one": "{{count}} Benutzer ausgewählt",
+      "other": "{{count}} Benutzer ausgewählt"
+    },
+    "clearSelection": "Auswahl aufheben",
+    "deleteSelected": "Ausgewählte löschen",
+    "bulkDeleteTitle": "Ausgewählte Benutzer löschen",
+    "bulkDeleteMessage": {
+      "one": "{{count}} Konto wird sofort mit allen Sammlungen, Münzen, Fotos und Links zum Teilen gelöscht. Ausgewählte Admin-Konten werden übersprungen. Das kann nicht rückgängig gemacht werden.",
+      "other": "{{count}} Konten werden sofort mit allen Sammlungen, Münzen, Fotos und Links zum Teilen gelöscht. Ausgewählte Admin-Konten werden übersprungen. Das kann nicht rückgängig gemacht werden."
+    },
+    "bulkDeleteType": "Gib zur Bestätigung die Anzahl der Konten ein:",
+    "bulkDeleted": {
+      "one": "{{count}} Konto gelöscht.",
+      "other": "{{count}} Konten gelöscht."
+    },
+    "bulkSkippedAdmins": {
+      "one": "{{count}} Admin-Konto wurde übersprungen.",
+      "other": "{{count}} Admin-Konten wurden übersprungen."
+    },
+    "bulkFailed": "Das Löschen wurde nicht abgeschlossen. Die Liste wurde neu geladen; versuche es für den Rest erneut.",
     "column": {
       "user": "Benutzer",
       "createdAt": "Registriert",
@@ -102,7 +139,13 @@
     "deleteTypeName": "Gib zur Bestätigung den Benutzernamen ein:",
     "adminNote": "Admins können im Panel nicht gesperrt oder gelöscht werden; sie werden aus der Konfiguration entfernt.",
     "history": "Verlauf",
-    "noHistory": "Keine Einträge zu diesem Benutzer."
+    "noHistory": "Keine Einträge zu diesem Benutzer.",
+    "emailConfirmed": "Bestätigt",
+    "emailUnconfirmed": "Nicht bestätigt",
+    "deletionDue": "Wird ohne Bestätigung gelöscht: {{date}}",
+    "confirmEmail": "E-Mail als bestätigt markieren",
+    "confirmEmailTitle": "E-Mail-Adresse als bestätigt markieren",
+    "confirmEmailMessage": "Die Adresse von @{{userName}} ({{email}}) gilt als bestätigt: Die Einschränkungen entfallen und das Konto wird nicht gelöscht. Tu das nur, wenn du sicher bist, dass die Adresse dieser Person gehört."
   },
   "collections": {
     "search": "Sammlung oder Benutzername suchen",
@@ -155,7 +198,9 @@
       "UserDeleted": "Benutzer gelöscht",
       "CollectionHidden": "Sammlung ausgeblendet",
       "CollectionUnlocked": "Sperre der Sammlung aufgehoben",
-      "SettingChanged": "Einstellung geändert"
+      "SettingChanged": "Einstellung geändert",
+      "EmailConfirmed": "E-Mail bestätigt (Admin)",
+      "VerificationEmailsRequested": "Bestätigungs-E-Mails gesendet"
     },
     "column": {
       "time": "Zeit",
@@ -164,7 +209,11 @@
     },
     "deletedUser": "Gelöschter Benutzer",
     "deletedCollection": "gelöschte Sammlung",
-    "changedTo": "geändert auf"
+    "changedTo": "geändert auf",
+    "accounts": {
+      "one": "{{count}} Konto",
+      "other": "{{count}} Konten"
+    }
   },
   "note": {
     "label": "Notiz (optional)",
@@ -179,10 +228,36 @@
       "one": "Mit diesem Wert liegt {{count}} öffentliche Sammlung unter dem Minimum. Sie bleibt öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“.",
       "other": "Mit diesem Wert liegen {{count}} öffentliche Sammlungen unter dem Minimum. Sie bleiben öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“."
     },
+    "unverifiedTitle": "Konten mit unbestätigter E-Mail-Adresse",
+    "unverifiedText": "Ein Konto mit unbestätigter E-Mail-Adresse kann keine weitere Sammlung anlegen und keine Sammlungen teilen und hat höchstens die folgende Anzahl Münzen. Ein niedrigerer Wert löscht keine Münzen; Konten darüber können keine neuen hinzufügen. Ein Konto, das unbestätigt bleibt, wird nach der folgenden Zeit mit seinen Inhalten gelöscht (außer Admins und gesperrten Konten).",
+    "unverifiedMaxCoins": "Höchstzahl an Münzen",
+    "unverifiedMaxCoinsHint": "Zwischen {{min}} und {{max}}. 0: keine Münzen vor der Bestätigung.",
+    "unverifiedLifetimeDays": "Zeit bis zur Löschung (Tage)",
+    "unverifiedLifetimeDaysHint": "Ab der Registrierung, zwischen {{min}} und {{max}}. 0: Konten werden nicht gelöscht. 7 Tage und 1 Tag vorher wird versucht, eine Erinnerungs-E-Mail zu senden; kein Konto wird früher als einen Tag nach dem ersten Erinnerungsversuch gelöscht.",
     "saved": "Gespeichert.",
-    "unchanged": "Der Wert ist bereits {{value}}; es gibt nichts zu speichern.",
+    "unchanged": "Die Werte haben sich nicht geändert; es gibt nichts zu speichern.",
     "names": {
-      "MinPublicCoins": "Mindestzahl Münzen mit Foto"
+      "MinPublicCoins": "Mindestzahl Münzen mit Foto",
+      "UnverifiedMaxCoins": "Max. Münzen eines unbestätigten Kontos",
+      "UnverifiedLifetimeDays": "Lebensdauer eines unbestätigten Kontos (Tage)"
     }
+  },
+  "verification": {
+    "title": "Bestätigungs-E-Mail (einmalig)",
+    "text": "Sendet den Konten aus der Zeit vor der E-Mail-Bestätigung eine E-Mail mit der Bitte, ihre Adresse zu bestätigen. Jedes Konto bekommt sie einmal, gesperrte Konten nicht. Der Versand läuft im Hintergrund, alle paar Sekunden eine E-Mail. Stelle vorher sicher, dass der E-Mail-Versand auf der Live-Website funktioniert.",
+    "start": {
+      "one": "An {{count}} Konto senden",
+      "other": "An {{count}} Konten senden"
+    },
+    "nothing": "Keine Konten mehr offen.",
+    "running": "Wird gesendet: {{done}}/{{total}}",
+    "finished": "Letzter Lauf {{time}}: {{sent}} gesendet, {{failed}} nicht gesendet.",
+    "confirmTitle": "Bestätigungs-E-Mails senden",
+    "confirmMessage": {
+      "one": "{{count}} Konto erhält eine Bestätigungs-E-Mail. Jedes Konto bekommt sie einmal.",
+      "other": "{{count}} Konten erhalten eine Bestätigungs-E-Mail. Jedes Konto bekommt sie einmal."
+    },
+    "send": "Senden",
+    "failed": "Der Versand konnte nicht gestartet werden. Lade die Seite neu und versuche es erneut."
   }
 }

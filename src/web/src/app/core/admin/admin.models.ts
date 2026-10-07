@@ -18,6 +18,18 @@ export interface AdminStats {
   storageBytes: number;
   /** The last photo sweep since the API started; null before the first one. */
   diskCheck: AdminDiskCheck | null;
+  /** The last cleanup of unverified accounts since the API started; null before the first one. */
+  accountCleanup: AdminAccountCleanup | null;
+}
+
+/** What the last cleanup of unverified accounts did (reminders tried, accounts deleted). */
+export interface AdminAccountCleanup {
+  checkedAtUtc: string;
+  /** False while the lifetime is 0: nothing was checked. */
+  enabled: boolean;
+  remindersSent: number;
+  remindersFailed: number;
+  accountsDeleted: number;
 }
 
 /**
@@ -36,15 +48,25 @@ export interface AdminDiskCheck {
   removalSkipped: boolean;
 }
 
-/** Active, temporarily locked out after failed sign-ins, or locked by an admin. */
-export type AdminUserStatus = 'Active' | 'LockedOut' | 'Locked';
-export const ADMIN_USER_STATUSES: readonly AdminUserStatus[] = ['Active', 'LockedOut', 'Locked'];
+/**
+ * Active, e-mail address not verified yet, temporarily locked out after failed sign-ins, or locked
+ * by an admin; the weightiest one (a locked user may be unverified too: emailConfirmed).
+ */
+export type AdminUserStatus = 'Active' | 'Unverified' | 'LockedOut' | 'Locked';
+export const ADMIN_USER_STATUSES: readonly AdminUserStatus[] = [
+  'Active',
+  'Unverified',
+  'LockedOut',
+  'Locked',
+];
 
 export type AdminUserSort = 'CreatedAt' | 'UserName' | 'LastSeen' | 'Storage';
 
 export interface AdminUserQuery {
   search?: string;
   status?: AdminUserStatus;
+  /** Only verified (true) or unverified (false) addresses; both when unset. */
+  emailConfirmed?: boolean;
   sort?: AdminUserSort;
   dir?: SortDirection;
   page?: number;
@@ -55,6 +77,8 @@ export interface AdminUser {
   id: string;
   userName: string;
   email: string;
+  /** Verified with the link from the e-mail; unverified users cannot share collections. */
+  emailConfirmed: boolean;
   createdAtUtc: string;
   lastSeenAtUtc: string | null;
   status: AdminUserStatus;
@@ -74,6 +98,8 @@ export interface AdminUserDetail extends AdminUser {
   unlistedCollectionCount: number;
   photoCount: number;
   quotaBytes: number;
+  /** When the account is deleted for its unverified address (ISO); null when it is not. */
+  deletionDueUtc: string | null;
 }
 
 export type AdminCollectionSort = 'UpdatedAt' | 'Name' | 'CoinCount';
@@ -114,7 +140,9 @@ export type AuditAction =
   | 'UserDeleted'
   | 'CollectionHidden'
   | 'CollectionUnlocked'
-  | 'SettingChanged';
+  | 'SettingChanged'
+  | 'EmailConfirmed'
+  | 'VerificationEmailsRequested';
 export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'UserLocked',
   'UserUnlocked',
@@ -122,6 +150,8 @@ export const AUDIT_ACTIONS: readonly AuditAction[] = [
   'CollectionHidden',
   'CollectionUnlocked',
   'SettingChanged',
+  'EmailConfirmed',
+  'VerificationEmailsRequested',
 ];
 
 export interface AdminAuditQuery {
@@ -154,10 +184,41 @@ export interface AdminAuditEntry {
 export interface AdminSettings {
   /** Photographed coins a collection needs to become Public. */
   minPublicCoins: number;
+  /** Coins an account may hold until its e-mail address is verified. */
+  unverifiedMaxCoins: number;
+  /** Days after which an account still unverified is deleted; 0: never. */
+  unverifiedLifetimeDays: number;
 }
 
-/** Same range as the API (SiteSettings). */
+/** Same ranges as the API (SiteSettings). */
 export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
+export const UNVERIFIED_MAX_COINS_RANGE = { min: 0, max: 10_000 } as const;
+export const UNVERIFIED_LIFETIME_DAYS_RANGE = { min: 0, max: 365 } as const;
+
+/** The one-time request to verify the e-mail address (GET/POST api/admin/verification-requests). */
+export interface AdminVerificationRequests {
+  /** Unverified, unlocked accounts that have not had it yet. */
+  pending: number;
+  /** The running run or the last one since the API started; null before the first. */
+  lastRun: AdminVerificationRun | null;
+}
+
+export interface AdminVerificationRun {
+  startedAtUtc: string;
+  /** Null while it runs. */
+  finishedAtUtc: string | null;
+  total: number;
+  sent: number;
+  failed: number;
+}
+
+/** What a bulk deletion did; admins among the selected are skipped. */
+export interface AdminDeleteUsersResult {
+  deleted: number;
+  skippedAdmins: number;
+  /** Ids of no user (deleted in the meantime). */
+  notFound: number;
+}
 
 /** What a minimum would mean before it is saved. */
 export interface AdminSettingsImpact {

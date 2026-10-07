@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CoinPortal.Api.Accounts;
 using CoinPortal.Api.Contracts.Coins;
 using CoinPortal.Api.Data;
 using CoinPortal.Api.Photos;
@@ -16,6 +17,7 @@ namespace CoinPortal.Api.Contracts.Admin;
 /// <param name="HiddenCollectionCount">Hidden and locked by an admin.</param>
 /// <param name="StorageBytes">Stored image bytes: all sizes of all coin photos plus covers (the database's sizes, as the quota counts).</param>
 /// <param name="DiskCheck">The last photo sweep since the app started; null before the first one.</param>
+/// <param name="AccountCleanup">The last run of the unverified account cleanup since the app started; null before the first one.</param>
 public sealed record AdminStatsResponse(
     int UserCount,
     int ActiveUsersLast30Days,
@@ -28,7 +30,20 @@ public sealed record AdminStatsResponse(
     int CoinCount,
     int PhotoCount,
     long StorageBytes,
-    AdminDiskCheckResponse? DiskCheck);
+    AdminDiskCheckResponse? DiskCheck,
+    AdminAccountCleanupResponse? AccountCleanup);
+
+/// <summary>
+/// What the cleanup of unverified accounts (UnverifiedAccountCleanup) did on its last run: reminders
+/// that reached the mail server, ones that did not, and accounts it deleted.
+/// </summary>
+/// <param name="Enabled">False while the lifetime is 0 (nothing is checked).</param>
+public sealed record AdminAccountCleanupResponse(
+    DateTime CheckedAtUtc, bool Enabled, int RemindersSent, int RemindersFailed, int AccountsDeleted)
+{
+    public static AdminAccountCleanupResponse From(UnverifiedCleanupResult r) =>
+        new(r.CheckedAtUtc, r.Enabled, r.RemindersSent, r.RemindersFailed, r.AccountsDeleted);
+}
 
 /// <summary>
 /// What the photo sweep (PhotoSweeper) found on disk: the real size, folders it removed because
@@ -53,10 +68,15 @@ public sealed record AdminDiskCheckResponse(
         r.RemovalSkipped);
 }
 
-/// <summary>Active, temporarily locked out after failed sign-ins, or locked by an admin.</summary>
+/// <summary>
+/// Active, e-mail address not verified yet, temporarily locked out after failed sign-ins, or locked
+/// by an admin. One status, the weightiest: a locked account may be unverified as well
+/// (EmailConfirmed tells).
+/// </summary>
 public enum AdminUserStatus
 {
     Active,
+    Unverified,
     LockedOut,
     Locked,
 }
@@ -79,6 +99,9 @@ public class AdminUserQuery
     [EnumDataType(typeof(AdminUserStatus))]
     public AdminUserStatus? Status { get; set; }
 
+    /// <summary>Only verified (true) or unverified (false) e-mail addresses; both when unset.</summary>
+    public bool? EmailConfirmed { get; set; }
+
     [EnumDataType(typeof(AdminUserSort))]
     public AdminUserSort Sort { get; set; } = AdminUserSort.CreatedAt;
 
@@ -98,6 +121,7 @@ public sealed record AdminUserResponse(
     string Id,
     string UserName,
     string Email,
+    bool EmailConfirmed,
     DateTime CreatedAtUtc,
     DateTime? LastSeenAtUtc,
     AdminUserStatus Status,
@@ -108,10 +132,12 @@ public sealed record AdminUserResponse(
 
 /// <param name="LockedOutUntilUtc">End of the temporary lockout, if one is running.</param>
 /// <param name="QuotaBytes">The photo storage limit every user has.</param>
+/// <param name="DeletionDueUtc">When the account is deleted for an unverified address; null when it is not (verified, admin, locked, lifetime 0).</param>
 public sealed record AdminUserDetailResponse(
     string Id,
     string UserName,
     string Email,
+    bool EmailConfirmed,
     string FirstName,
     string LastName,
     DateTime CreatedAtUtc,
@@ -127,14 +153,46 @@ public sealed record AdminUserDetailResponse(
     int CoinCount,
     int PhotoCount,
     long StorageBytes,
-    long QuotaBytes);
+    long QuotaBytes,
+    DateTime? DeletionDueUtc);
 
 /// <summary>Body of the lock and unlock requests (users and collections); may be omitted.</summary>
 /// <param name="Note">The reason, kept in the audit log only.</param>
 public sealed record AdminLockRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
+/// <summary>Body of admin actions that only take the reason (may be omitted).</summary>
+/// <param name="Note">The admin's reason, only kept in the audit log.</param>
+public sealed record AdminNoteRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
+
+/// <summary>The one-time verification request (VerificationRequests).</summary>
+/// <param name="Pending">Unverified, unlocked accounts that have not had it yet.</param>
+/// <param name="LastRun">The running run or the last one since the app started; null before the first.</param>
+public sealed record AdminVerificationRequestsResponse(int Pending, AdminVerificationRunResponse? LastRun);
+
+/// <param name="FinishedAtUtc">Null while it runs.</param>
+public sealed record AdminVerificationRunResponse(
+    DateTime StartedAtUtc, DateTime? FinishedAtUtc, int Total, int Sent, int Failed)
+{
+    public static AdminVerificationRunResponse? From(VerificationRequestRun? run) =>
+        run is null ? null : new(run.StartedAtUtc, run.FinishedAtUtc, run.Total, run.Sent, run.Failed);
+}
+
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminDeleteUserRequest([StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
+
+/// <summary>Several users at once (the ones selected on a page of the list).</summary>
+/// <param name="Note">The admin's reason, kept in each user's audit entry.</param>
+public sealed record AdminDeleteUsersRequest(
+    [Required, MinLength(1), MaxLength(AdminDeleteUsersRequest.MaxUsers)] IReadOnlyList<string> UserIds,
+    [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note)
+{
+    /// <summary>A full page of the list (its largest page size).</summary>
+    public const int MaxUsers = 100;
+}
+
+/// <param name="SkippedAdmins">Admins among the selected users: never deleted here.</param>
+/// <param name="NotFound">Ids of no user (deleted in the meantime).</param>
+public sealed record AdminDeleteUsersResponse(int Deleted, int SkippedAdmins, int NotFound);
 
 public enum AdminCollectionSort
 {
@@ -238,11 +296,15 @@ public sealed record AdminAuditEntryResponse(
 
 /// <summary>Site-wide settings (the panel's "General settings").</summary>
 /// <param name="MinPublicCoins">Photographed coins a collection needs to become Public.</param>
-public sealed record AdminSettingsResponse(int MinPublicCoins);
+/// <param name="UnverifiedMaxCoins">Coins an account may hold until its e-mail address is verified.</param>
+/// <param name="UnverifiedLifetimeDays">Days after which an account still unverified is deleted; 0: never.</param>
+public sealed record AdminSettingsResponse(int MinPublicCoins, int UnverifiedMaxCoins, int UnverifiedLifetimeDays);
 
 /// <param name="Note">The admin's reason, only kept in the audit log.</param>
 public sealed record AdminSettingsRequest(
     [Range(SiteSettings.MinPublicCoinsMin, SiteSettings.MinPublicCoinsMax)] int MinPublicCoins,
+    [Range(SiteSettings.UnverifiedMaxCoinsMin, SiteSettings.UnverifiedMaxCoinsMax)] int UnverifiedMaxCoins,
+    [Range(SiteSettings.UnverifiedLifetimeDaysMin, SiteSettings.UnverifiedLifetimeDaysMax)] int UnverifiedLifetimeDays,
     [StringLength(AuditLogEntry.NoteMaxLength), NoControlCharacters(AllowLineBreaks = true)] string? Note);
 
 /// <summary>What a minimum would mean before it is saved.</summary>
