@@ -1,9 +1,10 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-07 (**`v1.8.0` yayında** (Tamamlananlar 90–92): fotoğraf alanı (kullanıcıya kalan alan,
-admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları, coin formu
-fotoğraf hizası, yayına alma bandı, sayfa yolu). **Parola sıfırlama ve parola değiştirme yapıldı** (Tamamlananlar
-93–94, yayında değil); sıradaki `v1.9.0` (önce kullanıcının soruları). `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+Son güncelleme: 2026-10-07 (**`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
+`/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
+kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
+coin formu fotoğraf hizası, yayına alma bandı, sayfa yolu). `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
 hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
 doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
 e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
@@ -1801,6 +1802,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       dış servis, gizlilik metni) ve parola kurallarının uzunluğa dayalı olması.
     - Testler: API 420 (+7: `ChangePasswordTests`, sıfırlamada bildirim, yetki matrisi satırı, iki well-known
       testi), client 369 (+9), e2e 18 (+1, axe ile; sıfırlama testi göster butonunu da dener).
+95. **`v1.9.0`** (`chore/release-v1.9.0`, 2026-10-07): parola sıfırlama (93) ve parola değiştirme, Güvenlik
+    bölümü, parola alanları (94). git-cliff `v1.9.0` önerdi (`feat`). Pipeline (Release #13): Checks (Web, API,
+    E2E + ZAP), Package, kullanıcı onayladı, Deploy; hepsi başarılı. Migration yok, sunucuda hazırlık yok. Canlı
+    `/api/health` `1.9.0+29b91bc`; canlıda `/.well-known/change-password` 302 → `/settings/security`, uydurma
+    well-known adresi 404. Release notları `.notes/release-v1.9.0.md`, yayınlandı (latest `v1.9.0`). Testler:
+    API 420, client 369, e2e 18 (README rozeti 807). **Yayın sonrası denenecek:** gerçek bir e-postayla
+    sıfırlama ve "parolan değişti" e-postası canlıda (SMTP), bilgisayarda gerçek klavyede Caps Lock notu,
+    sonraki Let's Encrypt yenilemesi (`/.well-known/` altı artık 404; ACME'yi MonsterASP karşılıyor olmalı).
 
 ## Yol haritası
 
@@ -1960,9 +1969,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** parola sıfırlama (Tamamlananlar 93) ve Ayarlar > Güvenlik'te parola değiştirme (94) yapıldı,
-yayında değil. Sıradaki `v1.9.0` ikisiyle; kullanıcı 2026-10-07'de "işi bitince v1.9.0'a geçme, sormak
-istediklerim olacak" dedi: yayından önce kullanıcının soruları. Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** kullanıcıyla seçilir. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
+(Tamamlananlar 93–95). Parola tarafında ileriye bırakılanlar: sızdırılmış parola kontrolü (Have I Been Pwned; dış
+servis, gizlilik metni) ve uzunluğa dayalı parola kuralları. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
