@@ -69,12 +69,11 @@
     "adminBadge": "Админ",
     "unverifiedMark": "Имейлът не е потвърден",
     "select": "Избери {{userName}}",
-    "selectPage": "Избери всички на тази страница",
+    "selectPage": "Избери всички",
     "selected": {
       "one": "{{count}} избран потребител",
       "other": "{{count}} избрани потребители"
     },
-    "clearSelection": "Изчисти избора",
     "deleteSelected": "Изтрий избраните",
     "bulkDeleteTitle": "Изтриване на избраните потребители",
     "bulkDeleteMessage": {

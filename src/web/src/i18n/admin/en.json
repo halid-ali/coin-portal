@@ -69,12 +69,11 @@
     "adminBadge": "Admin",
     "unverifiedMark": "Email not verified",
     "select": "Select {{userName}}",
-    "selectPage": "Select everyone on this page",
+    "selectPage": "Select all",
     "selected": {
       "one": "{{count}} user selected",
       "other": "{{count}} users selected"
     },
-    "clearSelection": "Clear selection",
     "deleteSelected": "Delete selected",
     "bulkDeleteTitle": "Delete the selected users",
     "bulkDeleteMessage": {

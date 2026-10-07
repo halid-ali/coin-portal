@@ -178,12 +178,6 @@ export class AdminUsers extends AdminListBase {
     this.selected.set(this.allSelected() ? new Set() : new Set(this.selectable()));
   }
 
-  protected clearSelection(): void {
-    if (!this.deleting()) {
-      this.selected.set(new Set());
-    }
-  }
-
   /** For good: the number of accounts must be typed, like a name for one user. */
   protected async deleteSelected(): Promise<void> {
     const ids = [...this.selected()];

@@ -69,12 +69,11 @@
     "adminBadge": "Admin",
     "unverifiedMark": "E-Mail nicht bestätigt",
     "select": "{{userName}} auswählen",
-    "selectPage": "Alle auf dieser Seite auswählen",
+    "selectPage": "Alle auswählen",
     "selected": {
       "one": "{{count}} Benutzer ausgewählt",
       "other": "{{count}} Benutzer ausgewählt"
     },
-    "clearSelection": "Auswahl aufheben",
     "deleteSelected": "Ausgewählte löschen",
     "bulkDeleteTitle": "Ausgewählte Benutzer löschen",
     "bulkDeleteMessage": {

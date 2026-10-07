@@ -69,12 +69,11 @@
     "adminBadge": "Admin",
     "unverifiedMark": "E-posta doğrulanmamış",
     "select": "Seç: {{userName}}",
-    "selectPage": "Bu sayfadakilerin hepsini seç",
+    "selectPage": "Tümünü seç",
     "selected": {
       "one": "{{count}} kullanıcı seçili",
       "other": "{{count}} kullanıcı seçili"
     },
-    "clearSelection": "Seçimi kaldır",
     "deleteSelected": "Seçilenleri sil",
     "bulkDeleteTitle": "Seçilen kullanıcıları sil",
     "bulkDeleteMessage": {
