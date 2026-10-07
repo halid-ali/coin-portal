@@ -1660,6 +1660,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       tarihi, Genel bakış'ta son çalışmanın özeti (gönderilen/gönderilemeyen hatırlatma, silinen hesap).
       Kullanım şartları (`terms.ending.p2`) ve gizlilik (`privacy.retention`) dört dilde, tarihleri 2026-10-07.
       Testler: API 384, client 333, e2e 15.
+    - **Bir seferlik doğrulama isteği ve elle doğrulama** (kullanıcı kararları 2026-10-07): mevcut hesaplar
+      yayında e-postayla haberdar edilir; admin Genel bakış'tan başlatır (canlıda e-posta ayarı denendikten
+      sonra), arka planda 5 saniyede bir, her hesaba bir kez, kilitliler hariç; e-postada sınırlar ve (süre
+      açıksa) silinme tarihi. Hatırlatma ve bu istekteki linkler 7 gün geçerli (kullanıcı onayı; kayıt ve
+      "tekrar gönder" 24 saat). Admin, e-postası ulaşmayan kullanıcının adresini detay sayfasından
+      doğrulanmış işaretleyebilir (denetim kaydında `EmailConfirmed`). Açık konular 24 için öneri: kabul
+      kalsın (şifre sıfırlama aynı açığı vermesin). Testler: API 390, client 337.
       Bant düzeni (kullanıcı seçimi 2026-10-07, taslaklarla): 1. satır zarf ikonu + "E-posta adresini doğrula:
       <adres>" ve sağda "Linki tekrar gönder"; 2. satır aynı sütunda, aynı boyutta saat ikonu + silinme tarihi
       (tarih kalın); altında "Doğrulayana kadar:" ve üç madde (yeni koleksiyon, paylaşım, coin sınırı).
@@ -2316,7 +2323,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     Gerçek çözüm e-posta doğrulaması (yol haritası 15): kayıt her durumda "e-postanı kontrol et" der, kayıtlı
     adrese "zaten hesabın var" e-postası gider. 2026-10-06'da doğrulama geldi (Tamamlananlar 88) ama kayıt
     hâlâ oturum açıyor (karar: "paylaşmak için doğrula"); bu çözüm "doğrulamadan giriş yok" modelini ister,
-    o yüzden konu açık kalıyor.
+    o yüzden konu açık kalıyor. 2026-10-07 önerisi: kabul kalsın (sızan bilgi küçük, kullanıcı adları zaten açık;
+    çözüm "doğrulamadan giriş yok" modelini ister; kayıt hız sınırında). **Şifre sıfırlama bu açığı vermez:**
+    "e-postanı kontrol et" her durumda aynı cevap olur. Kötüye kullanım görülürse kayda CAPTCHA düşünülür.
 25. **Düz HTTP'de `Host` başlığı HTTPS yönlendirmesine yansır** (2026-10-06, pentest; not, bulgu değil):
     `http://` + sahte `Host` → 307 `https://<sahte host>`. Canlıda `CanonicalHost` başka host adlarını önce
     `coinvitrine.com`'a çevirdiği için etkisi yok; sitenin önünde paylaşılan bir önbellek de yok. `CanonicalHost`

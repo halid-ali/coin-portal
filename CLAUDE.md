@@ -240,6 +240,16 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   süre önce uyarır). Admin'ler ve admin'in kilitlediği hesaplar silinmez (kilitli spam hesabı adresi
   tutmaya devam eder; admin toplu siler). Son çalışma bellekte, panelde Genel bakış'ta. Metinler (bant,
   şartlar `terms.ending.p2`, gizlilik `privacy.retention`) teslimat vaat etmez.
+- **Bir seferlik doğrulama isteği** (kullanıcı kararı 2026-10-07; `Accounts/VerificationRequests`): admin Genel
+  bakış'tan başlatır (`POST api/admin/verification-requests`, not ile; denetim kaydına hesap sayısıyla
+  `VerificationEmailsRequested`), arka planda `Email:BulkDelaySeconds`'de (5; testlerde 0) bir e-posta
+  gönderir. Doğrulanmamış, kilitli olmayan, henüz almamış hesaplara (`ApplicationUser.VerificationRequestSentAtUtc`):
+  her hesap bir kez alır, tekrar başlatmak sadece kaçanlara gider; çalışırken 409 `already_running`. Durum
+  bellekte, panel çalışırken iki saniyede bir sorar. **Linkler:** hatırlatma ve bu istek 7 gün
+  (`EmailVerificationTokens.LongLifetime`), kayıt ve tekrar gönder 24 saat.
+- **Admin'in elle doğrulaması:** kullanıcı detayında "E-postayı doğrulanmış işaretle" (`POST
+  api/admin/users/{id}/confirm-email`, not ile; zaten doğrulanmışsa 204 ve kayıt yok), denetim kaydında
+  `EmailConfirmed`. E-postası ulaşmayan ama adresi kendisine ait olan kullanıcı için.
 - **Toplu silme** (admin): kullanıcı listesinde sayfadaki kullanıcılar seçilir (admin'lerin kutusu yok),
   "Seçilenleri sil" sayıyı yazarak onaylanır; `POST api/admin/users/bulk-delete` (en fazla 100 Id, not),
   her kullanıcı tek tek silmedeki gibi `AccountDeletion` + kendi denetim kaydı; admin'ler atlanır ve
