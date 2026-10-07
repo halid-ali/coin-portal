@@ -1,17 +1,20 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-07 (**`v1.7.0` yayında**: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+Son güncelleme: 2026-10-07 (**görsel düzeltmeler `main`'de, yayında değil** (Tamamlananlar 90: admin seçim
+çubuğu, Genel ayarlar kartları, coin formu fotoğraf hizası, yayına alma bandı, sayfa yolu); sıradaki iş fotoğraf
+alanı (yol haritası 20). **`v1.7.0` yayında**: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
 hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
 doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
 e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
 kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonları (77–78), `v1.5.0` herkese açık koleksiyon kuralı
 (75–76). Önceki sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
-`v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
+`v1.1.0` ve `v1.2.0`'da (54–65). Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket `v1.7.0` (2026-10-07), canlıda `v1.7.0`.
+- Durum: `main` güncel ve temiz; son etiket `v1.7.0` (2026-10-07), canlıda `v1.7.0`. `main`'de yayınlanmamış
+  görsel düzeltmeler var (Tamamlananlar 90); bir sonraki sürüme girer.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
@@ -1701,6 +1704,27 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     çalıştı) ve Genel bakış'tan bir seferlik doğrulama e-postasını gönderdi. Bütün mevcut hesaplar doğrulanmamış
     başladı; ömür sayacı 2026-10-07'den (ilk silmeler en erken 2026-11-06). Testler: API 390, client 337, e2e 15
     (README rozeti 742).
+90. **Görsel düzeltmeler** (`feat/ui-touch-ups`, 2026-10-07; kullanıcının ekran görüntüleriyle, her biri önce
+    mockup'la seçildi; sadece client, yayında değil). Commit başına bir iş:
+    - **Admin kullanıcı listesi, toplu seçim çubuğu:** telefonda tek satır (kutu + metin + küçük ikonlu "Seçilenleri
+      sil"); metin seçim yokken "Tümünü seç", seçilince "N kullanıcı seçili". "Seçimi kaldır" kalktı (kutu
+      temizliyor), `admin.users.selectPage` dört dilde kısaldı. Masaüstünde tablonun başlık kutusu, çubukta sayı.
+    - **Genel ayarlar sayfası:** tam genişlik (`max-w-2xl` kalktı); her grup kendi kartında, renkli başlık şeridinde
+      Genel bakış'taki ikon ve renkle (herkese açık: küre/emerald, doğrulanmamış: zarf/sky); her ayar bir satır
+      (solda ad + ipucu, sağda değer, telefonda altta), birim kutunun içinde (`admin.settings.unit.coins|days`,
+      çoğul, ekran okuyucu için etikette `sr-only`), etiketten "(gün)" kalktı; Not + Kaydet ayrı kartta.
+    - **Coin formu, fotoğraf kutuları:** iki yüz formun ızgarasını paylaşıyor (`PhotoSlot` host'u
+      `grid-rows-subgrid row-span-3`), uzun ipucu kutuyu aşağı itmiyor (dört dilde 360 px'te bakıldı).
+    - **Yayına alma bandı:** başlık "Herkese açık yapmak için" → "Koleksiyonunu yayına almak için" (dört dilde
+      aynı anlam; durum adını tekrarlamıyor, "Yayına alınıyor…" ile aynı fiil). Başlıkta rozet denendi, yanlış
+      izlenim verdiği için bırakıldı.
+    - **Sayfa yolu (breadcrumbs, `shared/breadcrumbs`):** profil, herkese açık koleksiyon, kendi koleksiyonu ve
+      coin formunda; üst sayfalar yuvarlak buton (D stili, kullanıcı seçti; gri yazı ve renkli link seçenekleri
+      "belirgin değil" bulundu), bulunulan sayfa telefonda yok. Eski "‹ …" geri linkleri kalktı. "Keşfet" son
+      Keşfet adresine döner (`ExploreReturn`). Coin formu artık coin'in koleksiyonunu adıyla gösteriyor. Kurallar
+      CLAUDE.md'de. Kullanıcı sitede bakacak; beğenmezse commit geri alınır.
+    - Sohbette konuşulan **fotoğraf alanı** (kullanıcıya kalan alan, admin'e kota ayarı) API ve migration istediği
+      için yol haritası 20 oldu, sıradaki iş. Testler: client 342 (+5), e2e 15; API değişmedi.
 
 ## Yol haritası
 
@@ -1789,6 +1813,22 @@ mağaza için TWA.
   - [x] 19e. Ara sıra elle, lokal ortamda aktif tarama ya da kısa bir manuel pentest oturumu; bulunan her şey
         19b–19c'deki testlere eklenir. (İlk tur 2026-10-06: elle oturum, Tamamlananlar 84, 1 orta + 2 düşük bulgu
         düzeltildi; aktif ZAP elle başlatılır, ilk taraması temiz, Tamamlananlar 85. Ara sıra tekrarlanır.) Fuzzing şimdilik yok (getirisi düşük, testleri yavaşlatır).
+- [ ] 20. **Fotoğraf alanı: kullanıcıya göster, admin ayarlasın** (kullanıcı 2026-10-07'de ekletti; **sıradaki
+      iş**, yeni sohbette). Bugün kota sunucu ayarında (`PhotoStorage:UserQuotaBytes`, 300 MB; değiştirmek
+      `web.config` + yeniden başlatma ister), kullanıcı kullanımını hiçbir yerde görmüyor (sadece dolunca
+      `quota_exceeded`), admin kullanıcı detayında görüyor. Önerilen (2026-10-07 sohbetinde konuşuldu, kodlamadan
+      önce kullanıcıyla netleşir, ekranlar önce mockup'la):
+  - Kullanıcı: Ayarlar > Hesap'ın başında "Fotoğraf alanı" bölümü (doluluk çubuğu, "45 MB / 300 MB
+        kullanıldı · 255 MB kaldı"); ana sayfa panosuna değil. Kendi kullanımı için yeni bir API ucu (yetki
+        matrisine satırıyla).
+  - Admin: kota `SiteSettings`'e taşınır (migration başlangıç değeri 300 MB, literal), Genel ayarlar'da üçüncü
+        kart "Fotoğraflar" (Genel bakış'taki fotoğraflar ikonu ve rengi), MB cinsinden, önerilen aralık
+        10–10.000; değişiklik denetim kaydına (`SettingChanged`, `settings.names` çevirisi). Düşürmek hiçbir
+        şeyi silmez, sınırın üstündeki kullanıcı yer açana kadar yükleyemez (doğrulanmamış hesabın coin sınırı
+        gibi). `PhotoStorage:UserQuotaBytes` ayarı kalkar (sunucudaki `web.config`'te varsa yok sayılır),
+        `HostingTests`'teki kota testi site ayarıyla yazılır (`SiteSettingsCollection`).
+  - Karar bekleyen: ayrı branch (önerilen `feat/photo-quota-setting`); kaydetmeden önce "bu değerle şu kadar
+        kullanıcı sınırın üstünde kalır" bilgisi (en az fotoğraflı coin ayarındaki gibi) olsun mu.
 
 **Yeniden sıralama (2026-09-30, kullanıcıyla):** Değerlendirme admin'i hosting'den sonra ve arayüzsüz
 (sadece JSON uçları), arayüzü de şikayet kuyruğuyla 15. adımda öneriyordu. Değişti, çünkü:
@@ -1844,7 +1884,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** e-posta doğrulama `v1.7.0` ile yayında (Tamamlananlar 88–89); sıradaki **şifre sıfırlama**
+**Sıradaki iş:** **fotoğraf alanı** (yol haritası 20; kullanıcı 2026-10-07'de görsel düzeltmeler sohbetinin
+sonunda "sonraki iş" olarak ekletti): kullanıcıya kalan alan, admin'e Genel ayarlar'dan kota. Ondan sonra
+e-posta doğrulama (`v1.7.0` ile yayında, Tamamlananlar 88–89) üzerine **şifre sıfırlama**
 (kullanıcıyla kararlaştırıldı, 2026-10-07): ayrı branch `feat/password-reset`, aynı e-posta altyapısı; "şifremi
 unuttum" her adres için aynı cevabı verir (Açık konular 24), sıfırlama linki e-postayı da doğrulamış sayılabilir. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
@@ -1853,7 +1895,7 @@ kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP tar
 **P2, kullanıcıyla 2026-10-04'te kararlaştırılan sıra (aynı sohbette):** ~~#33 girişsiz sayfaların ağırlığı~~
 (Tamamlananlar 66) → ~~#32 UX~~ (Tamamlananlar 67) → ~~#31 a11y~~ (Tamamlananlar 68) → ~~#34 e2e~~
 (Tamamlananlar 69). **P2 bitti ve `v1.3.0` ile yayında** (2026-10-04, Tamamlananlar 71); P1 `v1.1.0` ve
-`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti ve `v1.4.0` ile yayında (Tamamlananlar 72–74), kullanıcı başka görsel düzenlemeler de yapacak. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
+`v1.2.0`'da (#22–#30). Aksiyon planı (2026-10-02 incelemesi) tamamen kapandı; sıradaki iş kullanıcıyla seçilir. Diğer adaylar (Angular 22, profil düzenleme, watermark) sonraki sohbetlerde; logo ve ana sayfa bitti ve `v1.4.0` ile yayında (Tamamlananlar 72–74); 2026-10-07'deki görsel düzeltmeler turu Tamamlananlar 90. Saklanan coin ikonları: `.notes/designs/coin-icons/`. Diğerleri:
 
 - **Yayın sonrası küçük işler:**
   - Site birkaç hafta sorunsuz çalışınca `Hsts__MaxAgeDays=365` (sunucudaki `web.config`).
