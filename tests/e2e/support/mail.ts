@@ -8,15 +8,24 @@ import { MAIL_DIR } from './env.mjs';
  * files the API writes in e2e (Email:PickupPath). Waits a little, in case the file is not
  * there yet.
  */
-export async function verificationLink(address: string): Promise<string> {
+export function verificationLink(address: string): Promise<string> {
+  return waitForLink(address, /\/verify-email\?token=[^\s]+/, 'verification');
+}
+
+/** The password reset link (path and query) of the latest such e-mail; sent in the background. */
+export function resetLink(address: string): Promise<string> {
+  return waitForLink(address, /\/reset-password\?token=[^\s]+/, 'password reset');
+}
+
+async function waitForLink(address: string, pattern: RegExp, kind: string): Promise<string> {
   for (let i = 0; i < 50; i++) {
-    const link = latestLink(address);
+    const link = latestLink(address, pattern);
     if (link) {
       return link;
     }
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  throw new Error(`No verification e-mail to ${address} in ${MAIL_DIR}`);
+  throw new Error(`No ${kind} e-mail to ${address} in ${MAIL_DIR}`);
 }
 
 /** The secret of the verification link. */
@@ -24,7 +33,7 @@ export async function verificationToken(address: string): Promise<string> {
   return new URL(await verificationLink(address), 'http://x').searchParams.get('token')!;
 }
 
-function latestLink(address: string): string | null {
+function latestLink(address: string, pattern: RegExp): string | null {
   if (!fs.existsSync(MAIL_DIR)) {
     return null;
   }
@@ -39,7 +48,7 @@ function latestLink(address: string): string | null {
     if (!headers.toLowerCase().includes(`<${address.toLowerCase()}>`)) {
       continue;
     }
-    const link = /\/verify-email\?token=[^\s]+/.exec(plainText(headers, body));
+    const link = pattern.exec(plainText(headers, body));
     if (link) {
       return link[0];
     }
