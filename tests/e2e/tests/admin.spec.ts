@@ -44,7 +44,7 @@ test('an admin locks a user', async ({ browser }) => {
 
   await visitorPage.goto('/login');
   await visitorPage.getByLabel('Username or email').fill(user.userName);
-  await visitorPage.getByLabel('Password').fill(user.password);
+  await visitorPage.getByLabel('Password', { exact: true }).fill(user.password);
   await visitorPage.getByRole('button', { name: 'Sign in' }).click();
   await expect(
     visitorPage.getByText('Your account has been locked by an administrator.'),
