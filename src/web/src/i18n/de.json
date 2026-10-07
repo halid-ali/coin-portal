@@ -79,7 +79,9 @@
     "settings": "Einstellungen",
     "admin": "Verwaltung",
     "notFound": "Seite nicht gefunden",
-    "verifyEmail": "E-Mail-Bestätigung"
+    "verifyEmail": "E-Mail-Bestätigung",
+    "forgotPassword": "Passwort vergessen",
+    "resetPassword": "Neues Passwort"
   },
   "nav": {
     "main": "Hauptmenü",
@@ -219,7 +221,9 @@
     "registerLink": "Registrieren",
     "invalidCredentials": "Benutzername/E-Mail-Adresse oder Passwort ist falsch.",
     "lockedOut": "Zu viele Fehlversuche. Dein Konto ist vorübergehend gesperrt; bitte versuche es in 10 Minuten erneut.",
-    "accountLocked": "Dein Konto wurde von einem Administrator gesperrt."
+    "accountLocked": "Dein Konto wurde von einem Administrator gesperrt.",
+    "forgotPassword": "Passwort vergessen?",
+    "passwordReset": "Dein Passwort wurde geändert. Du kannst dich jetzt mit dem neuen Passwort anmelden."
   },
   "register": {
     "privacyBefore": "Ich habe die ",
@@ -668,11 +672,11 @@
       "i2": "Einstellungen und Zeitpunkte: deine Wahl von Sprache, Farbschema und Akzentfarbe; wann du dich registriert und angemeldet und die Website zuletzt genutzt hast.",
       "i3": "Deine Inhalte: Sammlungen, Münzdaten und die Fotos, die du hochlädst. Alle Zusatzinformationen in Fotos (EXIF), einschließlich des Aufnahmeorts, werden beim Hochladen entfernt.",
       "i4": "Technische Protokolle: Der Server protokolliert Adresse, Zeitpunkt und Ergebnis jeder Anfrage und bewahrt sie 30 Tage auf. Suchbegriffe in der Adresse, der Benutzerfilter von „Entdecken“ und die Schlüssel von Links zum Teilen werden nicht protokolliert. Deine IP-Adresse wird nur gespeichert, wenn ein Anfragelimit überschritten wird. Auch der Hosting-Anbieter schreibt IP-Adresse, Zeitpunkt, Adresse, Ergebnis und Browserangaben jeder Anfrage in seine eigenen Serverprotokolle und bewahrt sie 6 Monate auf.",
-      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse; Konto-E-Mails, die wir dir senden (der Link zur Bestätigung deiner E-Mail-Adresse), und ob deine Adresse bestätigt ist."
+      "i5": "E-Mails: die E-Mails, die du uns schreibst, und deine E-Mail-Adresse; Konto-E-Mails, die wir dir senden (die Links zur Bestätigung deiner E-Mail-Adresse und zum Zurücksetzen deines Passworts), und ob deine Adresse bestätigt ist."
     },
     "purposes": {
       "title": "Zwecke und Rechtsgrundlagen",
-      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (den Bestätigungslink), keine Newsletter und keine Werbung.",
+      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (die Links zur Bestätigung und zum Zurücksetzen des Passworts), keine Newsletter und keine Werbung.",
       "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i3": "Um die Website zu betreiben, als Gesamtzahlen: zum Beispiel die Zahl der Konten, die die Website in den letzten 30 Tagen genutzt haben. Diese Zahlen dienen nicht der Bewertung einzelner Personen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i4": "Um deine E-Mails an uns zu beantworten: deine E-Mail-Adresse und deine Nachricht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
@@ -790,5 +794,33 @@
     "invalidTitle": "Der Link ist ungültig oder abgelaufen",
     "invalidText": "Ein Bestätigungslink ist 24 Stunden gültig. Melde dich an und fordere über den Hinweis oben auf der Seite einen neuen an.",
     "failedTitle": "Die E-Mail-Adresse konnte nicht bestätigt werden"
+  },
+  "forgotPassword": {
+    "title": "Passwort vergessen?",
+    "intro": "Gib deinen Benutzernamen oder deine E-Mail-Adresse ein. Wir schicken einen Link an die E-Mail-Adresse deines Kontos, mit dem du ein neues Passwort festlegen kannst.",
+    "submit": "Link senden",
+    "submitting": "Wird gesendet…",
+    "remembered": "Passwort wieder eingefallen?",
+    "signIn": "Anmelden",
+    "sentTitle": "Sieh in dein E-Mail-Postfach",
+    "sentText": "Falls ein Konto zu deiner Eingabe passt, haben wir einen Link an seine E-Mail-Adresse geschickt, mit dem du ein neues Passwort festlegen kannst. Der Link ist 1 Stunde gültig.",
+    "sentHint": "Kommt die E-Mail nicht innerhalb weniger Minuten an, sieh im Spam-Ordner nach oder versuche es erneut.",
+    "toSignIn": "Zurück zur Anmeldung",
+    "tryAgain": "Erneut versuchen"
+  },
+  "resetPassword": {
+    "title": "Neues Passwort festlegen",
+    "checking": "Der Link wird geprüft…",
+    "account": "Konto:",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "sessionsEnd": "Beim Speichern wirst du auf allen Geräten abgemeldet.",
+    "submit": "Passwort speichern",
+    "submitting": "Wird gespeichert…",
+    "invalidTitle": "Der Link ist ungültig oder abgelaufen",
+    "invalidText": "Ein Link zum Zurücksetzen des Passworts ist 1 Stunde gültig und kann einmal verwendet werden. Fordere einen neuen an.",
+    "requestNew": "Neuen Link anfordern",
+    "toSignIn": "Zurück zur Anmeldung",
+    "failedTitle": "Der Link konnte nicht geprüft werden"
   }
 }

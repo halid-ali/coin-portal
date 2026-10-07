@@ -57,3 +57,18 @@ export interface LoginRequest {
   password: string;
   rememberMe: boolean;
 }
+
+// Mirrors src/api/Contracts/Auth/PasswordResetCheckResponse
+export interface PasswordResetCheckResponse {
+  /** Whose password the reset link sets (the username may be forgotten too). */
+  userName: string;
+}
+
+/**
+ * Navigation state of the way to the sign-in after a password reset: the page says so and fills
+ * in the username. History state only, so a reload does not repeat it.
+ */
+export interface PasswordResetDoneState {
+  notice: 'passwordReset';
+  userName: string;
+}

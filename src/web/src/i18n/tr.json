@@ -79,7 +79,9 @@
     "settings": "Ayarlar",
     "admin": "Yönetim",
     "notFound": "Sayfa bulunamadı",
-    "verifyEmail": "E-posta doğrulama"
+    "verifyEmail": "E-posta doğrulama",
+    "forgotPassword": "Parolamı unuttum",
+    "resetPassword": "Yeni parola"
   },
   "nav": {
     "main": "Ana menü",
@@ -219,7 +221,9 @@
     "registerLink": "Kayıt ol",
     "invalidCredentials": "Kullanıcı adı/e-posta veya parola hatalı.",
     "lockedOut": "Çok fazla hatalı deneme yapıldı. Hesabın geçici olarak kilitlendi, lütfen 10 dakika sonra tekrar dene.",
-    "accountLocked": "Hesabın yönetici tarafından kilitlendi."
+    "accountLocked": "Hesabın yönetici tarafından kilitlendi.",
+    "forgotPassword": "Parolamı unuttum",
+    "passwordReset": "Parolan değişti. Yeni parolanla giriş yapabilirsin."
   },
   "register": {
     "privacyBefore": "Bu sitenin ",
@@ -668,11 +672,11 @@
       "i2": "Tercihler ve zamanlar: dil, tema ve renk seçimlerin; kayıt olduğun, giriş yaptığın ve siteyi son kullandığın zamanlar.",
       "i3": "İçeriğin: koleksiyonların, coin bilgilerin ve yüklediğin fotoğraflar. Fotoğraflardaki konum dahil tüm ek bilgiler (EXIF) yüklemede silinir.",
       "i4": "Teknik kayıtlar: sunucu her isteğin adresini, zamanını ve sonucunu kaydeder ve 30 gün saklar. Adresteki arama terimleri, Keşfet'teki kullanıcı filtresi ve paylaşım linklerinin anahtarları kayda yazılmaz. IP adresin sadece bir istek sınırı aşıldığında kaydedilir. Barındırma sağlayıcısı da kendi sunucu kayıtlarına her isteğin IP adresini, zamanını, adresini, sonucunu ve tarayıcı bilgisini yazar ve bunları 6 ay saklar.",
-      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin; sana gönderdiğimiz hesap e-postaları (e-posta adresini doğrulama linki) ve adresinin doğrulanıp doğrulanmadığı."
+      "i5": "E-postalar: bize yazdığın e-postalar ve e-posta adresin; sana gönderdiğimiz hesap e-postaları (e-posta adresini doğrulama ve parola yenileme linkleri) ve adresinin doğrulanıp doğrulanmadığı."
     },
     "purposes": {
       "title": "Neden işliyoruz (hukuki dayanak)",
-      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır. E-posta adresine sadece hesabınla ilgili e-postalar (doğrulama linki) göndeririz; bülten ya da reklam göndermeyiz.",
+      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır. E-posta adresine sadece hesabınla ilgili e-postalar (doğrulama ve parola yenileme linkleri) göndeririz; bülten ya da reklam göndermeyiz.",
       "i2": "Siteyi güvende tutmak için: teknik kayıtlar, istek sınırları, hatalı girişlerden sonraki geçici kilit ve kötüye kullanıma karşı moderasyon (GDPR md. 6/1-f, meşru menfaat).",
       "i3": "Siteyi işletmek için toplu sayılar: örneğin son 30 günde siteyi kullanan hesap sayısı. Bu sayılar kişi bazında değerlendirme için kullanılmaz (GDPR md. 6/1-f, meşru menfaat).",
       "i4": "Bize yazdığın e-postaları cevaplamak için: e-posta adresin ve mesajın (GDPR md. 6/1-f, meşru menfaat).",
@@ -790,5 +794,33 @@
     "invalidTitle": "Link geçersiz ya da süresi dolmuş",
     "invalidText": "Doğrulama linki 24 saat geçerli. Giriş yap ve sayfanın üstündeki uyarıdan yeni bir link iste.",
     "failedTitle": "E-posta adresi doğrulanamadı"
+  },
+  "forgotPassword": {
+    "title": "Parolanı mı unuttun?",
+    "intro": "Kullanıcı adını ya da e-posta adresini yaz. Hesabının e-posta adresine parolanı yenilemen için bir link gönderelim.",
+    "submit": "Link gönder",
+    "submitting": "Gönderiliyor…",
+    "remembered": "Parolanı hatırladın mı?",
+    "signIn": "Giriş yap",
+    "sentTitle": "E-postanı kontrol et",
+    "sentText": "Bu bilgiyle kayıtlı bir hesap varsa, hesabın e-posta adresine parolanı yenilemen için bir link gönderdik. Link 1 saat geçerli.",
+    "sentHint": "E-posta birkaç dakika içinde gelmezse spam klasörüne bak ya da tekrar dene.",
+    "toSignIn": "Giriş sayfasına dön",
+    "tryAgain": "Tekrar dene"
+  },
+  "resetPassword": {
+    "title": "Yeni parola belirle",
+    "checking": "Link kontrol ediliyor…",
+    "account": "Hesap:",
+    "newPassword": "Yeni parola",
+    "confirmPassword": "Yeni parola (tekrar)",
+    "sessionsEnd": "Kaydedince bütün cihazlardaki oturumların kapanır.",
+    "submit": "Parolayı kaydet",
+    "submitting": "Kaydediliyor…",
+    "invalidTitle": "Link geçersiz ya da süresi dolmuş",
+    "invalidText": "Parola yenileme linki 1 saat geçerli ve bir kez kullanılabilir. Yeni bir link iste.",
+    "requestNew": "Yeni link iste",
+    "toSignIn": "Giriş sayfasına dön",
+    "failedTitle": "Link kontrol edilemedi"
   }
 }

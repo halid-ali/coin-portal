@@ -4,6 +4,8 @@
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
     @if (formError(); as message) {
       <div role="alert" class="alert-error">{{ message }}</div>
+    } @else if (passwordReset) {
+      <div role="status" class="alert-success">{{ 'login.passwordReset' | transloco }}</div>
     }
 
     <div>
@@ -24,7 +26,15 @@
     </div>
 
     <div>
-      <label for="password" class="form-label">{{ 'login.password' | transloco }}</label>
+      <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+        <label for="password" class="form-label">{{ 'login.password' | transloco }}</label>
+        <a
+          routerLink="/forgot-password"
+          [state]="{ userNameOrEmail: form.controls.userNameOrEmail.value }"
+          class="link text-sm"
+          >{{ 'login.forgotPassword' | transloco }}</a
+        >
+      </div>
       <input
         id="password"
         type="password"

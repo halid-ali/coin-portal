@@ -16,7 +16,13 @@ import {
 import { LanguageService } from '../i18n/language.service';
 import { AccentService } from '../theme/accent.service';
 import { ThemeService } from '../theme/theme.service';
-import { ADMIN_ROLE, LoginRequest, RegisterRequest, UserResponse } from './auth.models';
+import {
+  ADMIN_ROLE,
+  LoginRequest,
+  PasswordResetCheckResponse,
+  RegisterRequest,
+  UserResponse,
+} from './auth.models';
 
 const API = '/api/auth';
 
@@ -110,6 +116,32 @@ export class AuthService {
   /** Sends the verification link again (limited per user; 429 when asked too often). */
   resendVerificationEmail(): Observable<void> {
     return this.http.post<void>(`${API}/verify-email/resend`, null);
+  }
+
+  /**
+   * "Forgot password": the account's address gets a reset link. The answer is the same whether an
+   * account matched or not; the current UI language is the e-mail's when the account has none.
+   */
+  forgotPassword(userNameOrEmail: string): Observable<void> {
+    return this.http.post<void>(`${API}/forgot-password`, {
+      userNameOrEmail,
+      language: this.language.current(),
+    });
+  }
+
+  /** Whose password a reset link sets; 400 `invalid_token` when the link no longer works. */
+  checkPasswordReset(token: string): Observable<PasswordResetCheckResponse> {
+    return this.http.post<PasswordResetCheckResponse>(`${API}/reset-password/check`, { token });
+  }
+
+  /**
+   * Sets the new password with a reset link. Every session of the account ends with it; a user
+   * signed in here is signed out too, as the page leads to the sign-in with the new password.
+   */
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    return this.http
+      .post<void>(`${API}/reset-password`, { token, newPassword })
+      .pipe(switchMap(() => (this.user() ? this.logout() : of(undefined))));
   }
 
   /** Keeps the current user in step after a change elsewhere (e.g. the settings page). */

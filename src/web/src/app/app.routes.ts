@@ -82,6 +82,20 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/verify-email/verify-email').then((m) => m.VerifyEmail),
   },
   {
+    path: 'forgot-password',
+    title: 'titles.forgotPassword',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+  // The link from the password reset e-mail; open to a signed-in visitor too (signed out on success)
+  {
+    path: 'reset-password',
+    title: 'titles.resetPassword',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
+  {
     path: 's/:token',
     title: 'titles.sharedCollection',
     data: { mode: 'shared' },
