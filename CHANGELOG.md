@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-10-07
+
+### Added
+
+- **api:** Reset the password with a link sent by email
+- **client:** Forgot password and new password pages
+- **api:** Change the password in the settings and email the owner
+- **api:** Well-known address for changing the password
+- **client:** Show/hide button and Caps Lock note on password fields
+- **client:** Security settings with password change and previous sign-in
+
 ## [1.8.0] - 2026-10-07
 
 ### Added
