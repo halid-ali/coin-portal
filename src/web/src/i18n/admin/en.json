@@ -69,12 +69,11 @@
     "adminBadge": "Admin",
     "unverifiedMark": "Email not verified",
     "select": "Select {{userName}}",
-    "selectPage": "Select everyone on this page",
+    "selectPage": "Select all",
     "selected": {
       "one": "{{count}} user selected",
       "other": "{{count}} users selected"
     },
-    "clearSelection": "Clear selection",
     "deleteSelected": "Delete selected",
     "bulkDeleteTitle": "Delete the selected users",
     "bulkDeleteMessage": {
@@ -232,8 +231,18 @@
     "unverifiedText": "An account that has not verified its email address cannot open another collection or share collections, and holds at most the number of coins below. Lowering the value deletes no one's coins; accounts above it cannot add new ones. An account that stays unverified is deleted with its content once the time below has passed (not admins or locked accounts).",
     "unverifiedMaxCoins": "Maximum number of coins",
     "unverifiedMaxCoinsHint": "Between {{min}} and {{max}}. 0: no coins before verifying.",
-    "unverifiedLifetimeDays": "Time before deletion (days)",
+    "unverifiedLifetimeDays": "Time before deletion",
     "unverifiedLifetimeDaysHint": "From sign-up, between {{min}} and {{max}}. 0: accounts are not deleted. A reminder email is attempted 7 days and 1 day before; no account is deleted sooner than a day after its first reminder attempt.",
+    "unit": {
+      "coins": {
+        "one": "coin",
+        "other": "coins"
+      },
+      "days": {
+        "one": "day",
+        "other": "days"
+      }
+    },
     "saved": "Saved.",
     "unchanged": "The values have not changed; there is nothing to save.",
     "names": {

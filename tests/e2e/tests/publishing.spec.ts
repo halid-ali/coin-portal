@@ -19,7 +19,7 @@ test('a collection goes public once every coin has its photo, and leaves when on
   const page = await context.newPage();
 
   await page.goto(`/collections/${collection.id}`);
-  const banner = page.getByRole('region', { name: 'To make it public' });
+  const banner = page.getByRole('region', { name: 'To publish your collection' });
   await expect(banner).toContainText('9/10 coins with photos');
   await expect(banner).toContainText('Meanwhile, you can share it by link.');
   await expectAccessible(page, 'collection with publication banner');
@@ -60,7 +60,7 @@ test('a collection goes public once every coin has its photo, and leaves when on
 
   await expect(page).toHaveURL(new RegExp(`/collections/${collection.id}`));
   await expect(page.getByText('Link only', { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole('region', { name: 'To make it public' })).toContainText(
+  await expect(page.getByRole('region', { name: 'To publish your collection' })).toContainText(
     '9/10 coins with photos',
   );
   await visitorPage.reload();

@@ -99,7 +99,7 @@ test('an admin deletes selected users at once', async ({ browser }) => {
       .filter({ visible: true })
       .check();
   }
-  await expect(page.getByText('2 users selected')).toBeVisible();
+  await expect(page.getByText('2 users selected').filter({ visible: true })).toBeVisible();
   await expectAccessible(page, 'admin users selected');
 
   await page.getByRole('button', { name: 'Delete selected' }).click();

@@ -26,10 +26,14 @@ let nextId = 0;
 @Component({
   selector: 'app-photo-slot',
   imports: [PhotoCropDialog, TranslocoPipe],
-  host: { class: 'block' },
+  // Header, photo and actions are rows of the form's grid (subgrid): the two sides line up even
+  // when one hint wraps to more lines than the other
+  host: { class: 'row-span-3 grid grid-rows-subgrid' },
   template: `
-    <p class="form-label mb-0">{{ label() }}</p>
-    <p class="mb-2 text-xs text-shade-500">{{ hint() }}</p>
+    <div class="mb-2">
+      <p class="form-label mb-0">{{ label() }}</p>
+      <p class="text-xs text-shade-500">{{ hint() }}</p>
+    </div>
 
     <div class="relative aspect-square overflow-hidden rounded-xl bg-shade-100">
       @if (displayUrl(); as src) {
@@ -84,56 +88,58 @@ let nextId = 0;
       }
     </div>
 
-    <input
-      #fileInput
-      type="file"
-      class="hidden"
-      accept="image/jpeg,image/png"
-      (change)="onFileChosen($event)"
-    />
+    <div>
+      <input
+        #fileInput
+        type="file"
+        class="hidden"
+        accept="image/jpeg,image/png"
+        (change)="onFileChosen($event)"
+      />
 
-    <div class="mt-2 flex flex-wrap gap-2">
-      @if (displayUrl()) {
-        <button
-          type="button"
-          class="btn-secondary px-3 py-1.5 text-sm"
-          [disabled]="disabled()"
-          (click)="choose()"
-        >
-          {{ 'common.change' | transloco }}
-        </button>
-        <button
-          type="button"
-          class="btn-secondary-danger px-3 py-1.5 text-sm"
-          [disabled]="disabled()"
-          (click)="remove()"
-        >
-          {{ 'common.remove' | transloco }}
-        </button>
+      <div class="mt-2 flex flex-wrap gap-2">
+        @if (displayUrl()) {
+          <button
+            type="button"
+            class="btn-secondary px-3 py-1.5 text-sm"
+            [disabled]="disabled()"
+            (click)="choose()"
+          >
+            {{ 'common.change' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="btn-secondary-danger px-3 py-1.5 text-sm"
+            [disabled]="disabled()"
+            (click)="remove()"
+          >
+            {{ 'common.remove' | transloco }}
+          </button>
+        }
+        @if (change() && stored()) {
+          <button
+            type="button"
+            class="btn-secondary px-3 py-1.5 text-sm"
+            [disabled]="disabled()"
+            (click)="change.set(null)"
+          >
+            {{ 'common.undo' | transloco }}
+          </button>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
       }
-      @if (change() && stored()) {
-        <button
-          type="button"
-          class="btn-secondary px-3 py-1.5 text-sm"
-          [disabled]="disabled()"
-          (click)="change.set(null)"
-        >
-          {{ 'common.undo' | transloco }}
-        </button>
+
+      @if (chosenFile(); as file) {
+        <app-photo-crop-dialog
+          [file]="file"
+          [title]="'photo.cropTitle' | transloco: { side: label() }"
+          (closed)="onCropped($event)"
+        />
       }
     </div>
-
-    @if (error()) {
-      <p class="form-error" role="alert">{{ error() }}</p>
-    }
-
-    @if (chosenFile(); as file) {
-      <app-photo-crop-dialog
-        [file]="file"
-        [title]="'photo.cropTitle' | transloco: { side: label() }"
-        (closed)="onCropped($event)"
-      />
-    }
   `,
 })
 export class PhotoSlot {

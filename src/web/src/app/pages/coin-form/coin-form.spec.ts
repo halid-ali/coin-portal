@@ -6,6 +6,7 @@ import { Router, provideRouter, withComponentInputBinding } from '@angular/route
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import { Coin, CoinSide } from '../../core/coins/coin.models';
+import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
@@ -111,6 +112,41 @@ describe('CoinForm', () => {
       title: '2 € · Almanya · 2006',
     });
   }
+
+  function breadcrumbs() {
+    const nav = page().querySelector('nav[aria-label="Sayfa yolu"]')!;
+    return {
+      links: [...nav.querySelectorAll('a')].map((a) => [
+        a.textContent!.trim(),
+        a.getAttribute('href'),
+      ]),
+      current: nav.querySelector('[aria-current=page]')!.textContent!.trim(),
+    };
+  }
+
+  it("names the coin's collection in the breadcrumbs", async () => {
+    await open('/coins/new?collection=5');
+
+    expect(breadcrumbs()).toEqual({
+      links: [
+        ['Koleksiyonlarım', '/collections'],
+        ['Vitrin', '/collections/5'],
+      ],
+      current: 'Coin ekle',
+    });
+  });
+
+  it('leads back to the list the user came from, only if it is the same collection', async () => {
+    const collectionReturn = TestBed.inject(CollectionReturn);
+    collectionReturn.remember('/collections/5?view=grid&page=2');
+    await open('/coins/1/edit', coin);
+    expect(breadcrumbs().links[1]).toEqual(['Vitrin', '/collections/5?view=grid&page=2']);
+    expect(breadcrumbs().current).toBe("Coin'i düzenle");
+
+    collectionReturn.remember('/collections/9?page=3');
+    await harness.fixture.whenStable();
+    expect(breadcrumbs().links[1]).toEqual(['Vitrin', '/collections/5']);
+  });
 
   it('saves a new coin together with its chosen photos', async () => {
     await open('/coins/new?collection=5');

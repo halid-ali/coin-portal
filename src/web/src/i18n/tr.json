@@ -96,6 +96,9 @@
     "skipToContent": "İçeriğe atla",
     "language": "Dil"
   },
+  "breadcrumbs": {
+    "label": "Sayfa yolu"
+  },
   "notFound": {
     "title": "Sayfa bulunamadı",
     "message": "Bu adreste bir sayfa yok. Link yanlış yazılmış ya da eksik kopyalanmış olabilir; paylaşım linkiyse tamamını kopyaladığından emin ol.",
@@ -513,7 +516,7 @@
     "submitAnyway": "Yine de sil"
   },
   "publication": {
-    "notReadyTitle": "Herkese açık yapmak için",
+    "notReadyTitle": "Koleksiyonunu yayına almak için",
     "progress": "{{photographed}}/{{required}} fotoğraflı coin",
     "missing": {
       "one": "{{count}} coin'in ulusal yüzü eksik",

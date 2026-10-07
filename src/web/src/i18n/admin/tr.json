@@ -69,12 +69,11 @@
     "adminBadge": "Admin",
     "unverifiedMark": "E-posta doğrulanmamış",
     "select": "Seç: {{userName}}",
-    "selectPage": "Bu sayfadakilerin hepsini seç",
+    "selectPage": "Tümünü seç",
     "selected": {
       "one": "{{count}} kullanıcı seçili",
       "other": "{{count}} kullanıcı seçili"
     },
-    "clearSelection": "Seçimi kaldır",
     "deleteSelected": "Seçilenleri sil",
     "bulkDeleteTitle": "Seçilen kullanıcıları sil",
     "bulkDeleteMessage": {
@@ -232,8 +231,18 @@
     "unverifiedText": "E-posta adresini doğrulamamış bir hesap başka koleksiyon açamaz, koleksiyon paylaşamaz ve en fazla aşağıdaki sayıda coin tutabilir. Değeri düşürmek kimsenin coin'ini silmez; sınırın üstündeki hesaplar yeni coin ekleyemez. Doğrulanmayan hesap aşağıdaki süre dolunca içindekilerle birlikte silinir (admin'ler ve kilitli hesaplar hariç).",
     "unverifiedMaxCoins": "En fazla coin sayısı",
     "unverifiedMaxCoinsHint": "{{min}} ile {{max}} arasında. 0: doğrulamadan coin eklenemez.",
-    "unverifiedLifetimeDays": "Silinmeden önceki süre (gün)",
+    "unverifiedLifetimeDays": "Silinmeden önceki süre",
     "unverifiedLifetimeDaysHint": "Kayıttan itibaren, {{min}} ile {{max}} arasında. 0: hesaplar silinmez. Silmeden 7 ve 1 gün önce hatırlatma e-postası gönderilmeye çalışılır; hiçbir hesap ilk hatırlatma denemesinden 1 gün geçmeden silinmez.",
+    "unit": {
+      "coins": {
+        "one": "coin",
+        "other": "coin"
+      },
+      "days": {
+        "one": "gün",
+        "other": "gün"
+      }
+    },
     "saved": "Kaydedildi.",
     "unchanged": "Değerler değişmedi; kaydedilecek bir şey yok.",
     "names": {

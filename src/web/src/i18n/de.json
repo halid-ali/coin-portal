@@ -96,6 +96,9 @@
     "skipToContent": "Zum Inhalt springen",
     "language": "Sprache"
   },
+  "breadcrumbs": {
+    "label": "Seitenpfad"
+  },
   "notFound": {
     "title": "Seite nicht gefunden",
     "message": "Unter dieser Adresse gibt es keine Seite. Der Link ist vielleicht falsch geschrieben oder unvollständig; prüfe bei einem Freigabelink, ob du ihn ganz kopiert hast.",
@@ -513,7 +516,7 @@
     "submitAnyway": "Trotzdem löschen"
   },
   "publication": {
-    "notReadyTitle": "Damit sie öffentlich werden kann",
+    "notReadyTitle": "Um deine Sammlung zu veröffentlichen",
     "progress": "{{photographed}}/{{required}} Münzen mit Foto",
     "missing": {
       "one": "Bei {{count}} Münze fehlt die nationale Seite",
