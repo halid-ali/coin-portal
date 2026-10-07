@@ -778,12 +778,5 @@
     "invalidTitle": "Der Link ist ungültig oder abgelaufen",
     "invalidText": "Ein Bestätigungslink ist 24 Stunden gültig. Melde dich an und fordere über den Hinweis oben auf der Seite einen neuen an.",
     "failedTitle": "Die E-Mail-Adresse konnte nicht bestätigt werden"
-  },
-  "unverified": {
-    "newCollection": "Bestätige zuerst deine E-Mail-Adresse, um eine neue Sammlung anzulegen.",
-    "coinLimit": {
-      "one": "Ein unbestätigtes Konto kann höchstens {{count}} Münze haben. Bestätige deine E-Mail-Adresse, um weitere hinzuzufügen.",
-      "other": "Ein unbestätigtes Konto kann höchstens {{count}} Münzen haben. Bestätige deine E-Mail-Adresse, um weitere hinzuzufügen."
-    }
   }
 }

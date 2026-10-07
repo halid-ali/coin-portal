@@ -778,12 +778,5 @@
     "invalidTitle": "The link is invalid or has expired",
     "invalidText": "A verification link is valid for 24 hours. Sign in and request a new one from the notice at the top of the page.",
     "failedTitle": "The email address could not be confirmed"
-  },
-  "unverified": {
-    "newCollection": "Confirm your email address to open a new collection.",
-    "coinLimit": {
-      "one": "An unverified account can hold at most {{count}} coin. Confirm your email address to add more.",
-      "other": "An unverified account can hold at most {{count}} coins. Confirm your email address to add more."
-    }
   }
 }

@@ -37,6 +37,7 @@ import { PluralPipe } from '../../core/i18n/plural';
 import { APP_NAME } from '../../core/i18n/translated-title-strategy';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
+import { EMAIL_LIMIT_IDS } from '../../layout/email-banner/email-banner';
 import { denominationLabel, isDenomination } from '../../shared/coin-format';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
@@ -180,6 +181,8 @@ export class Collection {
    * collection while the address is unverified; null otherwise.
    */
   private readonly accountCoinCount = signal<number | null>(null);
+  /** The reasons in the e-mail notice, for the gray "Add coin" (aria-describedby). */
+  protected readonly limitIds = EMAIL_LIMIT_IDS;
   /** Unverified and at the limit: the API refuses another coin (403 unverified_coin_limit). */
   protected readonly coinLimitReached = computed(() => {
     const max = this.unverifiedMaxCoins();

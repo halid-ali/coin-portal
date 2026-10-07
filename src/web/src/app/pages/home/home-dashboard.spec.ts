@@ -123,19 +123,29 @@ describe('HomeDashboard', () => {
     expect(text()).not.toContain('Vitrinin herkese açık');
   });
 
-  it('offers no new collection before the address is verified, and no coin at the limit', async () => {
+  it('grays out a new collection before the address is verified, and adding coins at the limit', async () => {
     const currentUser = TestBed.inject(AuthService).currentUser as WritableSignal<UserResponse>;
     currentUser.set({ ...user, emailConfirmed: false, unverifiedMaxCoins: 20 });
     const counts = { countryCount: 3, commemorativeCount: 0 };
+    const element = () => fixture.nativeElement as HTMLElement;
+    const control = (label: string) =>
+      [...element().querySelectorAll('a, button')].find((e) => e.textContent!.includes(label))!;
 
     await open([collection(1, 'Koleksiyonum', 'Private')], { coinCount: 19, ...counts });
-    expect(text()).toContain('Coin ekle');
-    expect(text()).not.toContain('Yeni koleksiyon');
-    expect(text()).not.toContain('Doğrulanmamış bir hesapta');
+    expect(control('Coin ekle').tagName).toBe('A');
+    // There, but gray; the reason is the e-mail notice's line
+    const newCollection = control('Yeni koleksiyon');
+    expect(newCollection.getAttribute('aria-disabled')).toBe('true');
+    expect(newCollection.getAttribute('aria-describedby')).toBe('email-limit-collections');
+    (newCollection as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(element().querySelector('app-collection-form-dialog')).toBeNull();
 
     await open([collection(1, 'Koleksiyonum', 'Private')], { coinCount: 20, ...counts });
-    expect(text()).not.toContain('Coin ekle');
-    expect(text()).toContain('Doğrulanmamış bir hesapta en fazla 20 coin olabilir.');
+    const addCoin = control('Coin ekle');
+    expect(addCoin.tagName).toBe('BUTTON');
+    expect(addCoin.getAttribute('aria-disabled')).toBe('true');
+    expect(addCoin.getAttribute('aria-describedby')).toBe('email-limit-coins');
   });
 
   it('invites to add the first coin and hides recent coins when there are none', async () => {

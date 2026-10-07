@@ -19,6 +19,7 @@ import { Coin, CoinSummary } from '../../core/coins/coin.models';
 import { CoinService, photoUrl, primaryPhoto } from '../../core/coins/coin.service';
 import { Collection } from '../../core/collections/collection.models';
 import { CollectionService } from '../../core/collections/collection.service';
+import { EMAIL_LIMIT_IDS } from '../../layout/email-banner/email-banner';
 import { httpErrorKey } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
@@ -75,7 +76,18 @@ export const HOME_COLLECTIONS = 5;
       </div>
       <!-- Side by side; if they do not fit they wrap, their text does not -->
       <div class="flex flex-wrap gap-3">
-        @if (!coinLimitReached()) {
+        @if (coinLimitReached()) {
+          <!-- A link cannot be disabled: a gray button, the reason in the e-mail notice -->
+          <button
+            type="button"
+            class="btn-unavailable flex-auto whitespace-nowrap sm:flex-none"
+            aria-disabled="true"
+            [attr.aria-describedby]="limitIds.coins"
+          >
+            <span aria-hidden="true" class="mr-1.5">+</span
+            >{{ 'home.dashboard.addCoin' | transloco }}
+          </button>
+        } @else {
           <a routerLink="/coins/new" class="btn-primary flex-auto whitespace-nowrap sm:flex-none">
             <span aria-hidden="true" class="mr-1.5">+</span
             >{{ 'home.dashboard.addCoin' | transloco }}
@@ -88,13 +100,6 @@ export const HOME_COLLECTIONS = 5;
         >
       </div>
     </section>
-
-    <!-- Unverified e-mail address and as many coins as it allows: no "Add coin" -->
-    @if (coinLimitReached()) {
-      <p class="mt-5 rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
-        {{ 'unverified.coinLimit' | plural: auth.currentUser()?.unverifiedMaxCoins ?? 0 }}
-      </p>
-    }
 
     <!-- Quick check over all collections -->
     <section class="card mt-5 p-5 sm:px-6">
@@ -309,19 +314,24 @@ export const HOME_COLLECTIONS = 5;
               />
             </li>
           }
-          <!-- Another collection waits for a verified e-mail address -->
-          @if (auth.currentUser()?.emailConfirmed !== false) {
-            <li>
-              <button
-                type="button"
-                (click)="creating.set(true)"
-                class="flex size-full min-h-16 items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-shade-300 bg-shade-50 font-semibold text-shade-600 hover:border-brand-300 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none sm:min-h-48 sm:flex-col"
-              >
-                <span aria-hidden="true" class="text-2xl leading-none font-normal">+</span>
-                {{ 'collections.new' | transloco }}
-              </button>
-            </li>
-          }
+          <!-- Gray until the address is verified (the reason is in the e-mail notice) -->
+          <li>
+            <button
+              type="button"
+              (click)="createCollection()"
+              class="flex size-full min-h-16 items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-shade-300 font-semibold focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none sm:min-h-48 sm:flex-col"
+              [class]="
+                emailBlocked()
+                  ? 'cursor-not-allowed bg-shade-100 text-shade-400'
+                  : 'bg-shade-50 text-shade-600 hover:border-brand-300 hover:text-shade-900'
+              "
+              [attr.aria-disabled]="emailBlocked() || null"
+              [attr.aria-describedby]="emailBlocked() ? limitIds.collections : null"
+            >
+              <span aria-hidden="true" class="text-2xl leading-none font-normal">+</span>
+              {{ 'collections.new' | transloco }}
+            </button>
+          </li>
         </ul>
       } @else {
         <p role="status" class="text-shade-500">{{ 'common.loading' | transloco }}</p>
@@ -382,6 +392,12 @@ export class HomeDashboard {
   protected readonly collections = signal<Collection[] | null>(null);
   protected readonly collectionsError = signal(false);
   protected readonly summary = signal<CoinSummary | null>(null);
+  /** Another collection waits for a verified e-mail address. */
+  protected readonly emailBlocked = computed(
+    () => this.auth.currentUser()?.emailConfirmed === false,
+  );
+  /** The reasons in the e-mail notice, for the gray buttons (aria-describedby). */
+  protected readonly limitIds = EMAIL_LIMIT_IDS;
   /** Unverified e-mail address and as many coins as it allows (the API refuses another). */
   protected readonly coinLimitReached = computed(() => {
     const max = this.auth.currentUser()?.unverifiedMaxCoins ?? null;
@@ -487,6 +503,12 @@ export class HomeDashboard {
       this.copyState.set('failed');
     }
     setTimeout(() => this.copyState.set('idle'), 2000);
+  }
+
+  protected createCollection(): void {
+    if (!this.emailBlocked()) {
+      this.creating.set(true);
+    }
   }
 
   /** A new collection is empty: go straight to it, so coins can be added. */

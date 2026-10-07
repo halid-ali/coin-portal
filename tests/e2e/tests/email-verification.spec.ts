@@ -5,8 +5,8 @@ import { verificationLink } from '../support/mail';
 import { TestUser } from '../support/users';
 
 // Sign-up leaves the address unconfirmed: the notice above every page says so and sends the link
-// again, and no other collection can be opened; the link from the e-mail confirms it, the notice
-// goes away and a new collection can be made
+// again; New collection is grayed out with the notice's line as its description. The link from the
+// e-mail confirms the address, the notice goes away and a new collection can be made
 test('a new user confirms their email address with the link from the email', async ({
   browser,
 }) => {
@@ -18,10 +18,12 @@ test('a new user confirms their email address with the link from the email', asy
   await page.goto('/collections');
   const notice = page.getByRole('region', { name: 'Email verification' });
   await expect(notice).toContainText(address);
-  await expect(
-    page.getByText('Confirm your email address to open a new collection.'),
-  ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'New collection' })).toHaveCount(0);
+  const newCollection = page.getByRole('button', { name: 'New collection' });
+  await expect(newCollection).toHaveAttribute('aria-disabled', 'true');
+  await expect(newCollection).toHaveAccessibleDescription('You cannot open new collections');
+  // Pressed anyway (Playwright waits for an enabled button otherwise)
+  await newCollection.click({ force: true });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expectAccessible(page, 'email notice');
 
   await notice.getByRole('button', { name: 'Send the link again' }).click();
@@ -36,7 +38,8 @@ test('a new user confirms their email address with the link from the email', asy
   await expect(notice).toBeHidden();
   await expectAccessible(page, 'email confirmed');
   await page.goto('/collections');
-  await expect(page.getByRole('button', { name: 'New collection' })).toBeVisible();
+  await expect(newCollection).toBeVisible();
+  await expect(newCollection).not.toHaveAttribute('aria-disabled');
   await context.close();
 });
 

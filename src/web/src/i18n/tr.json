@@ -778,12 +778,5 @@
     "invalidTitle": "Link geçersiz ya da süresi dolmuş",
     "invalidText": "Doğrulama linki 24 saat geçerli. Giriş yap ve sayfanın üstündeki uyarıdan yeni bir link iste.",
     "failedTitle": "E-posta adresi doğrulanamadı"
-  },
-  "unverified": {
-    "newCollection": "Yeni koleksiyon açmak için önce e-posta adresini doğrula.",
-    "coinLimit": {
-      "one": "Doğrulanmamış bir hesapta en fazla {{count}} coin olabilir. Daha fazla coin eklemek için e-posta adresini doğrula.",
-      "other": "Doğrulanmamış bir hesapta en fazla {{count}} coin olabilir. Daha fazla coin eklemek için e-posta adresini doğrula."
-    }
   }
 }

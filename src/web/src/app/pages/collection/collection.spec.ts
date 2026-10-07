@@ -129,7 +129,7 @@ describe('Collection', () => {
     );
   });
 
-  it('leaves out the link tip while the e-mail address is unverified', async () => {
+  it('leaves out the link tip and grays out Add coin at the limit while unverified', async () => {
     const loaded = TestBed.inject(AuthService).loadMe();
     http.expectOne('/api/auth/me').flush({
       id: '1',
@@ -152,11 +152,18 @@ describe('Collection', () => {
     // The coin limit counts the whole account
     http
       .expectOne('/api/coins/summary')
-      .flush({ coinCount: 3, countryCount: 1, commemorativeCount: 0 });
+      .flush({ coinCount: 20, countryCount: 1, commemorativeCount: 0 });
     await harness.fixture.whenStable();
 
     expect(banner()!.textContent).toContain('1/10 fotoğraflı coin');
     expect(banner()!.textContent).not.toContain('linkle paylaşabilirsin');
+    // 20 coins in the account: no link to the form, a gray button pointing at the reason
+    const addCoin = [...page().querySelectorAll('a, button')].find((e) =>
+      e.textContent!.includes('Coin ekle'),
+    )!;
+    expect(addCoin.tagName).toBe('BUTTON');
+    expect(addCoin.getAttribute('aria-disabled')).toBe('true');
+    expect(addCoin.getAttribute('aria-describedby')).toBe('email-limit-coins');
   });
 
   it('lists every coin without photos from the banner, whatever the filters', async () => {

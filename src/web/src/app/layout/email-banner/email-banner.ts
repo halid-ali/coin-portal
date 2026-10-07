@@ -7,8 +7,17 @@ import { httpErrorKey, problemCode } from '../../core/http/problem-details';
 import { LanguageService } from '../../core/i18n/language.service';
 import { PluralPipe } from '../../core/i18n/plural';
 
+/**
+ * Ids of the limits in the notice: a button the account cannot use yet points at its reason
+ * (aria-describedby), so screen readers hear it without a second visible text.
+ */
+export const EMAIL_LIMIT_IDS = {
+  collections: 'email-limit-collections',
+  coins: 'email-limit-coins',
+} as const;
+
 /** Stands for the date in the deletion sentence, which is cut there to set the date in bold. */
-const DATE_MARK = '⁣';
+const DATE_MARK = '\u2063';
 
 /**
  * Above every page while the signed-in user's e-mail address is not verified: sharing
@@ -81,11 +90,11 @@ const DATE_MARK = '⁣';
         <div class="col-start-2 text-[0.8125rem] text-info-700">
           <p class="mt-1">{{ 'emailBanner.until' | transloco }}</p>
           <ul class="mt-1 flex flex-wrap gap-x-5 gap-y-1">
-            <li>
+            <li [id]="limitIds.collections">
               <span aria-hidden="true">• </span>{{ 'emailBanner.noNewCollection' | transloco }}
             </li>
             <li><span aria-hidden="true">• </span>{{ 'emailBanner.noSharing' | transloco }}</li>
-            <li>
+            <li [id]="limitIds.coins">
               <span aria-hidden="true">• </span
               >{{ 'emailBanner.maxCoins' | plural: user.unverifiedMaxCoins ?? 0 }}
             </li>
@@ -111,6 +120,7 @@ export class EmailBanner {
   private readonly language = inject(LanguageService);
 
   protected readonly dateMark = DATE_MARK;
+  protected readonly limitIds = EMAIL_LIMIT_IDS;
 
   /** The user while the address is unverified, otherwise null (no banner). */
   protected readonly user = computed(() => {

@@ -455,6 +455,16 @@
   }
 
   /*
+   * A button the account cannot use yet (unverified e-mail address: user decision 2026-10-07):
+   * gray in both themes, unlike the faded look of a busy button. With aria-disabled and
+   * aria-describedby pointing at the reason in the e-mail notice (EMAIL_LIMIT_IDS).
+   */
+  .btn-unavailable {
+    @apply inline-flex cursor-not-allowed items-center justify-center rounded-lg border border-shade-300 bg-shade-200 px-4 py-2 font-medium text-shade-500
+      focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+
+  /*
    * A destructive action that asks first (delete, remove, hide, lock): red text only. The red
    * fill (btn-danger) is for the confirm button in the dialog.
    */

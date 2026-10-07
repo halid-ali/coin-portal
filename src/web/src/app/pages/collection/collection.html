@@ -195,7 +195,17 @@
               </svg>
               <span class="hidden md:inline">{{ 'common.delete' | transloco }}</span>
             </button>
-            @if (!coinLimitReached()) {
+            @if (coinLimitReached()) {
+              <!-- A link cannot be disabled: a gray button, the reason in the e-mail notice -->
+              <button
+                type="button"
+                class="btn-unavailable"
+                aria-disabled="true"
+                [attr.aria-describedby]="limitIds.coins"
+              >
+                <span aria-hidden="true" class="mr-1">+</span>{{ 'coinList.addCoin' | transloco }}
+              </button>
+            } @else {
               <a
                 routerLink="/coins/new"
                 [queryParams]="{ collection: collectionId() }"
@@ -211,13 +221,6 @@
       @if (mode() === 'shared') {
         <p class="rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
           {{ 'coinList.sharedNotice' | transloco }}
-        </p>
-      }
-
-      <!-- Unverified e-mail address and as many coins as it allows: no "Add coin" -->
-      @if (coinLimitReached()) {
-        <p class="rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-800">
-          {{ 'unverified.coinLimit' | plural: unverifiedMaxCoins() ?? 0 }}
         </p>
       }
 
@@ -585,7 +588,16 @@
             </button>
           } @else if (mode() === 'owner') {
             <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
-            @if (!coinLimitReached()) {
+            @if (coinLimitReached()) {
+              <button
+                type="button"
+                class="btn-unavailable mt-4"
+                aria-disabled="true"
+                [attr.aria-describedby]="limitIds.coins"
+              >
+                {{ 'coinList.addFirstCoin' | transloco }}
+              </button>
+            } @else {
               <a
                 routerLink="/coins/new"
                 [queryParams]="{ collection: collectionId() }"
