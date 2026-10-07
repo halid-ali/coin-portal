@@ -227,12 +227,20 @@
       "one": "With this value, {{count}} public collection falls below the minimum. It stays public; the first change that lowers its photographed coins makes it link only.",
       "other": "With this value, {{count}} public collections fall below the minimum. They stay public; the first change that lowers their photographed coins makes them link only."
     },
+    "quotaImpact": {
+      "one": "With this value, {{count}} user is above the limit. Nothing is deleted; they cannot upload new photos until they free up space.",
+      "other": "With this value, {{count}} users are above the limit. Nothing is deleted; they cannot upload new photos until they free up space."
+    },
     "unverifiedTitle": "Accounts with an unverified email",
     "unverifiedText": "An account that has not verified its email address cannot open another collection or share collections, and holds at most the number of coins below. Lowering the value deletes no one's coins; accounts above it cannot add new ones. An account that stays unverified is deleted with its content once the time below has passed (not admins or locked accounts).",
     "unverifiedMaxCoins": "Maximum number of coins",
     "unverifiedMaxCoinsHint": "Between {{min}} and {{max}}. 0: no coins before verifying.",
     "unverifiedLifetimeDays": "Time before deletion",
     "unverifiedLifetimeDaysHint": "From sign-up, between {{min}} and {{max}}. 0: accounts are not deleted. A reminder email is attempted 7 days and 1 day before; no account is deleted sooner than a day after its first reminder attempt.",
+    "photosTitle": "Photos",
+    "photosText": "The space every user has for coin photos and collection covers. Lowering it deletes no one's photos; users above it cannot upload new ones until they free up space.",
+    "userQuotaMegabytes": "Photo storage per user",
+    "userQuotaMegabytesHint": "Between {{min}} and {{max}}. Photos and covers together.",
     "unit": {
       "coins": {
         "one": "coin",
@@ -241,14 +249,16 @@
       "days": {
         "one": "day",
         "other": "days"
-      }
+      },
+      "megabytes": "MB"
     },
     "saved": "Saved.",
     "unchanged": "The values have not changed; there is nothing to save.",
     "names": {
       "MinPublicCoins": "Minimum coins with photos",
       "UnverifiedMaxCoins": "Max. coins of an unverified account",
-      "UnverifiedLifetimeDays": "Lifetime of an unverified account (days)"
+      "UnverifiedLifetimeDays": "Lifetime of an unverified account (days)",
+      "UserQuotaMegabytes": "Photo storage per user (MB)"
     }
   },
   "verification": {

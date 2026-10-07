@@ -26,6 +26,11 @@ export function coinWithPhotosErrorMessage(err: HttpErrorResponse): string | nul
   return body.side ? `${translate(`coin.side.${body.side}.label`)}: ${message}` : message;
 }
 
+/** The user's photo storage is full (or too full for this upload). */
+export function isQuotaExceeded(err: HttpErrorResponse): boolean {
+  return (err.error as { code?: string } | null)?.code === 'quota_exceeded';
+}
+
 export function photoErrorMessage(err: HttpErrorResponse): string {
   const code = (err.error as { code?: string } | null)?.code;
   if (code && CODES.includes(code)) {

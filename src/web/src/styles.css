@@ -347,6 +347,26 @@
   }
 
   /*
+   * How full a limit is (Settings > Account, photo storage): the accent color, orange when
+   * nearly full (a fixed hue for the meaning, like stat-icon), the danger color when full.
+   */
+  .usage-bar {
+    @apply block h-2.5 overflow-hidden rounded-full bg-shade-200;
+  }
+
+  .usage-bar-fill {
+    @apply block h-full rounded-full bg-brand-500 motion-safe:transition-[width];
+  }
+
+  .usage-bar-fill-warn {
+    @apply bg-orange-500;
+  }
+
+  .usage-bar-fill-full {
+    @apply bg-danger-600;
+  }
+
+  /*
    * The surface behind a denomination icon (shared/denomination-icon, `tile`): a tint of the
    * coin's metal. The coin itself looks the same in both themes; only this surface follows the
    * theme. `denomination-tile-outlined` adds a hairline border in the same hue.

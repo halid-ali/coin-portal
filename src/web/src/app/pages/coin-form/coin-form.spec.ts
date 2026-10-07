@@ -189,6 +189,38 @@ describe('CoinForm', () => {
     expect(internals().photoChanges.National()).not.toBeNull();
   });
 
+  it('links to the photo storage when a photo does not fit', async () => {
+    await open('/coins/new?collection=5');
+    fillNewCoin();
+    internals().photoChanges.National.set({ type: 'upload', image: new Blob(['jpeg']) });
+
+    submit();
+    http
+      .expectOne('/api/coins/with-photos')
+      .flush(
+        { code: 'quota_exceeded', side: 'National' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+    await harness.fixture.whenStable();
+
+    const alert = page().querySelector('[role=alert]')!;
+    expect(alert.textContent).toContain('Ulusal yüz: Fotoğraf saklama alanın doldu.');
+    const link = alert.querySelector('a')!;
+    expect(link.textContent!.trim()).toBe('Fotoğraf alanına bak');
+    expect(link.getAttribute('href')).toBe('/settings/account');
+
+    // Another error: no link
+    submit();
+    http
+      .expectOne('/api/coins/with-photos')
+      .flush(
+        { code: 'invalid_image', side: 'National' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+    await harness.fixture.whenStable();
+    expect(page().querySelector('[role=alert] a')).toBeNull();
+  });
+
   it('changes nothing when the user keeps the collection public', async () => {
     await open('/coins/1/edit', coin);
 

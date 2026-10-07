@@ -1,17 +1,24 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, WritableSignal, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { catchError, debounceTime, of, switchMap } from 'rxjs';
+import { Observable, catchError, debounceTime, of, switchMap } from 'rxjs';
 
 import {
   ADMIN_NOTE_MAX_LENGTH,
   AdminSettings as Settings,
+  AdminQuotaImpact,
   AdminSettingsImpact,
   MIN_PUBLIC_COINS_RANGE,
   UNVERIFIED_LIFETIME_DAYS_RANGE,
   UNVERIFIED_MAX_COINS_RANGE,
+  USER_QUOTA_MEGABYTES_RANGE,
 } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { applyServerErrors } from '../../core/http/problem-details';
@@ -24,7 +31,8 @@ import { integerValidator } from '../../shared/validators';
  * Admin > General settings: site-wide values. The photographed coins a collection needs to become
  * public (before saving, how many public collections the new value leaves below it), and the coins
  * an account may hold until its e-mail address is verified and the days before it is deleted
- * without. Saved together, one audit entry each.
+ * without, and every user's photo storage (before saving, how many users are above it). Saved
+ * together, one audit entry each.
  */
 @Component({
   selector: 'app-admin-settings',
@@ -229,6 +237,79 @@ import { integerValidator } from '../../shared/validators';
           </div>
         </section>
 
+        <section class="card overflow-hidden p-0" aria-labelledby="settings-photos-title">
+          <div
+            class="flex items-start gap-4 border-b border-shade-200 bg-shade-50 px-4 py-5 sm:px-6"
+          >
+            <span class="stat-icon stat-icon-pink size-10" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                class="size-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <circle cx="9" cy="10" r="1.5" />
+                <path d="m21 16-5-5-8 8" />
+              </svg>
+            </span>
+            <div class="min-w-0">
+              <h2 id="settings-photos-title" class="text-lg font-semibold text-shade-900">
+                {{ 'admin.settings.photosTitle' | transloco }}
+              </h2>
+              <p class="mt-1 text-sm text-shade-600">
+                {{ 'admin.settings.photosText' | transloco }}
+              </p>
+            </div>
+          </div>
+          <div class="px-4 sm:px-6">
+            <div class="grid gap-x-8 py-4 sm:grid-cols-[1fr_10rem]">
+              <div>
+                <label for="user-quota-megabytes" class="block text-sm font-medium text-shade-900"
+                  >{{ 'admin.settings.userQuotaMegabytes' | transloco }}
+                  <span class="sr-only"
+                    >({{ 'admin.settings.unit.megabytes' | transloco }})</span
+                  ></label
+                >
+                <p id="user-quota-megabytes-hint" class="form-hint">
+                  {{ 'admin.settings.userQuotaMegabytesHint' | transloco: quotaRange }}
+                </p>
+              </div>
+              <div class="relative mt-2 self-start sm:mt-0">
+                <input
+                  id="user-quota-megabytes"
+                  type="number"
+                  inputmode="numeric"
+                  class="form-input pr-16"
+                  [min]="quotaRange.min"
+                  [max]="quotaRange.max"
+                  formControlName="userQuotaMegabytes"
+                  appField
+                />
+                <span
+                  class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+                  aria-hidden="true"
+                  >{{ 'admin.settings.unit.megabytes' | transloco }}</span
+                >
+              </div>
+              @if (errorMessage(form.controls.userQuotaMegabytes); as message) {
+                <p id="user-quota-megabytes-error" class="form-error sm:col-span-2">
+                  {{ message }}
+                </p>
+              }
+              <!-- Who is above the new value, before it is saved -->
+              <p role="status" class="mt-2 text-sm text-shade-700 empty:mt-0 sm:col-span-2">
+                @if (quotaImpact(); as i) {
+                  {{ 'admin.settings.quotaImpact' | plural: i.usersAbove }}
+                }
+              </p>
+            </div>
+          </div>
+        </section>
+
         <div class="card space-y-5 px-4 py-5 sm:px-6">
           <div>
             <label for="settings-note" class="form-label">{{
@@ -277,6 +358,7 @@ export class AdminSettings {
   protected readonly range = MIN_PUBLIC_COINS_RANGE;
   protected readonly unverifiedRange = UNVERIFIED_MAX_COINS_RANGE;
   protected readonly lifetimeRange = UNVERIFIED_LIFETIME_DAYS_RANGE;
+  protected readonly quotaRange = USER_QUOTA_MEGABYTES_RANGE;
   protected readonly noteMaxLength = ADMIN_NOTE_MAX_LENGTH;
   protected readonly errorMessage = errorMessage;
   private readonly focusFirstInvalid = injectFocusFirstInvalid();
@@ -293,6 +375,8 @@ export class AdminSettings {
   protected readonly formErrors = signal<string[]>([]);
   /** For a valid value other than the stored one. */
   protected readonly impact = signal<AdminSettingsImpact | null>(null);
+  /** For a valid photo storage other than the stored one. */
+  protected readonly quotaImpact = signal<AdminQuotaImpact | null>(null);
 
   protected readonly form = this.fb.group({
     minPublicCoins: this.fb.control<number | null>(null, [
@@ -313,6 +397,12 @@ export class AdminSettings {
       Validators.min(UNVERIFIED_LIFETIME_DAYS_RANGE.min),
       Validators.max(UNVERIFIED_LIFETIME_DAYS_RANGE.max),
     ]),
+    userQuotaMegabytes: this.fb.control<number | null>(null, [
+      Validators.required,
+      integerValidator,
+      Validators.min(USER_QUOTA_MEGABYTES_RANGE.min),
+      Validators.max(USER_QUOTA_MEGABYTES_RANGE.max),
+    ]),
     note: ['', Validators.maxLength(ADMIN_NOTE_MAX_LENGTH)],
   });
 
@@ -322,19 +412,39 @@ export class AdminSettings {
       error: () => this.loadError.set(true),
     });
 
-    const control = this.form.controls.minPublicCoins;
+    this.previewImpact(
+      this.form.controls.minPublicCoins,
+      () => this.saved()?.minPublicCoins,
+      (value) => this.admin.settingsImpact(value),
+      this.impact,
+    );
+    this.previewImpact(
+      this.form.controls.userQuotaMegabytes,
+      () => this.saved()?.userQuotaMegabytes,
+      (value) => this.admin.quotaImpact(value),
+      this.quotaImpact,
+    );
+  }
+
+  /** What a typed value would mean, asked once typing pauses; nothing for the stored value. */
+  private previewImpact<T>(
+    control: FormControl<number | null>,
+    stored: () => number | undefined,
+    request: (value: number) => Observable<T>,
+    target: WritableSignal<T | null>,
+  ): void {
     control.valueChanges
       .pipe(
         debounceTime(300),
         switchMap((value) => {
-          this.impact.set(null);
-          return control.valid && value !== null && value !== this.saved()?.minPublicCoins
-            ? this.admin.settingsImpact(value).pipe(catchError(() => of(null)))
+          target.set(null);
+          return control.valid && value !== null && value !== stored()
+            ? request(value).pipe(catchError(() => of(null)))
             : of(null);
         }),
         takeUntilDestroyed(),
       )
-      .subscribe((impact) => this.impact.set(impact));
+      .subscribe((result) => target.set(result));
   }
 
   protected save(): void {
@@ -354,7 +464,8 @@ export class AdminSettings {
     if (
       settings.minPublicCoins === saved?.minPublicCoins &&
       settings.unverifiedMaxCoins === saved.unverifiedMaxCoins &&
-      settings.unverifiedLifetimeDays === saved.unverifiedLifetimeDays
+      settings.unverifiedLifetimeDays === saved.unverifiedLifetimeDays &&
+      settings.userQuotaMegabytes === saved.userQuotaMegabytes
     ) {
       this.outcome.set('unchanged');
       return;
@@ -365,6 +476,7 @@ export class AdminSettings {
         this.saving.set(false);
         this.show(stored);
         this.impact.set(null);
+        this.quotaImpact.set(null);
         this.outcome.set('saved');
       },
       error: (err: HttpErrorResponse) => {

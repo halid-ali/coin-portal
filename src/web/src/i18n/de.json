@@ -395,6 +395,7 @@
     "viewLarge": "{{side}} vergrößern",
     "choose": "Foto auswählen",
     "fileHint": "JPG oder PNG",
+    "seeStorage": "Fotospeicher ansehen",
     "willUpload": "Wird beim Speichern hochgeladen",
     "willDelete": "Wird beim Speichern gelöscht",
     "willRemove": "Wird beim Speichern entfernt",
@@ -583,6 +584,14 @@
     },
     "account": {
       "nav": "Konto",
+      "storage": {
+        "title": "Fotospeicher",
+        "description": "Deine Münzfotos und die Titelbilder deiner Sammlungen nutzen diesen Speicher.",
+        "used": "{{used}} von {{quota}} belegt",
+        "left": "{{left}} frei",
+        "nearlyFull": "Dein Speicher ist fast voll. Lösche Fotos, die du nicht mehr brauchst, um Platz zu schaffen.",
+        "full": "Dein Speicher ist voll: Neue Fotos kannst du erst hochladen, wenn du Platz schaffst."
+      },
       "export": {
         "title": "Deine Daten herunterladen",
         "description": "Deine Kontodaten, Sammlungen, Münzen und Fotos in einer ZIP-Datei: die Daten als JSON, die Fotos in ihrer größten Auflösung.",

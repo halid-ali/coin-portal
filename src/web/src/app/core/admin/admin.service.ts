@@ -10,6 +10,7 @@ import {
   AdminCollectionQuery,
   AdminDeleteUsersResult,
   AdminSettings,
+  AdminQuotaImpact,
   AdminSettingsImpact,
   AdminStats,
   AdminUser,
@@ -110,6 +111,12 @@ export class AdminService {
   settingsImpact(minPublicCoins: number): Observable<AdminSettingsImpact> {
     return this.http.get<AdminSettingsImpact>(`${API}/settings/impact`, {
       params: toParams({ minPublicCoins }),
+    });
+  }
+
+  quotaImpact(userQuotaMegabytes: number): Observable<AdminQuotaImpact> {
+    return this.http.get<AdminQuotaImpact>(`${API}/settings/quota-impact`, {
+      params: toParams({ userQuotaMegabytes }),
     });
   }
 

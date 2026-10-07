@@ -227,12 +227,20 @@
       "one": "Mit diesem Wert liegt {{count}} öffentliche Sammlung unter dem Minimum. Sie bleibt öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“.",
       "other": "Mit diesem Wert liegen {{count}} öffentliche Sammlungen unter dem Minimum. Sie bleiben öffentlich; die erste Änderung, die ihre Münzen mit Foto verringert, macht sie zu „Nur mit Link“."
     },
+    "quotaImpact": {
+      "one": "Mit diesem Wert liegt {{count}} Benutzer über der Grenze. Es wird nichts gelöscht; neue Fotos sind erst wieder möglich, wenn Platz frei wird.",
+      "other": "Mit diesem Wert liegen {{count}} Benutzer über der Grenze. Es wird nichts gelöscht; neue Fotos sind erst wieder möglich, wenn Platz frei wird."
+    },
     "unverifiedTitle": "Konten mit unbestätigter E-Mail-Adresse",
     "unverifiedText": "Ein Konto mit unbestätigter E-Mail-Adresse kann keine weitere Sammlung anlegen und keine Sammlungen teilen und hat höchstens die folgende Anzahl Münzen. Ein niedrigerer Wert löscht keine Münzen; Konten darüber können keine neuen hinzufügen. Ein Konto, das unbestätigt bleibt, wird nach der folgenden Zeit mit seinen Inhalten gelöscht (außer Admins und gesperrten Konten).",
     "unverifiedMaxCoins": "Höchstzahl an Münzen",
     "unverifiedMaxCoinsHint": "Zwischen {{min}} und {{max}}. 0: keine Münzen vor der Bestätigung.",
     "unverifiedLifetimeDays": "Zeit bis zur Löschung",
     "unverifiedLifetimeDaysHint": "Ab der Registrierung, zwischen {{min}} und {{max}}. 0: Konten werden nicht gelöscht. 7 Tage und 1 Tag vorher wird versucht, eine Erinnerungs-E-Mail zu senden; kein Konto wird früher als einen Tag nach dem ersten Erinnerungsversuch gelöscht.",
+    "photosTitle": "Fotos",
+    "photosText": "Der Speicher, den jeder Benutzer für Münzfotos und Titelbilder von Sammlungen hat. Ein niedrigerer Wert löscht keine Fotos; wer darüber liegt, kann erst wieder hochladen, wenn Platz frei wird.",
+    "userQuotaMegabytes": "Fotospeicher pro Benutzer",
+    "userQuotaMegabytesHint": "Zwischen {{min}} und {{max}}. Fotos und Titelbilder zusammen.",
     "unit": {
       "coins": {
         "one": "Münze",
@@ -241,14 +249,16 @@
       "days": {
         "one": "Tag",
         "other": "Tage"
-      }
+      },
+      "megabytes": "MB"
     },
     "saved": "Gespeichert.",
     "unchanged": "Die Werte haben sich nicht geändert; es gibt nichts zu speichern.",
     "names": {
       "MinPublicCoins": "Mindestzahl Münzen mit Foto",
       "UnverifiedMaxCoins": "Max. Münzen eines unbestätigten Kontos",
-      "UnverifiedLifetimeDays": "Lebensdauer eines unbestätigten Kontos (Tage)"
+      "UnverifiedLifetimeDays": "Lebensdauer eines unbestätigten Kontos (Tage)",
+      "UserQuotaMegabytes": "Fotospeicher pro Benutzer (MB)"
     }
   },
   "verification": {

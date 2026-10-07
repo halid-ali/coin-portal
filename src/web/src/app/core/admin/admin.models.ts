@@ -188,12 +188,15 @@ export interface AdminSettings {
   unverifiedMaxCoins: number;
   /** Days after which an account still unverified is deleted; 0: never. */
   unverifiedLifetimeDays: number;
+  /** Photo storage of every user in MB (photos and covers together). */
+  userQuotaMegabytes: number;
 }
 
 /** Same ranges as the API (SiteSettings). */
 export const MIN_PUBLIC_COINS_RANGE = { min: 1, max: 100 } as const;
 export const UNVERIFIED_MAX_COINS_RANGE = { min: 0, max: 10_000 } as const;
 export const UNVERIFIED_LIFETIME_DAYS_RANGE = { min: 0, max: 365 } as const;
+export const USER_QUOTA_MEGABYTES_RANGE = { min: 50, max: 2000 } as const;
 
 /** The one-time request to verify the e-mail address (GET/POST api/admin/verification-requests). */
 export interface AdminVerificationRequests {
@@ -225,6 +228,13 @@ export interface AdminSettingsImpact {
   minPublicCoins: number;
   /** Public collections with fewer photographed coins (they stay public until changed). */
   publicCollectionsBelow: number;
+}
+
+/** What a photo storage limit would mean before it is saved. */
+export interface AdminQuotaImpact {
+  userQuotaMegabytes: number;
+  /** Users who store more already: nothing of theirs is removed, they cannot upload until they free space. */
+  usersAbove: number;
 }
 
 /** Page sizes of the admin lists (the API allows up to 100). */

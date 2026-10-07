@@ -395,6 +395,7 @@
     "viewLarge": "{{side}} büyük göster",
     "choose": "Fotoğraf seç",
     "fileHint": "JPG veya PNG",
+    "seeStorage": "Fotoğraf alanına bak",
     "willUpload": "Kaydedince yüklenecek",
     "willDelete": "Kaydedince silinecek",
     "willRemove": "Kaydedince kaldırılacak",
@@ -583,6 +584,14 @@
     },
     "account": {
       "nav": "Hesap",
+      "storage": {
+        "title": "Fotoğraf alanı",
+        "description": "Coin fotoğrafların ve koleksiyon kapakların bu alanı kullanır.",
+        "used": "{{used}} / {{quota}} kullanıldı",
+        "left": "{{left}} kaldı",
+        "nearlyFull": "Alanın dolmak üzere. Yer açmak için kullanmadığın fotoğrafları silebilirsin.",
+        "full": "Alanın doldu: yer açana kadar yeni fotoğraf yükleyemezsin."
+      },
       "export": {
         "title": "Verilerini indir",
         "description": "Hesap bilgilerin, koleksiyonların, coin'lerin ve fotoğrafların tek bir ZIP dosyasında: veriler JSON biçiminde, fotoğraflar en büyük boyutlarıyla.",

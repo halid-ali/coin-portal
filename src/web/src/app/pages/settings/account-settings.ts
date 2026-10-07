@@ -1,14 +1,26 @@
-import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { ACCOUNT_DELETED_STATE } from '../../core/settings/settings.service';
+import { httpErrorKey } from '../../core/http/problem-details';
+import { formatBytes } from '../../core/i18n/format-bytes';
+import { LanguageService } from '../../core/i18n/language.service';
+import {
+  ACCOUNT_DELETED_STATE,
+  PhotoStorage,
+  SettingsService,
+} from '../../core/settings/settings.service';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { ExportDownload } from './export-download';
 
+/** From this share of the storage on, the bar turns orange and says so. */
+const NEARLY_FULL = 0.9;
+
 /**
- * Settings > Account: download one's data (a ZIP) and delete the account. Admins cannot delete
+ * Settings > Account: the photo storage (how much is used of the limit every user has), download
+ * one's data (a ZIP) and delete the account. Admins cannot delete
  * theirs here; they are removed from the configuration first (like they cannot be locked).
  */
 @Component({
@@ -16,6 +28,63 @@ import { ExportDownload } from './export-download';
   imports: [TranslocoPipe, DeleteAccountDialog, ExportDownload],
   template: `
     <div class="space-y-6">
+      <section class="card" aria-labelledby="storage-title">
+        <h2 id="storage-title" class="text-lg font-semibold text-shade-900">
+          {{ 'settings.account.storage.title' | transloco }}
+        </h2>
+        <p class="mt-1 text-sm text-shade-600">
+          {{ 'settings.account.storage.description' | transloco }}
+        </p>
+        @if (storage(); as s) {
+          <div
+            role="meter"
+            class="usage-bar mt-4"
+            aria-labelledby="storage-title"
+            aria-valuemin="0"
+            [attr.aria-valuemax]="s.quotaBytes"
+            [attr.aria-valuenow]="clampedUsed()"
+            [attr.aria-valuetext]="
+              'settings.account.storage.used'
+                | transloco: { used: bytes(s.usedBytes), quota: bytes(s.quotaBytes) }
+            "
+          >
+            <span
+              class="usage-bar-fill"
+              [class.usage-bar-fill-warn]="level() === 'nearlyFull'"
+              [class.usage-bar-fill-full]="level() === 'full'"
+              [style.width.%]="percent()"
+            ></span>
+          </div>
+          <div
+            class="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 text-sm"
+            aria-hidden="true"
+          >
+            <span class="text-shade-800">{{
+              'settings.account.storage.used'
+                | transloco: { used: bytes(s.usedBytes), quota: bytes(s.quotaBytes) }
+            }}</span>
+            <span class="text-shade-600">{{
+              'settings.account.storage.left' | transloco: { left: bytes(left()) }
+            }}</span>
+          </div>
+          @if (level() === 'nearlyFull') {
+            <p class="mt-3 text-sm text-shade-700">
+              {{ 'settings.account.storage.nearlyFull' | transloco }}
+            </p>
+          } @else if (level() === 'full') {
+            <p class="mt-3 text-sm font-medium text-danger-700">
+              {{ 'settings.account.storage.full' | transloco }}
+            </p>
+          }
+        } @else if (storageError(); as key) {
+          <p role="alert" class="form-error">{{ key | transloco }}</p>
+        } @else {
+          <p role="status" class="mt-4 text-sm text-shade-500">
+            {{ 'common.loading' | transloco }}
+          </p>
+        }
+      </section>
+
       <div class="card space-y-4">
         <div>
           <h2 class="text-lg font-semibold text-shade-900">
@@ -79,9 +148,49 @@ import { ExportDownload } from './export-download';
 export class AccountSettings {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
 
   protected readonly isAdmin = this.auth.isAdmin;
   protected readonly dialogOpen = signal(false);
+
+  protected readonly storage = signal<PhotoStorage | null>(null);
+  /** Translation key when the storage could not be read. */
+  protected readonly storageError = signal<string | null>(null);
+  /** Used may be above the limit (lowered by an admin): the bar stops at full. */
+  protected readonly clampedUsed = computed(() => {
+    const s = this.storage();
+    return s ? Math.min(s.usedBytes, s.quotaBytes) : 0;
+  });
+  /** Some use shows at least a sliver: a few photos are a tiny share of the limit. */
+  protected readonly percent = computed(() => {
+    const quota = this.storage()?.quotaBytes ?? 0;
+    const used = this.clampedUsed();
+    return quota > 0 && used > 0 ? Math.max(1, (used / quota) * 100) : 0;
+  });
+  protected readonly left = computed(() => {
+    const s = this.storage();
+    return s ? Math.max(0, s.quotaBytes - s.usedBytes) : 0;
+  });
+  protected readonly level = computed<'normal' | 'nearlyFull' | 'full'>(() => {
+    const s = this.storage();
+    if (!s || s.usedBytes < s.quotaBytes * NEARLY_FULL) {
+      return 'normal';
+    }
+    return s.usedBytes >= s.quotaBytes ? 'full' : 'nearlyFull';
+  });
+
+  constructor() {
+    inject(SettingsService)
+      .storage()
+      .subscribe({
+        next: (storage) => this.storage.set(storage),
+        error: (err: HttpErrorResponse) => this.storageError.set(httpErrorKey(err)),
+      });
+  }
+
+  protected bytes(value: number): string {
+    return formatBytes(value, this.language.current());
+  }
 
   protected onDialogClosed(deleted: boolean): void {
     this.dialogOpen.set(false);

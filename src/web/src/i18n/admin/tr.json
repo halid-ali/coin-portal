@@ -227,12 +227,20 @@
       "one": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalır; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçer.",
       "other": "Bu değerle yayındaki {{count}} koleksiyon eşiğin altında kalır. Yayında kalırlar; fotoğraflı coin sayısını azaltan ilk değişiklikte sadece linkle paylaşılana geçerler."
     },
+    "quotaImpact": {
+      "one": "Bu değerle {{count}} kullanıcı sınırın üstünde kalır. Fotoğrafları silinmez; yer açana kadar yeni fotoğraf yükleyemez.",
+      "other": "Bu değerle {{count}} kullanıcı sınırın üstünde kalır. Fotoğrafları silinmez; yer açana kadar yeni fotoğraf yükleyemezler."
+    },
     "unverifiedTitle": "E-postası doğrulanmamış hesaplar",
     "unverifiedText": "E-posta adresini doğrulamamış bir hesap başka koleksiyon açamaz, koleksiyon paylaşamaz ve en fazla aşağıdaki sayıda coin tutabilir. Değeri düşürmek kimsenin coin'ini silmez; sınırın üstündeki hesaplar yeni coin ekleyemez. Doğrulanmayan hesap aşağıdaki süre dolunca içindekilerle birlikte silinir (admin'ler ve kilitli hesaplar hariç).",
     "unverifiedMaxCoins": "En fazla coin sayısı",
     "unverifiedMaxCoinsHint": "{{min}} ile {{max}} arasında. 0: doğrulamadan coin eklenemez.",
     "unverifiedLifetimeDays": "Silinmeden önceki süre",
     "unverifiedLifetimeDaysHint": "Kayıttan itibaren, {{min}} ile {{max}} arasında. 0: hesaplar silinmez. Silmeden 7 ve 1 gün önce hatırlatma e-postası gönderilmeye çalışılır; hiçbir hesap ilk hatırlatma denemesinden 1 gün geçmeden silinmez.",
+    "photosTitle": "Fotoğraflar",
+    "photosText": "Her kullanıcının coin fotoğrafları ve koleksiyon kapakları için alanı. Değeri düşürmek kimsenin fotoğrafını silmez; sınırın üstündeki kullanıcılar yer açana kadar yeni fotoğraf yükleyemez.",
+    "userQuotaMegabytes": "Kullanıcı başına fotoğraf alanı",
+    "userQuotaMegabytesHint": "{{min}} ile {{max}} arasında. Fotoğraflar ve kapaklar birlikte.",
     "unit": {
       "coins": {
         "one": "coin",
@@ -241,14 +249,16 @@
       "days": {
         "one": "gün",
         "other": "gün"
-      }
+      },
+      "megabytes": "MB"
     },
     "saved": "Kaydedildi.",
     "unchanged": "Değerler değişmedi; kaydedilecek bir şey yok.",
     "names": {
       "MinPublicCoins": "En az fotoğraflı coin sayısı",
       "UnverifiedMaxCoins": "Doğrulanmamış hesapta en fazla coin",
-      "UnverifiedLifetimeDays": "Doğrulanmamış hesabın ömrü (gün)"
+      "UnverifiedLifetimeDays": "Doğrulanmamış hesabın ömrü (gün)",
+      "UserQuotaMegabytes": "Kullanıcı başına fotoğraf alanı (MB)"
     }
   },
   "verification": {
