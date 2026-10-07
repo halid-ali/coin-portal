@@ -520,6 +520,17 @@
     @apply bg-shade-50;
   }
 
+  /*
+   * Buttons show the hand, like links (user decision 2026-10-07): Tailwind 4 resets them to the
+   * arrow, and the site's buttons and button-styled links look alike. Disabled and busy ones keep
+   * the not-allowed cursor of the btn-* classes. Options of the language list are clicked too.
+   */
+  button:not(:disabled, [aria-disabled='true']),
+  [role='button']:not([aria-disabled='true']),
+  [role='option']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
   /* Freeze page scrolling while a modal <dialog> is open */
   html:has(dialog:modal) {
     overflow: hidden;
