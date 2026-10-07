@@ -1,8 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-07 (**fotoğraf alanı** (yol haritası 20, Tamamlananlar 91) `feat/photo-quota-setting`'te,
-kullanıcıya kalan alan ve admin'e kota ayarı; **görsel düzeltmeler `main`'de, yayında değil** (Tamamlananlar 90:
-admin seçim çubuğu, Genel ayarlar kartları, coin formu fotoğraf hizası, yayına alma bandı, sayfa yolu). **`v1.7.0` yayında**: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+Son güncelleme: 2026-10-07 (**`v1.8.0` yayında** (Tamamlananlar 90–92): fotoğraf alanı (kullanıcıya kalan alan,
+admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları, coin formu
+fotoğraf hizası, yayına alma bandı, sayfa yolu). Sıradaki iş şifre sıfırlama. `v1.7.0`: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
 hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
 doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
 e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
@@ -13,12 +13,11 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket `v1.7.0` (2026-10-07), canlıda `v1.7.0`. `main`'de yayınlanmamış
-  görsel düzeltmeler var (Tamamlananlar 90); bir sonraki sürüme girer. Fotoğraf alanı (91) kendi branch'inde.
+- Durum: `main` güncel ve temiz; son etiket `v1.8.0` (2026-10-07), canlıda `v1.8.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.7.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.8.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`;
   uygulamanın e-postaları da bu kutudan, MonsterASP SMTP'si `mail2248.mailasp.net:587` STARTTLS, ayarlar
   sunucudaki `web.config`'te `Email__*`).
@@ -1744,6 +1743,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Testler: API 396 (+6: kota hatası artık site ayarıyla, düşürülen kota, aralık dışı, kendi kullanım, iki
       yetki matrisi satırı), client 348 (+6), e2e 15 (iki ekran geçici bir testle iki temada ve telefonda axe'ten
       geçti).
+92. **`v1.8.0`** (`chore/release-v1.8.0`, 2026-10-07): görsel düzeltmeler (90) ve fotoğraf alanı (91). git-cliff
+    `v1.8.0` önerdi (`feat`). Pipeline (Release #12): Checks (Web, API, E2E + ZAP), Package, kullanıcı veritabanı
+    yedeği alıp onayladı, Deploy; hepsi başarılı. Canlı `/api/health` `1.8.0+52d2aa4`; migration `UserQuota`
+    açılışta uygulandı (kota 300 MB ile başladı). Release notları `.notes/release-v1.8.0.md`, yayınlandı (latest
+    `v1.8.0`). Testler: API 396, client 348, e2e 15 (README rozeti 759). **Sürüm numarası** (kullanıcı sordu):
+    minör 1.9.0'dan sonra 1.10.0 olur; 2.0.0 sadece `feat!` / `BREAKING CHANGE` ile ya da bilinçli bir kararla
+    gelir. Öneri: 2.0.0 sosyal katmanın (yol haritası 13) ilk sürümüne; kullanıcı henüz karar vermedi.
 
 ## Yol haritası
 
@@ -1903,9 +1909,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** fotoğraf alanı (yol haritası 20, Tamamlananlar 91) bitti; `main`'e alınıp görsel
-düzeltmelerle (90) birlikte bir sonraki sürüme girer (yayında migration `UserQuota` açılışta uygulanır,
-onaydan önce veritabanı yedeği). Ondan sonra e-posta doğrulama (`v1.7.0` ile yayında, Tamamlananlar 88–89) üzerine **şifre sıfırlama**
+**Sıradaki iş:** fotoğraf alanı (yol haritası 20) ve görsel düzeltmeler `v1.8.0` ile yayında (Tamamlananlar
+90–92). Sıradaki, e-posta doğrulama (`v1.7.0` ile yayında, Tamamlananlar 88–89) üzerine **şifre sıfırlama**
 (kullanıcıyla kararlaştırıldı, 2026-10-07): ayrı branch `feat/password-reset`, aynı e-posta altyapısı; "şifremi
 unuttum" her adres için aynı cevabı verir (Açık konular 24), sıfırlama linki e-postayı da doğrulamış sayılabilir. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
