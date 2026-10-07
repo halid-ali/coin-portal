@@ -1,22 +1,24 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-06 (**`v1.6.0` yayında**: güvenlik testleri, yol haritası 19 bitti (Tamamlananlar
-79–87): CodeQL, yetki matrisi, kötüye kullanım testleri, CI'da ZAP, elle pentest; düzeltmeler: paylaşım linki
-büyük/küçük harf duyarlı (migration), her yerden çıkış, site izolasyonu başlıkları, genel JSON hata mesajları,
-kontrol karakteri kuralı. **E-posta doğrulama** (88, `feat/email-verification`, yayınlanmadı; yayından
-önce sunucuda SMTP ayarı gerekir). `v1.5.1` coin değer ikonları (77–78), `v1.5.0` herkese açık koleksiyon kuralı
+Son güncelleme: 2026-10-07 (**`v1.7.0` yayında**: e-posta doğrulama (Tamamlananlar 88–89): doğrulanmamış
+hesabın sınırları (paylaşım yok, tek koleksiyon, 20 coin) ve 30 günlük ömrü (hatırlatmalar), admin panelinde
+doğrulanmamış durumu, toplu silme, elle doğrulama ve mevcut hesaplara bir seferlik doğrulama e-postası; canlıda
+e-posta MonsterASP SMTP'sinden. `v1.6.0` güvenlik testleri, yol haritası 19 (79–87): CodeQL, yetki matrisi,
+kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonları (77–78), `v1.5.0` herkese açık koleksiyon kuralı
 (75–76). Önceki sürümler: `v1.4.0` yeni logo ve ana sayfa (72–74), `v1.3.0` P2 ve Angular 21.2.25 (66–71), P1
 `v1.1.0` ve `v1.2.0`'da (54–65). Kullanıcı başka görsel düzenlemeler de yapacak. Site: https://coinvitrine.com, site adı **CoinVitrine**, onaylı yayın pipeline'ı
 (Tamamlananlar 51–53). Proje GitHub'da public: https://github.com/halid-ali/coin-portal)
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket `v1.6.0` (2026-10-06), canlıda `v1.6.0`.
+- Durum: `main` güncel ve temiz; son etiket `v1.7.0` (2026-10-07), canlıda `v1.7.0`.
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.6.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
-  oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`).
+- Canlı site: https://coinvitrine.com (`v1.7.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+  oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`;
+  uygulamanın e-postaları da bu kutudan, MonsterASP SMTP'si `mail2248.mailasp.net:587` STARTTLS, ayarlar
+  sunucudaki `web.config`'te `Email__*`).
   **Yeni sürüm = etiket push'u:** Release workflow'u kontrol, paket ve onay bekleyen deploy'u çalıştırır
   ("Yayın (deploy) adımları"); sunucudaki `web.config` parolayı ve ayarları tutar, deploy ona dokunmaz.
 - API'yi (5080) ve `ng serve`'ü (4200) kullanıcı kendi terminallerinde çalıştırır; kural CLAUDE.md "Çalışan
@@ -1601,7 +1603,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     başarılı. Canlı `/api/health` `1.6.0+b408ab7`, `Cross-Origin-*` başlıkları canlıda. Migration
     `ShareTokenCaseSensitive` açılışta uygulandı. Release notları `.notes/release-v1.6.0.md`, yayınlandı
     (latest `v1.6.0`). Testler: API 354, client 319, e2e 12 (README rozeti 685).
-88. **E-posta doğrulama** (`feat/email-verification`, 2026-10-06; yol haritası 15'in e-posta kısmı, **yayınlanmadı**).
+88. **E-posta doğrulama** (`feat/email-verification`, 2026-10-06/07; yol haritası 15'in e-posta kısmı; `v1.7.0` ile yayında, 89).
     Kullanıcı kararları (2026-10-06): önce doğrulama, şifre sıfırlama ayrı ve sonraki iş; **paylaşmak için
     doğrulama şart** (giriş ve kendi koleksiyonları serbest); mevcut kullanıcılar doğrulanmamış başlar ama
     paylaşılmış koleksiyonları yerinde kalır (migration yok: kayıt hiç `EmailConfirmed` işaretlemiyordu,
@@ -1685,6 +1687,20 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
       (`.config/dotnet-tools.json`; NuGet'ten, kurulum ve yönetici yetkisi istemez; MailHog bakımsız, Mailpit
       GitHub'dan exe ister). Geliştirmede varsayılan (`appsettings.Development.json` → `localhost:2525`,
       `Security: None`), gelen kutusu http://localhost:5050; e2e `.eml` klasöründe kalır.
+89. **`v1.7.0`** (`chore/release-v1.7.0`, 2026-10-07): e-posta doğrulama ve doğrulanmamış hesaplar
+    (Tamamlananlar 88). Önce `feat/email-verification` kullanıcının gözden geçirmesiyle main'e alındı (28 commit).
+    **Sunucuda e-posta:** `web.config`'e `Email__SiteUrl=https://coinvitrine.com`, `Email__Smtp__Host=mail2248.mailasp.net`,
+    `Email__Smtp__UserName=contact@coinvitrine.com`, `Email__Smtp__Password` (kullanıcı girdi; port 587 ve
+    STARTTLS varsayılan). DNS: SPF (`v=spf1 a mx include:spf.mailasp.net ~all`), DKIM, DMARC (`p=none`) ve MX
+    Cloudflare'de yerinde; panelin "SPF: Needs DNS record / Manual DNS setup required" uyarısı harici DNS
+    yüzünden, kayıt panelin beklediğiyle aynı. git-cliff `v1.7.0` önerdi (`feat`). Pipeline (Release #11):
+    Checks (Web, API, E2E + ZAP), Package, kullanıcı veritabanı yedeği alıp onayladı, Deploy; hepsi başarılı.
+    Canlı `/api/health` `1.7.0+d382ec0`; üç migration (`UnverifiedMaxCoins`, `UnverifiedLifetime`,
+    `VerificationRequest`) açılışta uygulandı. Release notları `.notes/release-v1.7.0.md`, yayınlandı (latest
+    `v1.7.0`). **Yayın sonrası:** kullanıcı kendi hesabını bantla doğruladı (canlıda e-posta geldi, link
+    çalıştı) ve Genel bakış'tan bir seferlik doğrulama e-postasını gönderdi. Bütün mevcut hesaplar doğrulanmamış
+    başladı; ömür sayacı 2026-10-07'den (ilk silmeler en erken 2026-11-06). Testler: API 390, client 337, e2e 15
+    (README rozeti 742).
 
 ## Yol haritası
 
@@ -1828,8 +1844,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** e-posta doğrulama, doğrulanmamış hesabın sınırları, ömrü ve toplu silme yapıldı (Tamamlananlar
-88, yayınlanmadı); sıradaki şifre sıfırlama (aynı altyapı) ve yayın (önce sunucuda SMTP, "Yayın öncesi yapılacaklar"). Güvenlik testleri (yol haritası 19)
+**Sıradaki iş:** e-posta doğrulama `v1.7.0` ile yayında (Tamamlananlar 88–89); sıradaki **şifre sıfırlama**
+(kullanıcıyla kararlaştırıldı, 2026-10-07): ayrı branch `feat/password-reset`, aynı e-posta altyapısı; "şifremi
+unuttum" her adres için aynı cevabı verir (Açık konular 24), sıfırlama linki e-postayı da doğrulamış sayılabilir. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
 kullanım testleri~~ → ~~19d ZAP~~ → ~~19e elle tarama~~. Elle aktif ZAP taraması ve pentest ara sıra tekrarlanır.
 
@@ -2355,7 +2372,7 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
 - [x] Alan adı (2026-10-03): coinvitrine.com (Cloudflare), `www` ile birlikte HTTPS'li (Tamamlananlar 51).
 - [x] `contact@coinvitrine.com` kutusu ve e-posta DNS kayıtları (2026-10-03; SPF, DKIM, DMARC `PASS`,
       Tamamlananlar 51).
-- [ ] **E-posta doğrulamalı ilk yayından önce** (Tamamlananlar 88), sunucudaki `web.config`'e:
+- [x] **E-posta doğrulamalı ilk yayından önce** (Tamamlananlar 88; 2026-10-07 yapıldı, 89), sunucudaki `web.config`'e:
       `Email__SiteUrl=https://coinvitrine.com`, `Email__Smtp__Host` / `__Port` / `__UserName` /
       `__Password` (MonsterASP posta sunucusu, `contact@coinvitrine.com` kutusu; parola sadece sunucuda).
       Yoksa e-postalar sunucuda bir klasöre yazılır, kimse doğrulayamaz ve paylaşamaz (açılış logunda
