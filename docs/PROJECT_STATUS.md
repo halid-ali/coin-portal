@@ -1,6 +1,7 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-07 (**`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+Son güncelleme: 2026-10-09 (**Euro dışı coin'ler başladı** (yol haritası 18): kararlar alındı, önce Euro coin
+regresyon testleri yazıldı (Tamamlananlar 96); sıradaki adım ekran görüntüleri + mockup'lar. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -1810,6 +1811,20 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     API 420, client 369, e2e 18 (README rozeti 807). **Yayın sonrası denenecek:** gerçek bir e-postayla
     sıfırlama ve "parolan değişti" e-postası canlıda (SMTP), bilgisayarda gerçek klavyede Caps Lock notu,
     sonraki Let's Encrypt yenilemesi (`/.well-known/` altı artık 404; ACME'yi MonsterASP karşılıyor olmalı).
+96. **Euro coin regresyon testleri** (`chore/euro-regression-tests`, 2026-10-09; yol haritası 18'in ilk adımı,
+    kullanıcı kararı: Euro dışı coin'lerden önce bugünkü davranış sabitlenir). Sadece test, uygulama kodu değişmedi;
+    hepsi bugünkü kodda ilk denemede geçti. Liste ve kural ("değiştirilmez, yanına eklenir") yol haritası 18'de.
+    - API `EuroCoinTests` (+18): 8 nominal ve değer sırası, bilinmeyen nominal adı, 25 Euro ülkesi, Euro dışı
+          ülke reddi, 1999, eksik nominal/ülke/yıl anahtarları, güncellemede bütün alanlar, dört yerde coin
+          JSON'u (alt küme), herkese açık koleksiyonda düzenleme onaysız, herkese açık liste ve Keşfet'te
+          filtre/sıralama, dışa aktarmada bütün alanlar.
+    - Client (+10): coin formu (seçenekler ve sırası, yıl sınırları, önerilen başlık, yeni ve düzenlenen coin'in
+          istek gövdesi, yüz adları), koleksiyon sayfası (filtre seçenekleri, seçim URL'e ve isteğe, tablo hücreleri).
+    - E2E `coin-editing.spec.ts` (+1): bütün alanları düzenle, liste ve filtreler, sil.
+    - Yan bulgu (davranış değişmedi): filtre değişince tarayıcının iptal ettiği coin listesi isteği API logunda
+          `OperationCanceledException` ile "500" Error olarak yazılıyor (e2e logunda görüldü); kullanıcıya etkisi
+          yok, canlıda log gürültüsü. Ayrı küçük bir `fix/` işi olabilir, kullanıcıya soruldu.
+    - Testler: API 438, client 379, e2e 19 (hepsi geçti, axe dahil).
 
 ## Yol haritası
 
@@ -1879,6 +1894,45 @@ mağaza için TWA.
       yeri aynen, etiketler türe göre). **Diğer coin'de iki yüzün fotoğrafı zorunlu** (standart bir ortak yüz
       yok); bunun için sadece `Publishing/PublicationRules.IsPhotographed` değişir. Fotoğrafsız diğer coin'in
       yer tutucusu bugünkü genel çizim (`CoinPlaceholder`).
+  - **Kararlar** (kullanıcı 2026-10-09'da önerileri kabul etti): coin'de `Kind` (`Euro` / `Other`; mevcutlar
+        `Euro`). Diğer coin: değer ondalıklı sayı (1/2 penny = 0,5) + para birimi serbest metin (yazarken
+        kullanıcının önceki girdileri önerilir; ISO listesi eski birimleri karşılamıyor). Ülkeler: `Countries`
+        bütün ISO ülkeleriyle genişler + "Euro ülkesi" işareti (Euro coin'de sadece 25'i); tarihî ülkeler
+        (SU, DD, YU, CS; `Intl.DisplayNames` adlarını biliyor) listede, Osmanlı gibi kodu olmayanlar kapsam dışı.
+        Yıl diğer coin'de de zorunlu, 1 ile gelecek yıl arası (tahmini yıl/dönem ve M.Ö. kapsam dışı). Hatıra
+        işareti diğer coin'de de var. Coin'in türünü düzenlemede değiştirmek `PublicationGuard`'dan geçer.
+        Koleksiyon sayfasında "Tür" filtresi; nominal sıralaması önce Euro (sent), sonra diğerleri para birimi
+        + değer; ülke filtresi sadece koleksiyonda olan ülkeler.
+  - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +
+        mockup'lar (iki tema, telefon) → `feat/non-euro-coins` (API, client, e2e; küçük commit'ler) → `v1.10.0`
+        (migration: onaydan önce veritabanı yedeği).
+  - **Regresyon test planı** (kullanıcı kararı 2026-10-09: önce bugünkü Euro davranışı testlere sabitlenir).
+        Kural: `chore/euro-regression-tests` sadece test ekler, bugünkü kodda geçer ve özellikten önce main'e
+        girer. Özellik branch'inde bu testler **değiştirilmez**, yanına yenisi eklenir; değişmesi gerekirse
+        (ör. yanıta yeni alan) kullanıcıya gerekçesiyle söylenir. Mevcut kapsam (değişmeden kalacak):
+        `CoinsTests` (Euro dışı ülke ve 1998 reddi, sütun başına sıralama + eşitlik kuralları, filtreler, özet),
+        `PublicationTests` (ortak yüz tek başına sayılmaz, sadece ortak yüzüyle eklenen coin onay ister,
+        guard'lar), `AccountTests` (dışa aktarma),
+        `coin-format.spec` (önerilen başlık), `coin-thumb` / `photo-viewer` (değer ikonu), e2e `golden-path`
+        (ekle + fotoğraf + sırala + filtrele), `publishing`. Eklenecekler:
+    - API (`tests/api/EuroCoinTests.cs`, tek dosya: "Euro coin'in değişmeyecek davranışı"): 8 nominalin
+          her biri kabul edilir ve adıyla döner, listede olmayan ad (`Cent3`) reddedilir; 25 Euro ülkesinin her
+          biri kabul edilir, `TR`/`US`/`GB`/`CH` reddedilir; 1999 kabul; nominal, ülke ya da yıl eksikse 400 ve
+          alanın anahtarı; güncelleme her alanı değiştirir ve okuma onları döner; yanıt JSON'unda client'ın
+          okuduğu alan adları ve değerleri (sahip listesi ve tekil, herkese açık koleksiyon, Keşfet; alt küme
+          olarak, yeni alan eklemek kırmaz); herkese açık koleksiyonda fotoğraflı coin'in alanlarını değiştirmek
+          onay istemez; herkese açık listede ve Keşfet'te nominal/ülke filtresi ve nominal sıralaması; dışa
+          aktarmada coin'in bütün alanları. **Uyumluluk:** bu testler `kind` göndermez; yani `kind`'sız istek
+          Euro coin sayılmalı (yayından sonra eski client'ı açık kalan sekmeler de böyle gönderir).
+    - Client: coin formu (8 nominal değer sırasıyla, ülkeler servisten, yıl 1999 ile gelecek yıl arası,
+          önerilen başlık sadece yeni coin'de ve kullanıcı başlığa dokunana kadar, yeni coin'in ve düzenlenen
+          coin'in tam istek gövdesi, yüz adları "Ulusal / Ortak yüz"); koleksiyon sayfası (nominal ve ülke
+          filtre seçenekleri, seçim URL'e; tabloda nominal etiketi, ülke adı, yıl).
+    - E2E (`coin-editing.spec.ts`): coin düzenleme ve silme akışı (düzenlenen alanlar listede görünür,
+          filtreler yeni değerlerle bulur).
+    - Elle (testle yakalanamayan): migration dev veritabanının bir kopyasında, öncesi/sonrası sorgu
+          karşılaştırması + paketteki `migrate.sql` gözden geçirilir; önemli sayfaların ekran görüntüleri
+          (tablo, kart, ızgara, form; iki tema, telefon) değişiklikten önce ve sonra karşılaştırılır.
 - [ ] 19. **Güvenlik testleri** (kullanıcı 2026-10-06'da ekletti; `v1.5.1`'den sonraki sürümün gündemi). Amaç bir
       kerelik pentest değil, açıkların bir daha açılmamasını sağlayan kalıcı testler + otomatik tarama. Sıra:
   - [x] 19a. CodeQL "Default setup" (2026-10-06, kullanıcı açtı; C#, TypeScript, Actions; bulgular
@@ -1969,7 +2023,9 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş:** kullanıcıyla seçilir. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
+**Sıradaki iş: Euro dışı coin'ler** (yol haritası 18; kararlar, sıra ve regresyon planı orada). Regresyon testleri
+bitti (Tamamlananlar 96); sıradaki adım değişiklikten önceki ekran görüntüleri ve yeni ekranların mockup'ları (PNG,
+iki tema, telefon), sonra `feat/non-euro-coins`. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
 (Tamamlananlar 93–95). Parola tarafında ileriye bırakılanlar: sızdırılmış parola kontrolü (Have I Been Pwned; dış
 servis, gizlilik metni) ve uzunluğa dayalı parola kuralları. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
