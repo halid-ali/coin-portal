@@ -944,7 +944,9 @@
                       <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
                         {{ coin.title }}
                       </td>
-                      <td class="truncate px-3 py-3">{{ valueLabel(coin) }}</td>
+                      <td class="truncate px-3 py-3" [title]="valueLabel(coin)">
+                        {{ valueLabel(coin) }}
+                      </td>
                       <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
                         {{ countryName(coin.countryCode) }}
                       </td>
