@@ -113,7 +113,7 @@
     "welcome": "Hoş geldin, {{name}}!",
     "registerFree": "Ücretsiz kayıt ol",
     "browseCollectors": "Herkese açık koleksiyonları keşfet",
-    "eyebrow": "Euro coin koleksiyonu için",
+    "eyebrow": "Coin koleksiyonu için",
     "title": "Koleksiyonun, cebindeki vitrinde.",
     "intro": "Coin'lerini fotoğraflarıyla kaydet, bir coin'in sende olup olmadığını saniyeler içinde kontrol et, koleksiyonunu tek linkle paylaş.",
     "trust": {
@@ -784,7 +784,7 @@
     "intro": "Bu şartlar CoinVitrine sitesini kullanırken uyulacak kuralları anlatır. Kayıt olarak bunları kabul etmiş olursun. Kişisel verilerinin nasıl işlendiği gizlilik politikasında anlatılır.",
     "service": {
       "title": "Hizmet",
-      "p1": "CoinVitrine, Euro coin koleksiyonunu kaydetmek, fotoğraflamak ve istersen paylaşmak için ticari olmayan, ücretsiz bir hobi sitesidir. Site olduğu gibi sunulur: kesintisiz çalışacağı ya da verilerin hiç kaybolmayacağı garanti edilmez. Senin için önemli veriler için Ayarlar > Hesap'taki dışa aktarmayı kullan."
+      "p1": "CoinVitrine, coin koleksiyonunu (Euro ve diğer coin'ler) kaydetmek, fotoğraflamak ve istersen paylaşmak için ticari olmayan, ücretsiz bir hobi sitesidir. Site olduğu gibi sunulur: kesintisiz çalışacağı ya da verilerin hiç kaybolmayacağı garanti edilmez. Senin için önemli veriler için Ayarlar > Hesap'taki dışa aktarmayı kullan."
     },
     "account": {
       "title": "Hesabın",

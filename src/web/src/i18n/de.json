@@ -113,7 +113,7 @@
     "welcome": "Willkommen, {{name}}!",
     "registerFree": "Kostenlos registrieren",
     "browseCollectors": "Öffentliche Sammlungen entdecken",
-    "eyebrow": "Für Euro-Münzsammler",
+    "eyebrow": "Für Münzsammler",
     "title": "Deine Sammlung als Vitrine für die Hosentasche.",
     "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine Münze schon hast, und teile deine Sammlung mit einem einzigen Link.",
     "trust": {
@@ -784,7 +784,7 @@
     "intro": "Diese Bedingungen regeln die Nutzung von CoinVitrine. Mit der Registrierung akzeptierst du sie. Wie deine personenbezogenen Daten verarbeitet werden, erklärt die Datenschutzerklärung.",
     "service": {
       "title": "Der Dienst",
-      "p1": "CoinVitrine ist eine kostenlose, nicht kommerzielle Hobby-Website, um deine Euro-Münzsammlung zu erfassen, zu fotografieren und auf Wunsch zu teilen. Die Website wird so bereitgestellt, wie sie ist: Es gibt keine Garantie für einen unterbrechungsfreien Betrieb oder dafür, dass nie Daten verloren gehen. Für Daten, die dir wichtig sind, nutze den Export unter Einstellungen > Konto."
+      "p1": "CoinVitrine ist eine kostenlose, nicht kommerzielle Hobby-Website, um deine Münzsammlung (Euro- und andere Münzen) zu erfassen, zu fotografieren und auf Wunsch zu teilen. Die Website wird so bereitgestellt, wie sie ist: Es gibt keine Garantie für einen unterbrechungsfreien Betrieb oder dafür, dass nie Daten verloren gehen. Für Daten, die dir wichtig sind, nutze den Export unter Einstellungen > Konto."
     },
     "account": {
       "title": "Dein Konto",

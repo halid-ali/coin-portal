@@ -113,7 +113,7 @@
     "welcome": "Welcome, {{name}}!",
     "registerFree": "Sign up for free",
     "browseCollectors": "Explore public collections",
-    "eyebrow": "For euro coin collectors",
+    "eyebrow": "For coin collectors",
     "title": "Your collection, a showcase in your pocket.",
     "intro": "Record your coins with photos, check in seconds whether you already have a coin, and share your collection with a single link.",
     "trust": {
@@ -784,7 +784,7 @@
     "intro": "These terms set out the rules for using CoinVitrine. By signing up you accept them. How your personal data is processed is explained in the privacy policy.",
     "service": {
       "title": "The service",
-      "p1": "CoinVitrine is a free, non-commercial hobby site for recording, photographing and, if you like, sharing your euro coin collection. The site is provided as is: there is no guarantee that it runs without interruption or that data is never lost. For data that matters to you, use the export in Settings > Account."
+      "p1": "CoinVitrine is a free, non-commercial hobby site for recording, photographing and, if you like, sharing your coin collection (euro and other coins). The site is provided as is: there is no guarantee that it runs without interruption or that data is never lost. For data that matters to you, use the export in Settings > Account."
     },
     "account": {
       "title": "Your account",
