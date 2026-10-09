@@ -95,6 +95,27 @@ describe('CoinForm', () => {
   const form = () => harness.routeDebugElement!.componentInstance as CoinForm;
   const internals = () => form() as unknown as CoinFormInternals;
   const submit = () => page().querySelector('form')!.dispatchEvent(new Event('submit'));
+  const countryBox = () => page().querySelector<HTMLInputElement>('#countryCode')!;
+  async function countryKey(key: string): Promise<void> {
+    countryBox().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    await harness.fixture.whenStable();
+  }
+  /** The country list as it opens (closed again afterwards). */
+  async function countryNames(): Promise<string[]> {
+    countryBox().click();
+    await harness.fixture.whenStable();
+    const names = [...page().querySelectorAll('[role=option]')].map((o) => o.textContent!.trim());
+    await countryKey('Escape');
+    return names;
+  }
+  /** Types the name into the country box and picks the first match. */
+  async function chooseCountry(name: string): Promise<void> {
+    countryBox().focus();
+    countryBox().value = name;
+    countryBox().dispatchEvent(new Event('input'));
+    await harness.fixture.whenStable();
+    await countryKey('Enter');
+  }
 
   async function open(path: string, edited?: Coin, countries: string[] = ['DE']): Promise<void> {
     await harness.navigateByUrl(path);
@@ -157,12 +178,9 @@ describe('CoinForm', () => {
         ['Cent2', '2 cent'],
         ['Cent1', '1 cent'],
       ]);
-      expect(options('countryCode')).toEqual([
-        ['', 'Seç…'],
-        ['DE', 'Almanya'],
-        ['AT', 'Avusturya'],
-        ['BE', 'Belçika'],
-      ]);
+      // A list to type in since 2026-10-09 (was a select with these options and "Seç…" first)
+      expect(countryBox().placeholder).toBe('Seç…');
+      expect(await countryNames()).toEqual(['Almanya', 'Avusturya', 'Belçika']);
     });
 
     it('takes a year from 1999 up to next year', async () => {
@@ -245,7 +263,8 @@ describe('CoinForm', () => {
       await open('/coins/1/edit', edited);
 
       expect(control('denomination').value).toBe('Euro2');
-      expect(control('countryCode').value).toBe('DE');
+      expect(form()['form'].controls.countryCode.value).toBe('DE');
+      expect(control('countryCode').value).toBe('Almanya');
       expect(control('year').value).toBe('2006');
       submit();
 
@@ -277,8 +296,6 @@ describe('CoinForm', () => {
 
   describe('an other coin', () => {
     const control = (id: string) => page().querySelector<HTMLInputElement>(`#${id}`)!;
-    const options = (id: string) =>
-      [...control(id).querySelectorAll('option')].map((o) => o.textContent!.trim());
     const type = async (id: string, value: string) => {
       const input = control(id);
       input.value = value;
@@ -312,7 +329,7 @@ describe('CoinForm', () => {
 
     it('offers its own fields, every country and the currencies used so far', async () => {
       await openNew();
-      expect(options('countryCode')).toEqual(['Seç…', 'Almanya']);
+      expect(await countryNames()).toEqual(['Almanya']);
       // No suggestions asked for a euro coin
       http.expectNone('/api/coins/facets');
 
@@ -321,7 +338,7 @@ describe('CoinForm', () => {
       await harness.fixture.whenStable();
 
       expect(page().querySelector('#denomination')).toBeNull();
-      expect(options('countryCode')).toEqual(['Seç…', 'Almanya', 'Türkiye']);
+      expect(await countryNames()).toEqual(['Almanya', 'Türkiye']);
       expect(
         [...page().querySelectorAll('#currency-suggestions option')].map((o) =>
           o.getAttribute('value'),
@@ -341,7 +358,7 @@ describe('CoinForm', () => {
 
       await type('faceValue', '0,5');
       await type('currency', ' penny ');
-      await type('countryCode', 'TR');
+      await chooseCountry('Tür');
       await type('year', '1975');
       expect(control('title').value).toBe('0,5 penny · Türkiye · 1975');
 
@@ -381,12 +398,12 @@ describe('CoinForm', () => {
       await openNew();
       await chooseKind('Diğer coin');
       currencies([]);
-      await type('countryCode', 'TR');
+      await chooseCountry('Tür');
 
       await chooseKind('Euro coin');
 
-      expect(control('countryCode').value).toBe('');
-      expect(options('countryCode')).toEqual(['Seç…', 'Almanya']);
+      expect(form()['form'].controls.countryCode.value).toBe('');
+      expect(await countryNames()).toEqual(['Almanya']);
     });
 
     it('loads an edited coin with its value in the language and sends it back', async () => {

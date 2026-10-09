@@ -51,6 +51,8 @@ import { ImageChange } from '../../shared/image-change';
 import { DISCARD_CHANGES_STATE, HasUnsavedChanges } from '../../shared/unsaved-changes';
 import { UNPUBLISH_DECLINED, UnpublishConfirm } from '../../shared/unpublish-confirm';
 import { PhotoSlot } from './photo-slot';
+import { Combobox } from '../../shared/combobox/combobox';
+import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
 @Component({
@@ -63,6 +65,7 @@ import { PhotoSlot } from './photo-slot';
     Breadcrumbs,
     PhotoSlot,
     PhotoViewer,
+    Combobox,
   ],
   templateUrl: './coin-form.html',
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
@@ -219,6 +222,9 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   /** Euro coins come from the euro issuers, other coins from any country. */
   protected readonly countries = computed(() =>
     this.kind() === 'Other' ? this.countryService.countries() : this.countryService.euroCountries(),
+  );
+  protected readonly countryOptions = computed<ComboboxOption[]>(() =>
+    this.countries().map((c) => ({ value: c.code, label: c.name })),
   );
   protected readonly minYear = computed(() =>
     this.kind() === 'Other' ? COIN_LIMITS.otherMinYear : COIN_LIMITS.minYear,

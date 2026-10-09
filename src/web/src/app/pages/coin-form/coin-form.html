@@ -190,17 +190,14 @@
 
         <div>
           <label for="countryCode" class="form-label">{{ 'coin.field.country' | transloco }}</label>
-          <select
-            id="countryCode"
+          <app-combobox
+            inputId="countryCode"
             formControlName="countryCode"
-            appField
-            class="form-input sm:max-w-sm"
-          >
-            <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-            @for (c of countries(); track c.code) {
-              <option [value]="c.code">{{ c.name }}</option>
-            }
-          </select>
+            class="sm:max-w-sm"
+            [options]="countryOptions()"
+            [label]="'coin.field.country' | transloco"
+            [placeholder]="'common.choose' | transloco"
+          />
           @if (errorMessage(form.controls.countryCode); as msg) {
             <p id="countryCode-error" class="form-error">{{ msg }}</p>
           } @else {
@@ -230,12 +227,13 @@
             <label for="countryCode" class="form-label">{{
               'coin.field.country' | transloco
             }}</label>
-            <select id="countryCode" formControlName="countryCode" appField class="form-input">
-              <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-              @for (c of countries(); track c.code) {
-                <option [value]="c.code">{{ c.name }}</option>
-              }
-            </select>
+            <app-combobox
+              inputId="countryCode"
+              formControlName="countryCode"
+              [options]="countryOptions()"
+              [label]="'coin.field.country' | transloco"
+              [placeholder]="'common.choose' | transloco"
+            />
             @if (errorMessage(form.controls.countryCode); as msg) {
               <p id="countryCode-error" class="form-error">{{ msg }}</p>
             }

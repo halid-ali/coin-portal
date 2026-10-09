@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectAccessible } from '../support/axe';
+import { chooseOption } from '../support/combobox';
 import { TestUser } from '../support/users';
 
 // A coin other than a euro coin (roadmap 18): added in the form with its value and currency, found
@@ -16,7 +17,15 @@ test('a user adds an other coin and finds it with the kind buttons', async ({ br
   await page.getByRole('radio', { name: /^Other coin/ }).check();
   await page.getByLabel('Value').fill('0.5');
   await page.getByLabel('Currency').fill('penny');
-  await page.getByLabel('Country').selectOption('GB');
+  // The country list: typing filters it, names starting with the text first
+  const country = page.getByRole('combobox', { name: 'Country', exact: true });
+  const countries = page.getByRole('listbox', { name: 'Country', exact: true }).getByRole('option');
+  await country.fill('king');
+  await expect(countries).toHaveText(['United Kingdom']);
+  await country.fill('united');
+  await expect(countries.first()).toHaveText('United Arab Emirates');
+  await expectAccessible(page, 'coin form with the country list open');
+  await page.getByRole('option', { name: 'United Kingdom', exact: true }).click();
   await page.getByLabel('Year').fill('1967');
   await expect(page.getByLabel('Title')).toHaveValue('0.5 penny · United Kingdom · 1967');
   await expect(page.getByText('Front', { exact: true })).toBeVisible();

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectAccessible } from '../support/axe';
+import { chooseOption } from '../support/combobox';
 import { TestUser } from '../support/users';
 
 // A euro coin from the list to the form and back: every field is changed, the list shows the new
@@ -20,7 +21,7 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
 
   // The saved values, and the title is no longer suggested
   await expect(page.getByLabel('Denomination')).toHaveValue('Euro2');
-  await expect(page.getByLabel('Country')).toHaveValue('DE');
+  await expect(page.getByLabel('Country')).toHaveValue('Germany');
   await expect(page.getByLabel('Year')).toHaveValue('2006');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');
   await expect(page.getByText('National side', { exact: true })).toBeVisible();
@@ -28,7 +29,7 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await expectAccessible(page, 'coin edit form');
 
   await page.getByLabel('Denomination').selectOption({ label: '10 cent' });
-  await page.getByLabel('Country').selectOption('AT');
+  await chooseOption(page, 'Country', 'Austria');
   await page.getByLabel('Year').fill('2002');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');
   await page.getByLabel('Title').fill('Mozart');
