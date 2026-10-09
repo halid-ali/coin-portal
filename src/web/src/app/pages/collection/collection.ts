@@ -12,6 +12,8 @@ import {
   COIN_LIMITS,
   COIN_SORT_COLUMNS,
   Coin,
+  CoinFacets,
+  CoinKind,
   CoinListQuery,
   CoinSortColumn,
   DEFAULT_PAGE_SIZE,
@@ -55,6 +57,14 @@ import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge'
 import { CollectionDeleteDialog } from '../collections/collection-delete-dialog';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { toInt, toPageSize, toPhotographed } from './collection-url';
+import {
+  CURRENCY_OPTION,
+  nominalOptions,
+  nominalSelection,
+  showKinds,
+  toKind,
+} from './coin-filters';
+import { cachedIntl } from '../../core/i18n/intl-cache';
 import { CollectionView, ViewToggle } from './view-toggle';
 
 /**
@@ -178,7 +188,11 @@ export class Collection {
   protected readonly collectors = signal<Collector[]>([]);
 
   // Query params, bound by withComponentInputBinding(); the URL is the single source of truth
+  /** "Euro" or "Other" (the kind buttons); missing means every kind. */
+  readonly kind = input(undefined, { transform: firstQueryParam });
   readonly denomination = input(undefined, { transform: firstQueryParam });
+  /** Other coins in this currency (the denomination select's other half). */
+  readonly currency = input(undefined, { transform: firstQueryParam });
   readonly countryCode = input(undefined, { transform: firstQueryParam });
   readonly year = input(undefined, { transform: firstQueryParam });
   readonly isCommemorative = input(undefined, { transform: firstQueryParam });
@@ -251,7 +265,33 @@ export class Collection {
     this.mode() === 'explore' ? PAGE_SIZE_OPTIONS.filter((size) => size !== 0) : PAGE_SIZE_OPTIONS,
   );
   protected readonly countries = this.countryService.countries;
-  protected readonly minYear = COIN_LIMITS.minYear;
+  /** The year filter takes every coin's year (other coins are older than the euro). */
+  protected readonly minYear = COIN_LIMITS.otherMinYear;
+
+  /** Kinds, currencies and countries of this list (null while loading or when it failed). */
+  protected readonly facets = signal<CoinFacets | null>(null);
+  protected readonly showKinds = computed(() => showKinds(this.facets()));
+  protected readonly kinds: readonly (CoinKind | null)[] = [null, 'Euro', 'Other'];
+  protected readonly nominal = computed(() =>
+    nominalOptions(this.query().kind, this.facets(), this.query().currency),
+  );
+  protected readonly currencyOption = CURRENCY_OPTION;
+  /**
+   * Only the countries the list has (of the chosen kind), sorted by name; until the facets are
+   * there, every country (the euro issuers for euro coins). A country in the URL stays offered.
+   */
+  protected readonly countryOptions = computed(() => {
+    const facets = this.facets();
+    const { kind, countryCode } = this.query();
+    if (!facets) {
+      return kind === 'Euro' ? this.countryService.euroCountries() : this.countries();
+    }
+    const codes = new Set(facets.countryCodes);
+    if (countryCode) {
+      codes.add(countryCode);
+    }
+    return this.countries().filter((c) => codes.has(c.code));
+  });
   protected readonly maxYear = maxCoinYear();
   protected readonly denominationLabel = denominationLabel;
 
@@ -262,10 +302,14 @@ export class Collection {
     const denomination = this.denomination();
     const commemorative = this.isCommemorative();
     const { sort, dir } = this.sortState();
+    const kind = toKind(this.kind());
     return {
       collectionId: this.mode() === 'owner' ? this.collectionIdNumber() : undefined,
       owner: this.mode() === 'explore' ? this.owner()?.trim() || undefined : undefined,
-      denomination: isDenomination(denomination) ? denomination : undefined,
+      kind,
+      // Only euro coins have a denomination, only other coins a currency
+      denomination: kind !== 'Other' && isDenomination(denomination) ? denomination : undefined,
+      currency: kind !== 'Euro' ? this.currency()?.trim() || undefined : undefined,
       countryCode: this.countryCode() || undefined,
       year: toInt(this.year()),
       isCommemorative:
@@ -302,7 +346,9 @@ export class Collection {
   protected readonly hasFilters = computed(() => {
     const q = this.query();
     return !!(
+      q.kind ||
       q.denomination ||
+      q.currency ||
       q.countryCode ||
       q.year ||
       q.isCommemorative !== undefined ||
@@ -318,7 +364,7 @@ export class Collection {
   protected readonly foldedFilterCount = computed(() => {
     const q = this.query();
     return [
-      q.denomination,
+      q.denomination ?? q.currency,
       q.countryCode,
       q.year,
       q.isCommemorative,
@@ -395,6 +441,27 @@ export class Collection {
         takeUntilDestroyed(),
       )
       .subscribe();
+
+    // Kinds, currencies and countries for the filters: per list and kind (the other filters do
+    // not change them)
+    toObservable(
+      computed(
+        () =>
+          [
+            this.mode(),
+            this.collectionIdNumber(),
+            this.token(),
+            this.query().owner,
+            this.query().kind,
+          ] as const,
+      ),
+    )
+      .pipe(
+        tap(() => this.facets.set(null)),
+        switchMap(() => this.loadFacets().pipe(catchError(() => of(null)))),
+        takeUntilDestroyed(),
+      )
+      .subscribe((facets) => this.facets.set(facets));
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
     toObservable(this.listQuery)
@@ -497,6 +564,50 @@ export class Collection {
       case 'explore':
         return this.publicService.explore(query);
     }
+  }
+
+  private loadFacets(): Observable<CoinFacets> {
+    const { kind, owner } = this.query();
+    switch (this.mode()) {
+      case 'owner':
+        return this.coinService.facets({ collectionId: this.collectionIdNumber(), kind });
+      case 'public':
+        return this.publicService.collectionFacets(this.collectionIdNumber(), kind);
+      case 'shared':
+        return this.publicService.sharedFacets(this.token() ?? '', kind);
+      case 'explore':
+        return this.publicService.exploreFacets(owner, kind);
+    }
+  }
+
+  /** A kind button: the denomination, currency and country of the other kind would find nothing. */
+  protected setKind(kind: CoinKind | null): void {
+    if (kind === (this.query().kind ?? null)) {
+      return;
+    }
+    this.setFilters({ kind, denomination: null, currency: null, countryCode: null });
+  }
+
+  protected setNominal(value: string): void {
+    this.setFilters(nominalSelection(value));
+  }
+
+  /** A kind's coins on its button, in the language's number format ("1.240"). */
+  protected kindCount(kind: CoinKind | null): number | null {
+    const facets = this.facets();
+    if (!facets) {
+      return null;
+    }
+    return kind === 'Euro'
+      ? facets.euroCount
+      : kind === 'Other'
+        ? facets.otherCount
+        : facets.euroCount + facets.otherCount;
+  }
+
+  protected formatCount(count: number): string {
+    const lang = this.language.current();
+    return cachedIntl(`count|${lang}`, () => new Intl.NumberFormat(lang)).format(count);
   }
 
   private setOwnCollection(collection: CoinCollection): void {

@@ -3,9 +3,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Collection } from './collection.models';
 
 /**
- * Where a collection stands against the rule of public collections (API: PublicationRules: a
- * national side photo of every coin and at least `minPublicCoins` such coins, counted in coin
- * rows). The API decides (`canBePublic`); the counts only say what is missing.
+ * Where a collection stands against the rule of public collections (API: PublicationRules: the
+ * photos of every coin, a euro coin's national side and both sides of an other coin, and at least
+ * `minPublicCoins` such coins, counted in coin rows). The API decides (`canBePublic`); the counts
+ * only say what is missing.
  */
 export interface PublicationProgress {
   photographed: number;

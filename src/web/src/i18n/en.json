@@ -404,8 +404,14 @@
     "addFirstCoin": "Add your first coin",
     "noPublicCollections": "There are no public collections yet.",
     "photoFilter": "Photo",
-    "photoMissing": "National side missing",
-    "photoComplete": "National side present"
+    "photoMissing": "Missing photos",
+    "photoComplete": "Photos complete",
+    "kinds": {
+      "label": "Coin type",
+      "all": "All",
+      "Euro": "Euro",
+      "Other": "Other"
+    }
   },
   "coinForm": {
     "titleNew": "Add coin",
@@ -563,8 +569,8 @@
     "notReadyTitle": "To publish your collection",
     "progress": "{{photographed}}/{{required}} coins with photos",
     "missing": {
-      "one": "{{count}} coin is missing its national side",
-      "other": "{{count}} coins are missing their national side"
+      "one": "{{count}} coin is missing its photo",
+      "other": "{{count}} coins are missing photos"
     },
     "shareByLinkMeanwhile": "Meanwhile, you can share it by link.",
     "readyTitle": "Your collection is ready for the showcase",
@@ -576,13 +582,13 @@
       "message": "Once the collection is public, its current share link stops working. The collection opens at its public address and appears on your profile and in Explore."
     },
     "needs": "Not available yet:",
-    "needsNew": "Not available yet: create the collection first and add coins with a national side photo.",
-    "requirementsNotMet": "The collection cannot be public yet: every coin needs a national side photo, and enough coins need one. The numbers have been updated.",
+    "needsNew": "Not available yet: create the collection first and add coins with photos.",
+    "requirementsNotMet": "The collection cannot be public yet: every coin needs its photos (a euro coin its national side, other coins both sides), and enough coins need them. The numbers have been updated.",
     "moveUnpublishes": {
-      "one": "\"{{name}}\" is public, and {{count}} coin here has no national side photo: moving it makes \"{{name}}\" link only.",
-      "other": "\"{{name}}\" is public, and {{count}} coins here have no national side photo: moving them makes \"{{name}}\" link only."
+      "one": "\"{{name}}\" is public, and {{count}} coin here is missing photos: moving it makes \"{{name}}\" link only.",
+      "other": "\"{{name}}\" is public, and {{count}} coins here are missing photos: moving them makes \"{{name}}\" link only."
     },
-    "moveUnpublishesSome": "\"{{name}}\" is public, and some of the coins here have no national side photo: moving them makes \"{{name}}\" link only.",
+    "moveUnpublishesSome": "\"{{name}}\" is public, and some of the coins here are missing photos: moving them makes \"{{name}}\" link only.",
     "unpublish": {
       "title": {
         "one": "The collection will no longer be public",
@@ -594,7 +600,7 @@
       },
       "quoted": "\"{{name}}\"",
       "confirm": "Continue",
-      "photoKept": "The national side photo was not deleted; the collection stays public."
+      "photoKept": "The photo was not deleted; the collection stays public."
     },
     "emailNeeded": "Confirm your email address to make it public."
   },
@@ -787,7 +793,7 @@
     "content": {
       "title": "Your content",
       "p1": "Your collections, coin details and photos remain yours. When you share a collection, you allow the site to show it with its photos for as long as you share it. Only upload photos you took yourself or have the right to use.",
-      "p2": "In a public collection, every coin must have a photo of its national side, and the collection must hold at least the number of such coins set by the administrators. If a change would break this, you are asked first; if you confirm, the collection is shared by link only."
+      "p2": "In a public collection, every coin must have its photos (a euro coin its national side, other coins both sides), and the collection must hold at least the number of such coins set by the administrators. If a change would break this, you are asked first; if you confirm, the collection is shared by link only."
     },
     "rules": {
       "title": "What is not allowed",

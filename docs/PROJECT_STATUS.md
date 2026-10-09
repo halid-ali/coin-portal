@@ -1942,7 +1942,14 @@ mağaza için TWA.
         `kindControl` + `otherForm`, Euro isteği eskisi gibi türsüz; para birimi önerileri ilk diğer coin'de
         `api/coins/facets`'ten; değer "0,5" ya da "0.5", `face-value.ts`; e2e sitesinde iki temada, masaüstü ve
         telefonda görsel kontrol edildi; regresyon testinde sadece `open()` yardımcısının ülke sahtesine
-        `euroIssuer: true` eklendi) → 5. koleksiyon sayfası
+        `euroIssuer: true` eklendi) → ~~5. koleksiyon sayfası ve Keşfet~~ (URL `kind`, `currency`; özet her liste
+        ve tür için ayrı istek, `coin-filters.ts`; düğmeler sayılı, iki tür varsa; Nominal'de iki tür varsa
+        "Euro coin" / "Diğer coin" grupları, para birimi değeri `currency:` önekli; ülke filtresi özetin ülkeleri,
+        özet gelene kadar bütün ülkeler; yıl filtresi 1'den. API'de `countryOrder` sınırı 300 → 1000 (253 ülke 758
+        karakter; `AbuseTests` uzunluk testi yeni sınıra göre). "Ulusal yüz" diyen yayın kuralı metinleri
+        "fotoğraf" olarak genelleşti (bant, filtre, taşıma uyarıları, şartlar `TERMS_UPDATED` 2026-10-09, admin
+        ayar açıklaması); bu metinleri bekleyen testler ve e2e `publishing` güncellendi. e2e sitesinde iki temada
+        görsel kontrol edildi) → 5. koleksiyon sayfası
         ve Keşfet → seed → e2e → belgeler. Regresyon testlerinde tek değişiklik: `EuroCoinTests` güncelleme testinde
         `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +

@@ -404,8 +404,14 @@
     "addFirstCoin": "Erste Münze hinzufügen",
     "noPublicCollections": "Es gibt noch keine öffentlichen Sammlungen.",
     "photoFilter": "Foto",
-    "photoMissing": "Nationale Seite fehlt",
-    "photoComplete": "Nationale Seite vorhanden"
+    "photoMissing": "Fotos fehlen",
+    "photoComplete": "Fotos vollständig",
+    "kinds": {
+      "label": "Münzart",
+      "all": "Alle",
+      "Euro": "Euro",
+      "Other": "Andere"
+    }
   },
   "coinForm": {
     "titleNew": "Münze hinzufügen",
@@ -563,8 +569,8 @@
     "notReadyTitle": "Um deine Sammlung zu veröffentlichen",
     "progress": "{{photographed}}/{{required}} Münzen mit Foto",
     "missing": {
-      "one": "Bei {{count}} Münze fehlt die nationale Seite",
-      "other": "Bei {{count}} Münzen fehlt die nationale Seite"
+      "one": "Bei {{count}} Münze fehlt ein Foto",
+      "other": "Bei {{count}} Münzen fehlen Fotos"
     },
     "shareByLinkMeanwhile": "Bis dahin kannst du sie per Link teilen.",
     "readyTitle": "Deine Sammlung ist bereit für die Vitrine",
@@ -576,13 +582,13 @@
       "message": "Sobald die Sammlung öffentlich ist, funktioniert ihr aktueller Freigabelink nicht mehr. Die Sammlung ist dann unter ihrer öffentlichen Adresse erreichbar und erscheint in deinem Profil und in „Entdecken“."
     },
     "needs": "Noch nicht möglich:",
-    "needsNew": "Noch nicht möglich: Lege die Sammlung zuerst an und füge Münzen mit einem Foto der nationalen Seite hinzu.",
-    "requirementsNotMet": "Die Sammlung kann noch nicht öffentlich werden: Jede Münze braucht ein Foto der nationalen Seite, und es braucht genug solche Münzen. Die Zahlen wurden aktualisiert.",
+    "needsNew": "Noch nicht möglich: Lege die Sammlung zuerst an und füge Münzen mit Fotos hinzu.",
+    "requirementsNotMet": "Die Sammlung kann noch nicht öffentlich werden: Jede Münze braucht ihre Fotos (eine Euro-Münze die nationale Seite, andere Münzen beide Seiten), und es braucht genug solche Münzen. Die Zahlen wurden aktualisiert.",
     "moveUnpublishes": {
-      "one": "„{{name}}“ ist öffentlich, und {{count}} Münze hier hat kein Foto der nationalen Seite: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
-      "other": "„{{name}}“ ist öffentlich, und {{count}} Münzen hier haben kein Foto der nationalen Seite: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt."
+      "one": "„{{name}}“ ist öffentlich, und bei {{count}} Münze hier fehlen Fotos: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
+      "other": "„{{name}}“ ist öffentlich, und bei {{count}} Münzen hier fehlen Fotos: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt."
     },
-    "moveUnpublishesSome": "„{{name}}“ ist öffentlich, und einige Münzen hier haben kein Foto der nationalen Seite: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
+    "moveUnpublishesSome": "„{{name}}“ ist öffentlich, und bei einigen Münzen hier fehlen Fotos: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
     "unpublish": {
       "title": {
         "one": "Die Sammlung ist dann nicht mehr öffentlich",
@@ -594,7 +600,7 @@
       },
       "quoted": "„{{name}}“",
       "confirm": "Fortfahren",
-      "photoKept": "Das Foto der nationalen Seite wurde nicht gelöscht; die Sammlung bleibt öffentlich."
+      "photoKept": "Das Foto wurde nicht gelöscht; die Sammlung bleibt öffentlich."
     },
     "emailNeeded": "Bestätige zuerst deine E-Mail-Adresse, um sie zu veröffentlichen."
   },
@@ -787,7 +793,7 @@
     "content": {
       "title": "Deine Inhalte",
       "p1": "Deine Sammlungen, Münzangaben und Fotos bleiben deine. Wenn du eine Sammlung teilst, erlaubst du der Website, sie mit ihren Fotos zu zeigen, solange du sie teilst. Lade nur Fotos hoch, die du selbst aufgenommen hast oder verwenden darfst.",
-      "p2": "In einer öffentlichen Sammlung muss jede Münze ein Foto ihrer nationalen Seite haben, und die Sammlung muss mindestens die von den Administratoren festgelegte Zahl solcher Münzen enthalten. Würde eine Änderung das verletzen, wirst du vorher gefragt; wenn du bestätigst, wird die Sammlung nur noch per Link geteilt."
+      "p2": "In einer öffentlichen Sammlung muss jede Münze ihre Fotos haben (eine Euro-Münze die nationale Seite, andere Münzen beide Seiten), und die Sammlung muss mindestens die von den Administratoren festgelegte Zahl solcher Münzen enthalten. Würde eine Änderung das verletzen, wirst du vorher gefragt; wenn du bestätigst, wird die Sammlung nur noch per Link geteilt."
     },
     "rules": {
       "title": "Was nicht erlaubt ist",

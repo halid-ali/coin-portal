@@ -137,7 +137,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected readonly formErrors = signal<string[]>([]);
   /** A photo did not fit in the user's storage: the errors link to Settings > Account. */
   protected readonly quotaExceeded = signal(false);
-  /** The user kept the national side photo to keep the collection public: not an error. */
+  /** The user kept a photo to keep the collection public: not an error. */
   protected readonly photoKept = signal(false);
 
   /** The saved coin's collection is hidden by an admin: its coins stay in it (API 403). */
@@ -531,7 +531,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
             await firstValueFrom(this.coinService.uploadPhoto(coinId, side, change.image)),
           );
         } else {
-          // Without its national side the coin no longer counts for a public collection
+          // Without this side (a euro coin's national side, either side of an other coin) the coin
+          // no longer counts for a public collection
           const result = await this.unpublishConfirm.run((unpublish) =>
             this.coinService.deletePhoto(coinId, side, unpublish),
           );

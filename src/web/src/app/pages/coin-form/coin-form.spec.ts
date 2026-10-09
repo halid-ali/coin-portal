@@ -547,7 +547,7 @@ describe('CoinForm', () => {
     );
     await vi.waitFor(() =>
       expect(page().querySelector('[role=status]')?.textContent).toContain(
-        'Ulusal yüz fotoğrafı silinmedi; koleksiyon herkese açık kaldı.',
+        'Fotoğraf silinmedi; koleksiyon herkese açık kaldı.',
       ),
     );
 

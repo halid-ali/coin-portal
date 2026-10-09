@@ -220,7 +220,7 @@
   },
   "settings": {
     "publicTitle": "Public collections",
-    "publicText": "A collection can be public only when every coin has a national side photo and at least the number of coins below has one.",
+    "publicText": "A collection can be public only when every coin has its photos (a euro coin its national side, other coins both sides) and at least the number of coins below has them.",
     "minPublicCoins": "Minimum coins with photos",
     "minPublicCoinsHint": "Between {{min}} and {{max}}.",
     "impact": {

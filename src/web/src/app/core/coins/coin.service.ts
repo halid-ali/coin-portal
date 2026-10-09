@@ -18,7 +18,7 @@ import {
 const BASE_URL = '/api/coins';
 
 /** Builds query string params, leaving out empty filters. */
-export function toListParams(query: CoinListQuery): HttpParams {
+export function toListParams(query: object): HttpParams {
   let params = new HttpParams();
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== null && value !== '') {

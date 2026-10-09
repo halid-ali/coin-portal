@@ -220,7 +220,7 @@
   },
   "settings": {
     "publicTitle": "Öffentliche Sammlungen",
-    "publicText": "Eine Sammlung kann nur öffentlich sein, wenn jede Münze ein Foto der nationalen Seite hat und mindestens die unten angegebene Zahl von Münzen eines hat.",
+    "publicText": "Eine Sammlung kann nur öffentlich sein, wenn jede Münze ihre Fotos hat (eine Euro-Münze die nationale Seite, andere Münzen beide Seiten) und mindestens die unten angegebene Zahl von Münzen sie hat.",
     "minPublicCoins": "Mindestzahl Münzen mit Foto",
     "minPublicCoinsHint": "Zwischen {{min}} und {{max}}.",
     "impact": {
