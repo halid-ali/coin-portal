@@ -61,7 +61,7 @@ export const HOME_COLLECTIONS = 5;
   ],
   host: { class: 'block' },
   template: `
-    <section class="flex flex-col gap-4 pt-2 sm:flex-row sm:items-end sm:justify-between sm:pt-6">
+    <section class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-shade-900 sm:text-3xl">
           {{ 'home.welcome' | transloco: { name: auth.currentUser()?.firstName } }}
