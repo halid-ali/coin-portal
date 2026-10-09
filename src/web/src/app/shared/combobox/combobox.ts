@@ -141,12 +141,14 @@ let nextId = 0;
         (click)="choose(match.option.value)"
         (mousemove)="hover(match.index)"
       >
+        <!-- The matching part bold in the accent color, like links (user choice 2026-10-09; at least
+         4.5:1 on the list and the highlighted row with every accent, both themes) -->
         <span class="flex-1">
           @if (match.at < 0) {
             {{ match.option.label }}
           } @else {
             {{ match.option.label.slice(0, match.at)
-            }}<span class="font-semibold text-shade-900">{{
+            }}<span class="font-semibold text-brand-700">{{
               match.option.label.slice(match.at, match.at + match.length)
             }}</span
             >{{ match.option.label.slice(match.at + match.length) }}
