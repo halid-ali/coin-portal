@@ -77,7 +77,32 @@ public static partial class AppLogging
                 // A page of thumbnails is dozens of requests; only failed ones are worth a line
                 : IsImageRequest(http.Request) && http.Response.StatusCode < 400 ? LogEventLevel.Debug
                 : LogEventLevel.Information;
-        });
+        }).Use(EndAbortedRequestAsync);
+
+    /// <summary>
+    /// A request the client gave up on (a list replaced by a newer one, a closed tab) fails in the
+    /// work it cancelled: an OperationCanceledException, or a SqlException ("Operation cancelled by
+    /// user") when SQL Server was running the query. Not a server error: it is logged as
+    /// "responded 499" like any other request, the exception only at Debug, instead of an Error
+    /// with a 500 and the stack trace. Any error while the client is still there stays an error.
+    /// </summary>
+    public static async Task EndAbortedRequestAsync(HttpContext context, RequestDelegate next)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (Exception exception) when (context.RequestAborted.IsCancellationRequested)
+        {
+            context.RequestServices?.GetService<ILoggerFactory>()
+                ?.CreateLogger("CoinPortal.Api.Hosting.AbortedRequests")
+                .LogDebug(exception, "The client closed the request");
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
+            }
+        }
+    }
 
     private static bool IsImageRequest(HttpRequest request) =>
         HttpMethods.IsGet(request.Method) && ImagePath().IsMatch(request.Path.Value ?? "");
