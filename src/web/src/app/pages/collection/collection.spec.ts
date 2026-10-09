@@ -95,9 +95,10 @@ describe('Collection', () => {
     coinCount: number,
     coins: PagedResponse<Coin>,
     more: Partial<CoinCollection> = {},
+    countries: string[] = [],
   ) {
     await harness.navigateByUrl(path);
-    http.match('/api/countries').forEach((r) => r.flush([]));
+    http.match('/api/countries').forEach((r) => r.flush(countries.map((code) => ({ code }))));
     // A sorted list waits for the countries (their display order)
     await harness.fixture.whenStable();
     http.expectOne('/api/collections/5').flush(collection(coinCount, more));
@@ -263,6 +264,64 @@ describe('Collection', () => {
     await harness.fixture.whenStable();
     expect(page().querySelector('#photo')).not.toBeNull();
     expect(page().textContent).toContain('Filtreleri temizle');
+  });
+
+  // Written down before coins other than euro coins (roadmap 18): the euro list stays like this
+  describe('euro coins', () => {
+    const options = (id: string) =>
+      [...page().querySelectorAll(`#${id} option`)].map((o) => [
+        o.getAttribute('value'),
+        o.textContent!.trim(),
+      ]);
+
+    it('offers the euro denominations and the countries by name as filters', async () => {
+      await open('/collections/5', 1, pageWithCoin(), {}, ['DE', 'AT']);
+
+      expect(options('denomination')).toEqual([
+        ['', 'Tümü'],
+        ['Euro2', '2 €'],
+        ['Euro1', '1 €'],
+        ['Cent50', '50 cent'],
+        ['Cent20', '20 cent'],
+        ['Cent10', '10 cent'],
+        ['Cent5', '5 cent'],
+        ['Cent2', '2 cent'],
+        ['Cent1', '1 cent'],
+      ]);
+      expect(options('country')).toEqual([
+        ['', 'Tümü'],
+        ['DE', 'Almanya'],
+        ['AT', 'Avusturya'],
+      ]);
+    });
+
+    it('puts the chosen denomination and country in the URL and the request', async () => {
+      await open('/collections/5', 1, pageWithCoin(), {}, ['DE', 'AT']);
+      const choose = async (id: string, value: string) => {
+        const select = page().querySelector<HTMLSelectElement>(`#${id}`)!;
+        select.value = value;
+        select.dispatchEvent(new Event('change'));
+        await harness.fixture.whenStable();
+      };
+
+      await choose('denomination', 'Cent10');
+      expect(url()).toBe('/collections/5?denomination=Cent10');
+      latestCoinRequest().flush(pageWithCoin());
+      await choose('country', 'AT');
+      expect(url()).toBe('/collections/5?denomination=Cent10&countryCode=AT');
+
+      const params = latestCoinRequest().request.params;
+      expect([params.get('denomination'), params.get('countryCode')]).toEqual(['Cent10', 'AT']);
+    });
+
+    it('shows the denomination, country and year of each coin in the table', async () => {
+      await open('/collections/5', 1, pageWithCoin(), {}, ['DE']);
+
+      const cells = [...page().querySelectorAll('table tbody tr td')].map((td) =>
+        td.textContent!.trim(),
+      );
+      expect(cells.slice(1, 5)).toEqual(['Brandenburger Tor', '2 €', 'Almanya', '2016']);
+    });
   });
 
   it('hides search and filters in an empty collection', async () => {

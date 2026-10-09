@@ -93,9 +93,9 @@ describe('CoinForm', () => {
   const internals = () => form() as unknown as CoinFormInternals;
   const submit = () => page().querySelector('form')!.dispatchEvent(new Event('submit'));
 
-  async function open(path: string, edited?: Coin): Promise<void> {
+  async function open(path: string, edited?: Coin, countries: string[] = ['DE']): Promise<void> {
     await harness.navigateByUrl(path);
-    http.match('/api/countries').forEach((r) => r.flush([{ code: 'DE' }]));
+    http.match('/api/countries').forEach((r) => r.flush(countries.map((code) => ({ code }))));
     http.expectOne('/api/collections').flush([vitrin]);
     if (edited) {
       http.expectOne(`/api/coins/${edited.id}`).flush(edited);
@@ -123,6 +123,151 @@ describe('CoinForm', () => {
       current: nav.querySelector('[aria-current=page]')!.textContent!.trim(),
     };
   }
+
+  // Written down before coins other than euro coins (roadmap 18): the euro form stays like this
+  describe('a euro coin', () => {
+    const control = (id: string) => page().querySelector<HTMLInputElement>(`#${id}`)!;
+    const options = (id: string) =>
+      [...control(id).querySelectorAll('option')].map((o) => [o.value, o.textContent!.trim()]);
+    const setYear = async (year: number) => {
+      const input = control('year');
+      input.value = String(year);
+      input.dispatchEvent(new Event('input'));
+      input.dispatchEvent(new Event('blur'));
+      await harness.fixture.whenStable();
+    };
+
+    it('offers the eight denominations from the largest and the countries by name', async () => {
+      await open('/coins/new?collection=5', undefined, ['DE', 'AT', 'BE']);
+
+      expect(options('denomination')).toEqual([
+        ['', 'Seç…'],
+        ['Euro2', '2 €'],
+        ['Euro1', '1 €'],
+        ['Cent50', '50 cent'],
+        ['Cent20', '20 cent'],
+        ['Cent10', '10 cent'],
+        ['Cent5', '5 cent'],
+        ['Cent2', '2 cent'],
+        ['Cent1', '1 cent'],
+      ]);
+      expect(options('countryCode')).toEqual([
+        ['', 'Seç…'],
+        ['DE', 'Almanya'],
+        ['AT', 'Avusturya'],
+        ['BE', 'Belçika'],
+      ]);
+    });
+
+    it('takes a year from 1999 up to next year', async () => {
+      await open('/coins/new?collection=5');
+      const nextYear = new Date().getUTCFullYear() + 1;
+
+      await setYear(1998);
+      expect(page().querySelector('#year-error')!.textContent).toContain('En az 1999 olmalı.');
+      await setYear(nextYear + 1);
+      expect(page().querySelector('#year-error')!.textContent).toContain(
+        `En fazla ${nextYear} olabilir.`,
+      );
+      await setYear(1999);
+      expect(page().querySelector('#year-error')).toBeNull();
+      expect(page().querySelector('#year-hint')!.textContent).toContain(`1999–${nextYear}`);
+    });
+
+    it('suggests the title of a new coin until the user writes one', async () => {
+      await open('/coins/new?collection=5');
+      const controls = form()['form'].controls;
+
+      controls.denomination.setValue('Euro2');
+      controls.countryCode.setValue('DE');
+      controls.year.setValue(2006);
+      expect(controls.title.value).toBe('2 € · Almanya · 2006');
+
+      const title = control('title');
+      title.value = 'Benim coin';
+      title.dispatchEvent(new Event('input'));
+      controls.year.setValue(2011);
+      expect(controls.title.value).toBe('Benim coin');
+    });
+
+    it('keeps the title of an edited coin', async () => {
+      await open('/coins/1/edit', coin);
+      const controls = form()['form'].controls;
+
+      controls.year.setValue(2011);
+
+      expect(controls.title.value).toBe('2 € · Almanya · 2006');
+    });
+
+    it('sends every field of a new coin, trimmed', async () => {
+      await open('/coins/new?collection=5');
+      form()['form'].setValue({
+        collectionId: 5,
+        denomination: 'Cent10',
+        countryCode: 'DE',
+        year: 2002,
+        title: '  Brandenburger Tor  ',
+        mintMark: ' A ',
+        isCommemorative: true,
+        quantity: 3,
+        description: '   ',
+      });
+
+      submit();
+
+      expect(http.expectOne({ method: 'POST', url: '/api/coins' }).request.body).toEqual({
+        collectionId: 5,
+        title: 'Brandenburger Tor',
+        description: null,
+        denomination: 'Cent10',
+        countryCode: 'DE',
+        year: 2002,
+        mintMark: 'A',
+        isCommemorative: true,
+        quantity: 3,
+      });
+    });
+
+    it('loads an edited coin into the form and sends it back as it was', async () => {
+      const edited: Coin = {
+        ...coin,
+        description: 'Bremen',
+        mintMark: 'A',
+        isCommemorative: true,
+        quantity: 2,
+      };
+      await open('/coins/1/edit', edited);
+
+      expect(control('denomination').value).toBe('Euro2');
+      expect(control('countryCode').value).toBe('DE');
+      expect(control('year').value).toBe('2006');
+      submit();
+
+      const request = http.expectOne({ method: 'PUT', url: '/api/coins/1' });
+      expect(request.request.body).toEqual({
+        collectionId: 5,
+        title: '2 € · Almanya · 2006',
+        description: 'Bremen',
+        denomination: 'Euro2',
+        countryCode: 'DE',
+        year: 2006,
+        mintMark: 'A',
+        isCommemorative: true,
+        quantity: 2,
+      });
+      request.flush(edited);
+      await vi.waitFor(() => expect(url()).toBe('/collections/5'));
+    });
+
+    it('names the photo sides national and common', async () => {
+      await open('/coins/new?collection=5');
+
+      const slots = [...page().querySelectorAll('app-photo-slot')].map((s) => s.textContent!);
+      expect(slots).toHaveLength(2);
+      expect(slots[0]).toContain('Ulusal yüz');
+      expect(slots[1]).toContain('Ortak yüz');
+    });
+  });
 
   it("names the coin's collection in the breadcrumbs", async () => {
     await open('/coins/new?collection=5');
