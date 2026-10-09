@@ -132,6 +132,18 @@ public class CoinFacetsTests(CoinPortalFactory factory)
             HttpStatusCode.BadRequest);
     }
 
+    // The client sends every country in its display order
+    [Fact]
+    public async Task List_TakesTheOrderOfEveryCountry()
+    {
+        var alice = await factory.SignUpAsync();
+        var countries = await alice.Client.GetJsonAsync<List<Contracts.Countries.CountryResponse>>("/api/countries");
+        var order = string.Join(",", countries.Select(c => c.Code).Reverse());
+
+        await alice.Client.ExpectStatusAsync($"/api/coins?sort=Country&countryOrder={order}", HttpStatusCode.OK);
+        await alice.Client.ExpectStatusAsync($"/api/public/coins?sort=Country&countryOrder={order}", HttpStatusCode.OK);
+    }
+
     // Euro coins first in both directions; the direction applies within each kind
     [Theory]
     [InlineData("sort=Denomination", "10 cent AT,2 € DE,25 kuruş TR,1 Mark DD,5 Mark DD")]

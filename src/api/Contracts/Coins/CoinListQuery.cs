@@ -27,6 +27,8 @@ public enum SortDirection
 /// </summary>
 public class CoinListQuery
 {
+    public const int MaxCountryOrderLength = 1000;
+
     /// <summary>One of the user's collections; omitted means all of them.</summary>
     [Range(1, int.MaxValue)]
     public int? CollectionId { get; set; }
@@ -67,8 +69,9 @@ public class CoinListQuery
     /// Comma-separated country codes in the client's display order (e.g. sorted by the
     /// localized name). Country names are not stored in the database, so the client decides
     /// the order and the API stays language independent. Codes missing here sort first.
+    /// Every country fits (253 codes, 758 characters).
     /// </summary>
-    [StringLength(300)]
+    [StringLength(MaxCountryOrderLength)]
     [RegularExpression("^[A-Za-z]{2}(,[A-Za-z]{2})*$")]
     public string? CountryOrder { get; set; }
 

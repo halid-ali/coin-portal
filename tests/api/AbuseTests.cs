@@ -281,7 +281,8 @@ public class AbuseTests(CoinPortalFactory factory)
     {
         var alice = await factory.SignUpAsync();
         using var visitor = await factory.CreateAnonymousClientAsync();
-        var countries = string.Join(",", Enumerable.Repeat("DE", 101)); // 302 characters
+        // One code more than the limit allows (every real country fits: 253 codes, 758 characters)
+        var countries = string.Join(",", Enumerable.Repeat("DE", CoinListQuery.MaxCountryOrderLength / 3 + 1));
 
         await alice.Client.ExpectStatusAsync($"/api/coins?search={new string('x', 101)}", HttpStatusCode.BadRequest);
         await alice.Client.ExpectStatusAsync($"/api/coins?countryOrder={countries}", HttpStatusCode.BadRequest);
