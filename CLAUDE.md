@@ -164,10 +164,14 @@ npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md     # regenerate for a release
 ```
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
-(e-postalar `@example.com`), parola hepsi için `Coinportal1`. Her birinde "Koleksiyonum" ve
-"Hatıra paraları" koleksiyonları var; seed ayrıca ayse'nin "Koleksiyonum"unu ve elif'in "Hatıra
-paraları"nı herkese açık, jonas'ın "Koleksiyonum"unu sadece linkle yapar; herkese açık koleksiyonlardaki
-coin'lere yapay ulusal yüz fotoğrafı koyar (`DevData/SeedPhotos`, kural gereği), diğerleri fotoğrafsız.
+(e-postalar `@example.com`), parola hepsi için `Coinportal1`. Koleksiyonlar `DevData/dev-seed.json`'da
+(kullanıcı → koleksiyon → coin; kullanıcı kararı 2026-10-09): her kullanıcının birden çok koleksiyonu var,
+aralarında yalnız Euro, yalnız diğer (Euro dışı) coin, karışık ve yayın sınırının altında kalanlar; herkese
+açık, linkle ve gizli olanlar. Koleksiyonun `photographed` alanı (`all`, `none` ya da ilk n coin) hangi
+coin'lerin fotoğraflı olacağını söyler; herkese açık koleksiyonda `all` olmalı (seed aksi halde durur).
+Fotoğraflar yer tutucu çizimlerinden: `DevData/SeedPhotos/*.jpg` (Euro: değer ikonu; diğer coin: ön yüz
+rengindeki ¤ coin, arka yüz değeri), `node make-seed-photos.mjs` (`DevData`'da, tests/e2e'nin Playwright'ı
+ile) üretir; çizimler ya da fotoğraflı coin'ler değişince yeniden çalıştırılır.
 **Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
 sıfırlar**; kullanıcı onlarla deneme yapmış olabilir (fotoğraf yüklemiş vb.), çalıştırmadan önce sor.
 API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-data` kullanılabilir.

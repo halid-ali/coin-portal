@@ -1949,7 +1949,9 @@ mağaza için TWA.
         karakter; `AbuseTests` uzunluk testi yeni sınıra göre). "Ulusal yüz" diyen yayın kuralı metinleri
         "fotoğraf" olarak genelleşti (bant, filtre, taşıma uyarıları, şartlar `TERMS_UPDATED` 2026-10-09, admin
         ayar açıklaması); bu metinleri bekleyen testler ve e2e `publishing` güncellendi. e2e sitesinde iki temada
-        görsel kontrol edildi) → 5. koleksiyon sayfası
+        görsel kontrol edildi) → ~~seed~~ (`dev-seed.json` kullanıcı → koleksiyon → coin, 14 koleksiyon, 316 coin;
+        fotoğraflar `DevData/SeedPhotos/*.jpg`, 65 dosya, ~0,84 MB, `make-seed-photos.mjs`; eski kodla çizen
+        `SeedPhotos.cs` kalktı; e2e veritabanında denendi) → 5. koleksiyon sayfası
         ve Keşfet → seed → e2e → belgeler. Regresyon testlerinde tek değişiklik: `EuroCoinTests` güncelleme testinde
         `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +
