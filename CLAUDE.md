@@ -202,7 +202,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
 - **Coin türü** (`Coin.Kind`, kullanıcı kararları 2026-10-09, yol haritası 18): `Euro` (8 değerli `Denomination`,
-  25 Euro ülkesinden biri, 1999+) ya da `Other` (`FaceValue` decimal(18,4) > 0, en çok 4 ondalık + serbest
+  25 Euro ülkesinden biri, 1999+) ya da `Other` (arayüzde "Dünya coin'i", düğmede "Dünya"; kullanıcı kararı
+  2026-10-09, önce "Diğer coin"di; iç ad `Other` kaldı) (`FaceValue` decimal(18,4) > 0, en çok 4 ondalık + serbest
   `Currency`, en çok 30; 253 ülkenin hiçbiri, yıl 1+). Bir türün alanları dolu, öbürününkiler boş:
   `CoinUpsertRequest.Validate` + veritabanında `CK_Coins_Value` / `CK_Coins_Year`; öbür türün gönderilen
   alanları yok sayılır. **Türsüz istek Euro sayılır** (`ResolvedKind`; eski client'ı açık sekmeler) ve client
@@ -597,13 +598,34 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - **Tür düğmeleri ve filtreler** (koleksiyon sayfası ve Keşfet; kullanıcı kararları 2026-10-09; saf mantık
-  `pages/collection/coin-filters.ts`): Tümü / Euro / Diğer düğmeleri sayılı ve sadece listede iki tür de varsa
+  `pages/collection/coin-filters.ts`): Tümü / Euro / Dünya düğmeleri sayılı ve sadece listede iki tür de varsa
   (URL `kind`; tür değişince nominal, para birimi ve ülke filtresi sıfırlanır). Nominal filtresi seçilen türün
-  değerlerini sunar: Euro'da 8 değer, Diğer'de para birimleri (`currency:` önekli seçenek), Tümü'nde iki tür
-  varsa "Euro coin" / "Diğer coin" grupları. Ülke filtresi sadece listede (seçilen türde) olan ülkeler; özet
+  değerlerini sunar: Euro'da 8 değer, Dünya'da para birimleri (`currency:` önekli seçenek), Tümü'nde iki tür
+  varsa "Euro coin" / "Dünya coin'i" grupları. Ülke filtresi sadece listede (seçilen türde) olan ülkeler; özet
   gelene kadar bütün ülkeler. Coin formunda tür seçimi masaüstünde kartlar, telefonda düğmeler (tek radyo
   grubu); tür ve diğer coin alanları ana form grubunun dışında (`kindControl`, `otherForm`), değer "0,5" ya da
   "0.5" (`face-value.ts`). Bir coin'in değeri her yerde `coinValueLabel(coin, dil)` ile ("2 €", "25 kuruş").
+- **Seçim listeleri yazılabilen kısa liste** (`shared/combobox`, kullanıcı kararları 2026-10-09): coin formundaki
+  Koleksiyon, Nominal, Ülke (ve serbest metinle Para birimi), koleksiyon sayfası ve Keşfet'teki Koleksiyoncu,
+  Nominal, Ülke, Hatıra, Fotoğraf filtreleri (kısa olanlar da: bütün seçimler aynı görünsün). Native `<select>`'in listesinin boyu
+  sayfadan kısaltılamıyor (telefonda ekranı kaplar). ARIA combobox: odak kutuda kalır, liste
+  ~8 satır kayar, yazınca süzülür: önce yazılanla başlayan, sonra bir kelimesi yazılanla başlayan, sonra içinde
+  geçen (her grupta verilen sıra), büyük/küçük harf ve aksan duyarsız (`combobox-filter.ts`); eşleşen kısım
+  kalın ve tema renginde (`text-brand-700`, linklerin rengi; her renkte, iki temada en az 4,5:1). Liste en uzun
+  seçeneği kadar geniş (en az kutu, en çok 24rem ya da ekran; açıkken daralmaz), ekrandan taşacaksa kutunun sağına
+  hizalanır; sığmayan ad liste içinde bölünür (`wrap-anywhere`: kullanıcı adı ve para biriminde boşluk olmayabilir).
+  Grup başlıkları (`group`, altındakiler girintili), filtrelerde en üstte `allLabel` ("Tümü", değer `''`; kutu
+  boşaltılınca o seçilir). Sadece listedeki bir seçenek seçilir; seçmeden çıkmak eskisini geri getirir (adı
+  birebir yazılmışsa onu alır). Formda kontrolün kendisi (`formControlName`, `appField` gibi `aria-invalid` /
+  `-required` / `-describedby`; id `inputId`), filtrede `[value]` + `(valueChange)`; formun dönüştürdüğü bir
+  değerde (koleksiyonun sayı Id'si) bağlı + `[control]` (hata ve ipucu bağlantısı), `[disabled]` (kilitli
+  koleksiyonun coin'i taşınamaz). Seçenek adları dile bağlıysa computed `LanguageService.current()`'ı okur.
+  Sadece liste araç çubuğundaki sıralama ve sayfa başına `<select>` kalır.
+  `freeText` (coin formunun Para birimi; `<datalist>` yerine, tarayıcının listesi temaya uymuyordu): değer
+  yazılan metin, seçenekler öneri; kendiliğinden vurgu yok (Enter formu gönderir, metni değiştirmez), öneri
+  okla ya da tıklayarak alınır, eşleşme yoksa liste gizlenir, öneri yoksa ok da yok (düz metin kutusu).
+  e2e'de `support/combobox.ts` `chooseOption`; seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
+  `option`'ları da `getByRole('option')`'a uyar).
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
   listesi (admin panelinde `xl`: sayfa geniş, solda bölüm menüsü var).

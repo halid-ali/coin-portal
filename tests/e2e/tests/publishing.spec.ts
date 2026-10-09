@@ -27,7 +27,7 @@ test('a collection goes public once every coin has its photo, and leaves when on
   // The link filters the coins that are missing their photo
   await banner.getByRole('link', { name: '1 coin is missing its photo' }).click();
   await expect(page).toHaveURL(/photo=missing/);
-  await expect(page.getByLabel('Photo', { exact: true })).toHaveValue('missing');
+  await expect(page.getByLabel('Photo', { exact: true })).toHaveValue('Missing photos');
   const table = page.getByRole('table', { name: collection.name });
   await expect(table.getByRole('row')).toHaveCount(2);
   await expect(table.getByText('Without photo')).toBeVisible();

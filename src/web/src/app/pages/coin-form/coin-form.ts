@@ -51,6 +51,8 @@ import { ImageChange } from '../../shared/image-change';
 import { DISCARD_CHANGES_STATE, HasUnsavedChanges } from '../../shared/unsaved-changes';
 import { UNPUBLISH_DECLINED, UnpublishConfirm } from '../../shared/unpublish-confirm';
 import { PhotoSlot } from './photo-slot';
+import { Combobox } from '../../shared/combobox/combobox';
+import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
 @Component({
@@ -63,6 +65,7 @@ import { PhotoSlot } from './photo-slot';
     Breadcrumbs,
     PhotoSlot,
     PhotoViewer,
+    Combobox,
   ],
   templateUrl: './coin-form.html',
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
@@ -146,8 +149,14 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     return !!this.collections()?.find((c) => c.id === collectionId)?.moderationLocked;
   });
 
-  protected readonly denominations = DENOMINATIONS;
-  protected readonly denominationLabel = denominationLabel;
+  /** The euro denominations by value; reads the language, so the names follow a switch. */
+  protected readonly denominationOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return DENOMINATIONS.map((d) => ({ value: d, label: denominationLabel(d) }));
+  });
+  protected readonly collectionOptions = computed<ComboboxOption[]>(() =>
+    (this.collections() ?? []).map((c) => ({ value: String(c.id), label: c.name })),
+  );
   protected readonly kinds = COIN_KINDS;
   protected readonly limits = COIN_LIMITS;
   protected readonly sideLabelKey = sideLabelKey;
@@ -220,11 +229,17 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected readonly countries = computed(() =>
     this.kind() === 'Other' ? this.countryService.countries() : this.countryService.euroCountries(),
   );
+  protected readonly countryOptions = computed<ComboboxOption[]>(() =>
+    this.countries().map((c) => ({ value: c.code, label: c.name })),
+  );
   protected readonly minYear = computed(() =>
     this.kind() === 'Other' ? COIN_LIMITS.otherMinYear : COIN_LIMITS.minYear,
   );
   /** The user's currencies so far, offered while typing; loaded once an other coin is edited. */
   protected readonly currencySuggestions = signal<string[]>([]);
+  protected readonly currencyOptions = computed<ComboboxOption[]>(() =>
+    this.currencySuggestions().map((c) => ({ value: c, label: c })),
+  );
   private currenciesRequested = false;
 
   constructor() {

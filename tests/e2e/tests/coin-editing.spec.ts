@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectAccessible } from '../support/axe';
+import { chooseOption } from '../support/combobox';
 import { TestUser } from '../support/users';
 
 // A euro coin from the list to the form and back: every field is changed, the list shows the new
@@ -19,16 +20,16 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await expect(page.getByRole('heading', { name: 'Edit coin' })).toBeVisible();
 
   // The saved values, and the title is no longer suggested
-  await expect(page.getByLabel('Denomination')).toHaveValue('Euro2');
-  await expect(page.getByLabel('Country')).toHaveValue('DE');
+  await expect(page.getByLabel('Denomination')).toHaveValue('2 €');
+  await expect(page.getByLabel('Country')).toHaveValue('Germany');
   await expect(page.getByLabel('Year')).toHaveValue('2006');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');
   await expect(page.getByText('National side', { exact: true })).toBeVisible();
   await expect(page.getByText('Common side', { exact: true })).toBeVisible();
   await expectAccessible(page, 'coin edit form');
 
-  await page.getByLabel('Denomination').selectOption({ label: '10 cent' });
-  await page.getByLabel('Country').selectOption('AT');
+  await chooseOption(page, 'Denomination', '10 cent');
+  await chooseOption(page, 'Country', 'Austria');
   await page.getByLabel('Year').fill('2002');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');
   await page.getByLabel('Title').fill('Mozart');
@@ -45,11 +46,11 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   }
 
   // The filters find it by its new values only
-  await page.getByLabel('Denomination').selectOption({ label: '10 cent' });
-  await page.getByLabel('Country').selectOption('AT');
+  await chooseOption(page, 'Denomination', '10 cent');
+  await chooseOption(page, 'Country', 'Austria');
   await expect(page).toHaveURL(/denomination=Cent10&countryCode=AT/);
   await expect(table.getByRole('row')).toHaveCount(2);
-  await page.getByLabel('Denomination').selectOption({ label: '2 €' });
+  await chooseOption(page, 'Denomination', '2 €');
   await expect(page.getByText('No coins match the filters.')).toBeVisible();
 
   // Deleting asks first, then the collection is empty

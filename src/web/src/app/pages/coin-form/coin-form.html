@@ -83,26 +83,25 @@
         }}</label>
         @if (collections(); as list) {
           @if (list.length) {
-            <select
-              id="collectionId"
-              [appField]="form.controls.collectionId"
-              class="form-input sm:max-w-sm"
-              #collectionSelect
+            <!-- Bound, not formControlName: the form keeps the collection's numeric id -->
+            <app-combobox
+              inputId="collectionId"
+              class="sm:max-w-sm"
+              [control]="form.controls.collectionId"
+              [options]="collectionOptions()"
+              [value]="form.controls.collectionId.value?.toString() ?? ''"
+              [label]="'coin.field.collection' | transloco"
               [disabled]="moveLocked()"
-              (change)="form.controls.collectionId.setValue(+collectionSelect.value)"
-            >
-              @for (c of list; track c.id) {
-                <option [value]="c.id" [selected]="c.id === form.controls.collectionId.value">
-                  {{ c.name }}
-                </option>
-              }
-            </select>
+              (valueChange)="form.controls.collectionId.setValue(+$event)"
+            />
             @if (moveLocked()) {
-              <p class="form-hint">{{ 'coinForm.moveLocked' | transloco }}</p>
+              <p id="collectionId-hint" class="form-hint">
+                {{ 'coinForm.moveLocked' | transloco }}
+              </p>
             } @else if (
               isEdit() && coin() && form.controls.collectionId.value !== coin()!.collectionId
             ) {
-              <p class="form-hint">{{ 'coinForm.moveHint' | transloco }}</p>
+              <p id="collectionId-hint" class="form-hint">{{ 'coinForm.moveHint' | transloco }}</p>
             }
           } @else if (collectionsError()) {
             <p role="alert" class="alert-error">{{ 'collections.loadError' | transloco }}</p>
@@ -146,21 +145,15 @@
 
           <div>
             <label for="currency" class="form-label">{{ 'coin.field.currency' | transloco }}</label>
-            <input
-              id="currency"
-              type="text"
-              autocomplete="off"
-              list="currency-suggestions"
+            <!-- Free text: the user's currencies so far are suggestions, a new one is typed -->
+            <app-combobox
+              inputId="currency"
+              freeText
               [formControl]="otherForm.controls.currency"
-              [appField]="otherForm.controls.currency"
-              [maxlength]="limits.currencyMaxLength"
-              class="form-input"
+              [options]="currencyOptions()"
+              [label]="'coin.field.currency' | transloco"
+              [maxLength]="limits.currencyMaxLength"
             />
-            <datalist id="currency-suggestions">
-              @for (c of currencySuggestions(); track c) {
-                <option [value]="c"></option>
-              }
-            </datalist>
             @if (errorMessage(otherForm.controls.currency); as msg) {
               <p id="currency-error" class="form-error">{{ msg }}</p>
             } @else {
@@ -190,17 +183,14 @@
 
         <div>
           <label for="countryCode" class="form-label">{{ 'coin.field.country' | transloco }}</label>
-          <select
-            id="countryCode"
+          <app-combobox
+            inputId="countryCode"
             formControlName="countryCode"
-            appField
-            class="form-input sm:max-w-sm"
-          >
-            <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-            @for (c of countries(); track c.code) {
-              <option [value]="c.code">{{ c.name }}</option>
-            }
-          </select>
+            class="sm:max-w-sm"
+            [options]="countryOptions()"
+            [label]="'coin.field.country' | transloco"
+            [placeholder]="'common.choose' | transloco"
+          />
           @if (errorMessage(form.controls.countryCode); as msg) {
             <p id="countryCode-error" class="form-error">{{ msg }}</p>
           } @else {
@@ -215,12 +205,13 @@
             <label for="denomination" class="form-label">{{
               'coin.field.denomination' | transloco
             }}</label>
-            <select id="denomination" formControlName="denomination" appField class="form-input">
-              <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-              @for (d of denominations; track d) {
-                <option [value]="d">{{ denominationLabel(d) }}</option>
-              }
-            </select>
+            <app-combobox
+              inputId="denomination"
+              formControlName="denomination"
+              [options]="denominationOptions()"
+              [label]="'coin.field.denomination' | transloco"
+              [placeholder]="'common.choose' | transloco"
+            />
             @if (errorMessage(form.controls.denomination); as msg) {
               <p id="denomination-error" class="form-error">{{ msg }}</p>
             }
@@ -230,12 +221,13 @@
             <label for="countryCode" class="form-label">{{
               'coin.field.country' | transloco
             }}</label>
-            <select id="countryCode" formControlName="countryCode" appField class="form-input">
-              <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-              @for (c of countries(); track c.code) {
-                <option [value]="c.code">{{ c.name }}</option>
-              }
-            </select>
+            <app-combobox
+              inputId="countryCode"
+              formControlName="countryCode"
+              [options]="countryOptions()"
+              [label]="'coin.field.country' | transloco"
+              [placeholder]="'common.choose' | transloco"
+            />
             @if (errorMessage(form.controls.countryCode); as msg) {
               <p id="countryCode-error" class="form-error">{{ msg }}</p>
             }

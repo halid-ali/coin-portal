@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectAccessible } from '../support/axe';
+import { chooseOption } from '../support/combobox';
 import { PASSWORD } from '../support/env.mjs';
 import { verificationLink } from '../support/mail';
 import { coinPng } from '../support/png';
@@ -45,8 +46,8 @@ test('a new user signs up, adds a coin with a photo and browses it', async ({ pa
     .getByRole('link', { name: /Add (your first )?coin/ })
     .first()
     .click();
-  await page.getByLabel('Denomination').selectOption({ label: '2 €' });
-  await page.getByLabel('Country').selectOption('DE');
+  await chooseOption(page, 'Denomination', '2 €');
+  await chooseOption(page, 'Country', 'Germany');
   await page.getByLabel('Year').fill('2006');
   await expect(page.getByLabel('Title')).toHaveValue(/2 €.*2006/);
   await expectAccessible(page, 'coin form');
@@ -81,7 +82,7 @@ test('a new user signs up, adds a coin with a photo and browses it', async ({ pa
   await expect(page).not.toHaveURL(/view=/);
   await table.getByRole('button', { name: /^Year/ }).click();
   await expect(page).toHaveURL(/sort=Year/);
-  await page.getByLabel('Denomination').selectOption({ label: '1 €' });
+  await chooseOption(page, 'Denomination', '1 €');
   await expect(page).toHaveURL(/denomination=Euro1/);
   await expect(page.getByText('No coins match the filters.')).toBeVisible();
 });

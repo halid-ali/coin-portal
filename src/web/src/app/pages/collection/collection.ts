@@ -47,6 +47,8 @@ import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
 import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
 import { LanguageService } from '../../core/i18n/language.service';
+import { Combobox } from '../../shared/combobox/combobox';
+import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 import { scrollToTop } from '../../shared/motion';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -104,6 +106,7 @@ type QueryParamValue = string | number | boolean | null;
     Breadcrumbs,
     CollectionFormDialog,
     CollectionDeleteDialog,
+    Combobox,
   ],
   templateUrl: './collection.html',
 })
@@ -275,12 +278,34 @@ export class Collection {
   protected readonly nominal = computed(() =>
     nominalOptions(this.query().kind, this.facets(), this.query().currency),
   );
-  protected readonly currencyOption = CURRENCY_OPTION;
+  /**
+   * The nominal filter's options: under a "Euro coin" and a "World coin" heading when it has both.
+   * Reads the language, so the names follow a switch.
+   */
+  protected readonly nominalChoices = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    const { denominations, currencies, grouped } = this.nominal();
+    const euro = grouped ? translate('coin.kind.Euro.label') : undefined;
+    const other = grouped ? translate('coin.kind.Other.label') : undefined;
+    return [
+      ...denominations.map((d) => ({ value: d, label: denominationLabel(d), group: euro })),
+      ...currencies.map((c) => ({ value: CURRENCY_OPTION + c, label: c, group: other })),
+    ];
+  });
+  /** The URL's denomination or currency as a nominal option (a currency in any case). */
+  protected readonly nominalValue = computed(() => {
+    const { denomination, currency } = this.query();
+    if (denomination) {
+      return denomination;
+    }
+    const value = currency ? (CURRENCY_OPTION + currency).toLowerCase() : null;
+    return this.nominalChoices().find((o) => o.value.toLowerCase() === value)?.value ?? '';
+  });
   /**
    * Only the countries the list has (of the chosen kind), sorted by name; until the facets are
    * there, every country (the euro issuers for euro coins). A country in the URL stays offered.
    */
-  protected readonly countryOptions = computed(() => {
+  private readonly countryOptions = computed(() => {
     const facets = this.facets();
     const { kind, countryCode } = this.query();
     if (!facets) {
@@ -293,7 +318,35 @@ export class Collection {
     return this.countries().filter((c) => codes.has(c.code));
   });
   protected readonly maxYear = maxCoinYear();
-  protected readonly denominationLabel = denominationLabel;
+  protected readonly countryChoices = computed<ComboboxOption[]>(() =>
+    this.countryOptions().map((c) => ({ value: c.code, label: c.name })),
+  );
+  /** The commemorative and photo filters' options; read the language, so they follow a switch. */
+  protected readonly commemorativeOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return [
+      { value: 'true', label: translate('coinList.onlyCommemorative') },
+      { value: 'false', label: translate('coinList.notCommemorative') },
+    ];
+  });
+  protected readonly commemorativeValue = computed(() => {
+    const value = this.query().isCommemorative;
+    return value === undefined ? '' : String(value);
+  });
+  protected readonly photoOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return [
+      { value: 'missing', label: translate('coinList.photoMissing') },
+      { value: 'complete', label: translate('coinList.photoComplete') },
+    ];
+  });
+  protected readonly photoValue = computed(() => {
+    const value = this.query().photographed;
+    return value === undefined ? '' : value ? 'complete' : 'missing';
+  });
+  protected readonly collectorOptions = computed<ComboboxOption[]>(() =>
+    this.collectors().map((c) => ({ value: c.userName, label: `@${c.userName} (${c.coinCount})` })),
+  );
 
   /** Sort from the URL; unknown values fall back to the default order. */
   protected readonly sortState = computed<SortState>(() => parseSort(this.sort(), this.dir()));

@@ -29,7 +29,7 @@ export function nominalSelection(value: string): {
 export interface NominalOptions {
   denominations: readonly Denomination[];
   currencies: string[];
-  /** Both in one select: under a "Euro coin" and an "Other coin" heading. */
+  /** Both in one select: under a "Euro coin" and a "World coin" heading. */
   grouped: boolean;
 }
 
