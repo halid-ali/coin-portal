@@ -1905,15 +1905,37 @@ mağaza için TWA.
       yeri aynen, etiketler türe göre). **Diğer coin'de iki yüzün fotoğrafı zorunlu** (standart bir ortak yüz
       yok); bunun için sadece `Publishing/PublicationRules.IsPhotographed` değişir. Fotoğrafsız diğer coin'in
       yer tutucusu bugünkü genel çizim (`CoinPlaceholder`).
-  - **Kararlar** (kullanıcı 2026-10-09'da önerileri kabul etti): coin'de `Kind` (`Euro` / `Other`; mevcutlar
-        `Euro`). Diğer coin: değer ondalıklı sayı (1/2 penny = 0,5) + para birimi serbest metin (yazarken
-        kullanıcının önceki girdileri önerilir; ISO listesi eski birimleri karşılamıyor). Ülkeler: `Countries`
-        bütün ISO ülkeleriyle genişler + "Euro ülkesi" işareti (Euro coin'de sadece 25'i); tarihî ülkeler
-        (SU, DD, YU, CS; `Intl.DisplayNames` adlarını biliyor) listede, Osmanlı gibi kodu olmayanlar kapsam dışı.
-        Yıl diğer coin'de de zorunlu, 1 ile gelecek yıl arası (tahmini yıl/dönem ve M.Ö. kapsam dışı). Hatıra
-        işareti diğer coin'de de var. Coin'in türünü düzenlemede değiştirmek `PublicationGuard`'dan geçer.
-        Koleksiyon sayfasında "Tür" filtresi; nominal sıralaması önce Euro (sent), sonra diğerleri para birimi
-        + değer; ülke filtresi sadece koleksiyonda olan ülkeler.
+  - **Kararlar** (kullanıcı 2026-10-09; önerilerin çoğu kabul edildi, tasarım mockup'larla seçildi:
+        `.notes/designs/non-euro-coins/`, onaylananlar `png-final/` ve `sheet-final-*.png`):
+    - Veri: coin'de `Kind` (`Euro` / `Other`; mevcutlar `Euro`, türsüz istek `Euro` sayılır). Diğer coin: değer
+          ondalıklı sayı (1/2 penny = 0,5; en çok 4 ondalık) + para birimi serbest metin (en çok 30; yazarken
+          kullanıcının önceki girdileri önerilir, ISO listesi eski birimleri karşılamıyor). Euro coin'de bu ikisi,
+          diğer coin'de nominal boş. Yıl iki türde de zorunlu: Euro 1999+, diğer 1+ (tahmini yıl/dönem ve M.Ö. kapsam
+          dışı). Hatıra işareti iki türde de var. Türü düzenlemede değiştirmek `PublicationGuard`'dan geçer.
+    - Ülkeler: `Countries` 249 ISO kodu + 4 tarihî ülke (SU Sovyetler Birliği, DD Doğu Almanya, YU Yugoslavya, CS
+          Çekoslovakya) ve `IsEuroIssuer` (25). Euro coin'de sadece Euro ülkeleri, diğerinde hepsi. **Tarayıcı
+          (`Intl.DisplayNames`) tarihî kodları bugünkü ülkelere çeviriyor** (SU → Rusya, DD → Almanya, YU/CS →
+          Sırbistan): bu dördünün adları client çevirilerinde. Osmanlı gibi kodu olmayanlar kapsam dışı.
+    - Coin formu: en üstte tür seçimi, **masaüstünde açıklamalı kartlar, telefonda yan yana düğmeler** (aynı seçimin
+          iki görünümü). Diğer coin'de Değer / Para birimi / Yıl, altında Ülke; yüz adları "Ön yüz / Arka yüz"
+          (veritabanında National / Common). Önerilen başlık "25 kuruş · Türkiye · 1975".
+    - Liste: **Tümü / Euro / Diğer düğmeleri** (sayılı; sadece koleksiyonda iki tür de varsa görünür) filtre kutusunun
+          üstünde; Nominal filtresi seçilen türe uyar (Euro: 8 değer, Diğer: koleksiyondaki para birimleri). **Ülke
+          filtresi sadece koleksiyonda bulunan ülkeler** (seçilen türün). Keşfet'te de aynı düğmeler, sayılı (bütün
+          herkese açık coin'ler; koleksiyoncu seçilince onunkiler). Nominal sıralaması önce Euro (sent), sonra
+          diğerleri para birimi + değer.
+    - Yer tutucu (fotoğrafsız diğer coin): Euro değer ikonunun biçimi (dolu coin, kenar, noktalı halka), yüzü her
+          coin'de **¤**; renk coin'e **sabit** (Id mod 8): sky, indigo, violet, fuchsia, rose, teal, emerald, lime.
+          Amber/sarı/turuncu/gri yok (Euro'nun altın, bakır, gümüşüyle karışır). Bugünkü € işaretli genel çizim
+          (`CoinPlaceholder`) kalkar.
+    - Seed: kullanıcı başına birden çok koleksiyon (yalnız Euro, yalnız diğer, karışık, yayın sınırının altında);
+          fotoğraflar yer tutucu çizimlerinden (Euro: değer ikonu; diğer: ön yüz ¤ coin, arka yüz değeri); parola
+          `Coinportal1`.
+  - **İlerleme** (`feat/non-euro-coins`): ~~1. API: veri, migration, kurallar~~ (migration dev veritabanının kopyasında
+        denendi: 574 coin, 151 fotoğraf, 20 koleksiyon sağlama toplamıyla aynı, hepsi `Euro`; ülkeler 25 → 253) →
+        2. API: liste, özet, öneriler → 3. client: modeller, değer biçimi, yer tutucu → 4. form → 5. koleksiyon sayfası
+        ve Keşfet → seed → e2e → belgeler. Regresyon testlerinde tek değişiklik: `EuroCoinTests` güncelleme testinde
+        `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +
         mockup'lar (iki tema, telefon) → `feat/non-euro-coins` (API, client, e2e; küçük commit'ler) → `v1.10.0`
         (migration: onaydan önce veritabanı yedeği).
