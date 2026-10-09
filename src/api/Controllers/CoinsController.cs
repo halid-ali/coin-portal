@@ -75,6 +75,30 @@ public class CoinsController(
             await coins.CountAsync(c => c.IsCommemorative, ct));
     }
 
+    /// <summary>
+    /// Kinds, currencies and countries of the user's coins (<see cref="CoinFacetsResponse"/>): of one
+    /// collection for its filters, of all for the coin form's currency suggestions.
+    /// </summary>
+    [HttpGet("facets")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CoinFacetsResponse>> Facets([FromQuery] OwnCoinFacetsQuery query,
+        CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        var coins = db.Coins.AsNoTracking().Where(c => c.OwnerId == userId);
+        if (query.CollectionId is { } collectionId)
+        {
+            // Someone else's collection looks the same as a missing one
+            if (!await db.Collections.AnyAsync(c => c.Id == collectionId && c.OwnerId == userId, ct))
+            {
+                return NotFound();
+            }
+            coins = coins.Where(c => c.CollectionId == collectionId);
+        }
+        return await coins.FacetsAsync(query.Kind, ct);
+    }
+
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CoinResponse>> Get(int id, CancellationToken ct)

@@ -19,9 +19,19 @@ public static class CoinListing
     /// <summary>All filters combined with AND. The collection filter is the caller's job.</summary>
     public static IQueryable<Coin> ApplyFilters(this IQueryable<Coin> coins, CoinListQuery query)
     {
+        if (query.Kind is { } kind)
+        {
+            coins = coins.Where(c => c.Kind == kind);
+        }
         if (query.Denomination is { } denomination)
         {
             coins = coins.Where(c => c.Denomination == denomination);
+        }
+        // SQL Server's default collation ignores case: "mark" finds "Mark"
+        if (!string.IsNullOrWhiteSpace(query.Currency))
+        {
+            var currency = query.Currency.Trim();
+            coins = coins.Where(c => c.Currency == currency);
         }
         if (!string.IsNullOrWhiteSpace(query.CountryCode))
         {
@@ -80,7 +90,10 @@ public static class CoinListing
         return query.Sort switch
         {
             CoinSort.Title => coins.OrderBy(c => c.Title, desc).ThenBy(c => c.Id, desc),
-            CoinSort.Denomination => ThenByCountry(coins.OrderBy(c => c.Denomination, desc))
+            // Euro coins first in both directions (only they have a denomination), then other coins
+            // by currency and value; the direction applies within each kind
+            CoinSort.Denomination => ThenByCountry(coins.OrderBy(c => c.Kind)
+                    .ThenBy(c => c.Denomination, desc).ThenBy(c => c.Currency, desc).ThenBy(c => c.FaceValue, desc))
                 .ThenBy(c => c.Year).ThenBy(c => c.Id),
             CoinSort.Country => coins.OrderBy(countryRank, desc).ThenBy(c => c.CountryCode, desc)
                 .ThenByDescending(c => c.Denomination).ThenBy(c => c.Year).ThenBy(c => c.Id),
@@ -88,6 +101,35 @@ public static class CoinListing
                 .ThenByDescending(c => c.Denomination).ThenBy(c => c.Id),
             _ => coins.OrderByDescending(c => c.CreatedAtUtc).ThenByDescending(c => c.Id)
         };
+    }
+
+    /// <summary>At most this many currencies in the facets: explore spans every public collection.</summary>
+    public const int MaxFacetCurrencies = 200;
+
+    /// <summary>
+    /// The kinds, currencies and countries of these coins (<see cref="CoinFacetsResponse"/>); the
+    /// caller decides which coins are visible. The countries are those of <paramref name="kind"/>.
+    /// </summary>
+    public static async Task<CoinFacetsResponse> FacetsAsync(this IQueryable<Coin> coins, CoinKind? kind,
+        CancellationToken ct)
+    {
+        var counts = await coins.GroupBy(c => c.Kind)
+            .Select(g => new { Kind = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+        var currencies = await coins.Where(c => c.Kind == CoinKind.Other && c.Currency != null)
+            .Select(c => c.Currency!)
+            .Distinct()
+            .OrderBy(c => c)
+            .Take(MaxFacetCurrencies)
+            .ToListAsync(ct);
+        var countries = await (kind is { } k ? coins.Where(c => c.Kind == k) : coins)
+            .Select(c => c.CountryCode)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync(ct);
+
+        int CountOf(CoinKind k) => counts.FirstOrDefault(c => c.Kind == k)?.Count ?? 0;
+        return new CoinFacetsResponse(CountOf(CoinKind.Euro), CountOf(CoinKind.Other), currencies, countries);
     }
 
     /// <summary>Filters, sorts and pages (PageSize 0 = everything on one page), then maps.</summary>

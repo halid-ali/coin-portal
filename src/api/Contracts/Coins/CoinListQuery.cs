@@ -11,7 +11,7 @@ public enum CoinSort
 {
     Newest,        // CreatedAtUtc desc
     Title,
-    Denomination,  // by face value
+    Denomination,  // by face value: euro coins first (cents), then other coins (currency, value)
     Country,       // by CountryOrder if given, otherwise by ISO code
     Year
 }
@@ -31,8 +31,16 @@ public class CoinListQuery
     [Range(1, int.MaxValue)]
     public int? CollectionId { get; set; }
 
+    [EnumDataType(typeof(CoinKind))]
+    public CoinKind? Kind { get; set; }
+
+    /// <summary>A euro denomination: only euro coins have one.</summary>
     [EnumDataType(typeof(Denomination))]
     public Denomination? Denomination { get; set; }
+
+    /// <summary>The currency of other coins, ignoring case.</summary>
+    [StringLength(Coin.CurrencyMaxLength)]
+    public string? Currency { get; set; }
 
     [StringLength(Country.CodeLength, MinimumLength = Country.CodeLength)]
     public string? CountryCode { get; set; }

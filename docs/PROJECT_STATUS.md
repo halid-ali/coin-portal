@@ -1933,7 +1933,9 @@ mağaza için TWA.
           `Coinportal1`.
   - **İlerleme** (`feat/non-euro-coins`): ~~1. API: veri, migration, kurallar~~ (migration dev veritabanının kopyasında
         denendi: 574 coin, 151 fotoğraf, 20 koleksiyon sağlama toplamıyla aynı, hepsi `Euro`; ülkeler 25 → 253) →
-        2. API: liste, özet, öneriler → 3. client: modeller, değer biçimi, yer tutucu → 4. form → 5. koleksiyon sayfası
+        ~~2. API: liste, özet, öneriler~~ (filtreler `kind`, `currency`; özet `GET api/coins/facets` [koleksiyonsuz:
+        para birimi önerileri], `api/public/collections/{id}/facets`, `shared/{token}/facets`, `coins/facets?owner=`) →
+        3. client: modeller, değer biçimi, yer tutucu → 4. form → 5. koleksiyon sayfası
         ve Keşfet → seed → e2e → belgeler. Regresyon testlerinde tek değişiklik: `EuroCoinTests` güncelleme testinde
         `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +

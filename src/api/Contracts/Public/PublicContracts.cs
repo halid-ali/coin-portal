@@ -22,6 +22,13 @@ public sealed record PublicProfileResponse(string UserName, IReadOnlyList<Public
 /// <summary>A user with at least one public collection, for the explore user filter.</summary>
 public sealed record CollectorResponse(string UserName, int CollectionCount, int CoinCount);
 
+/// <summary>Query string of the explore facets: the kind plus the owner, like the list.</summary>
+public sealed class ExploreFacetsQuery : CoinFacetsQuery
+{
+    [StringLength(256)]
+    public string? Owner { get; set; }
+}
+
 /// <summary>Query string of the explore list: the coin filters plus the owner.</summary>
 public class ExploreQuery : CoinListQuery, IValidatableObject
 {
