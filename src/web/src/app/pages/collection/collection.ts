@@ -321,6 +321,29 @@ export class Collection {
   protected readonly countryChoices = computed<ComboboxOption[]>(() =>
     this.countryOptions().map((c) => ({ value: c.code, label: c.name })),
   );
+  /** The commemorative and photo filters' options; read the language, so they follow a switch. */
+  protected readonly commemorativeOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return [
+      { value: 'true', label: translate('coinList.onlyCommemorative') },
+      { value: 'false', label: translate('coinList.notCommemorative') },
+    ];
+  });
+  protected readonly commemorativeValue = computed(() => {
+    const value = this.query().isCommemorative;
+    return value === undefined ? '' : String(value);
+  });
+  protected readonly photoOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return [
+      { value: 'missing', label: translate('coinList.photoMissing') },
+      { value: 'complete', label: translate('coinList.photoComplete') },
+    ];
+  });
+  protected readonly photoValue = computed(() => {
+    const value = this.query().photographed;
+    return value === undefined ? '' : value ? 'complete' : 'missing';
+  });
   protected readonly collectorOptions = computed<ComboboxOption[]>(() =>
     this.collectors().map((c) => ({ value: c.userName, label: `@${c.userName} (${c.coinCount})` })),
   );

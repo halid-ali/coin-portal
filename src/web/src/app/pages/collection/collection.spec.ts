@@ -292,7 +292,19 @@ describe('Collection', () => {
     request.flush(emptyPage(1, 0));
     await harness.fixture.whenStable();
     expect(page().querySelector('#photo')).not.toBeNull();
+    expect(filterBox('photo').value).toBe('Fotoğrafı eksik');
     expect(page().textContent).toContain('Filtreleri temizle');
+  });
+
+  it('offers the commemorative and photo filters and puts the choice in the URL', async () => {
+    await open('/collections/5', 1, pageWithCoin());
+
+    expect(await options('commemorative')).toEqual(['Tümü', 'Sadece hatıra', 'Hatıra olmayanlar']);
+    expect(await options('photo')).toEqual(['Tümü', 'Fotoğrafı eksik', 'Fotoğrafları tam']);
+
+    await chooseFilter('commemorative', 'olmayan');
+    expect(url()).toBe('/collections/5?isCommemorative=false');
+    expect(latestCoinRequest().request.params.get('isCommemorative')).toBe('false');
   });
 
   // Written down before coins other than euro coins (roadmap 18): the euro list stays like this

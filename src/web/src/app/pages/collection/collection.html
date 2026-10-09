@@ -429,43 +429,27 @@
             <label for="commemorative" class="form-label">{{
               'coin.field.commemorativeCoin' | transloco
             }}</label>
-            <select
-              id="commemorative"
-              #commemorativeSelect
-              class="form-input"
-              (change)="setFilters({ isCommemorative: commemorativeSelect.value })"
-            >
-              <option value="" [selected]="query().isCommemorative === undefined">
-                {{ 'common.all' | transloco }}
-              </option>
-              <option value="true" [selected]="query().isCommemorative === true">
-                {{ 'coinList.onlyCommemorative' | transloco }}
-              </option>
-              <option value="false" [selected]="query().isCommemorative === false">
-                {{ 'coinList.notCommemorative' | transloco }}
-              </option>
-            </select>
+            <app-combobox
+              inputId="commemorative"
+              [options]="commemorativeOptions()"
+              [value]="commemorativeValue()"
+              [label]="'coin.field.commemorativeCoin' | transloco"
+              [allLabel]="'common.all' | transloco"
+              (valueChange)="setFilters({ isCommemorative: $event })"
+            />
           </div>
 
           @if (mode() === 'owner') {
             <div>
               <label for="photo" class="form-label">{{ 'coinList.photoFilter' | transloco }}</label>
-              <select
-                id="photo"
-                #photoSelect
-                class="form-input"
-                (change)="setFilters({ photo: photoSelect.value })"
-              >
-                <option value="" [selected]="query().photographed === undefined">
-                  {{ 'common.all' | transloco }}
-                </option>
-                <option value="missing" [selected]="query().photographed === false">
-                  {{ 'coinList.photoMissing' | transloco }}
-                </option>
-                <option value="complete" [selected]="query().photographed === true">
-                  {{ 'coinList.photoComplete' | transloco }}
-                </option>
-              </select>
+              <app-combobox
+                inputId="photo"
+                [options]="photoOptions()"
+                [value]="photoValue()"
+                [label]="'coinList.photoFilter' | transloco"
+                [allLabel]="'common.all' | transloco"
+                (valueChange)="setFilters({ photo: $event })"
+              />
             </div>
           }
 

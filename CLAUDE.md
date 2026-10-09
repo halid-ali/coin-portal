@@ -605,8 +605,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   grubu); tür ve diğer coin alanları ana form grubunun dışında (`kindControl`, `otherForm`), değer "0,5" ya da
   "0.5" (`face-value.ts`). Bir coin'in değeri her yerde `coinValueLabel(coin, dil)` ile ("2 €", "25 kuruş").
 - **Uzun seçim listeleri yazılabilen kısa liste** (`shared/combobox`, kullanıcı kararları 2026-10-09): coin
-  formundaki Ülke, koleksiyon sayfası ve Keşfet'teki Koleksiyoncu, Nominal, Ülke filtreleri. Native `<select>`'in
-  listesinin boyu sayfadan kısaltılamıyor (telefonda ekranı kaplar). ARIA combobox: odak kutuda kalır, liste
+  formundaki Ülke, koleksiyon sayfası ve Keşfet'teki Koleksiyoncu, Nominal, Ülke, Hatıra, Fotoğraf filtreleri
+  (filtre kutusundaki bütün seçimler aynı görünsün diye kısa olanlar da). Native `<select>`'in listesinin boyu
+  sayfadan kısaltılamıyor (telefonda ekranı kaplar). ARIA combobox: odak kutuda kalır, liste
   ~8 satır kayar, yazınca süzülür: önce yazılanla başlayan, sonra bir kelimesi yazılanla başlayan, sonra içinde
   geçen (her grupta verilen sıra), büyük/küçük harf ve aksan duyarsız (`combobox-filter.ts`); eşleşen kısım
   kalın ve tema renginde (`text-brand-700`, linklerin rengi; her renkte, iki temada en az 4,5:1). Liste en uzun
@@ -616,7 +617,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   boşaltılınca o seçilir). Sadece listedeki bir seçenek seçilir; seçmeden çıkmak eskisini geri getirir (adı
   birebir yazılmışsa onu alır). Formda kontrolün kendisi (`formControlName`, `appField` gibi `aria-invalid` /
   `-required` / `-describedby`; id `inputId`), filtrede `[value]` + `(valueChange)`. Seçenek adları dile bağlıysa
-  computed `LanguageService.current()`'ı okur. Kısa listeler (Euro nominali, Hatıra, sıralama) `<select>` kalır.
+  computed `LanguageService.current()`'ı okur. Coin formunun Euro nominali (8 değer), araç çubuğundaki sıralama
+  ve sayfa başına `<select>` kalır.
   `freeText` (coin formunun Para birimi; `<datalist>` yerine, tarayıcının listesi temaya uymuyordu): değer
   yazılan metin, seçenekler öneri; kendiliğinden vurgu yok (Enter formu gönderir, metni değiştirmez), öneri
   okla ya da tıklayarak alınır, eşleşme yoksa liste gizlenir, öneri yoksa ok da yok (düz metin kutusu).
