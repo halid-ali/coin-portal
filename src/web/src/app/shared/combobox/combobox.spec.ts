@@ -259,6 +259,61 @@ describe('Combobox', () => {
       host = (await create(FilterHost)).componentInstance;
     });
 
+    describe('the list width', () => {
+      const popup = () => box().parentElement!.querySelector<HTMLElement>('div.absolute')!;
+      /** jsdom has no layout: the box starts at `left`, the list is `width` wide. */
+      function layout(left: number, width: () => number) {
+        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+          this: HTMLElement,
+        ) {
+          const x = this.tagName === 'APP-COMBOBOX' ? left : 0;
+          const w = this.classList.contains('absolute') ? width() : 0;
+          return { left: x, width: w } as DOMRect;
+        });
+      }
+
+      afterEach(() => vi.restoreAllMocks());
+
+      it('is the longest option, at least the box and at most 24rem, and long names wrap', async () => {
+        layout(100, () => 200);
+        box().click();
+        await fixture.whenStable();
+
+        expect(popup().className).toContain('w-max');
+        expect(popup().className).toContain('min-w-full');
+        expect(popup().className).toContain('max-w-[min(24rem,calc(100vw-2rem))]');
+        expect(popup().classList).toContain('left-0');
+        expect(page.querySelector('[role=option] span')!.classList).toContain('wrap-anywhere');
+      });
+
+      it('turns to the right edge when it would leave the screen', async () => {
+        // jsdom's window is 1024 px wide
+        layout(900, () => 200);
+        box().click();
+        await fixture.whenStable();
+
+        expect(popup().classList).toContain('right-0');
+        expect(popup().classList).not.toContain('left-0');
+      });
+
+      it('does not shrink while typing narrows it, until it closes', async () => {
+        let width = 240;
+        layout(100, () => width);
+        box().click();
+        await fixture.whenStable();
+        expect(popup().style.minWidth).toBe('240px');
+
+        width = 120;
+        await type('pe');
+        expect(popup().style.minWidth).toBe('240px');
+
+        await key('Escape');
+        box().click();
+        await fixture.whenStable();
+        expect(popup().style.minWidth).toBe('120px');
+      });
+    });
+
     it('lists "All" on top and the options under their headings', async () => {
       box().click();
       await fixture.whenStable();

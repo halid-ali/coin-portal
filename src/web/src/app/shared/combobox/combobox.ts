@@ -8,6 +8,7 @@ import {
   input,
   model,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NgControl, Validators } from '@angular/forms';
@@ -87,8 +88,15 @@ let nextId = 0;
     }
 
     @if (expanded()) {
+      <!-- As wide as its longest option: at least the box, at most 24rem (the coin form's box; every
+       country name in the four languages fits) or the screen; turned to the box's right edge when it
+       would leave the screen (user choices 2026-10-09) -->
       <div
-        class="absolute top-full left-0 z-40 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-shade-200 bg-shade-0 p-1 shadow-lg"
+        #popup
+        class="absolute top-full z-40 mt-1 max-h-72 w-max max-w-[min(24rem,calc(100vw-2rem))] min-w-full overflow-y-auto rounded-xl border border-shade-200 bg-shade-0 p-1 shadow-lg"
+        [class.left-0]="!alignEnd()"
+        [class.right-0]="alignEnd()"
+        [style.min-width.px]="listWidth() || null"
         (mousedown)="$event.preventDefault()"
       >
         @if (matchCount()) {
@@ -143,7 +151,8 @@ let nextId = 0;
       >
         <!-- The matching part bold in the accent color, like links (user choice 2026-10-09; at least
          4.5:1 on the list and the highlighted row with every accent, both themes) -->
-        <span class="flex-1">
+        <!-- A name too long for the list wraps inside it, also without spaces (a user name, a currency) -->
+        <span class="min-w-0 flex-1 wrap-anywhere">
           @if (match.at < 0) {
             {{ match.option.label }}
           } @else {
@@ -235,6 +244,10 @@ export class Combobox implements ControlValueAccessor {
   });
 
   private readonly box = viewChild.required<ElementRef<HTMLInputElement>>('box');
+  private readonly popup = viewChild<ElementRef<HTMLElement>>('popup');
+  /** The open list's width so far (0 while closed). */
+  protected readonly listWidth = signal(0);
+  protected readonly alignEnd = signal(false);
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
@@ -249,6 +262,21 @@ export class Combobox implements ControlValueAccessor {
       }
       const id = this.optionId(this.activeIndex());
       this.host.nativeElement.querySelector(`#${id}`)?.scrollIntoView?.({ block: 'nearest' });
+    });
+    // The list keeps the widest it has been while open (it does not shrink as typing narrows it)
+    // and turns to the right edge when it would leave the screen
+    afterRenderEffect(() => {
+      this.view();
+      const popup = this.popup()?.nativeElement;
+      if (!popup) {
+        return;
+      }
+      const width = Math.ceil(popup.getBoundingClientRect().width);
+      if (width > untracked(this.listWidth)) {
+        this.listWidth.set(width);
+      }
+      const left = this.host.nativeElement.getBoundingClientRect().left;
+      this.alignEnd.set(left + Math.max(width, untracked(this.listWidth)) > window.innerWidth - 16);
     });
   }
 
@@ -369,6 +397,7 @@ export class Combobox implements ControlValueAccessor {
   private close(): void {
     this.open.set(false);
     this.typed.set(null);
+    this.listWidth.set(0);
   }
 
   writeValue(value: string | null): void {

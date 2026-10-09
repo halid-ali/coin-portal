@@ -609,7 +609,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   listesinin boyu sayfadan kısaltılamıyor (telefonda ekranı kaplar). ARIA combobox: odak kutuda kalır, liste
   ~8 satır kayar, yazınca süzülür: önce yazılanla başlayan, sonra bir kelimesi yazılanla başlayan, sonra içinde
   geçen (her grupta verilen sıra), büyük/küçük harf ve aksan duyarsız (`combobox-filter.ts`); eşleşen kısım
-  kalın ve tema renginde (`text-brand-700`, linklerin rengi; her renkte, iki temada en az 4,5:1).
+  kalın ve tema renginde (`text-brand-700`, linklerin rengi; her renkte, iki temada en az 4,5:1). Liste en uzun
+  seçeneği kadar geniş (en az kutu, en çok 24rem ya da ekran; açıkken daralmaz), ekrandan taşacaksa kutunun sağına
+  hizalanır; sığmayan ad liste içinde bölünür (`wrap-anywhere`: kullanıcı adı ve para biriminde boşluk olmayabilir).
   Grup başlıkları (`group`, altındakiler girintili), filtrelerde en üstte `allLabel` ("Tümü", değer `''`; kutu
   boşaltılınca o seçilir). Sadece listedeki bir seçenek seçilir; seçmeden çıkmak eskisini geri getirir (adı
   birebir yazılmışsa onu alır). Formda kontrolün kendisi (`formControlName`, `appField` gibi `aria-invalid` /
