@@ -135,12 +135,14 @@ public static class DevDataSeeder
             // stand-in photos there, none elsewhere, so the "without photo" filter has work too
             foreach (var coin in coins.Where(c => c.Collection.Visibility == CollectionVisibility.Public))
             {
-                if (!processed.TryGetValue(coin.Denomination, out var files))
+                // The seed has euro coins only
+                var denomination = coin.Denomination!.Value;
+                if (!processed.TryGetValue(denomination, out var files))
                 {
-                    using var source = new MemoryStream(SeedPhotos.Png(coin.Denomination));
+                    using var source = new MemoryStream(SeedPhotos.Png(denomination));
                     var sizes = await imageProcessor.ProcessAsync(source, CancellationToken.None);
                     files = sizes.ToDictionary(s => s.Key.FileName(), s => s.Value);
-                    processed[coin.Denomination] = files;
+                    processed[denomination] = files;
                 }
                 var photo = new CoinPhoto
                 {

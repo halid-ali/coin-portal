@@ -157,7 +157,7 @@ public class CoinsController(
             return this.UnverifiedCoinLimit(maxCoins);
         }
 
-        var countryCode = await ValidateCountryAsync(request.CountryCode, ct);
+        var countryCode = await ValidateCountryAsync(request, ct);
         var collectionValid = await ValidateCollectionAsync(request.CollectionId!.Value, ct);
         if (countryCode is null || !collectionValid)
         {
@@ -167,7 +167,7 @@ public class CoinsController(
         // Before the images are processed: whether they are given decides, not what they show
         var broken = await publication.BrokenByAsync(
             [new CollectionChange(request.CollectionId!.Value,
-                AddsUnphotographed: !PublicationRules.HasPhotos(uploads.Select(u => u.Side)))], ct);
+                AddsUnphotographed: !PublicationRules.HasPhotos(request.ResolvedKind(), uploads.Select(u => u.Side)))], ct);
         if (broken.Count > 0 && !unpublish)
         {
             return this.WouldUnpublish(broken);
@@ -228,7 +228,8 @@ public class CoinsController(
 
     /// <summary>
     /// Updates a coin; another collection moves it. Moving can break the rule of the Public
-    /// collection it leaves (minimum) or joins (photos).
+    /// collection it leaves (minimum) or joins (photos); so can another kind, which needs other
+    /// photos (an other coin both sides).
     /// </summary>
     [HttpPut("{id:int}")]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -252,26 +253,27 @@ public class CoinsController(
                 StatusCodes.Status403Forbidden);
         }
 
-        var countryCode = await ValidateCountryAsync(request.CountryCode, ct);
+        var countryCode = await ValidateCountryAsync(request, ct);
         var collectionValid = await ValidateCollectionAsync(request.CollectionId!.Value, ct);
         if (countryCode is null || !collectionValid)
         {
             return ValidationProblem(ModelState);
         }
 
-        List<Collection> broken = [];
-        if (request.CollectionId != coin.CollectionId)
+        // Photographed before and after the change: the kind decides which sides count
+        var photographed = PublicationRules.HasPhotos(coin);
+        var stillPhotographed = PublicationRules.HasPhotos(request.ResolvedKind(), coin.Photos.Select(p => p.Side));
+        CollectionChange[] changes = request.CollectionId != coin.CollectionId
+            ?
+            [
+                new CollectionChange(coin.CollectionId, RemovesPhotographed: photographed ? 1 : 0),
+                new CollectionChange(request.CollectionId!.Value, AddsUnphotographed: !stillPhotographed),
+            ]
+            : [new CollectionChange(coin.CollectionId, AddsUnphotographed: photographed && !stillPhotographed)];
+        var broken = await publication.BrokenByAsync(changes, ct);
+        if (broken.Count > 0 && !unpublish)
         {
-            var photographed = PublicationRules.HasPhotos(coin);
-            broken = await publication.BrokenByAsync(
-                [
-                    new CollectionChange(coin.CollectionId, RemovesPhotographed: photographed ? 1 : 0),
-                    new CollectionChange(request.CollectionId!.Value, AddsUnphotographed: !photographed),
-                ], ct);
-            if (broken.Count > 0 && !unpublish)
-            {
-                return this.WouldUnpublish(broken);
-            }
+            return this.WouldUnpublish(broken);
         }
 
         var now = DateTime.UtcNow;
@@ -327,16 +329,19 @@ public class CoinsController(
             .FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId, ct);
     }
 
-    // Returns the normalized code, or null after adding a model error
-    private async Task<string?> ValidateCountryAsync(string rawCode, CancellationToken ct)
+    // Returns the normalized code, or null after adding a model error. A euro coin comes from a
+    // euro issuer, any other coin from any country.
+    private async Task<string?> ValidateCountryAsync(CoinUpsertRequest request, CancellationToken ct)
     {
-        var code = CoinListing.NormalizeCountryCode(rawCode);
-        if (await db.Countries.AnyAsync(c => c.Code == code, ct))
+        var code = CoinListing.NormalizeCountryCode(request.CountryCode);
+        var euro = request.ResolvedKind() == CoinKind.Euro;
+        if (await db.Countries.AnyAsync(c => c.Code == code && (!euro || c.IsEuroIssuer), ct))
         {
             return code;
         }
 
-        ModelState.AddModelError(nameof(CoinUpsertRequest.CountryCode), "Unknown country code.");
+        ModelState.AddModelError(nameof(CoinUpsertRequest.CountryCode),
+            euro ? "Unknown country code or not a euro issuer." : "Unknown country code.");
         return null;
     }
 
@@ -358,7 +363,12 @@ public class CoinsController(
         coin.CollectionId = request.CollectionId!.Value;
         coin.Title = request.Title.Trim();
         coin.Description = NullIfBlank(request.Description);
-        coin.Denomination = request.Denomination!.Value;
+        // Only the fields of the coin's kind are kept (CK_Coins_Value)
+        coin.Kind = request.ResolvedKind();
+        var euro = coin.Kind == CoinKind.Euro;
+        coin.Denomination = euro ? request.Denomination!.Value : null;
+        coin.FaceValue = euro ? null : request.FaceValue!.Value;
+        coin.Currency = euro ? null : request.Currency!.Trim();
         coin.CountryCode = countryCode;
         coin.Year = request.Year!.Value;
         coin.MintMark = NullIfBlank(request.MintMark);

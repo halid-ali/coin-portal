@@ -60,6 +60,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             b.Property(c => c.Title).HasMaxLength(Coin.TitleMaxLength).IsRequired();
             b.Property(c => c.Description).HasMaxLength(Coin.DescriptionMaxLength);
             b.Property(c => c.MintMark).HasMaxLength(Coin.MintMarkMaxLength);
+            b.Property(c => c.Currency).HasMaxLength(Coin.CurrencyMaxLength);
+            b.Property(c => c.FaceValue).HasPrecision(18, Coin.FaceValueScale);
 
             // Same column type as Countries.Code, required for the FK
             b.Property(c => c.CountryCode).HasMaxLength(Country.CodeLength).IsFixedLength().IsUnicode(false);
@@ -87,12 +89,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             b.HasIndex(c => new { c.CollectionId, c.CountryCode, c.Denomination, c.Year });
             b.HasIndex(c => c.OwnerId);
 
-            // Database-level guards in addition to API validation
+            // Database-level guards in addition to API validation: a euro coin has a euro
+            // denomination, an other coin a positive face value in a currency, never both
             var denominations = string.Join(", ", Enum.GetValues<Denomination>().Cast<int>());
+            var euro = (int)CoinKind.Euro;
+            var other = (int)CoinKind.Other;
             b.ToTable(t =>
             {
-                t.HasCheckConstraint("CK_Coins_Denomination", $"[Denomination] IN ({denominations})");
-                t.HasCheckConstraint("CK_Coins_Year", $"[Year] >= {Coin.MinYear}");
+                t.HasCheckConstraint("CK_Coins_Kind", $"[Kind] IN ({euro}, {other})");
+                t.HasCheckConstraint("CK_Coins_Value",
+                    $"([Kind] = {euro} AND [Denomination] IN ({denominations}) AND [FaceValue] IS NULL AND [Currency] IS NULL)"
+                    + $" OR ([Kind] = {other} AND [Denomination] IS NULL AND [FaceValue] > 0 AND [Currency] IS NOT NULL)");
+                t.HasCheckConstraint("CK_Coins_Year",
+                    $"([Kind] = {euro} AND [Year] >= {Coin.EuroMinYear}) OR ([Kind] = {other} AND [Year] >= {Coin.MinYear})");
                 t.HasCheckConstraint("CK_Coins_Quantity", "[Quantity] >= 1");
             });
         });

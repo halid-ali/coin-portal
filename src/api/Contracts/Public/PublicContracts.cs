@@ -47,7 +47,10 @@ public sealed record ExploreCoinResponse(
     string OwnerUserName,
     string Title,
     string? Description,
-    Denomination Denomination,
+    CoinKind Kind,
+    Denomination? Denomination,
+    decimal? FaceValue,
+    string? Currency,
     string CountryCode,
     int Year,
     string? MintMark,
@@ -59,7 +62,7 @@ public sealed record ExploreCoinResponse(
     // whole user row (password hash, email) of every listed coin
     public static readonly Expression<Func<Coin, ExploreCoinResponse>> Projection = c => new(
         c.Id, c.CollectionId, c.Collection.Name, c.Owner.UserName!, c.Title, c.Description,
-        c.Denomination, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity,
+        c.Kind, c.Denomination, c.FaceValue, c.Currency, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity,
         c.Photos.OrderBy(p => p.Side).Select(p => new CoinPhotoResponse(p.Side, p.Id)).ToList());
 }
 
@@ -72,7 +75,10 @@ public sealed record PublicCoinResponse(
     int CollectionId,
     string Title,
     string? Description,
-    Denomination Denomination,
+    CoinKind Kind,
+    Denomination? Denomination,
+    decimal? FaceValue,
+    string? Currency,
     string CountryCode,
     int Year,
     string? MintMark,
@@ -82,7 +88,7 @@ public sealed record PublicCoinResponse(
 {
     // Photos must be loaded (Include)
     public static PublicCoinResponse From(Coin c) => new(
-        c.Id, c.CollectionId, c.Title, c.Description, c.Denomination, c.CountryCode, c.Year,
+        c.Id, c.CollectionId, c.Title, c.Description, c.Kind, c.Denomination, c.FaceValue, c.Currency, c.CountryCode, c.Year,
         c.MintMark, c.IsCommemorative, c.Quantity,
         c.Photos.OrderBy(p => p.Side).Select(CoinPhotoResponse.From).ToList());
 }
