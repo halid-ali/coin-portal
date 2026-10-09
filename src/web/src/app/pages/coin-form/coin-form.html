@@ -146,21 +146,15 @@
 
           <div>
             <label for="currency" class="form-label">{{ 'coin.field.currency' | transloco }}</label>
-            <input
-              id="currency"
-              type="text"
-              autocomplete="off"
-              list="currency-suggestions"
+            <!-- Free text: the user's currencies so far are suggestions, a new one is typed -->
+            <app-combobox
+              inputId="currency"
+              freeText
               [formControl]="otherForm.controls.currency"
-              [appField]="otherForm.controls.currency"
-              [maxlength]="limits.currencyMaxLength"
-              class="form-input"
+              [options]="currencyOptions()"
+              [label]="'coin.field.currency' | transloco"
+              [maxLength]="limits.currencyMaxLength"
             />
-            <datalist id="currency-suggestions">
-              @for (c of currencySuggestions(); track c) {
-                <option [value]="c"></option>
-              }
-            </datalist>
             @if (errorMessage(otherForm.controls.currency); as msg) {
               <p id="currency-error" class="form-error">{{ msg }}</p>
             } @else {

@@ -614,6 +614,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   birebir yazılmışsa onu alır). Formda kontrolün kendisi (`formControlName`, `appField` gibi `aria-invalid` /
   `-required` / `-describedby`; id `inputId`), filtrede `[value]` + `(valueChange)`. Seçenek adları dile bağlıysa
   computed `LanguageService.current()`'ı okur. Kısa listeler (Euro nominali, Hatıra, sıralama) `<select>` kalır.
+  `freeText` (coin formunun Para birimi; `<datalist>` yerine, tarayıcının listesi temaya uymuyordu): değer
+  yazılan metin, seçenekler öneri; kendiliğinden vurgu yok (Enter formu gönderir, metni değiştirmez), öneri
+  okla ya da tıklayarak alınır, eşleşme yoksa liste gizlenir, öneri yoksa ok da yok (düz metin kutusu).
   e2e'de `support/combobox.ts` `chooseOption`; seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
   `option`'ları da `getByRole('option')`'a uyar).
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest

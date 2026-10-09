@@ -2,6 +2,7 @@ import {
   Component,
   ElementRef,
   afterRenderEffect,
+  booleanAttribute,
   computed,
   inject,
   input,
@@ -25,6 +26,10 @@ let nextId = 0;
  * move the highlight, Enter picks, Escape closes and brings the choice back. Only an option can be
  * chosen; leaving the box without picking keeps the old choice (an exact name is taken).
  *
+ * `freeText`: any text, the options are suggestions (a coin's currency). The value is the text as
+ * typed; nothing is highlighted by itself (Enter does not replace the text, it submits the form),
+ * an option is taken with the arrow keys or a click, and the list hides when nothing matches.
+ *
  * In a form it is the control (`formControlName`, it says when it is invalid or required, like
  * appField): `<app-combobox inputId="countryCode" formControlName="countryCode" …>` with
  * `<label for="countryCode">`, `<p id="countryCode-error">` / `-hint`. Elsewhere it is bound:
@@ -47,13 +52,14 @@ let nextId = 0;
       spellcheck="false"
       aria-autocomplete="list"
       [id]="inputId()"
-      [attr.aria-expanded]="open()"
-      [attr.aria-controls]="open() && matchCount() ? listId : null"
-      [attr.aria-activedescendant]="open() && activeOption() ? optionId(activeIndex()) : null"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="expanded() && matchCount() ? listId : null"
+      [attr.aria-activedescendant]="expanded() && activeOption() ? optionId(activeIndex()) : null"
       [attr.aria-invalid]="invalid() ? 'true' : null"
       [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-describedby]="ngControl ? inputId() + '-error ' + inputId() + '-hint' : null"
       [attr.placeholder]="placeholder() || null"
+      [attr.maxlength]="maxLength()"
       [disabled]="disabled()"
       [value]="text()"
       class="form-input pr-10"
@@ -64,21 +70,23 @@ let nextId = 0;
       (input)="onInput(box.value)"
       (keydown)="onKey($event)"
     />
-    <svg
-      viewBox="0 0 24 24"
-      class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-shade-500 transition-transform"
-      [class.rotate-180]="open()"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
+    @if (!freeText() || options().length) {
+      <svg
+        viewBox="0 0 24 24"
+        class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-shade-500 transition-transform"
+        [class.rotate-180]="expanded()"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    }
 
-    @if (open()) {
+    @if (expanded()) {
       <div
         class="absolute top-full left-0 z-40 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-shade-200 bg-shade-0 p-1 shadow-lg"
         (mousedown)="$event.preventDefault()"
@@ -177,6 +185,9 @@ export class Combobox implements ControlValueAccessor {
   readonly allLabel = input<string | null>(null);
   /** Shown in the empty box, e.g. "Choose…". */
   readonly placeholder = input('');
+  /** Any text; the options are suggestions. */
+  readonly freeText = input(false, { transform: booleanAttribute });
+  readonly maxLength = input<number | null>(null);
 
   protected readonly listId = `combobox-${++nextId}`;
   protected readonly open = signal(false);
@@ -204,12 +215,19 @@ export class Combobox implements ControlValueAccessor {
   });
   protected readonly matchCount = computed(() => this.listed().length);
   protected readonly activeOption = computed(() => this.listed()[this.activeIndex()] ?? null);
+  /** The list is shown: with free text only while some suggestion matches. */
+  protected readonly expanded = computed(
+    () => this.open() && (!this.freeText() || this.matchCount() > 0),
+  );
 
   /** The chosen option's name while nothing is typed. */
   protected readonly text = computed(() => {
     const typed = this.typed();
     if (typed !== null) {
       return typed;
+    }
+    if (this.freeText()) {
+      return this.value();
     }
     return this.allOptions().find((o) => o.value === this.value())?.label ?? '';
   });
@@ -257,19 +275,20 @@ export class Combobox implements ControlValueAccessor {
     this.typed.set(null);
     this.keyboard.set(false);
     this.box().nativeElement.select();
-    this.activeIndex.set(
-      Math.max(
-        0,
-        this.listed().findIndex((m) => m.option.value === this.value()),
-      ),
-    );
+    const chosen = this.listed().findIndex((m) => m.option.value === this.value());
+    this.activeIndex.set(this.freeText() ? chosen : Math.max(0, chosen));
     this.open.set(true);
   }
 
   protected onInput(text: string): void {
     this.typed.set(text);
-    this.activeIndex.set(0);
+    this.activeIndex.set(this.freeText() ? -1 : 0);
     this.open.set(true);
+    if (this.freeText()) {
+      // The text is the value, as in a plain text box
+      this.value.set(text);
+      this.onChange(text);
+    }
   }
 
   protected hover(index: number): void {
@@ -291,17 +310,19 @@ export class Combobox implements ControlValueAccessor {
         this.keyboard.set(true);
         break;
       case 'Enter': {
-        if (!this.open()) {
+        const active = this.expanded() ? this.activeOption() : null;
+        if (!active && (this.freeText() || !this.open())) {
+          this.close();
           return; // the form's Enter
         }
-        const active = this.activeOption();
         if (active) {
           this.choose(active.option.value);
         }
         break;
       }
       case 'Escape':
-        if (!this.open()) {
+        if (!this.expanded()) {
+          this.close();
           return; // e.g. a dialog's Escape
         }
         this.close();
@@ -328,7 +349,7 @@ export class Combobox implements ControlValueAccessor {
       return;
     }
     const typed = this.typed()?.trim();
-    if (typed !== undefined && this.open()) {
+    if (typed !== undefined && this.open() && !this.freeText()) {
       // A typed name that is an option's (or nothing, with an "All" option) is taken
       const exact = this.listed().find(
         (m) => m.at === 0 && m.length === m.option.label.length,

@@ -339,10 +339,11 @@ describe('CoinForm', () => {
 
       expect(page().querySelector('#denomination')).toBeNull();
       expect(await countryNames()).toEqual(['Almanya', 'Türkiye']);
+      // Suggested in the currency box (a list to type in since 2026-10-09, was a datalist)
+      control('currency').click();
+      await harness.fixture.whenStable();
       expect(
-        [...page().querySelectorAll('#currency-suggestions option')].map((o) =>
-          o.getAttribute('value'),
-        ),
+        [...page().querySelectorAll('[role=option]')].map((o) => o.textContent!.trim()),
       ).toEqual(['kuruş', 'Mark']);
       expect(page().querySelector('#year-hint')!.textContent).toContain('1–');
       const slots = [...page().querySelectorAll('app-photo-slot')].map((s) => s.textContent!);

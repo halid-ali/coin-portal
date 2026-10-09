@@ -57,6 +57,26 @@ class FilterHost {
   readonly chosen: string[] = [];
 }
 
+@Component({
+  imports: [Combobox, ReactiveFormsModule],
+  template: `
+    <app-combobox
+      inputId="currency"
+      label="Para birimi"
+      freeText
+      [formControl]="currency"
+      [options]="suggestions()"
+      [maxLength]="30"
+    />
+  `,
+})
+class FreeTextHost {
+  readonly suggestions = signal<ComboboxOption[]>(
+    ['kuruş', 'lira', 'penny'].map((c) => ({ value: c, label: c })),
+  );
+  readonly currency = new FormControl('', { nonNullable: true });
+}
+
 describe('Combobox', () => {
   let page: HTMLElement;
   let fixture: ComponentFixture<unknown>;
@@ -276,6 +296,74 @@ describe('Combobox', () => {
       host.value.set('');
       await fixture.whenStable();
       expect(box().value).toBe('Tümü');
+    });
+  });
+
+  describe('with free text', () => {
+    let host: FreeTextHost;
+
+    beforeEach(async () => {
+      host = (await create(FreeTextHost)).componentInstance;
+    });
+
+    it('takes any text as typed, the suggestions that match listed', async () => {
+      await type('Lir');
+
+      expect(host.currency.value).toBe('Lir');
+      expect(listed()).toEqual(['lira']);
+      expect(box().getAttribute('maxlength')).toBe('30');
+
+      await type('drahmi');
+      expect(host.currency.value).toBe('drahmi');
+      // A new currency is no mistake: the list hides
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+      expect(page.querySelector('[role=status]')).toBeNull();
+
+      await leave();
+      expect(host.currency.value).toBe('drahmi');
+      expect(box().value).toBe('drahmi');
+    });
+
+    it('highlights nothing by itself: Enter keeps the text for the form', async () => {
+      await type('l');
+      expect(box().hasAttribute('aria-activedescendant')).toBe(false);
+
+      const enter = await key('Enter');
+
+      expect(enter.defaultPrevented).toBe(false);
+      expect(host.currency.value).toBe('l');
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('takes a suggestion with the arrow keys or a click', async () => {
+      await type('ku');
+      await key('ArrowDown');
+      expect(active()).toBe('kuruş');
+      await key('Enter');
+      expect(host.currency.value).toBe('kuruş');
+
+      await type('p');
+      page.querySelector<HTMLElement>('[role=option]')!.click();
+      await fixture.whenStable();
+      expect(host.currency.value).toBe('penny');
+    });
+
+    it('keeps the text on Escape', async () => {
+      await type('pen');
+      await key('Escape');
+
+      expect(box().value).toBe('pen');
+      expect(host.currency.value).toBe('pen');
+    });
+
+    it('is a plain text box without suggestions', async () => {
+      host.suggestions.set([]);
+      await fixture.whenStable();
+      expect(page.querySelector('svg')).toBeNull();
+
+      await type('lira');
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+      expect(host.currency.value).toBe('lira');
     });
   });
 });

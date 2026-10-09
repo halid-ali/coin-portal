@@ -231,6 +231,9 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   );
   /** The user's currencies so far, offered while typing; loaded once an other coin is edited. */
   protected readonly currencySuggestions = signal<string[]>([]);
+  protected readonly currencyOptions = computed<ComboboxOption[]>(() =>
+    this.currencySuggestions().map((c) => ({ value: c, label: c })),
+  );
   private currenciesRequested = false;
 
   constructor() {
