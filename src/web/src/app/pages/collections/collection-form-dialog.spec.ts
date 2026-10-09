@@ -125,7 +125,7 @@ describe('CollectionFormDialog', () => {
     });
     await fixture.whenStable();
     expect(visibilityRadio('Herkese açık').disabled).toBe(true);
-    expect(element().textContent).toContain("1 coin'in ulusal yüzü eksik");
+    expect(element().textContent).toContain("1 coin'in fotoğrafı eksik");
 
     fixture.componentRef.setInput('collection', {
       ...collection,
@@ -191,7 +191,7 @@ describe('CollectionFormDialog', () => {
     await vi.waitFor(() => expect(visibilityRadio('Herkese açık').disabled).toBe(true));
     expect(element().querySelector('[role=alert]')!.textContent).toContain('Sayılar güncellendi.');
     expect(visibilityRadio('Sadece linkle').checked).toBe(true);
-    expect(element().textContent).toContain("1 coin'in ulusal yüzü eksik");
+    expect(element().textContent).toContain("1 coin'in fotoğrafı eksik");
 
     // The page behind takes the fresh counts too
     pressEscape(dialog());

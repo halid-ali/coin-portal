@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CoinPortal.Api.Data;
@@ -9,13 +10,17 @@ namespace CoinPortal.Api.DevData;
 
 /// <summary>
 /// Development-only test data. Creates the users in dev-seed.json if they are missing and
-/// replaces their coins with the ones in the file, so running it again resets the dataset.
+/// replaces their collections and coins with the ones in the file, so running it again resets the
+/// dataset. Each user has several collections: euro coins only, other coins only, both, and ones
+/// below the public minimum. Photographed coins get the stand-in photos of SeedPhotos/
+/// (make-seed-photos.mjs).
 /// Usage (from src/api): dotnet run --launch-profile http -- --seed-dev-data
 /// </summary>
 public static class DevDataSeeder
 {
     public const string CommandLineSwitch = "--seed-dev-data";
     private const string SeedFile = "DevData/dev-seed.json";
+    private const string PhotoFolder = "DevData/SeedPhotos";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -45,8 +50,7 @@ public static class DevDataSeeder
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var photoStorage = scope.ServiceProvider.GetRequiredService<IPhotoStorage>();
         var imageProcessor = scope.ServiceProvider.GetRequiredService<IImageProcessor>();
-        // One stand-in photo per denomination, processed once
-        Dictionary<Denomination, IReadOnlyDictionary<string, byte[]>> processed = [];
+        var photos = new SeedPhotoFiles(Path.Combine(app.Environment.ContentRootPath, PhotoFolder), imageProcessor);
 
         // Make sure the schema is up to date before inserting
         await db.Database.MigrateAsync();
@@ -82,86 +86,109 @@ public static class DevDataSeeder
             await db.Collections.Where(c => c.OwnerId == user.Id).ExecuteDeleteAsync();
             await photoStorage.DeleteOwnerAsync(user.Id);
 
-            // Two collections, so several collections can be tried out right away:
-            // the default one and the commemorative coins
             var now = DateTime.UtcNow;
-            var main = new Collection
+            var coinCount = 0;
+            for (var i = 0; i < seedUser.Collections.Count; i++)
             {
-                // The seed content (titles, descriptions) is Turkish
-                OwnerId = user.Id, Name = Collection.DefaultNameFor("tr"), CreatedAtUtc = now, UpdatedAtUtc = now
-            };
-            var commemorative = new Collection
-            {
-                OwnerId = user.Id,
-                Name = "Hatıra paraları",
-                Description = "2 € hatıra paraları",
-                CreatedAtUtc = now.AddSeconds(1),
-                UpdatedAtUtc = now.AddSeconds(1)
-            };
-            // A few shared collections, so profiles, explore and share links have content
-            switch (seedUser.UserName)
-            {
-                case "ayse.yilmaz":
-                    main.Visibility = CollectionVisibility.Public;
-                    break;
-                case "elif.kaya":
-                    commemorative.Visibility = CollectionVisibility.Public;
-                    break;
-                case "jonas.weber":
-                    main.Visibility = CollectionVisibility.Unlisted;
-                    main.ShareToken = Collection.NewShareToken();
-                    break;
-            }
-            db.Collections.AddRange(main, commemorative);
-
-            var coins = seedUser.Coins.Select(c => new Coin
-            {
-                OwnerId = user.Id,
-                Collection = c.IsCommemorative ? commemorative : main,
-                Title = c.Title,
-                Description = c.Description,
-                Denomination = c.Denomination,
-                CountryCode = c.CountryCode,
-                Year = c.Year,
-                MintMark = c.MintMark,
-                IsCommemorative = c.IsCommemorative,
-                Quantity = c.Quantity,
-                CreatedAtUtc = c.CreatedAtUtc,
-                UpdatedAtUtc = c.CreatedAtUtc,
-            }).ToList();
-            db.Coins.AddRange(coins);
-
-            // A public collection needs a national side photo of every coin (PublicationRules):
-            // stand-in photos there, none elsewhere, so the "without photo" filter has work too
-            foreach (var coin in coins.Where(c => c.Collection.Visibility == CollectionVisibility.Public))
-            {
-                if (!processed.TryGetValue(coin.Denomination, out var files))
+                var seedCollection = seedUser.Collections[i];
+                var collection = new Collection
                 {
-                    using var source = new MemoryStream(SeedPhotos.Png(coin.Denomination));
-                    var sizes = await imageProcessor.ProcessAsync(source, CancellationToken.None);
-                    files = sizes.ToDictionary(s => s.Key.FileName(), s => s.Value);
-                    processed[coin.Denomination] = files;
-                }
-                var photo = new CoinPhoto
-                {
-                    Id = Guid.NewGuid(),
-                    Side = CoinSide.National,
-                    SizeBytes = files.Values.Sum(f => (long)f.Length),
-                    CreatedAtUtc = coin.CreatedAtUtc,
+                    OwnerId = user.Id,
+                    Name = seedCollection.Name,
+                    Description = seedCollection.Description,
+                    // In the file's order on the collections page
+                    CreatedAtUtc = now.AddSeconds(i),
+                    UpdatedAtUtc = now.AddSeconds(i),
                 };
-                await photoStorage.SaveAsync(user.Id, photo.Id, files, CancellationToken.None);
-                coin.Photos.Add(photo);
+                collection.SetVisibility(seedCollection.Visibility);
+                db.Collections.Add(collection);
+
+                var photographed = seedCollection.PhotographedCount();
+                if (seedCollection.Visibility == CollectionVisibility.Public && photographed < seedCollection.Coins.Count)
+                {
+                    throw new InvalidOperationException(
+                        $"{seedUser.UserName}/{seedCollection.Name}: a public collection needs photos of every coin.");
+                }
+
+                for (var j = 0; j < seedCollection.Coins.Count; j++)
+                {
+                    var c = seedCollection.Coins[j];
+                    var other = c.Kind == CoinKind.Other;
+                    var coin = new Coin
+                    {
+                        OwnerId = user.Id,
+                        Collection = collection,
+                        Kind = c.Kind,
+                        Title = c.Title,
+                        Description = c.Description,
+                        Denomination = other ? null : c.Denomination,
+                        FaceValue = other ? c.FaceValue : null,
+                        Currency = other ? c.Currency : null,
+                        CountryCode = c.CountryCode,
+                        Year = c.Year,
+                        MintMark = c.MintMark,
+                        IsCommemorative = c.IsCommemorative,
+                        Quantity = c.Quantity,
+                        CreatedAtUtc = c.CreatedAtUtc,
+                        UpdatedAtUtc = c.CreatedAtUtc,
+                    };
+                    db.Coins.Add(coin);
+
+                    // What a public collection needs (PublicationRules): a euro coin's national side,
+                    // both sides of an other coin
+                    if (j < photographed)
+                    {
+                        foreach (var (side, file) in c.PhotoFiles())
+                        {
+                            var files = await photos.GetAsync(file);
+                            var photo = new CoinPhoto
+                            {
+                                Id = Guid.NewGuid(),
+                                Side = side,
+                                SizeBytes = files.Values.Sum(f => (long)f.Length),
+                                CreatedAtUtc = coin.CreatedAtUtc,
+                            };
+                            await photoStorage.SaveAsync(user.Id, photo.Id, files, CancellationToken.None);
+                            coin.Photos.Add(photo);
+                        }
+                    }
+                }
+                coinCount += seedCollection.Coins.Count;
             }
             await db.SaveChangesAsync();
 
             logger.LogInformation(
-                "Seeded {UserName}: {Count} coins (removed {Removed} old ones)",
-                seedUser.UserName, seedUser.Coins.Count, removed);
+                "Seeded {UserName}: {Collections} collections, {Count} coins (removed {Removed} old ones)",
+                seedUser.UserName, seedUser.Collections.Count, coinCount, removed);
         }
 
         logger.LogInformation(
             // Never the password (CLAUDE.md lists it for developers)
             "Dev data seeded: {Users} users", data.Users.Count);
+    }
+
+    /// <summary>The stand-in photos, each processed once like an upload.</summary>
+    private sealed class SeedPhotoFiles(string folder, IImageProcessor imageProcessor)
+    {
+        private readonly Dictionary<string, IReadOnlyDictionary<string, byte[]>> processed = [];
+
+        public async Task<IReadOnlyDictionary<string, byte[]>> GetAsync(string file)
+        {
+            if (!processed.TryGetValue(file, out var files))
+            {
+                var path = Path.Combine(folder, file);
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException(
+                        $"Seed photo {file} is missing: run make-seed-photos.mjs in src/api/DevData.", path);
+                }
+                await using var source = File.OpenRead(path);
+                var sizes = await imageProcessor.ProcessAsync(source, CancellationToken.None);
+                files = sizes.ToDictionary(s => s.Key.FileName(), s => s.Value);
+                processed[file] = files;
+            }
+            return files;
+        }
     }
 
     private sealed record SeedData(string Password, List<SeedUser> Users);
@@ -172,16 +199,55 @@ public static class DevDataSeeder
         string FirstName,
         string LastName,
         DateOnly BirthDate,
-        List<SeedCoin> Coins);
+        List<SeedCollection> Collections);
 
+    /// <param name="Photographed">"all", "none", or the number of the first coins with photos.</param>
+    private sealed record SeedCollection(
+        string Name,
+        string? Description,
+        CollectionVisibility Visibility,
+        JsonElement Photographed,
+        List<SeedCoin> Coins)
+    {
+        public int PhotographedCount() => Photographed.ValueKind switch
+        {
+            JsonValueKind.Number => Photographed.GetInt32(),
+            _ when Photographed.GetString() == "all" => Coins.Count,
+            _ => 0,
+        };
+    }
+
+    /// <param name="Hue">An other coin's photo color (make-seed-photos.mjs).</param>
     private sealed record SeedCoin(
         string Title,
         string? Description,
-        Denomination Denomination,
+        CoinKind Kind,
+        Denomination? Denomination,
+        decimal? FaceValue,
+        string? Currency,
         string CountryCode,
         int Year,
         string? MintMark,
         bool IsCommemorative,
         int Quantity,
-        DateTime CreatedAtUtc);
+        string? Hue,
+        DateTime CreatedAtUtc)
+    {
+        // A missing kind in the file is a euro coin, like in the API
+        public CoinKind Kind { get; init; } = Kind == 0 ? CoinKind.Euro : Kind;
+
+        /// <summary>The photo files of the sides a public collection needs, named as make-seed-photos.mjs writes them.</summary>
+        public IEnumerable<(CoinSide Side, string File)> PhotoFiles()
+        {
+            if (Kind == CoinKind.Euro)
+            {
+                yield return (CoinSide.National, $"euro-{Denomination}.jpg");
+                yield break;
+            }
+            // The back shows the value as written in Turkish (0,5), its file name with dashes (0-5)
+            var value = FaceValue!.Value.ToString("0.####", CultureInfo.GetCultureInfo("tr-TR"));
+            yield return (CoinSide.National, $"other-{Hue}.jpg");
+            yield return (CoinSide.Common, $"other-{Hue}-{value.Replace(',', '-')}.jpg");
+        }
+    }
 }

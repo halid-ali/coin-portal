@@ -135,6 +135,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         // Coins and photos
         new("GET", "api/Coins", Access.SignedIn, _ => "/api/coins"),
         new("GET", "api/Coins/summary", Access.SignedIn, _ => "/api/coins/summary"),
+        new("GET", "api/Coins/facets", Access.SignedIn, _ => "/api/coins/facets"),
         new("POST", "api/Coins", Access.SignedIn, _ => "/api/coins",
             w => Json(TestUser.NewCoin(w.Collection.Id))),
         new("POST", "api/Coins/with-photos", Access.SignedIn, _ => "/api/coins/with-photos",
@@ -154,6 +155,7 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         // Public views
         new("GET", "api/public/collectors", Access.Anyone, _ => "/api/public/collectors"),
         new("GET", "api/public/coins", Access.Anyone, _ => "/api/public/coins"),
+        new("GET", "api/public/coins/facets", Access.Anyone, _ => "/api/public/coins/facets"),
         new("GET", "api/public/users/{userName}", Access.Visible, w => $"/api/public/users/{w.Owner.UserName}",
             OpenUrl: async w =>
             {
@@ -166,11 +168,17 @@ public class AuthorizationMatrixTests(CoinPortalFactory factory)
         new("GET", "api/public/collections/{id:int}/coins", Access.Visible,
             w => $"/api/public/collections/{w.Collection.Id}/coins",
             OpenUrl: async w => $"/api/public/collections/{(await PublishAsync(w)).Id}/coins"),
+        new("GET", "api/public/collections/{id:int}/facets", Access.Visible,
+            w => $"/api/public/collections/{w.Collection.Id}/facets",
+            OpenUrl: async w => $"/api/public/collections/{(await PublishAsync(w)).Id}/facets"),
         new("GET", "api/public/shared/{token}", Access.Visible, w => $"/api/public/shared/{w.RevokedToken}",
             OpenUrl: w => Task.FromResult($"/api/public/shared/{w.Shared.ShareToken}")),
         new("GET", "api/public/shared/{token}/coins", Access.Visible,
             w => $"/api/public/shared/{w.RevokedToken}/coins",
             OpenUrl: w => Task.FromResult($"/api/public/shared/{w.Shared.ShareToken}/coins")),
+        new("GET", "api/public/shared/{token}/facets", Access.Visible,
+            w => $"/api/public/shared/{w.RevokedToken}/facets",
+            OpenUrl: w => Task.FromResult($"/api/public/shared/{w.Shared.ShareToken}/facets")),
 
         // Admin panel; its collection actions need a shared collection (admins see no private ones)
         new("GET", "api/admin/stats", Access.Admin, _ => "/api/admin/stats"),

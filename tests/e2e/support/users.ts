@@ -131,6 +131,32 @@ export class TestUser {
     return res.json();
   }
 
+  /**
+   * A coin other than a euro coin (a face value in a currency), with photos of no side, its front
+   * only, or both sides (what a public collection needs).
+   */
+  async createOtherCoin(
+    collectionId: number,
+    coin: { title: string; faceValue: number; currency: string; countryCode: string; year: number },
+    photos: 'none' | 'front' | 'both' = 'none',
+  ): Promise<{ id: number }> {
+    const body = { ...coin, kind: 'Other', collectionId };
+    if (photos === 'none') {
+      return this.send('POST', '/api/coins', body);
+    }
+    const image = { name: 'coin.png', mimeType: 'image/png', buffer: coinPng(200) };
+    const res = await this.api.post('/api/coins/with-photos', {
+      multipart: {
+        coin: JSON.stringify(body),
+        national: image,
+        ...(photos === 'both' ? { common: image } : {}),
+      },
+      headers: { 'X-XSRF-TOKEN': await xsrf(this.api) },
+    });
+    expect(res.status(), await res.text()).toBe(201);
+    return res.json();
+  }
+
   /** Uploads the photo of one side of an existing coin. */
   async uploadPhoto(coinId: number, side: 'national' | 'common' = 'national'): Promise<void> {
     const res = await this.api.put(`/api/coins/${coinId}/photos/${side}`, {

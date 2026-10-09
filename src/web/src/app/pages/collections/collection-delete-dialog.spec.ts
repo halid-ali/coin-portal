@@ -108,7 +108,7 @@ describe('CollectionDeleteDialog', () => {
     await fixture.whenStable();
 
     expect(page.textContent).toContain(
-      '"Vitrin" herkese açık ve bu koleksiyonda ulusal yüz fotoğrafı olmayan 1 coin var',
+      '"Vitrin" herkese açık ve bu koleksiyonda fotoğrafı eksik 1 coin var',
     );
     await type('Hatıra paraları');
     submit().click();
@@ -136,7 +136,7 @@ describe('CollectionDeleteDialog', () => {
     expect(fixture.componentInstance.results).toEqual([]);
     // Announced, with no count (this page did not know of any coin without photos)
     expect(page.querySelector('[role=alert]')!.textContent).toContain(
-      '"Koleksiyonum" herkese açık ve taşınacak coin\'lerin bazılarında ulusal yüz fotoğrafı yok',
+      '"Koleksiyonum" herkese açık ve taşınacak coin\'lerin bazılarının fotoğrafı eksik',
     );
     expect(submit()).toBeUndefined();
 

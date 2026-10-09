@@ -34,7 +34,10 @@ const coin: Coin = {
   collectionId: 5,
   title: 'Brandenburger Tor',
   description: null,
+  kind: 'Euro',
   denomination: 'Euro2',
+  faceValue: null,
+  currency: null,
   countryCode: 'DE',
   year: 2016,
   mintMark: null,
@@ -122,11 +125,11 @@ describe('Collection', () => {
     expect(banner()!.textContent).toContain('1/10 fotoğraflı coin');
     expect(banner()!.textContent).toContain('Bu arada linkle paylaşabilirsin.');
     const missing = banner()!.querySelector('a')!;
-    expect(missing.textContent).toContain("2 coin'in ulusal yüzü eksik");
+    expect(missing.textContent).toContain("2 coin'in fotoğrafı eksik");
     expect(missing.getAttribute('href')).toBe('/collections/5?photo=missing');
     // Each part apart from the dots (the template drops the spaces between elements)
     expect(banner()!.textContent!.replace(/\s+/g, ' ')).toContain(
-      "1/10 fotoğraflı coin · 2 coin'in ulusal yüzü eksik · Bu arada linkle paylaşabilirsin.",
+      "1/10 fotoğraflı coin · 2 coin'in fotoğrafı eksik · Bu arada linkle paylaşabilirsin.",
     );
   });
 
@@ -244,7 +247,7 @@ describe('Collection', () => {
     await harness.fixture.whenStable();
 
     expect(page().textContent).toContain('Sayılar güncellendi.');
-    expect(banner()!.textContent).toContain("1 coin'in ulusal yüzü eksik");
+    expect(banner()!.textContent).toContain("1 coin'in fotoğrafı eksik");
   });
 
   it('shows no banner for a public collection', async () => {
@@ -321,6 +324,120 @@ describe('Collection', () => {
         td.textContent!.trim(),
       );
       expect(cells.slice(1, 5)).toEqual(['Brandenburger Tor', '2 €', 'Almanya', '2016']);
+    });
+  });
+
+  describe('euro and other coins', () => {
+    const otherCoin: Coin = {
+      ...coin,
+      id: 2,
+      title: '25 kuruş · Türkiye · 1975',
+      kind: 'Other',
+      denomination: null,
+      faceValue: 25,
+      currency: 'kuruş',
+      countryCode: 'TR',
+      year: 1975,
+    };
+    const mixedPage: PagedResponse<Coin> = {
+      ...pageWithCoin(),
+      items: [coin, otherCoin],
+      totalCount: 2,
+    };
+    const mixed = {
+      euroCount: 2,
+      otherCount: 1,
+      currencies: ['kuruş'],
+      countryCodes: ['DE', 'TR'],
+    };
+    const options = (id: string) =>
+      [...page().querySelectorAll(`#${id} option`)].map((o) => o.textContent!.trim());
+    const kindButtons = () =>
+      [...page().querySelectorAll('[aria-label="Coin türü"] button')].map((b) => [
+        b.textContent!.replace(/\s+/g, ' ').trim(),
+        b.getAttribute('aria-pressed'),
+      ]);
+
+    function flushFacets(facets: object, kind?: string) {
+      const request = http.expectOne((r) => r.url === '/api/coins/facets');
+      expect(request.request.params.get('collectionId')).toBe('5');
+      expect(request.request.params.get('kind')).toBe(kind ?? null);
+      request.flush(facets);
+    }
+
+    async function openMixed(path = '/collections/5') {
+      await open(path, 3, mixedPage, {}, ['DE', 'AT', 'TR']);
+      flushFacets(mixed, path.includes('kind=Other') ? 'Other' : undefined);
+      await harness.fixture.whenStable();
+    }
+
+    it('shows the kind buttons with their counts where both kinds are', async () => {
+      await openMixed();
+
+      expect(kindButtons()).toEqual([
+        ['Tümü 3', 'true'],
+        ['Euro 2', 'false'],
+        ['Diğer 1', 'false'],
+      ]);
+      // Only the countries the collection has
+      expect(options('country')).toEqual(['Tümü', 'Almanya', 'Türkiye']);
+      // The currencies under their own heading
+      const groups = [...page().querySelectorAll('#denomination optgroup')];
+      expect(groups.map((g) => g.getAttribute('label'))).toEqual(['Euro coin', 'Diğer coin']);
+      expect([...groups[1].querySelectorAll('option')].map((o) => o.textContent!.trim())).toEqual([
+        'kuruş',
+      ]);
+      // An other coin's value in the table
+      const cells = [...page().querySelectorAll('table tbody tr')][1].querySelectorAll('td');
+      expect(cells[2].textContent!.trim()).toBe('25 kuruş');
+    });
+
+    it('leaves the buttons out of a collection with one kind', async () => {
+      await open('/collections/5', 1, pageWithCoin(), {}, ['DE']);
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).toBeNull();
+      expect(page().querySelector('#denomination optgroup')).toBeNull();
+    });
+
+    it('filters by kind, dropping the filters of the other kind', async () => {
+      await openMixed('/collections/5?denomination=Euro2&countryCode=DE&year=2016');
+      const other = [
+        ...page().querySelectorAll<HTMLButtonElement>('[aria-label="Coin türü"] button'),
+      ][2];
+
+      other.click();
+      await harness.fixture.whenStable();
+
+      expect(url()).toBe('/collections/5?year=2016&kind=Other');
+      const params = latestCoinRequest().request.params;
+      expect([params.get('kind'), params.get('denomination')]).toEqual(['Other', null]);
+      flushFacets({ ...mixed, countryCodes: ['TR'] }, 'Other');
+      await harness.fixture.whenStable();
+      expect(options('denomination')).toEqual(['Tümü', 'kuruş']);
+      expect(options('country')).toEqual(['Tümü', 'Türkiye']);
+    });
+
+    it('puts a chosen currency in the URL and the request', async () => {
+      await openMixed();
+      const select = page().querySelector<HTMLSelectElement>('#denomination')!;
+      select.value = 'currency:kuruş';
+      select.dispatchEvent(new Event('change'));
+      await harness.fixture.whenStable();
+
+      expect(decodeURIComponent(url())).toBe('/collections/5?currency=kuruş');
+      expect(latestCoinRequest().request.params.get('currency')).toBe('kuruş');
+    });
+
+    it('asks a public collection for its facets', async () => {
+      await harness.navigateByUrl('/u/elif.kaya/7');
+      const request = http.expectOne((r) => r.url === '/api/public/collections/7/facets');
+      expect(request.request.params.get('kind')).toBeNull();
+      request.flush(mixed);
+      http
+        .match(() => true)
+        .forEach((r) => r.flush(null, { status: 404, statusText: 'Not Found' }));
     });
   });
 
@@ -439,6 +556,10 @@ describe('Collection', () => {
 
     await harness.navigateByUrl('/u/elif.kaya/7');
     expect(TestBed.inject(CollectionReturn).url()).toBe('/collections/5?page=2');
-    http.match(() => true).forEach((r) => r.flush(null, { status: 404, statusText: 'Not Found' }));
+    // The first page's facets were cancelled by the navigation
+    http
+      .match(() => true)
+      .filter((r) => !r.cancelled)
+      .forEach((r) => r.flush(null, { status: 404, statusText: 'Not Found' }));
   });
 });

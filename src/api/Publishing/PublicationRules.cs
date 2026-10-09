@@ -13,11 +13,12 @@ public static class PublicationRules
 {
     /// <summary>
     /// A euro coin counts as photographed with its national side: that side identifies the coin,
-    /// the common side looks the same in every country. Coins other than euro coins (planned)
-    /// will need both sides; only this definition changes then.
+    /// the common side looks the same in every country. Any other coin needs both sides (front and
+    /// back, stored as National and Common): there is no standard side that shows its value.
     /// </summary>
     public static readonly Expression<Func<Coin, bool>> IsPhotographed =
-        c => c.Photos.Any(p => p.Side == CoinSide.National);
+        c => c.Photos.Any(p => p.Side == CoinSide.National)
+            && (c.Kind == CoinKind.Euro || c.Photos.Any(p => p.Side == CoinSide.Common));
 
     public static readonly Expression<Func<Coin, bool>> IsNotPhotographed =
         Expression.Lambda<Func<Coin, bool>>(Expression.Not(IsPhotographed.Body), IsPhotographed.Parameters);
@@ -27,9 +28,9 @@ public static class PublicationRules
     /// <summary>The same rule for a coin in memory (its Photos loaded).</summary>
     public static bool HasPhotos(Coin coin) => IsPhotographedCompiled(coin);
 
-    /// <summary>The same rule for a coin about to be created with these photo sides.</summary>
-    public static bool HasPhotos(IEnumerable<CoinSide> sides) =>
-        HasPhotos(new Coin { Photos = sides.Select(side => new CoinPhoto { Side = side }).ToList() });
+    /// <summary>The same rule for a coin of this kind with these photo sides (about to be created or changed).</summary>
+    public static bool HasPhotos(CoinKind kind, IEnumerable<CoinSide> sides) =>
+        HasPhotos(new Coin { Kind = kind, Photos = sides.Select(side => new CoinPhoto { Side = side }).ToList() });
 }
 
 /// <summary>Where a collection stands against the rule (coin rows, not quantities).</summary>

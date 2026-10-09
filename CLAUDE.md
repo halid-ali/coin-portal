@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-CoinVitrine (https://coinvitrine.com): kullanıcıların kendi Euro madeni para koleksiyonlarını yönettiği
-web uygulaması. Tek repo: ASP.NET Core Web API (.NET 10) + Angular 21 SPA + SQL Server.
+CoinVitrine (https://coinvitrine.com): kullanıcıların kendi madeni para koleksiyonlarını (Euro ve diğer
+coin'ler) yönettiği web uygulaması. Tek repo: ASP.NET Core Web API (.NET 10) + Angular 21 SPA + SQL Server.
 Eski adı Coin Portal (2026-10-03'e kadar). **Sadece görünen ad değişti:** arayüz, sayfa başlığı
 (`APP_NAME`, `core/i18n/translated-title-strategy.ts`), manifest, metinler, README, dışa aktarma
 ZIP'inin adı. İç adlar bilerek `CoinPortal`/`coinportal` kaldı: namespace ve proje adları,
@@ -164,10 +164,14 @@ npx git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md     # regenerate for a release
 ```
 
 Seed kullanıcıları: `ayse.yilmaz`, `jonas.weber`, `elif.kaya`, `marco.bianchi`, `sophie.martin`
-(e-postalar `@example.com`), parola hepsi için `Coinportal1`. Her birinde "Koleksiyonum" ve
-"Hatıra paraları" koleksiyonları var; seed ayrıca ayse'nin "Koleksiyonum"unu ve elif'in "Hatıra
-paraları"nı herkese açık, jonas'ın "Koleksiyonum"unu sadece linkle yapar; herkese açık koleksiyonlardaki
-coin'lere yapay ulusal yüz fotoğrafı koyar (`DevData/SeedPhotos`, kural gereği), diğerleri fotoğrafsız.
+(e-postalar `@example.com`), parola hepsi için `Coinportal1`. Koleksiyonlar `DevData/dev-seed.json`'da
+(kullanıcı → koleksiyon → coin; kullanıcı kararı 2026-10-09): her kullanıcının birden çok koleksiyonu var,
+aralarında yalnız Euro, yalnız diğer (Euro dışı) coin, karışık ve yayın sınırının altında kalanlar; herkese
+açık, linkle ve gizli olanlar. Koleksiyonun `photographed` alanı (`all`, `none` ya da ilk n coin) hangi
+coin'lerin fotoğraflı olacağını söyler; herkese açık koleksiyonda `all` olmalı (seed aksi halde durur).
+Fotoğraflar yer tutucu çizimlerinden: `DevData/SeedPhotos/*.jpg` (Euro: değer ikonu; diğer coin: ön yüz
+rengindeki ¤ coin, arka yüz değeri), `node make-seed-photos.mjs` (`DevData`'da, tests/e2e'nin Playwright'ı
+ile) üretir; çizimler ya da fotoğraflı coin'ler değişince yeniden çalıştırılır.
 **Seed, bu kullanıcıların koleksiyon, coin ve fotoğraflarını
 sıfırlar**; kullanıcı onlarla deneme yapmış olabilir (fotoğraf yüklemiş vb.), çalıştırmadan önce sor.
 API çalışırken `dotnet run --no-build --launch-profile http -- --seed-dev-data` kullanılabilir.
@@ -197,6 +201,18 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 
 - Veri: kullanıcı → koleksiyonlar (`Collections`) → coin'ler → fotoğraflar (`CoinPhotos`). Coin'de
   `OwnerId` da tutulur (koleksiyonun sahibiyle aynı olmalı; sahiplik kontrolleri ve fotoğraf yolu için).
+- **Coin türü** (`Coin.Kind`, kullanıcı kararları 2026-10-09, yol haritası 18): `Euro` (8 değerli `Denomination`,
+  25 Euro ülkesinden biri, 1999+) ya da `Other` (`FaceValue` decimal(18,4) > 0, en çok 4 ondalık + serbest
+  `Currency`, en çok 30; 253 ülkenin hiçbiri, yıl 1+). Bir türün alanları dolu, öbürününkiler boş:
+  `CoinUpsertRequest.Validate` + veritabanında `CK_Coins_Value` / `CK_Coins_Year`; öbür türün gönderilen
+  alanları yok sayılır. **Türsüz istek Euro sayılır** (`ResolvedKind`; eski client'ı açık sekmeler) ve client
+  Euro coin'i türsüz gönderir (`toRequest`), `EuroCoinTests` bunu sabitler. Fotoğraf yüzleri veritabanında yine
+  `National` / `Common`; diğer coin'de etiketleri "Ön yüz / Arka yüz" (`sideLabelKey`).
+- **Ülkeler** (`Countries`, `CountrySeed`): 249 ISO 3166-1 kodu + 4 tarihî ülke (SU, DD, YU, CS) ve
+  `IsEuroIssuer` (25); `GET api/countries` `euroIssuer` ile döner. Euro coin'in ülkesi Euro ülkesi olmalı
+  (`ValidateCountryAsync`). **Tarayıcı (`Intl.DisplayNames`) tarihî kodları bugünkü ülkelere çevirir**
+  (SU → Rusya): adları client çevirilerinde `country.former.<kod>` (`FORMER_COUNTRY_CODES`). Yeni bir tarihî
+  ülke de iki yere birden girer.
 - Rotalar: `/` (ana sayfa: girişsiz `HomeWelcome` tanıtım, girişli `HomeDashboard` pano; `pages/home/`),
   `/collections` (Koleksiyonlarım), `/collections/:collectionId` (liste/ızgara),
   `/coins/new?collection=<id>`, `/coins/:id/edit`, `/settings/<bölüm>` (Ayarlar; `profile`, `appearance`, `security`, `account`).
@@ -258,7 +274,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   filtresi (Durum ile birlikte: kilitli + doğrulanmamış).
 - **Herkese açık koleksiyon kuralı** (`Publishing/`, kararlar PROJECT_STATUS'ta): Public olmak için bütün
   coin'ler fotoğraflı ve en az `SiteSettings.MinPublicCoins` (admin ayarı, varsayılan 10) fotoğraflı coin.
-  **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı);
+  **"Fotoğraflı coin" tek yerde tanımlı:** `PublicationRules.IsPhotographed` (Euro: ulusal yüz fotoğrafı,
+  diğer coin: iki yüz; `HasPhotos(kind, sides)`; türü değiştiren güncelleme de bu kontrolden geçer);
   sorgular, filtre (`photographed=`), kontroller ondan geçer, kuralı başka yerde yeniden yazma. Public'e
   geçişte 400 `public_requirements` (+ sayılar). **Karar API'de:** koleksiyon yanıtındaki `canBePublic`
   (`PublicationStatus`); client sayıları gösterir, kuralı yeniden hesaplamaz. Koleksiyon sayfasındaki buton
@@ -415,7 +432,13 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   kişisel veri olmaz, görünmeyen her şey 404. Coin listesi filtre/sıralama/sayfalama `CoinListing`
   ile paylaşılır. Arama kelime kelime: her kelime başlıkta ya da açıklamada geçmeli, sıra önemsiz
   ("almanya 2006" → "2 € · Almanya · 2006"; en fazla `MaxSearchTerms` kelime). Keşfet'te `pageSize=0`
-  (tümü) yasak (girişsiz, tüm veriyi tarar).
+  (tümü) yasak (girişsiz, tüm veriyi tarar). Tür filtresi `kind`, diğer coin'lerde `currency` (büyük/küçük
+  harf duyarsız); nominal sıralamasında iki yönde de önce Euro'lar (sent), sonra diğerleri para birimi +
+  değer. `countryOrder` bütün ülkeleri alır (sınır 1000 karakter). **Özet (facets):** bir listenin tür
+  sayıları, diğer coin'lerinin para birimleri (en çok 200) ve seçilen türün ülkeleri (`CoinListing.FacetsAsync`):
+  `api/coins/facets` (`collectionId` yoksa bütün coin'ler: formun para birimi önerileri),
+  `api/public/collections/{id}/facets`, `shared/{token}/facets`, `coins/facets?owner=`; erişim kuralları
+  listelerinkiyle aynı.
 - **Arayüz metni API'de üretilmez**, çeviri client'ta. İstemcinin kendi mesajını göstermesi gereken
   hatalarda ProblemDetails'e makine kodu eklenir (`this.CodedProblem(code, title)`, ör.
   `invalid_image`, `last_collection`). Alan hatalarında ise
@@ -433,9 +456,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   dosyalarında tüm anahtarlar (test eşliği kontrol eder), admin tablolarının sütun genişlikleri
   (`admin-users.html`, `admin-collections.html`, `admin-audit.ts`; ölçülen metinler yorumlarda),
   `Collection.DefaultNameFor`, `Email/EmailTexts`, dil seçicideki bayrak (`shared/flag`) ve
-  coin tablosunun sütun genişlikleri: yeni dildeki sütun başlıkları ve **ülke adları** mevcut en uzundan
-  (şu an "Нидерландия") uzunsa `collection.html` `<colgroup>` genişlikleri headless ölçümle büyütülür
-  (ölçüm yöntemi colgroup'un üstündeki yorumda).
+  coin tablosunun sütun genişlikleri: yeni dildeki sütun başlıkları ve **Euro ülkelerinin adları** mevcut en
+  uzundan (şu an "Нидерландия") uzunsa `collection.html` `<colgroup>` genişlikleri headless ölçümle büyütülür
+  (ölçüm yöntemi colgroup'un üstündeki yorumda). Diğer coin'lerin ülkeleri ("Amerika Birleşik Devletleri")
+  ve değerleri sütuna sığmayabilir: kesilir, tam hali hücrenin `title`'ında ve kartlarda; tarihî ülke adları
+  (`country.former.*`) yeni dile de çevrilir.
 - Kullanıcının yazdığı adların tekillik kontrolü kodda Türkçe + kültürden bağımsız büyük/küçük harf
   duyarsız yapılır (veritabanı collation'ı İ/i'yi eşlemez); unique index yedek korumadır.
 - **Gizli değer tutan sütun binary collation alır** (`UseCollation("Latin1_General_BIN2")`, bkz.
@@ -571,6 +596,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   butonunun arkasında katlanır (arama kutusu hariç).
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
+- **Tür düğmeleri ve filtreler** (koleksiyon sayfası ve Keşfet; kullanıcı kararları 2026-10-09; saf mantık
+  `pages/collection/coin-filters.ts`): Tümü / Euro / Diğer düğmeleri sayılı ve sadece listede iki tür de varsa
+  (URL `kind`; tür değişince nominal, para birimi ve ülke filtresi sıfırlanır). Nominal filtresi seçilen türün
+  değerlerini sunar: Euro'da 8 değer, Diğer'de para birimleri (`currency:` önekli seçenek), Tümü'nde iki tür
+  varsa "Euro coin" / "Diğer coin" grupları. Ülke filtresi sadece listede (seçilen türde) olan ülkeler; özet
+  gelene kadar bütün ülkeler. Coin formunda tür seçimi masaüstünde kartlar, telefonda düğmeler (tek radyo
+  grubu); tür ve diğer coin alanları ana form grubunun dışında (`kindControl`, `otherForm`), değer "0,5" ya da
+  "0.5" (`face-value.ts`). Bir coin'in değeri her yerde `coinValueLabel(coin, dil)` ile ("2 €", "25 kuruş").
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
   listesi (admin panelinde `xl`: sayfa geniş, solda bölüm menüsü var).
@@ -720,8 +753,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `denomination-tile-outlined`; ızgarada). Yuvarlak küçük resimde (`CoinThumb`) zemin yok, `tight` ile coin
   daireyi fotoğraf gibi doldurur (iç içe iki daire olmasın, kullanıcı kararı). Görüntüleyiciye `[denomination]` verilirse eksik ortak yüz bu ikonla
   gösterilir (ortak yüz her ülkede aynı, değeri gösterir). Noktalı halkanın deseni çevreye oturtulur (tam
-  sayıda nokta), yoksa başlangıçta iki nokta yan yana düşer. Genel çizim `CoinPlaceholder`
-  (`shared/coin-placeholder`) şu an kullanılmıyor; Euro dışı coin'lerin yer tutucusu olacak (yol haritası 18).
+  sayıda nokta), yoksa başlangıçta iki nokta yan yana düşer. **Diğer (Euro dışı) coin'in yer tutucusu**
+  `OtherCoinIcon` (`shared/other-coin-icon`): aynı biçim, yüzü her coin'de ¤, renk coin'e sabit (`otherCoinHue`,
+  Id mod 8: sky, indigo, violet, fuchsia, rose, teal, emerald, lime; kullanıcı kararı 2026-10-09). Amber, sarı,
+  turuncu ve gri eklenmez (Euro'nun altın, bakır, gümüşüyle karışır). Zemini `denomination-tile other-coin
+  other-coin-<renk>`. Bir coin'in ikonu nominalinden seçilir: nominali varsa (Euro) değer ikonu, yoksa bu ikon;
+  görüntüleyici diğer coin'de eksik arka yüzü göstermez, yüz adları `sideLabelKey(kind, side)` (`shared/coin-format`).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
 - Sayfa iskeleti `app.html`: header, `main`, footer; üçü de `page-container` (genişlik
   `--page-max-width`, kenarlar hizalı). Okuma genişliği 64rem; bir rota `data: { pageWidth: 'wide' }`
@@ -733,7 +770,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `core/admin/admin.service.ts`, tarih/göreli zaman/bayt `core/admin/admin-format.ts` (dile göre `Intl`).
   Giriş noktası avatar menüsünde en üstte "Yönetim" + ayırıcı (mobil menüde de), `AuthService.isAdmin`.
   Satırdaki yıkıcı butonlar `btn-secondary-danger`, kırmızı dolgu onay penceresinde.
-- Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan, aktif dilde üretilir (`CountryService`).
+- Ülke isimleri client'ta `Intl.DisplayNames` ile ISO koddan, aktif dilde üretilir (`CountryService`;
+  tarihî ülkeler çeviriden, `euroCountries` Euro coin'in listesi).
 - **i18n (Transloco, `@jsverse/transloco`):**
   - Template'te `{{ 'anahtar' | transloco }}`, sayıya bağlı metinde `{{ 'anahtar' | plural: n }}`
     (anahtarın altında `one` / `other`, `Intl.PluralRules`), TS'te `translate()`. Anahtarlar alan/sayfa
@@ -836,6 +874,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Python kurulu değil; betikler için Node veya Bash kullan. Bash `node -e "…"` içinde template literal
   (backtick) kaçışları bozuluyor; bu tür düzenlemeleri Edit aracıyla yap. Toplu metin değişikliği
   gerekirse betiği Write ile scratchpad'e yazıp `node` ile çalıştır (heredoc'lar da bozulabiliyor).
+  Çift tırnaklı `node -e "…"` içindeki backtick'li her metin (yorumdaki `kod`, Angular şablonu) bash'te komut
+  olarak çalışır ve **sessizce boş metne döner**; sonradan dosyada aranmadıkça fark edilmez (2026-10-09'da iki kez).
 - Prettier'ın ayarı `src/web/.prettierrc`; `src/web` dışındaki bir dosyada (`tests/e2e`, `.zap`) ayarı
   bulamaz ve varsayılana (çift tırnak, 80 sütun) çevirir: `src/web`'den `prettier --config .prettierrc …`.
 - **ImageSharp 4.x lisans anahtarı ister** (sadece derlemede, çalışma anında değil): anahtar yoksa

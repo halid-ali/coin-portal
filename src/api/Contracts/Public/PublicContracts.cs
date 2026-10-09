@@ -22,6 +22,13 @@ public sealed record PublicProfileResponse(string UserName, IReadOnlyList<Public
 /// <summary>A user with at least one public collection, for the explore user filter.</summary>
 public sealed record CollectorResponse(string UserName, int CollectionCount, int CoinCount);
 
+/// <summary>Query string of the explore facets: the kind plus the owner, like the list.</summary>
+public sealed class ExploreFacetsQuery : CoinFacetsQuery
+{
+    [StringLength(256)]
+    public string? Owner { get; set; }
+}
+
 /// <summary>Query string of the explore list: the coin filters plus the owner.</summary>
 public class ExploreQuery : CoinListQuery, IValidatableObject
 {
@@ -47,7 +54,10 @@ public sealed record ExploreCoinResponse(
     string OwnerUserName,
     string Title,
     string? Description,
-    Denomination Denomination,
+    CoinKind Kind,
+    Denomination? Denomination,
+    decimal? FaceValue,
+    string? Currency,
     string CountryCode,
     int Year,
     string? MintMark,
@@ -59,7 +69,7 @@ public sealed record ExploreCoinResponse(
     // whole user row (password hash, email) of every listed coin
     public static readonly Expression<Func<Coin, ExploreCoinResponse>> Projection = c => new(
         c.Id, c.CollectionId, c.Collection.Name, c.Owner.UserName!, c.Title, c.Description,
-        c.Denomination, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity,
+        c.Kind, c.Denomination, c.FaceValue, c.Currency, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity,
         c.Photos.OrderBy(p => p.Side).Select(p => new CoinPhotoResponse(p.Side, p.Id)).ToList());
 }
 
@@ -72,7 +82,10 @@ public sealed record PublicCoinResponse(
     int CollectionId,
     string Title,
     string? Description,
-    Denomination Denomination,
+    CoinKind Kind,
+    Denomination? Denomination,
+    decimal? FaceValue,
+    string? Currency,
     string CountryCode,
     int Year,
     string? MintMark,
@@ -82,7 +95,7 @@ public sealed record PublicCoinResponse(
 {
     // Photos must be loaded (Include)
     public static PublicCoinResponse From(Coin c) => new(
-        c.Id, c.CollectionId, c.Title, c.Description, c.Denomination, c.CountryCode, c.Year,
+        c.Id, c.CollectionId, c.Title, c.Description, c.Kind, c.Denomination, c.FaceValue, c.Currency, c.CountryCode, c.Year,
         c.MintMark, c.IsCommemorative, c.Quantity,
         c.Photos.OrderBy(p => p.Side).Select(CoinPhotoResponse.From).ToList());
 }

@@ -24,6 +24,7 @@ import { httpErrorKey } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
+import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
 import { SEARCH_MAX_LENGTH } from '../../shared/url-search';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
@@ -54,6 +55,7 @@ export const HOME_COLLECTIONS = 5;
     PluralPipe,
     CoinThumb,
     DenominationIcon,
+    OtherCoinIcon,
     CollectionCard,
     CollectionFormDialog,
   ],
@@ -275,8 +277,10 @@ export const HOME_COLLECTIONS = 5;
                       decoding="async"
                       class="size-3/4 rounded-full object-cover shadow-md ring-1 ring-shade-200"
                     />
+                  } @else if (coin.denomination; as denomination) {
+                    <app-denomination-icon class="size-[90%]" [denomination]="denomination" />
                   } @else {
-                    <app-denomination-icon class="size-[90%]" [denomination]="coin.denomination" />
+                    <app-other-coin-icon class="size-[90%]" [coinId]="coin.id" />
                   }
                 </div>
                 <div class="px-3 py-2.5">

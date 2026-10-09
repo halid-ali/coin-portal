@@ -113,7 +113,7 @@
     "welcome": "Willkommen, {{name}}!",
     "registerFree": "Kostenlos registrieren",
     "browseCollectors": "Öffentliche Sammlungen entdecken",
-    "eyebrow": "Für Euro-Münzsammler",
+    "eyebrow": "Für Münzsammler",
     "title": "Deine Sammlung als Vitrine für die Hosentasche.",
     "intro": "Erfasse deine Münzen mit Fotos, prüfe in Sekunden, ob du eine Münze schon hast, und teile deine Sammlung mit einem einzigen Link.",
     "trust": {
@@ -264,10 +264,23 @@
       "Cent2": "2 Cent",
       "Cent1": "1 Cent"
     },
+    "kind": {
+      "Euro": {
+        "label": "Euro-Münze",
+        "description": "Münzen der Euroländer, ab 1999."
+      },
+      "Other": {
+        "label": "Andere Münze",
+        "description": "Andere Währungen, alte und außer Kurs gesetzte Münzen."
+      }
+    },
     "field": {
       "collection": "Sammlung",
       "title": "Titel",
+      "kind": "Münzart",
       "denomination": "Nennwert",
+      "faceValue": "Wert",
+      "currency": "Währung",
       "country": "Land",
       "year": "Jahr",
       "mintMark": "Münzzeichen",
@@ -317,6 +330,16 @@
         "hint": "Die Seite mit dem Wert, in allen Ländern gleich"
       }
     },
+    "otherSide": {
+      "National": {
+        "label": "Vorderseite",
+        "hint": "Die Seite mit Bild oder Wappen"
+      },
+      "Common": {
+        "label": "Rückseite",
+        "hint": "Die Seite mit dem Wert"
+      }
+    },
     "commemorativeBadge": "Gedenkmünze",
     "quantityBadge": {
       "one": "{{count}} Stück",
@@ -324,6 +347,14 @@
     },
     "viewPhotos": "Fotos von {{title}} vergrößern",
     "editNamed": "{{title}} bearbeiten"
+  },
+  "country": {
+    "former": {
+      "SU": "Sowjetunion",
+      "DD": "DDR",
+      "YU": "Jugoslawien",
+      "CS": "Tschechoslowakei"
+    }
   },
   "sort": {
     "ascending": "Aufsteigend sortieren",
@@ -373,8 +404,14 @@
     "addFirstCoin": "Erste Münze hinzufügen",
     "noPublicCollections": "Es gibt noch keine öffentlichen Sammlungen.",
     "photoFilter": "Foto",
-    "photoMissing": "Nationale Seite fehlt",
-    "photoComplete": "Nationale Seite vorhanden"
+    "photoMissing": "Fotos fehlen",
+    "photoComplete": "Fotos vollständig",
+    "kinds": {
+      "label": "Münzart",
+      "all": "Alle",
+      "Euro": "Euro",
+      "Other": "Andere"
+    }
   },
   "coinForm": {
     "titleNew": "Münze hinzufügen",
@@ -387,14 +424,20 @@
     "needCollection": "Um Münzen hinzuzufügen, erstelle zuerst eine Sammlung.",
     "loadingCollections": "Sammlungen werden geladen…",
     "titleHint": "Wird aus Nennwert, Land und Jahr ausgefüllt; du kannst ihn ändern.",
+    "titleHintOther": "Wird aus Wert, Währung, Land und Jahr ausgefüllt; du kannst ihn ändern.",
+    "faceValueHint": "Auch mit Dezimalen: 0,5",
+    "currencyHint": "Z. B. Pfennig, Mark, Schilling",
+    "countryHintOther": "Alle Länder, auch ehemalige wie die DDR oder die Sowjetunion.",
     "mintMarkHint": "Optional, z. B. A, D, F, G, J",
     "photosHint": "Optional. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
+    "photosHintOther": "Optional; eine öffentliche Sammlung braucht Fotos beider Seiten. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
     "photosFailed": "Die Münze wurde gespeichert, aber einige Fotos konnten nicht gespeichert werden:",
     "deleteTitle": "Münze löschen",
     "deleteMessage": "„{{title}}“ wird endgültig aus deiner Sammlung gelöscht. Das kann nicht rückgängig gemacht werden.",
     "errors": {
       "unknownCollection": "Die gewählte Sammlung wurde nicht gefunden; vielleicht wurde sie gelöscht. Lade die Seite neu und wähle eine andere.",
-      "unknownCountry": "Unbekanntes Land."
+      "unknownCountry": "Unbekanntes Land.",
+      "faceValue": "Gib eine Zahl über null ein, z. B. 25 oder 0,5 (höchstens 4 Dezimalen)."
     }
   },
   "photo": {
@@ -526,8 +569,8 @@
     "notReadyTitle": "Um deine Sammlung zu veröffentlichen",
     "progress": "{{photographed}}/{{required}} Münzen mit Foto",
     "missing": {
-      "one": "Bei {{count}} Münze fehlt die nationale Seite",
-      "other": "Bei {{count}} Münzen fehlt die nationale Seite"
+      "one": "Bei {{count}} Münze fehlt ein Foto",
+      "other": "Bei {{count}} Münzen fehlen Fotos"
     },
     "shareByLinkMeanwhile": "Bis dahin kannst du sie per Link teilen.",
     "readyTitle": "Deine Sammlung ist bereit für die Vitrine",
@@ -539,13 +582,13 @@
       "message": "Sobald die Sammlung öffentlich ist, funktioniert ihr aktueller Freigabelink nicht mehr. Die Sammlung ist dann unter ihrer öffentlichen Adresse erreichbar und erscheint in deinem Profil und in „Entdecken“."
     },
     "needs": "Noch nicht möglich:",
-    "needsNew": "Noch nicht möglich: Lege die Sammlung zuerst an und füge Münzen mit einem Foto der nationalen Seite hinzu.",
-    "requirementsNotMet": "Die Sammlung kann noch nicht öffentlich werden: Jede Münze braucht ein Foto der nationalen Seite, und es braucht genug solche Münzen. Die Zahlen wurden aktualisiert.",
+    "needsNew": "Noch nicht möglich: Lege die Sammlung zuerst an und füge Münzen mit Fotos hinzu.",
+    "requirementsNotMet": "Die Sammlung kann noch nicht öffentlich werden: Jede Münze braucht ihre Fotos (eine Euro-Münze die nationale Seite, andere Münzen beide Seiten), und es braucht genug solche Münzen. Die Zahlen wurden aktualisiert.",
     "moveUnpublishes": {
-      "one": "„{{name}}“ ist öffentlich, und {{count}} Münze hier hat kein Foto der nationalen Seite: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
-      "other": "„{{name}}“ ist öffentlich, und {{count}} Münzen hier haben kein Foto der nationalen Seite: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt."
+      "one": "„{{name}}“ ist öffentlich, und bei {{count}} Münze hier fehlen Fotos: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
+      "other": "„{{name}}“ ist öffentlich, und bei {{count}} Münzen hier fehlen Fotos: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt."
     },
-    "moveUnpublishesSome": "„{{name}}“ ist öffentlich, und einige Münzen hier haben kein Foto der nationalen Seite: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
+    "moveUnpublishesSome": "„{{name}}“ ist öffentlich, und bei einigen Münzen hier fehlen Fotos: Beim Verschieben wird „{{name}}“ nur noch per Link geteilt.",
     "unpublish": {
       "title": {
         "one": "Die Sammlung ist dann nicht mehr öffentlich",
@@ -557,7 +600,7 @@
       },
       "quoted": "„{{name}}“",
       "confirm": "Fortfahren",
-      "photoKept": "Das Foto der nationalen Seite wurde nicht gelöscht; die Sammlung bleibt öffentlich."
+      "photoKept": "Das Foto wurde nicht gelöscht; die Sammlung bleibt öffentlich."
     },
     "emailNeeded": "Bestätige zuerst deine E-Mail-Adresse, um sie zu veröffentlichen."
   },
@@ -741,7 +784,7 @@
     "intro": "Diese Bedingungen regeln die Nutzung von CoinVitrine. Mit der Registrierung akzeptierst du sie. Wie deine personenbezogenen Daten verarbeitet werden, erklärt die Datenschutzerklärung.",
     "service": {
       "title": "Der Dienst",
-      "p1": "CoinVitrine ist eine kostenlose, nicht kommerzielle Hobby-Website, um deine Euro-Münzsammlung zu erfassen, zu fotografieren und auf Wunsch zu teilen. Die Website wird so bereitgestellt, wie sie ist: Es gibt keine Garantie für einen unterbrechungsfreien Betrieb oder dafür, dass nie Daten verloren gehen. Für Daten, die dir wichtig sind, nutze den Export unter Einstellungen > Konto."
+      "p1": "CoinVitrine ist eine kostenlose, nicht kommerzielle Hobby-Website, um deine Münzsammlung (Euro- und andere Münzen) zu erfassen, zu fotografieren und auf Wunsch zu teilen. Die Website wird so bereitgestellt, wie sie ist: Es gibt keine Garantie für einen unterbrechungsfreien Betrieb oder dafür, dass nie Daten verloren gehen. Für Daten, die dir wichtig sind, nutze den Export unter Einstellungen > Konto."
     },
     "account": {
       "title": "Dein Konto",
@@ -750,7 +793,7 @@
     "content": {
       "title": "Deine Inhalte",
       "p1": "Deine Sammlungen, Münzangaben und Fotos bleiben deine. Wenn du eine Sammlung teilst, erlaubst du der Website, sie mit ihren Fotos zu zeigen, solange du sie teilst. Lade nur Fotos hoch, die du selbst aufgenommen hast oder verwenden darfst.",
-      "p2": "In einer öffentlichen Sammlung muss jede Münze ein Foto ihrer nationalen Seite haben, und die Sammlung muss mindestens die von den Administratoren festgelegte Zahl solcher Münzen enthalten. Würde eine Änderung das verletzen, wirst du vorher gefragt; wenn du bestätigst, wird die Sammlung nur noch per Link geteilt."
+      "p2": "In einer öffentlichen Sammlung muss jede Münze ihre Fotos haben (eine Euro-Münze die nationale Seite, andere Münzen beide Seiten), und die Sammlung muss mindestens die von den Administratoren festgelegte Zahl solcher Münzen enthalten. Würde eine Änderung das verletzen, wirst du vorher gefragt; wenn du bestätigst, wird die Sammlung nur noch per Link geteilt."
     },
     "rules": {
       "title": "Was nicht erlaubt ist",

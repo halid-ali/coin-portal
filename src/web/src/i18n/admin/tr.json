@@ -220,7 +220,7 @@
   },
   "settings": {
     "publicTitle": "Herkese açık koleksiyonlar",
-    "publicText": "Bir koleksiyon ancak bütün coin'lerinin ulusal yüz fotoğrafı varsa ve en az aşağıdaki sayıda fotoğraflı coin'i varsa herkese açık olabilir.",
+    "publicText": "Bir koleksiyon ancak bütün coin'lerinin fotoğrafı varsa (Euro coin'de ulusal yüz, diğer coin'lerde iki yüz) ve en az aşağıdaki sayıda fotoğraflı coin'i varsa herkese açık olabilir.",
     "minPublicCoins": "En az fotoğraflı coin sayısı",
     "minPublicCoinsHint": "{{min}} ile {{max}} arasında.",
     "impact": {

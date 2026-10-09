@@ -304,6 +304,44 @@
     <!-- Filters; an empty collection has nothing to search or filter -->
     @if (showFilters()) {
       <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <!-- All / Euro / Other with their counts, only where both kinds are (user choice
+         2026-10-09); on a phone above the search, outside the folded filters -->
+        @if (showKinds()) {
+          <div
+            class="sm:col-span-2 lg:col-span-6"
+            role="group"
+            [attr.aria-label]="'coinList.kinds.label' | transloco"
+          >
+            <div
+              class="inline-flex max-w-full rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
+            >
+              @for (k of kinds; track $index) {
+                @let selected = (query().kind ?? null) === k;
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                  [class]="
+                    selected
+                      ? 'bg-brand-100 font-semibold text-brand-800'
+                      : 'font-medium text-shade-600 hover:bg-shade-100 hover:text-shade-800'
+                  "
+                  [attr.aria-pressed]="selected"
+                  (click)="setKind(k)"
+                >
+                  {{ (k ? 'coinList.kinds.' + k : 'coinList.kinds.all') | transloco }}
+                  @if (kindCount(k); as count) {
+                    <span
+                      class="text-xs font-medium"
+                      [class]="selected ? 'text-brand-800' : 'text-shade-500'"
+                      >{{ formatCount(count) }}</span
+                    >
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
         <!-- Explore (collector) and own collections (photos) have one filter more: there the
          search takes one column on large screens, so the row still holds six -->
         <div
@@ -354,19 +392,48 @@
             <label for="denomination" class="form-label">{{
               'coin.field.denomination' | transloco
             }}</label>
+            <!-- Euro denominations and the list's currencies, grouped when it has both kinds -->
             <select
               id="denomination"
               #denominationSelect
               class="form-input"
-              (change)="setFilters({ denomination: denominationSelect.value })"
+              (change)="setNominal(denominationSelect.value)"
             >
-              <option value="" [selected]="!query().denomination">
+              <option value="" [selected]="!query().denomination && !query().currency">
                 {{ 'common.all' | transloco }}
               </option>
-              @for (d of denominations; track d) {
-                <option [value]="d" [selected]="d === query().denomination">
-                  {{ denominationLabel(d) }}
-                </option>
+              @if (nominal().grouped) {
+                <optgroup [label]="'coin.kind.Euro.label' | transloco">
+                  @for (d of nominal().denominations; track d) {
+                    <option [value]="d" [selected]="d === query().denomination">
+                      {{ denominationLabel(d) }}
+                    </option>
+                  }
+                </optgroup>
+                <optgroup [label]="'coin.kind.Other.label' | transloco">
+                  @for (c of nominal().currencies; track c) {
+                    <option
+                      [value]="currencyOption + c"
+                      [selected]="c.toLowerCase() === query().currency?.toLowerCase()"
+                    >
+                      {{ c }}
+                    </option>
+                  }
+                </optgroup>
+              } @else {
+                @for (d of nominal().denominations; track d) {
+                  <option [value]="d" [selected]="d === query().denomination">
+                    {{ denominationLabel(d) }}
+                  </option>
+                }
+                @for (c of nominal().currencies; track c) {
+                  <option
+                    [value]="currencyOption + c"
+                    [selected]="c.toLowerCase() === query().currency?.toLowerCase()"
+                  >
+                    {{ c }}
+                  </option>
+                }
               }
             </select>
           </div>
@@ -382,7 +449,7 @@
               <option value="" [selected]="!query().countryCode">
                 {{ 'common.all' | transloco }}
               </option>
-              @for (c of countries(); track c.code) {
+              @for (c of countryOptions(); track c.code) {
                 <option [value]="c.code" [selected]="c.code === query().countryCode">
                   {{ c.name }}
                 </option>
@@ -634,12 +701,14 @@
                         decoding="async"
                         class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
                       />
-                    } @else {
+                    } @else if (coin.denomination; as denomination) {
                       <app-denomination-icon
                         tile
                         class="size-full p-[24%]"
-                        [denomination]="coin.denomination"
+                        [denomination]="denomination"
                       />
+                    } @else {
+                      <app-other-coin-icon tile class="size-full p-[24%]" [coinId]="coin.id" />
                     }
                     @if (coin.isCommemorative) {
                       <span
@@ -657,7 +726,7 @@
                       <span
                         class="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-semibold text-brand-900"
                       >
-                        {{ denominationLabel(coin.denomination) }}
+                        {{ valueLabel(coin) }}
                       </span>
                       <span class="truncate"
                         >{{ countryName(coin.countryCode) }} · {{ coin.year }}</span
@@ -751,7 +820,7 @@
                       <span
                         class="shrink-0 rounded-md bg-brand-100 px-2 py-0.5 text-sm font-semibold text-brand-900"
                       >
-                        {{ denominationLabel(coin.denomination) }}
+                        {{ valueLabel(coin) }}
                       </span>
                     </div>
                     <p class="mt-1 text-sm text-shade-600">
@@ -875,7 +944,9 @@
                       <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
                         {{ coin.title }}
                       </td>
-                      <td class="truncate px-3 py-3">{{ denominationLabel(coin.denomination) }}</td>
+                      <td class="truncate px-3 py-3" [title]="valueLabel(coin)">
+                        {{ valueLabel(coin) }}
+                      </td>
                       <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
                         {{ countryName(coin.countryCode) }}
                       </td>
@@ -961,6 +1032,7 @@
       [coinId]="coin.id"
       [photos]="coin.photos"
       [title]="coin.title"
+      [kind]="coin.kind"
       [denomination]="coin.denomination"
       [shareToken]="shareToken()"
       (closed)="viewerCoin.set(null)"

@@ -37,7 +37,7 @@ describe('Legal pages', () => {
 
     expect(page.querySelectorAll('h2').length).toBe(8);
     expect(page.querySelectorAll('li').length).toBe(5);
-    expect(page.textContent).toContain('Son güncelleme: 7 Ekim 2026');
+    expect(page.textContent).toContain('Son güncelleme: 9 Ekim 2026');
     // A key would be shown as is when its text is missing
     expect(page.textContent).not.toMatch(/terms\.\w+/);
   });

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Coin, CoinListQuery, PagedResponse } from '../coins/coin.models';
+import { Coin, CoinFacets, CoinKind, CoinListQuery, PagedResponse } from '../coins/coin.models';
 import { toListParams } from '../coins/coin.service';
 import {
   Collector,
@@ -51,6 +51,26 @@ export class PublicService {
   explore(query: ExploreQuery): Observable<PagedResponse<ExploreCoin>> {
     return this.http.get<PagedResponse<ExploreCoin>>(`${BASE_URL}/coins`, {
       params: toListParams(query),
+    });
+  }
+
+  // Kinds, currencies and countries for the filters (CoinFacets), like their coin lists
+
+  collectionFacets(id: number, kind?: CoinKind): Observable<CoinFacets> {
+    return this.http.get<CoinFacets>(`${BASE_URL}/collections/${id}/facets`, {
+      params: toListParams({ kind }),
+    });
+  }
+
+  sharedFacets(token: string, kind?: CoinKind): Observable<CoinFacets> {
+    return this.http.get<CoinFacets>(`${BASE_URL}/shared/${encodeURIComponent(token)}/facets`, {
+      params: toListParams({ kind }),
+    });
+  }
+
+  exploreFacets(owner?: string, kind?: CoinKind): Observable<CoinFacets> {
+    return this.http.get<CoinFacets>(`${BASE_URL}/coins/facets`, {
+      params: toListParams({ owner, kind }),
     });
   }
 }

@@ -34,7 +34,7 @@ export interface Collection extends CollectionSummary {
   moderationLocked: boolean;
   /** Secret of the share link (/s/<token>) while Unlisted. */
   shareToken: string | null;
-  /** Coins with the photos a public collection needs (a national side photo). */
+  /** Coins with the photos a public collection needs (euro: national side, other: both sides). */
   photographedCoinCount: number;
   /** Photographed coins a collection needs to become Public (site setting, the same for all). */
   minPublicCoins: number;

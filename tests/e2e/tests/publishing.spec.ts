@@ -4,7 +4,7 @@ import { expectAccessible } from '../support/axe';
 import { TestUser } from '../support/users';
 
 // The public collection rule: the banner counts towards the minimum and links the coins without a
-// national side photo; once met, its button makes the collection public. Taking a coin away
+// photo (a euro coin its national side); once met, its button makes the collection public. Taking a coin away
 // asks first and makes the collection "link only"; making that one public again asks too. The minimum is the API's default (10).
 test('a collection goes public once every coin has its photo, and leaves when one goes', async ({
   browser,
@@ -25,7 +25,7 @@ test('a collection goes public once every coin has its photo, and leaves when on
   await expectAccessible(page, 'collection with publication banner');
 
   // The link filters the coins that are missing their photo
-  await banner.getByRole('link', { name: '1 coin is missing its national side' }).click();
+  await banner.getByRole('link', { name: '1 coin is missing its photo' }).click();
   await expect(page).toHaveURL(/photo=missing/);
   await expect(page.getByLabel('Photo', { exact: true })).toHaveValue('missing');
   const table = page.getByRole('table', { name: collection.name });

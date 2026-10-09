@@ -56,4 +56,28 @@ describe('CountryService', () => {
   it('falls back to the code for a name the browser does not know', () => {
     expect(countries.name('??')).toBe('??');
   });
+
+  it('lists the euro issuers apart, sorted the same way', () => {
+    countries.load();
+    http.expectOne('/api/countries').flush([
+      { code: 'AT', name: 'Austria', euroIssuer: true },
+      { code: 'DE', name: 'Germany', euroIssuer: true },
+      { code: 'TR', name: 'Türkiye', euroIssuer: false },
+    ]);
+
+    expect(countries.countries().map((c) => c.code)).toEqual(['DE', 'AT', 'TR']);
+    expect(countries.euroCountries().map((c) => c.code)).toEqual(['DE', 'AT']);
+  });
+
+  // Browsers map these codes to today's countries (SU → Russia), so the names are ours
+  it('names former countries itself, in the active language', async () => {
+    expect(['SU', 'DD', 'YU', 'CS'].map((c) => countries.name(c))).toEqual([
+      'Sovyetler Birliği',
+      'Doğu Almanya',
+      'Yugoslavya',
+      'Çekoslovakya',
+    ]);
+    await useTestLanguage('de');
+    expect(countries.name('DD')).toBe('DDR');
+  });
 });

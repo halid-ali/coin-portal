@@ -4,8 +4,9 @@ let nextId = 0;
 
 /**
  * Stand-in picture for a collection without an uploaded cover: two coins stacked and a third one
- * leaning against them. Every coin is the coin placeholder (CoinPlaceholder) scaled as a whole, so
- * the lines keep its proportions; the leaning coin's euro sign is squeezed sideways like its face.
+ * leaning against them. Every coin is the same drawing (a coin at an angle with a reeded edge and a
+ * euro sign) scaled as a whole, so the lines keep its proportions; the leaning coin's euro sign is
+ * squeezed sideways like its face.
  * Drawn in currentColor; the host sets the size and color.
  */
 @Component({

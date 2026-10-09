@@ -233,15 +233,26 @@ namespace CoinPortal.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Denomination")
+                    b.Property<string>("Currency")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int?>("Denomination")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<decimal?>("FaceValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
                     b.Property<bool>("IsCommemorative")
                         .HasColumnType("bit");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
 
                     b.Property<string>("MintMark")
                         .HasMaxLength(10)
@@ -275,11 +286,13 @@ namespace CoinPortal.Api.Data.Migrations
 
                     b.ToTable("Coins", t =>
                         {
-                            t.HasCheckConstraint("CK_Coins_Denomination", "[Denomination] IN (1, 2, 5, 10, 20, 50, 100, 200)");
+                            t.HasCheckConstraint("CK_Coins_Kind", "[Kind] IN (1, 2)");
 
                             t.HasCheckConstraint("CK_Coins_Quantity", "[Quantity] >= 1");
 
-                            t.HasCheckConstraint("CK_Coins_Year", "[Year] >= 1999");
+                            t.HasCheckConstraint("CK_Coins_Value", "([Kind] = 1 AND [Denomination] IN (1, 2, 5, 10, 20, 50, 100, 200) AND [FaceValue] IS NULL AND [Currency] IS NULL) OR ([Kind] = 2 AND [Denomination] IS NULL AND [FaceValue] > 0 AND [Currency] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Coins_Year", "([Kind] = 1 AND [Year] >= 1999) OR ([Kind] = 2 AND [Year] >= 1)");
                         });
                 });
 
@@ -384,6 +397,9 @@ namespace CoinPortal.Api.Data.Migrations
                         .HasColumnType("char(2)")
                         .IsFixedLength();
 
+                    b.Property<bool>("IsEuroIssuer")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -397,127 +413,1520 @@ namespace CoinPortal.Api.Data.Migrations
                         new
                         {
                             Code = "AD",
+                            IsEuroIssuer = true,
                             Name = "Andorra"
                         },
                         new
                         {
+                            Code = "AE",
+                            IsEuroIssuer = false,
+                            Name = "United Arab Emirates"
+                        },
+                        new
+                        {
+                            Code = "AF",
+                            IsEuroIssuer = false,
+                            Name = "Afghanistan"
+                        },
+                        new
+                        {
+                            Code = "AG",
+                            IsEuroIssuer = false,
+                            Name = "Antigua & Barbuda"
+                        },
+                        new
+                        {
+                            Code = "AI",
+                            IsEuroIssuer = false,
+                            Name = "Anguilla"
+                        },
+                        new
+                        {
+                            Code = "AL",
+                            IsEuroIssuer = false,
+                            Name = "Albania"
+                        },
+                        new
+                        {
+                            Code = "AM",
+                            IsEuroIssuer = false,
+                            Name = "Armenia"
+                        },
+                        new
+                        {
+                            Code = "AO",
+                            IsEuroIssuer = false,
+                            Name = "Angola"
+                        },
+                        new
+                        {
+                            Code = "AQ",
+                            IsEuroIssuer = false,
+                            Name = "Antarctica"
+                        },
+                        new
+                        {
+                            Code = "AR",
+                            IsEuroIssuer = false,
+                            Name = "Argentina"
+                        },
+                        new
+                        {
+                            Code = "AS",
+                            IsEuroIssuer = false,
+                            Name = "American Samoa"
+                        },
+                        new
+                        {
                             Code = "AT",
+                            IsEuroIssuer = true,
                             Name = "Austria"
                         },
                         new
                         {
+                            Code = "AU",
+                            IsEuroIssuer = false,
+                            Name = "Australia"
+                        },
+                        new
+                        {
+                            Code = "AW",
+                            IsEuroIssuer = false,
+                            Name = "Aruba"
+                        },
+                        new
+                        {
+                            Code = "AX",
+                            IsEuroIssuer = false,
+                            Name = "Åland Islands"
+                        },
+                        new
+                        {
+                            Code = "AZ",
+                            IsEuroIssuer = false,
+                            Name = "Azerbaijan"
+                        },
+                        new
+                        {
+                            Code = "BA",
+                            IsEuroIssuer = false,
+                            Name = "Bosnia & Herzegovina"
+                        },
+                        new
+                        {
+                            Code = "BB",
+                            IsEuroIssuer = false,
+                            Name = "Barbados"
+                        },
+                        new
+                        {
+                            Code = "BD",
+                            IsEuroIssuer = false,
+                            Name = "Bangladesh"
+                        },
+                        new
+                        {
                             Code = "BE",
+                            IsEuroIssuer = true,
                             Name = "Belgium"
                         },
                         new
                         {
+                            Code = "BF",
+                            IsEuroIssuer = false,
+                            Name = "Burkina Faso"
+                        },
+                        new
+                        {
                             Code = "BG",
+                            IsEuroIssuer = true,
                             Name = "Bulgaria"
                         },
                         new
                         {
+                            Code = "BH",
+                            IsEuroIssuer = false,
+                            Name = "Bahrain"
+                        },
+                        new
+                        {
+                            Code = "BI",
+                            IsEuroIssuer = false,
+                            Name = "Burundi"
+                        },
+                        new
+                        {
+                            Code = "BJ",
+                            IsEuroIssuer = false,
+                            Name = "Benin"
+                        },
+                        new
+                        {
+                            Code = "BL",
+                            IsEuroIssuer = false,
+                            Name = "St. Barthélemy"
+                        },
+                        new
+                        {
+                            Code = "BM",
+                            IsEuroIssuer = false,
+                            Name = "Bermuda"
+                        },
+                        new
+                        {
+                            Code = "BN",
+                            IsEuroIssuer = false,
+                            Name = "Brunei"
+                        },
+                        new
+                        {
+                            Code = "BO",
+                            IsEuroIssuer = false,
+                            Name = "Bolivia"
+                        },
+                        new
+                        {
+                            Code = "BQ",
+                            IsEuroIssuer = false,
+                            Name = "Caribbean Netherlands"
+                        },
+                        new
+                        {
+                            Code = "BR",
+                            IsEuroIssuer = false,
+                            Name = "Brazil"
+                        },
+                        new
+                        {
+                            Code = "BS",
+                            IsEuroIssuer = false,
+                            Name = "Bahamas"
+                        },
+                        new
+                        {
+                            Code = "BT",
+                            IsEuroIssuer = false,
+                            Name = "Bhutan"
+                        },
+                        new
+                        {
+                            Code = "BV",
+                            IsEuroIssuer = false,
+                            Name = "Bouvet Island"
+                        },
+                        new
+                        {
+                            Code = "BW",
+                            IsEuroIssuer = false,
+                            Name = "Botswana"
+                        },
+                        new
+                        {
+                            Code = "BY",
+                            IsEuroIssuer = false,
+                            Name = "Belarus"
+                        },
+                        new
+                        {
+                            Code = "BZ",
+                            IsEuroIssuer = false,
+                            Name = "Belize"
+                        },
+                        new
+                        {
+                            Code = "CA",
+                            IsEuroIssuer = false,
+                            Name = "Canada"
+                        },
+                        new
+                        {
+                            Code = "CC",
+                            IsEuroIssuer = false,
+                            Name = "Cocos (Keeling) Islands"
+                        },
+                        new
+                        {
+                            Code = "CD",
+                            IsEuroIssuer = false,
+                            Name = "Congo - Kinshasa"
+                        },
+                        new
+                        {
+                            Code = "CF",
+                            IsEuroIssuer = false,
+                            Name = "Central African Republic"
+                        },
+                        new
+                        {
+                            Code = "CG",
+                            IsEuroIssuer = false,
+                            Name = "Congo - Brazzaville"
+                        },
+                        new
+                        {
+                            Code = "CH",
+                            IsEuroIssuer = false,
+                            Name = "Switzerland"
+                        },
+                        new
+                        {
+                            Code = "CI",
+                            IsEuroIssuer = false,
+                            Name = "Côte d’Ivoire"
+                        },
+                        new
+                        {
+                            Code = "CK",
+                            IsEuroIssuer = false,
+                            Name = "Cook Islands"
+                        },
+                        new
+                        {
+                            Code = "CL",
+                            IsEuroIssuer = false,
+                            Name = "Chile"
+                        },
+                        new
+                        {
+                            Code = "CM",
+                            IsEuroIssuer = false,
+                            Name = "Cameroon"
+                        },
+                        new
+                        {
+                            Code = "CN",
+                            IsEuroIssuer = false,
+                            Name = "China"
+                        },
+                        new
+                        {
+                            Code = "CO",
+                            IsEuroIssuer = false,
+                            Name = "Colombia"
+                        },
+                        new
+                        {
+                            Code = "CR",
+                            IsEuroIssuer = false,
+                            Name = "Costa Rica"
+                        },
+                        new
+                        {
+                            Code = "CS",
+                            IsEuroIssuer = false,
+                            Name = "Czechoslovakia"
+                        },
+                        new
+                        {
+                            Code = "CU",
+                            IsEuroIssuer = false,
+                            Name = "Cuba"
+                        },
+                        new
+                        {
+                            Code = "CV",
+                            IsEuroIssuer = false,
+                            Name = "Cape Verde"
+                        },
+                        new
+                        {
+                            Code = "CW",
+                            IsEuroIssuer = false,
+                            Name = "Curaçao"
+                        },
+                        new
+                        {
+                            Code = "CX",
+                            IsEuroIssuer = false,
+                            Name = "Christmas Island"
+                        },
+                        new
+                        {
                             Code = "CY",
+                            IsEuroIssuer = true,
                             Name = "Cyprus"
                         },
                         new
                         {
+                            Code = "CZ",
+                            IsEuroIssuer = false,
+                            Name = "Czechia"
+                        },
+                        new
+                        {
+                            Code = "DD",
+                            IsEuroIssuer = false,
+                            Name = "East Germany"
+                        },
+                        new
+                        {
                             Code = "DE",
+                            IsEuroIssuer = true,
                             Name = "Germany"
                         },
                         new
                         {
+                            Code = "DJ",
+                            IsEuroIssuer = false,
+                            Name = "Djibouti"
+                        },
+                        new
+                        {
+                            Code = "DK",
+                            IsEuroIssuer = false,
+                            Name = "Denmark"
+                        },
+                        new
+                        {
+                            Code = "DM",
+                            IsEuroIssuer = false,
+                            Name = "Dominica"
+                        },
+                        new
+                        {
+                            Code = "DO",
+                            IsEuroIssuer = false,
+                            Name = "Dominican Republic"
+                        },
+                        new
+                        {
+                            Code = "DZ",
+                            IsEuroIssuer = false,
+                            Name = "Algeria"
+                        },
+                        new
+                        {
+                            Code = "EC",
+                            IsEuroIssuer = false,
+                            Name = "Ecuador"
+                        },
+                        new
+                        {
                             Code = "EE",
+                            IsEuroIssuer = true,
                             Name = "Estonia"
                         },
                         new
                         {
+                            Code = "EG",
+                            IsEuroIssuer = false,
+                            Name = "Egypt"
+                        },
+                        new
+                        {
+                            Code = "EH",
+                            IsEuroIssuer = false,
+                            Name = "Western Sahara"
+                        },
+                        new
+                        {
+                            Code = "ER",
+                            IsEuroIssuer = false,
+                            Name = "Eritrea"
+                        },
+                        new
+                        {
                             Code = "ES",
+                            IsEuroIssuer = true,
                             Name = "Spain"
                         },
                         new
                         {
+                            Code = "ET",
+                            IsEuroIssuer = false,
+                            Name = "Ethiopia"
+                        },
+                        new
+                        {
                             Code = "FI",
+                            IsEuroIssuer = true,
                             Name = "Finland"
                         },
                         new
                         {
+                            Code = "FJ",
+                            IsEuroIssuer = false,
+                            Name = "Fiji"
+                        },
+                        new
+                        {
+                            Code = "FK",
+                            IsEuroIssuer = false,
+                            Name = "Falkland Islands"
+                        },
+                        new
+                        {
+                            Code = "FM",
+                            IsEuroIssuer = false,
+                            Name = "Micronesia"
+                        },
+                        new
+                        {
+                            Code = "FO",
+                            IsEuroIssuer = false,
+                            Name = "Faroe Islands"
+                        },
+                        new
+                        {
                             Code = "FR",
+                            IsEuroIssuer = true,
                             Name = "France"
                         },
                         new
                         {
+                            Code = "GA",
+                            IsEuroIssuer = false,
+                            Name = "Gabon"
+                        },
+                        new
+                        {
+                            Code = "GB",
+                            IsEuroIssuer = false,
+                            Name = "United Kingdom"
+                        },
+                        new
+                        {
+                            Code = "GD",
+                            IsEuroIssuer = false,
+                            Name = "Grenada"
+                        },
+                        new
+                        {
+                            Code = "GE",
+                            IsEuroIssuer = false,
+                            Name = "Georgia"
+                        },
+                        new
+                        {
+                            Code = "GF",
+                            IsEuroIssuer = false,
+                            Name = "French Guiana"
+                        },
+                        new
+                        {
+                            Code = "GG",
+                            IsEuroIssuer = false,
+                            Name = "Guernsey"
+                        },
+                        new
+                        {
+                            Code = "GH",
+                            IsEuroIssuer = false,
+                            Name = "Ghana"
+                        },
+                        new
+                        {
+                            Code = "GI",
+                            IsEuroIssuer = false,
+                            Name = "Gibraltar"
+                        },
+                        new
+                        {
+                            Code = "GL",
+                            IsEuroIssuer = false,
+                            Name = "Greenland"
+                        },
+                        new
+                        {
+                            Code = "GM",
+                            IsEuroIssuer = false,
+                            Name = "Gambia"
+                        },
+                        new
+                        {
+                            Code = "GN",
+                            IsEuroIssuer = false,
+                            Name = "Guinea"
+                        },
+                        new
+                        {
+                            Code = "GP",
+                            IsEuroIssuer = false,
+                            Name = "Guadeloupe"
+                        },
+                        new
+                        {
+                            Code = "GQ",
+                            IsEuroIssuer = false,
+                            Name = "Equatorial Guinea"
+                        },
+                        new
+                        {
                             Code = "GR",
+                            IsEuroIssuer = true,
                             Name = "Greece"
                         },
                         new
                         {
+                            Code = "GS",
+                            IsEuroIssuer = false,
+                            Name = "South Georgia & South Sandwich Islands"
+                        },
+                        new
+                        {
+                            Code = "GT",
+                            IsEuroIssuer = false,
+                            Name = "Guatemala"
+                        },
+                        new
+                        {
+                            Code = "GU",
+                            IsEuroIssuer = false,
+                            Name = "Guam"
+                        },
+                        new
+                        {
+                            Code = "GW",
+                            IsEuroIssuer = false,
+                            Name = "Guinea-Bissau"
+                        },
+                        new
+                        {
+                            Code = "GY",
+                            IsEuroIssuer = false,
+                            Name = "Guyana"
+                        },
+                        new
+                        {
+                            Code = "HK",
+                            IsEuroIssuer = false,
+                            Name = "Hong Kong SAR China"
+                        },
+                        new
+                        {
+                            Code = "HM",
+                            IsEuroIssuer = false,
+                            Name = "Heard & McDonald Islands"
+                        },
+                        new
+                        {
+                            Code = "HN",
+                            IsEuroIssuer = false,
+                            Name = "Honduras"
+                        },
+                        new
+                        {
                             Code = "HR",
+                            IsEuroIssuer = true,
                             Name = "Croatia"
                         },
                         new
                         {
+                            Code = "HT",
+                            IsEuroIssuer = false,
+                            Name = "Haiti"
+                        },
+                        new
+                        {
+                            Code = "HU",
+                            IsEuroIssuer = false,
+                            Name = "Hungary"
+                        },
+                        new
+                        {
+                            Code = "ID",
+                            IsEuroIssuer = false,
+                            Name = "Indonesia"
+                        },
+                        new
+                        {
                             Code = "IE",
+                            IsEuroIssuer = true,
                             Name = "Ireland"
                         },
                         new
                         {
+                            Code = "IL",
+                            IsEuroIssuer = false,
+                            Name = "Israel"
+                        },
+                        new
+                        {
+                            Code = "IM",
+                            IsEuroIssuer = false,
+                            Name = "Isle of Man"
+                        },
+                        new
+                        {
+                            Code = "IN",
+                            IsEuroIssuer = false,
+                            Name = "India"
+                        },
+                        new
+                        {
+                            Code = "IO",
+                            IsEuroIssuer = false,
+                            Name = "British Indian Ocean Territory"
+                        },
+                        new
+                        {
+                            Code = "IQ",
+                            IsEuroIssuer = false,
+                            Name = "Iraq"
+                        },
+                        new
+                        {
+                            Code = "IR",
+                            IsEuroIssuer = false,
+                            Name = "Iran"
+                        },
+                        new
+                        {
+                            Code = "IS",
+                            IsEuroIssuer = false,
+                            Name = "Iceland"
+                        },
+                        new
+                        {
                             Code = "IT",
+                            IsEuroIssuer = true,
                             Name = "Italy"
                         },
                         new
                         {
+                            Code = "JE",
+                            IsEuroIssuer = false,
+                            Name = "Jersey"
+                        },
+                        new
+                        {
+                            Code = "JM",
+                            IsEuroIssuer = false,
+                            Name = "Jamaica"
+                        },
+                        new
+                        {
+                            Code = "JO",
+                            IsEuroIssuer = false,
+                            Name = "Jordan"
+                        },
+                        new
+                        {
+                            Code = "JP",
+                            IsEuroIssuer = false,
+                            Name = "Japan"
+                        },
+                        new
+                        {
+                            Code = "KE",
+                            IsEuroIssuer = false,
+                            Name = "Kenya"
+                        },
+                        new
+                        {
+                            Code = "KG",
+                            IsEuroIssuer = false,
+                            Name = "Kyrgyzstan"
+                        },
+                        new
+                        {
+                            Code = "KH",
+                            IsEuroIssuer = false,
+                            Name = "Cambodia"
+                        },
+                        new
+                        {
+                            Code = "KI",
+                            IsEuroIssuer = false,
+                            Name = "Kiribati"
+                        },
+                        new
+                        {
+                            Code = "KM",
+                            IsEuroIssuer = false,
+                            Name = "Comoros"
+                        },
+                        new
+                        {
+                            Code = "KN",
+                            IsEuroIssuer = false,
+                            Name = "St. Kitts & Nevis"
+                        },
+                        new
+                        {
+                            Code = "KP",
+                            IsEuroIssuer = false,
+                            Name = "North Korea"
+                        },
+                        new
+                        {
+                            Code = "KR",
+                            IsEuroIssuer = false,
+                            Name = "South Korea"
+                        },
+                        new
+                        {
+                            Code = "KW",
+                            IsEuroIssuer = false,
+                            Name = "Kuwait"
+                        },
+                        new
+                        {
+                            Code = "KY",
+                            IsEuroIssuer = false,
+                            Name = "Cayman Islands"
+                        },
+                        new
+                        {
+                            Code = "KZ",
+                            IsEuroIssuer = false,
+                            Name = "Kazakhstan"
+                        },
+                        new
+                        {
+                            Code = "LA",
+                            IsEuroIssuer = false,
+                            Name = "Laos"
+                        },
+                        new
+                        {
+                            Code = "LB",
+                            IsEuroIssuer = false,
+                            Name = "Lebanon"
+                        },
+                        new
+                        {
+                            Code = "LC",
+                            IsEuroIssuer = false,
+                            Name = "St. Lucia"
+                        },
+                        new
+                        {
+                            Code = "LI",
+                            IsEuroIssuer = false,
+                            Name = "Liechtenstein"
+                        },
+                        new
+                        {
+                            Code = "LK",
+                            IsEuroIssuer = false,
+                            Name = "Sri Lanka"
+                        },
+                        new
+                        {
+                            Code = "LR",
+                            IsEuroIssuer = false,
+                            Name = "Liberia"
+                        },
+                        new
+                        {
+                            Code = "LS",
+                            IsEuroIssuer = false,
+                            Name = "Lesotho"
+                        },
+                        new
+                        {
                             Code = "LT",
+                            IsEuroIssuer = true,
                             Name = "Lithuania"
                         },
                         new
                         {
                             Code = "LU",
+                            IsEuroIssuer = true,
                             Name = "Luxembourg"
                         },
                         new
                         {
                             Code = "LV",
+                            IsEuroIssuer = true,
                             Name = "Latvia"
                         },
                         new
                         {
+                            Code = "LY",
+                            IsEuroIssuer = false,
+                            Name = "Libya"
+                        },
+                        new
+                        {
+                            Code = "MA",
+                            IsEuroIssuer = false,
+                            Name = "Morocco"
+                        },
+                        new
+                        {
                             Code = "MC",
+                            IsEuroIssuer = true,
                             Name = "Monaco"
                         },
                         new
                         {
+                            Code = "MD",
+                            IsEuroIssuer = false,
+                            Name = "Moldova"
+                        },
+                        new
+                        {
+                            Code = "ME",
+                            IsEuroIssuer = false,
+                            Name = "Montenegro"
+                        },
+                        new
+                        {
+                            Code = "MF",
+                            IsEuroIssuer = false,
+                            Name = "St. Martin"
+                        },
+                        new
+                        {
+                            Code = "MG",
+                            IsEuroIssuer = false,
+                            Name = "Madagascar"
+                        },
+                        new
+                        {
+                            Code = "MH",
+                            IsEuroIssuer = false,
+                            Name = "Marshall Islands"
+                        },
+                        new
+                        {
+                            Code = "MK",
+                            IsEuroIssuer = false,
+                            Name = "North Macedonia"
+                        },
+                        new
+                        {
+                            Code = "ML",
+                            IsEuroIssuer = false,
+                            Name = "Mali"
+                        },
+                        new
+                        {
+                            Code = "MM",
+                            IsEuroIssuer = false,
+                            Name = "Myanmar (Burma)"
+                        },
+                        new
+                        {
+                            Code = "MN",
+                            IsEuroIssuer = false,
+                            Name = "Mongolia"
+                        },
+                        new
+                        {
+                            Code = "MO",
+                            IsEuroIssuer = false,
+                            Name = "Macao SAR China"
+                        },
+                        new
+                        {
+                            Code = "MP",
+                            IsEuroIssuer = false,
+                            Name = "Northern Mariana Islands"
+                        },
+                        new
+                        {
+                            Code = "MQ",
+                            IsEuroIssuer = false,
+                            Name = "Martinique"
+                        },
+                        new
+                        {
+                            Code = "MR",
+                            IsEuroIssuer = false,
+                            Name = "Mauritania"
+                        },
+                        new
+                        {
+                            Code = "MS",
+                            IsEuroIssuer = false,
+                            Name = "Montserrat"
+                        },
+                        new
+                        {
                             Code = "MT",
+                            IsEuroIssuer = true,
                             Name = "Malta"
                         },
                         new
                         {
+                            Code = "MU",
+                            IsEuroIssuer = false,
+                            Name = "Mauritius"
+                        },
+                        new
+                        {
+                            Code = "MV",
+                            IsEuroIssuer = false,
+                            Name = "Maldives"
+                        },
+                        new
+                        {
+                            Code = "MW",
+                            IsEuroIssuer = false,
+                            Name = "Malawi"
+                        },
+                        new
+                        {
+                            Code = "MX",
+                            IsEuroIssuer = false,
+                            Name = "Mexico"
+                        },
+                        new
+                        {
+                            Code = "MY",
+                            IsEuroIssuer = false,
+                            Name = "Malaysia"
+                        },
+                        new
+                        {
+                            Code = "MZ",
+                            IsEuroIssuer = false,
+                            Name = "Mozambique"
+                        },
+                        new
+                        {
+                            Code = "NA",
+                            IsEuroIssuer = false,
+                            Name = "Namibia"
+                        },
+                        new
+                        {
+                            Code = "NC",
+                            IsEuroIssuer = false,
+                            Name = "New Caledonia"
+                        },
+                        new
+                        {
+                            Code = "NE",
+                            IsEuroIssuer = false,
+                            Name = "Niger"
+                        },
+                        new
+                        {
+                            Code = "NF",
+                            IsEuroIssuer = false,
+                            Name = "Norfolk Island"
+                        },
+                        new
+                        {
+                            Code = "NG",
+                            IsEuroIssuer = false,
+                            Name = "Nigeria"
+                        },
+                        new
+                        {
+                            Code = "NI",
+                            IsEuroIssuer = false,
+                            Name = "Nicaragua"
+                        },
+                        new
+                        {
                             Code = "NL",
+                            IsEuroIssuer = true,
                             Name = "Netherlands"
                         },
                         new
                         {
+                            Code = "NO",
+                            IsEuroIssuer = false,
+                            Name = "Norway"
+                        },
+                        new
+                        {
+                            Code = "NP",
+                            IsEuroIssuer = false,
+                            Name = "Nepal"
+                        },
+                        new
+                        {
+                            Code = "NR",
+                            IsEuroIssuer = false,
+                            Name = "Nauru"
+                        },
+                        new
+                        {
+                            Code = "NU",
+                            IsEuroIssuer = false,
+                            Name = "Niue"
+                        },
+                        new
+                        {
+                            Code = "NZ",
+                            IsEuroIssuer = false,
+                            Name = "New Zealand"
+                        },
+                        new
+                        {
+                            Code = "OM",
+                            IsEuroIssuer = false,
+                            Name = "Oman"
+                        },
+                        new
+                        {
+                            Code = "PA",
+                            IsEuroIssuer = false,
+                            Name = "Panama"
+                        },
+                        new
+                        {
+                            Code = "PE",
+                            IsEuroIssuer = false,
+                            Name = "Peru"
+                        },
+                        new
+                        {
+                            Code = "PF",
+                            IsEuroIssuer = false,
+                            Name = "French Polynesia"
+                        },
+                        new
+                        {
+                            Code = "PG",
+                            IsEuroIssuer = false,
+                            Name = "Papua New Guinea"
+                        },
+                        new
+                        {
+                            Code = "PH",
+                            IsEuroIssuer = false,
+                            Name = "Philippines"
+                        },
+                        new
+                        {
+                            Code = "PK",
+                            IsEuroIssuer = false,
+                            Name = "Pakistan"
+                        },
+                        new
+                        {
+                            Code = "PL",
+                            IsEuroIssuer = false,
+                            Name = "Poland"
+                        },
+                        new
+                        {
+                            Code = "PM",
+                            IsEuroIssuer = false,
+                            Name = "St. Pierre & Miquelon"
+                        },
+                        new
+                        {
+                            Code = "PN",
+                            IsEuroIssuer = false,
+                            Name = "Pitcairn Islands"
+                        },
+                        new
+                        {
+                            Code = "PR",
+                            IsEuroIssuer = false,
+                            Name = "Puerto Rico"
+                        },
+                        new
+                        {
+                            Code = "PS",
+                            IsEuroIssuer = false,
+                            Name = "Palestinian Territories"
+                        },
+                        new
+                        {
                             Code = "PT",
+                            IsEuroIssuer = true,
                             Name = "Portugal"
                         },
                         new
                         {
+                            Code = "PW",
+                            IsEuroIssuer = false,
+                            Name = "Palau"
+                        },
+                        new
+                        {
+                            Code = "PY",
+                            IsEuroIssuer = false,
+                            Name = "Paraguay"
+                        },
+                        new
+                        {
+                            Code = "QA",
+                            IsEuroIssuer = false,
+                            Name = "Qatar"
+                        },
+                        new
+                        {
+                            Code = "RE",
+                            IsEuroIssuer = false,
+                            Name = "Réunion"
+                        },
+                        new
+                        {
+                            Code = "RO",
+                            IsEuroIssuer = false,
+                            Name = "Romania"
+                        },
+                        new
+                        {
+                            Code = "RS",
+                            IsEuroIssuer = false,
+                            Name = "Serbia"
+                        },
+                        new
+                        {
+                            Code = "RU",
+                            IsEuroIssuer = false,
+                            Name = "Russia"
+                        },
+                        new
+                        {
+                            Code = "RW",
+                            IsEuroIssuer = false,
+                            Name = "Rwanda"
+                        },
+                        new
+                        {
+                            Code = "SA",
+                            IsEuroIssuer = false,
+                            Name = "Saudi Arabia"
+                        },
+                        new
+                        {
+                            Code = "SB",
+                            IsEuroIssuer = false,
+                            Name = "Solomon Islands"
+                        },
+                        new
+                        {
+                            Code = "SC",
+                            IsEuroIssuer = false,
+                            Name = "Seychelles"
+                        },
+                        new
+                        {
+                            Code = "SD",
+                            IsEuroIssuer = false,
+                            Name = "Sudan"
+                        },
+                        new
+                        {
+                            Code = "SE",
+                            IsEuroIssuer = false,
+                            Name = "Sweden"
+                        },
+                        new
+                        {
+                            Code = "SG",
+                            IsEuroIssuer = false,
+                            Name = "Singapore"
+                        },
+                        new
+                        {
+                            Code = "SH",
+                            IsEuroIssuer = false,
+                            Name = "St. Helena"
+                        },
+                        new
+                        {
                             Code = "SI",
+                            IsEuroIssuer = true,
                             Name = "Slovenia"
                         },
                         new
                         {
+                            Code = "SJ",
+                            IsEuroIssuer = false,
+                            Name = "Svalbard & Jan Mayen"
+                        },
+                        new
+                        {
                             Code = "SK",
+                            IsEuroIssuer = true,
                             Name = "Slovakia"
                         },
                         new
                         {
+                            Code = "SL",
+                            IsEuroIssuer = false,
+                            Name = "Sierra Leone"
+                        },
+                        new
+                        {
                             Code = "SM",
+                            IsEuroIssuer = true,
                             Name = "San Marino"
                         },
                         new
                         {
+                            Code = "SN",
+                            IsEuroIssuer = false,
+                            Name = "Senegal"
+                        },
+                        new
+                        {
+                            Code = "SO",
+                            IsEuroIssuer = false,
+                            Name = "Somalia"
+                        },
+                        new
+                        {
+                            Code = "SR",
+                            IsEuroIssuer = false,
+                            Name = "Suriname"
+                        },
+                        new
+                        {
+                            Code = "SS",
+                            IsEuroIssuer = false,
+                            Name = "South Sudan"
+                        },
+                        new
+                        {
+                            Code = "ST",
+                            IsEuroIssuer = false,
+                            Name = "São Tomé & Príncipe"
+                        },
+                        new
+                        {
+                            Code = "SU",
+                            IsEuroIssuer = false,
+                            Name = "Soviet Union"
+                        },
+                        new
+                        {
+                            Code = "SV",
+                            IsEuroIssuer = false,
+                            Name = "El Salvador"
+                        },
+                        new
+                        {
+                            Code = "SX",
+                            IsEuroIssuer = false,
+                            Name = "Sint Maarten"
+                        },
+                        new
+                        {
+                            Code = "SY",
+                            IsEuroIssuer = false,
+                            Name = "Syria"
+                        },
+                        new
+                        {
+                            Code = "SZ",
+                            IsEuroIssuer = false,
+                            Name = "Eswatini"
+                        },
+                        new
+                        {
+                            Code = "TC",
+                            IsEuroIssuer = false,
+                            Name = "Turks & Caicos Islands"
+                        },
+                        new
+                        {
+                            Code = "TD",
+                            IsEuroIssuer = false,
+                            Name = "Chad"
+                        },
+                        new
+                        {
+                            Code = "TF",
+                            IsEuroIssuer = false,
+                            Name = "French Southern Territories"
+                        },
+                        new
+                        {
+                            Code = "TG",
+                            IsEuroIssuer = false,
+                            Name = "Togo"
+                        },
+                        new
+                        {
+                            Code = "TH",
+                            IsEuroIssuer = false,
+                            Name = "Thailand"
+                        },
+                        new
+                        {
+                            Code = "TJ",
+                            IsEuroIssuer = false,
+                            Name = "Tajikistan"
+                        },
+                        new
+                        {
+                            Code = "TK",
+                            IsEuroIssuer = false,
+                            Name = "Tokelau"
+                        },
+                        new
+                        {
+                            Code = "TL",
+                            IsEuroIssuer = false,
+                            Name = "Timor-Leste"
+                        },
+                        new
+                        {
+                            Code = "TM",
+                            IsEuroIssuer = false,
+                            Name = "Turkmenistan"
+                        },
+                        new
+                        {
+                            Code = "TN",
+                            IsEuroIssuer = false,
+                            Name = "Tunisia"
+                        },
+                        new
+                        {
+                            Code = "TO",
+                            IsEuroIssuer = false,
+                            Name = "Tonga"
+                        },
+                        new
+                        {
+                            Code = "TR",
+                            IsEuroIssuer = false,
+                            Name = "Türkiye"
+                        },
+                        new
+                        {
+                            Code = "TT",
+                            IsEuroIssuer = false,
+                            Name = "Trinidad & Tobago"
+                        },
+                        new
+                        {
+                            Code = "TV",
+                            IsEuroIssuer = false,
+                            Name = "Tuvalu"
+                        },
+                        new
+                        {
+                            Code = "TW",
+                            IsEuroIssuer = false,
+                            Name = "Taiwan"
+                        },
+                        new
+                        {
+                            Code = "TZ",
+                            IsEuroIssuer = false,
+                            Name = "Tanzania"
+                        },
+                        new
+                        {
+                            Code = "UA",
+                            IsEuroIssuer = false,
+                            Name = "Ukraine"
+                        },
+                        new
+                        {
+                            Code = "UG",
+                            IsEuroIssuer = false,
+                            Name = "Uganda"
+                        },
+                        new
+                        {
+                            Code = "UM",
+                            IsEuroIssuer = false,
+                            Name = "U.S. Outlying Islands"
+                        },
+                        new
+                        {
+                            Code = "US",
+                            IsEuroIssuer = false,
+                            Name = "United States"
+                        },
+                        new
+                        {
+                            Code = "UY",
+                            IsEuroIssuer = false,
+                            Name = "Uruguay"
+                        },
+                        new
+                        {
+                            Code = "UZ",
+                            IsEuroIssuer = false,
+                            Name = "Uzbekistan"
+                        },
+                        new
+                        {
                             Code = "VA",
+                            IsEuroIssuer = true,
                             Name = "Vatican City"
+                        },
+                        new
+                        {
+                            Code = "VC",
+                            IsEuroIssuer = false,
+                            Name = "St. Vincent & Grenadines"
+                        },
+                        new
+                        {
+                            Code = "VE",
+                            IsEuroIssuer = false,
+                            Name = "Venezuela"
+                        },
+                        new
+                        {
+                            Code = "VG",
+                            IsEuroIssuer = false,
+                            Name = "British Virgin Islands"
+                        },
+                        new
+                        {
+                            Code = "VI",
+                            IsEuroIssuer = false,
+                            Name = "U.S. Virgin Islands"
+                        },
+                        new
+                        {
+                            Code = "VN",
+                            IsEuroIssuer = false,
+                            Name = "Vietnam"
+                        },
+                        new
+                        {
+                            Code = "VU",
+                            IsEuroIssuer = false,
+                            Name = "Vanuatu"
+                        },
+                        new
+                        {
+                            Code = "WF",
+                            IsEuroIssuer = false,
+                            Name = "Wallis & Futuna"
+                        },
+                        new
+                        {
+                            Code = "WS",
+                            IsEuroIssuer = false,
+                            Name = "Samoa"
+                        },
+                        new
+                        {
+                            Code = "YE",
+                            IsEuroIssuer = false,
+                            Name = "Yemen"
+                        },
+                        new
+                        {
+                            Code = "YT",
+                            IsEuroIssuer = false,
+                            Name = "Mayotte"
+                        },
+                        new
+                        {
+                            Code = "YU",
+                            IsEuroIssuer = false,
+                            Name = "Yugoslavia"
+                        },
+                        new
+                        {
+                            Code = "ZA",
+                            IsEuroIssuer = false,
+                            Name = "South Africa"
+                        },
+                        new
+                        {
+                            Code = "ZM",
+                            IsEuroIssuer = false,
+                            Name = "Zambia"
+                        },
+                        new
+                        {
+                            Code = "ZW",
+                            IsEuroIssuer = false,
+                            Name = "Zimbabwe"
                         });
                 });
 

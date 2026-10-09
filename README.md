@@ -9,20 +9,26 @@
 <!-- The tests badge is static: API + client + end-to-end tests, updated with each release -->
 
 
-A web application for managing a personal euro coin collection. Users register, organise their coins
-into collections, add photos of both sides, and share collections publicly or through a private link.
+A web application for managing a personal coin collection, euro coins and any others. Users register,
+organise their coins into collections, add photos of both sides, and share collections publicly or
+through a private link.
 Live at https://coinvitrine.com.
 
 ## Features
 
 - Accounts with cookie-based authentication (18+ registration)
 - Multiple collections per user, each Private, Unlisted (secret link) or Public
-- Coins with denomination, issuing country, year, mint mark, commemorative flag and description
-- Photos of the national and common side: client-side cropping, server-side validation and resizing
-  to WebP thumbnails, previews and full-size images, with a per-user storage quota
-- List and grid views with filtering, sorting and paging kept in the URL
+- Euro coins (denomination, one of the euro issuers, 1999 on) and other coins (a face value in any
+  currency, any of 253 countries including former ones, any year), with year, mint mark,
+  commemorative flag and description; stand-in coin drawings for coins without photos
+- Photos of both sides (a euro coin's national and common side, another coin's front and back):
+  client-side cropping, server-side validation and resizing to WebP thumbnails, previews and
+  full-size images, with a per-user storage quota
+- List and grid views with filtering (All / Euro / Other buttons, denomination or currency, country,
+  year), sorting and paging kept in the URL
 - Public profiles and an Explore page across all public collections; a collection becomes public once
-  every coin has a photo of its national side and a minimum number of coins (an admin setting) do
+  every coin has its photos (a euro coin its national side, other coins both sides) and a minimum
+  number of coins (an admin setting) do
 - Interface in English, Turkish, German and Bulgarian; light, dark and system themes; accent colours
 - Admin panel for moderation: statistics, users (lock, delete), shared collections (hide), general
   settings, audit log

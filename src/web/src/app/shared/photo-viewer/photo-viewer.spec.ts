@@ -30,6 +30,21 @@ class Host {
   readonly denomination = signal<Denomination | undefined>('Euro2');
 }
 
+/** An other coin: front and back, no denomination to stand in for a missing back. */
+@Component({
+  imports: [PhotoViewer],
+  template: `<app-photo-viewer
+    [coinId]="8"
+    [photos]="photos()"
+    kind="Other"
+    [denomination]="null"
+    title="25 kuruş Türkiye 1975"
+  />`,
+})
+class OtherCoinHost {
+  readonly photos = signal(PHOTOS);
+}
+
 describe('PhotoViewer', () => {
   let fixture: ComponentFixture<Host>;
   let page: HTMLElement;
@@ -127,5 +142,31 @@ describe('PhotoViewer', () => {
     await fixture.whenStable();
 
     expect(page.querySelector('dialog')).toBeNull();
+  });
+
+  describe('an other coin', () => {
+    it('names its sides front and back', async () => {
+      const other = TestBed.createComponent(OtherCoinHost);
+      await other.whenStable();
+      const element = other.nativeElement as HTMLElement;
+      const labels = [...element.querySelectorAll('[role=group] button')].map((b) =>
+        b.textContent!.trim(),
+      );
+
+      expect(labels).toEqual(['Ön yüz', 'Arka yüz']);
+      expect(element.querySelector('img')!.getAttribute('alt')).toBe(
+        '25 kuruş Türkiye 1975 – Ön yüz',
+      );
+    });
+
+    it('shows only the front when the back has no photo', async () => {
+      const other = TestBed.createComponent(OtherCoinHost);
+      other.componentInstance.photos.set(PHOTOS.filter((p) => p.side === 'National'));
+      await other.whenStable();
+      const element = other.nativeElement as HTMLElement;
+
+      expect(element.querySelector('[role=group]')).toBeNull();
+      expect(element.querySelector('[role=img]')).toBeNull();
+    });
   });
 });

@@ -1,7 +1,8 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-09 (**Euro dışı coin'ler başladı** (yol haritası 18): kararlar alındı, önce Euro coin
-regresyon testleri yazıldı (Tamamlananlar 96), istemcinin kapattığı istek artık loga hata yazmıyor (97); sıradaki adım ekran görüntüleri + mockup'lar. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+Son güncelleme: 2026-10-09 (**Euro dışı coin'ler geliştirildi** (yol haritası 18, Tamamlananlar 98;
+`feat/non-euro-coins` main'e alındı, push edilmedi): önce Euro coin regresyon testleri (96), istemcinin kapattığı
+istek loga hata yazmıyor (97). Sıradaki: kullanıcının manuel testleri, sonra `v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -16,11 +17,16 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 
 ## Yeni sohbete başlarken
 
-- Durum: `main` güncel ve temiz; son etiket `v1.8.0` (2026-10-07), canlıda `v1.8.0`.
+- Durum (2026-10-09 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
+  **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97) ve Euro dışı
+  coin'ler (98, `feat/non-euro-coins` main'e alındı). **Sıradaki:** kullanıcı manuel testleri yapıyor; yeni sohbette
+  önce bulguları sorulur ve düzeltilir, sonra (kullanıcı onayıyla) push ve `v1.10.0` (minor; `AddOtherCoins`
+  migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy) adımları"). Lokal dev
+  veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.8.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.9.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`;
   uygulamanın e-postaları da bu kutudan, MonsterASP SMTP'si `mail2248.mailasp.net:587` STARTTLS, ayarlar
   sunucudaki `web.config`'te `Email__*`).
@@ -1836,6 +1842,19 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Doğrulama: birim testleri `AbortedRequestTests` (+5; test sunucusunda iptali doğru anda yakalamak yarış);
           Kestrel'de e2e derlemesi + kısa sürede iptal edilen 300 istek: işin ortasında kesilen 10 istek
           "responded 499" (INF), hiç ERR yok (düzeltmeden önce aynı betikte 500 + ERR). Testler: API 443.
+98. **Euro dışı coin'ler** (`feat/non-euro-coins`, 2026-10-09; yol haritası 18, kararlar, adımlar ve testlerdeki
+    değişiklikler orada; tasarım `.notes/designs/non-euro-coins/`). Coin'de tür (Euro / Diğer): diğer coin değer +
+    para birimi, 253 ülke (tarihî dördü dahil), yıl 1+, herkese açık koleksiyonda iki yüz. Coin formunda tür seçimi
+    (masaüstünde kartlar, telefonda düğmeler), koleksiyon sayfasında ve Keşfet'te sayılı Tümü / Euro / Diğer
+    düğmeleri, türe uyan nominal filtresi, sadece listedeki ülkeler; diğer coin'in yer tutucusu ¤ yüzlü, 8 renkli
+    (`OtherCoinIcon`). Migration `AddOtherCoins` (mevcut coin'ler Euro; dev veritabanının kopyasında sağlama
+    toplamlarıyla doğrulandı). Yan düzeltmeler: `countryOrder` sınırı 1000, "ulusal yüz" diyen yayın kuralı metinleri
+    "fotoğraf" (şartlar 2026-10-09), sitenin tanıtım metinleri "coin koleksiyonu" (ana sayfa, şartlar, meta,
+    manifest, README). Seed yeniden kuruldu (kullanıcı başına çok koleksiyon, yer tutucu çizimli fotoğraflar).
+    - Testler: API 481 (+38), client 411 (+32), e2e 21 (+2); regresyon testlerinde sadece tip/sabit/metin
+          uyarlamaları (yol haritası 18'de tek tek). Görsel kontrol e2e sitesinde iki temada, masaüstü ve telefon.
+    - Bilinen: lokal dev veritabanında `jonas.weber` admin kilitli (2026-10-01 denemesinden), paylaşılan
+          koleksiyonları bu yüzden görünmüyor; seed kilide dokunmuyor.
 
 ## Yol haritası
 
@@ -1899,21 +1918,66 @@ mağaza için TWA.
       E-posta doğrulama 2026-10-06'da yapıldı (Tamamlananlar 88), parola sıfırlama 2026-10-07'de (Tamamlananlar 93).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
-- [ ] 18. **Euro dışı coin'ler** (kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
+- [x] 18. **Euro dışı coin'ler** (yapıldı 2026-10-09, Tamamlananlar 98; `v1.10.0` ile yayınlanacak; aşağısı plan ve
+      kararlar; kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
       ekleme sayfasının başında "Euro coin / Diğer coin" seçimi; Euro bugünkü form, Diğer serbest değer ve
       para birimi, tüm ülkeler (`Intl.DisplayNames`), yüz adları "Ön yüz / Arka yüz" (veritabanındaki iki yüz
       yeri aynen, etiketler türe göre). **Diğer coin'de iki yüzün fotoğrafı zorunlu** (standart bir ortak yüz
       yok); bunun için sadece `Publishing/PublicationRules.IsPhotographed` değişir. Fotoğrafsız diğer coin'in
       yer tutucusu bugünkü genel çizim (`CoinPlaceholder`).
-  - **Kararlar** (kullanıcı 2026-10-09'da önerileri kabul etti): coin'de `Kind` (`Euro` / `Other`; mevcutlar
-        `Euro`). Diğer coin: değer ondalıklı sayı (1/2 penny = 0,5) + para birimi serbest metin (yazarken
-        kullanıcının önceki girdileri önerilir; ISO listesi eski birimleri karşılamıyor). Ülkeler: `Countries`
-        bütün ISO ülkeleriyle genişler + "Euro ülkesi" işareti (Euro coin'de sadece 25'i); tarihî ülkeler
-        (SU, DD, YU, CS; `Intl.DisplayNames` adlarını biliyor) listede, Osmanlı gibi kodu olmayanlar kapsam dışı.
-        Yıl diğer coin'de de zorunlu, 1 ile gelecek yıl arası (tahmini yıl/dönem ve M.Ö. kapsam dışı). Hatıra
-        işareti diğer coin'de de var. Coin'in türünü düzenlemede değiştirmek `PublicationGuard`'dan geçer.
-        Koleksiyon sayfasında "Tür" filtresi; nominal sıralaması önce Euro (sent), sonra diğerleri para birimi
-        + değer; ülke filtresi sadece koleksiyonda olan ülkeler.
+  - **Kararlar** (kullanıcı 2026-10-09; önerilerin çoğu kabul edildi, tasarım mockup'larla seçildi:
+        `.notes/designs/non-euro-coins/`, onaylananlar `png-final/` ve `sheet-final-*.png`):
+    - Veri: coin'de `Kind` (`Euro` / `Other`; mevcutlar `Euro`, türsüz istek `Euro` sayılır). Diğer coin: değer
+          ondalıklı sayı (1/2 penny = 0,5; en çok 4 ondalık) + para birimi serbest metin (en çok 30; yazarken
+          kullanıcının önceki girdileri önerilir, ISO listesi eski birimleri karşılamıyor). Euro coin'de bu ikisi,
+          diğer coin'de nominal boş. Yıl iki türde de zorunlu: Euro 1999+, diğer 1+ (tahmini yıl/dönem ve M.Ö. kapsam
+          dışı). Hatıra işareti iki türde de var. Türü düzenlemede değiştirmek `PublicationGuard`'dan geçer.
+    - Ülkeler: `Countries` 249 ISO kodu + 4 tarihî ülke (SU Sovyetler Birliği, DD Doğu Almanya, YU Yugoslavya, CS
+          Çekoslovakya) ve `IsEuroIssuer` (25). Euro coin'de sadece Euro ülkeleri, diğerinde hepsi. **Tarayıcı
+          (`Intl.DisplayNames`) tarihî kodları bugünkü ülkelere çeviriyor** (SU → Rusya, DD → Almanya, YU/CS →
+          Sırbistan): bu dördünün adları client çevirilerinde. Osmanlı gibi kodu olmayanlar kapsam dışı.
+    - Coin formu: en üstte tür seçimi, **masaüstünde açıklamalı kartlar, telefonda yan yana düğmeler** (aynı seçimin
+          iki görünümü). Diğer coin'de Değer / Para birimi / Yıl, altında Ülke; yüz adları "Ön yüz / Arka yüz"
+          (veritabanında National / Common). Önerilen başlık "25 kuruş · Türkiye · 1975".
+    - Liste: **Tümü / Euro / Diğer düğmeleri** (sayılı; sadece koleksiyonda iki tür de varsa görünür) filtre kutusunun
+          üstünde; Nominal filtresi seçilen türe uyar (Euro: 8 değer, Diğer: koleksiyondaki para birimleri). **Ülke
+          filtresi sadece koleksiyonda bulunan ülkeler** (seçilen türün). Keşfet'te de aynı düğmeler, sayılı (bütün
+          herkese açık coin'ler; koleksiyoncu seçilince onunkiler). Nominal sıralaması önce Euro (sent), sonra
+          diğerleri para birimi + değer.
+    - Yer tutucu (fotoğrafsız diğer coin): Euro değer ikonunun biçimi (dolu coin, kenar, noktalı halka), yüzü her
+          coin'de **¤**; renk coin'e **sabit** (Id mod 8): sky, indigo, violet, fuchsia, rose, teal, emerald, lime.
+          Amber/sarı/turuncu/gri yok (Euro'nun altın, bakır, gümüşüyle karışır). Bugünkü € işaretli genel çizim
+          (`CoinPlaceholder`) kalkar.
+    - Seed: kullanıcı başına birden çok koleksiyon (yalnız Euro, yalnız diğer, karışık, yayın sınırının altında);
+          fotoğraflar yer tutucu çizimlerinden (Euro: değer ikonu; diğer: ön yüz ¤ coin, arka yüz değeri); parola
+          `Coinportal1`.
+  - **İlerleme** (`feat/non-euro-coins`): ~~1. API: veri, migration, kurallar~~ (migration dev veritabanının kopyasında
+        denendi: 574 coin, 151 fotoğraf, 20 koleksiyon sağlama toplamıyla aynı, hepsi `Euro`; ülkeler 25 → 253) →
+        ~~2. API: liste, özet, öneriler~~ (filtreler `kind`, `currency`; özet `GET api/coins/facets` [koleksiyonsuz:
+        para birimi önerileri], `api/public/collections/{id}/facets`, `shared/{token}/facets`, `coins/facets?owner=`) →
+        ~~3. client: modeller, değer biçimi, yer tutucu~~ (`OtherCoinIcon`, `coinValueLabel`, tarihî ülke adları
+        `country.former.*`, görüntüleyicide `kind`; eski `CoinPlaceholder` kalktı; regresyon testlerinde sadece üç
+        coin sabitine `kind: 'Euro', faceValue: null, currency: null` eklendi) → ~~4. form~~ (tür seçimi tek radyo
+        grubu: telefonda düğmeler, `sm` üstünde kartlar; tür ve diğer coin alanları ana form grubunun dışında,
+        `kindControl` + `otherForm`, Euro isteği eskisi gibi türsüz; para birimi önerileri ilk diğer coin'de
+        `api/coins/facets`'ten; değer "0,5" ya da "0.5", `face-value.ts`; e2e sitesinde iki temada, masaüstü ve
+        telefonda görsel kontrol edildi; regresyon testinde sadece `open()` yardımcısının ülke sahtesine
+        `euroIssuer: true` eklendi) → ~~5. koleksiyon sayfası ve Keşfet~~ (URL `kind`, `currency`; özet her liste
+        ve tür için ayrı istek, `coin-filters.ts`; düğmeler sayılı, iki tür varsa; Nominal'de iki tür varsa
+        "Euro coin" / "Diğer coin" grupları, para birimi değeri `currency:` önekli; ülke filtresi özetin ülkeleri,
+        özet gelene kadar bütün ülkeler; yıl filtresi 1'den. API'de `countryOrder` sınırı 300 → 1000 (253 ülke 758
+        karakter; `AbuseTests` uzunluk testi yeni sınıra göre). "Ulusal yüz" diyen yayın kuralı metinleri
+        "fotoğraf" olarak genelleşti (bant, filtre, taşıma uyarıları, şartlar `TERMS_UPDATED` 2026-10-09, admin
+        ayar açıklaması); bu metinleri bekleyen testler ve e2e `publishing` güncellendi. e2e sitesinde iki temada
+        görsel kontrol edildi) → ~~seed~~ (`dev-seed.json` kullanıcı → koleksiyon → coin, 14 koleksiyon, 316 coin;
+        fotoğraflar `DevData/SeedPhotos/*.jpg`, 65 dosya, ~0,84 MB, `make-seed-photos.mjs`; eski kodla çizen
+        `SeedPhotos.cs` kalktı; e2e veritabanında denendi; dev veritabanına migration ve seed 2026-10-09'da
+        uygulandı) → ~~e2e~~ (`other-coins.spec.ts`: formda diğer coin ve tür düğmeleri; iki yüz kuralı ve
+        Keşfet'te sayılı düğmeler; axe ile; yardımcı `createOtherCoin`; takım 21 test) → 5. koleksiyon sayfası
+        ve Keşfet → seed → e2e → ~~belgeler~~ (CLAUDE.md kuralları, tanıtım metinleri, README). Sıradaki: kullanıcının
+        manuel testleri, sonra `v1.10.0` (kullanıcı kararı 2026-10-09: manuel testler bitmeden yayına geçilmez;
+        migration var, onaydan önce panelden veritabanı yedeği). Branch 2026-10-09'da main'e alındı. Regresyon testlerinde ilk değişiklik: `EuroCoinTests` güncelleme testinde
+        `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +
         mockup'lar (iki tema, telefon) → `feat/non-euro-coins` (API, client, e2e; küçük commit'ler) → `v1.10.0`
         (migration: onaydan önce veritabanı yedeği).
@@ -2034,9 +2098,12 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş: Euro dışı coin'ler** (yol haritası 18; kararlar, sıra ve regresyon planı orada). Regresyon testleri
-bitti (Tamamlananlar 96); sıradaki adım değişiklikten önceki ekran görüntüleri ve yeni ekranların mockup'ları (PNG,
-iki tema, telefon), sonra `feat/non-euro-coins`. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
+**Sıradaki iş: Euro dışı coin'lerin manuel testi, sonra `v1.10.0`** (yol haritası 18, Tamamlananlar 98). Geliştirme
+bitti ve `main`'e alındı (2026-10-09, push edilmedi); kullanıcı manuel testleri bitirmeden sürüm adımına geçilmez
+(kullanıcı kararı 2026-10-09). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
+para birimi önerileri, tarihî ülkeler, tür değiştirerek düzenleme), ayse'nin "Karışık kutu"su (düğmeler, gruplu
+Nominal), "Dünya paraları" (iki yüz, görüntüleyicide Ön/Arka yüz), "Yeni başladım" (yayın bandı), herkese açık
+koleksiyonda diğer coin'in arka yüzünü silmek (yayından iner sorusu), Keşfet, dört dil ve iki tema. Yayında migration var: kurulumu onaylamadan önce panelden veritabanı yedeği. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
 (Tamamlananlar 93–95). Parola tarafında ileriye bırakılanlar: sızdırılmış parola kontrolü (Have I Been Pwned; dış
 servis, gizlilik metni) ve uzunluğa dayalı parola kuralları. Güvenlik testleri (yol haritası 19)
 bitti ve `v1.6.0` ile yayında (Tamamlananlar 79–87): ~~19a CodeQL~~ → ~~19b yetki matrisi~~ → ~~19c kötüye
@@ -2413,7 +2480,9 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
    kullanıcı adı/e-posta müsaitlik kontrolü (kayıt ucunun e-postayı ele vermesini büyütür, bilinçli karar
    gerekir). Mobilde katlanabilir filtreler 2026-09-28'de, Register'ın ortak `applyServerErrors`'ı
    kullanması 2026-10-04'te (#26) yapıldı.
-10. **Euro dışı, tedavülden kalkmış ve antika coin'ler (ileride, 2026-09-27'de kullanıcı istedi):**
+10. **Euro dışı, tedavülden kalkmış ve antika coin'ler** (**büyük kısmı yapıldı 2026-10-09**, Tamamlananlar 98: tür,
+    değer + para birimi, bütün ülkeler + 4 tarihî ülke, yıl 1+; açık kalanlar: tahmini yıl/dönem ve M.Ö.,
+    kodu olmayan tarihî ülkeler (Osmanlı vb.). Aşağısı ilk not; 2026-09-27'de kullanıcı istedi):
     Birden fazla koleksiyon bunun için temel. Gerekecekler: koleksiyona bir "tür" alanı (Euro / diğer);
     nominalin genelleşmesi (şu an Euro değerleri enum'u, `CK_Coins_Denomination`), ülkenin genelleşmesi
     (şu an 25 Euro ihraççısı, `Countries` tablosu; tarihî ülkeler de gerekebilir), yılın genelleşmesi

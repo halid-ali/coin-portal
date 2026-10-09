@@ -107,6 +107,25 @@ public sealed record TestUser(ApiClient Client, UserResponse User)
         return (await response.ReadJsonAsync<CollectionCoverImageResponse>()).CoverImageId;
     }
 
+    /// <summary>A coin other than a euro coin: a face value in a currency, from any country.</summary>
+    public static CoinUpsertRequest NewOtherCoin(int collectionId, string title = "25 kuruş · Türkiye · 1975",
+        decimal faceValue = 25, string currency = "kuruş", string countryCode = "TR", int year = 1975) => new()
+        {
+            CollectionId = collectionId,
+            Title = title,
+            Kind = CoinKind.Other,
+            FaceValue = faceValue,
+            Currency = currency,
+            CountryCode = countryCode,
+            Year = year,
+        };
+
+    public async Task<CoinResponse> CreateOtherCoinAsync(int collectionId, string title = "25 kuruş · Türkiye · 1975")
+    {
+        using var response = await Client.PostAsync("/api/coins", NewOtherCoin(collectionId, title));
+        return await response.ReadJsonAsync<CoinResponse>();
+    }
+
     public static CoinUpsertRequest NewCoin(int collectionId, string title = "Test coin",
         string countryCode = "DE", int year = 2006, Denomination denomination = Denomination.Euro2) => new()
         {

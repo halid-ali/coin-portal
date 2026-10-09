@@ -80,6 +80,20 @@ public class PublicController(AppDbContext db) : ControllerBase
         return await CoinsOf(id).ToPagedAsync(query, PublicCoinResponse.From, ct);
     }
 
+    /// <summary>Kinds, currencies and countries of a public collection's coins, for its filters.</summary>
+    [HttpGet("collections/{id:int}/facets")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CoinFacetsResponse>> CollectionFacets(
+        int id, [FromQuery] CoinFacetsQuery query, CancellationToken ct)
+    {
+        if (!await PublicCollections.AnyAsync(c => c.Id == id, ct))
+        {
+            return NotFound();
+        }
+        return await CoinsOf(id).FacetsAsync(query.Kind, ct);
+    }
+
     /// <summary>A collection opened with its share link (Unlisted only).</summary>
     [HttpGet("shared/{token}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -103,18 +117,44 @@ public class PublicController(AppDbContext db) : ControllerBase
         return await CoinsOf(id.Value).ToPagedAsync(query, PublicCoinResponse.From, ct);
     }
 
+    [HttpGet("shared/{token}/facets")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CoinFacetsResponse>> SharedFacets(
+        string token, [FromQuery] CoinFacetsQuery query, CancellationToken ct)
+    {
+        var id = await SharedCollections(token).Select(c => (int?)c.Id).FirstOrDefaultAsync(ct);
+        if (id is null)
+        {
+            return NotFound();
+        }
+        return await CoinsOf(id.Value).FacetsAsync(query.Kind, ct);
+    }
+
     /// <summary>Explore: coins of all public collections, optionally of one user.</summary>
     [HttpGet("coins")]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<PagedResponse<ExploreCoinResponse>> Explore([FromQuery] ExploreQuery query, CancellationToken ct)
+    public async Task<PagedResponse<ExploreCoinResponse>> Explore([FromQuery] ExploreQuery query, CancellationToken ct) =>
+        await ExploreCoins(query.Owner).ToPagedAsync(query, ExploreCoinResponse.Projection, ct);
+
+    /// <summary>
+    /// Kinds, currencies and countries of the explore list: all public coins, or one user's. One
+    /// grouped count and two distinct lists, signed out and rate limited like the list.
+    /// </summary>
+    [HttpGet("coins/facets")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<CoinFacetsResponse> ExploreFacets([FromQuery] ExploreFacetsQuery query, CancellationToken ct) =>
+        await ExploreCoins(query.Owner).FacetsAsync(query.Kind, ct);
+
+    private IQueryable<Coin> ExploreCoins(string? owner)
     {
         var coins = db.Coins.AsNoTracking().Where(CollectionAccess.IsPublic<Coin>(c => c.Collection));
-        if (!string.IsNullOrWhiteSpace(query.Owner))
+        if (!string.IsNullOrWhiteSpace(owner))
         {
-            var owner = query.Owner.Trim();
-            coins = coins.Where(c => c.Owner.UserName == owner);
+            var userName = owner.Trim();
+            coins = coins.Where(c => c.Owner.UserName == userName);
         }
-        return await coins.ToPagedAsync(query, ExploreCoinResponse.Projection, ct);
+        return coins;
     }
 
     // Tokens are fixed-length base64url; anything else cannot match

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { translate } from '@jsverse/transloco';
 
 import { httpErrorMessage } from '../http/problem-details';
-import { PHOTO_LIMITS } from './coin.models';
+import { CoinKind, PHOTO_LIMITS } from './coin.models';
 
 const MAX_MB = PHOTO_LIMITS.maxUploadBytes / (1024 * 1024);
 
@@ -15,15 +15,19 @@ function codeMessage(code: string): string {
 
 /**
  * A photo error of a coin saved together with its photos (POST api/coins/with-photos), or null:
- * the message, led by the side when the API names it.
+ * the message, led by the side when the API names it (front / back for an other coin).
  */
-export function coinWithPhotosErrorMessage(err: HttpErrorResponse): string | null {
+export function coinWithPhotosErrorMessage(
+  err: HttpErrorResponse,
+  kind: CoinKind = 'Euro',
+): string | null {
   const body = err.error as { code?: string; side?: string } | null;
   if (!body?.code || !CODES.includes(body.code)) {
     return err.status === 413 ? photoErrorMessage(err) : null;
   }
   const message = photoErrorMessage(err);
-  return body.side ? `${translate(`coin.side.${body.side}.label`)}: ${message}` : message;
+  const sides = kind === 'Other' ? 'coin.otherSide' : 'coin.side';
+  return body.side ? `${translate(`${sides}.${body.side}.label`)}: ${message}` : message;
 }
 
 /** The user's photo storage is full (or too full for this upload). */

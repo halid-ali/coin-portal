@@ -8,9 +8,11 @@ import { TranslocoPipe, translate } from '@jsverse/transloco';
 import { firstValueFrom, merge } from 'rxjs';
 
 import {
+  COIN_KINDS,
   COIN_LIMITS,
   COIN_SIDES,
   Coin,
+  CoinKind,
   CoinPhoto,
   CoinSide,
   CoinUpsertRequest,
@@ -30,7 +32,16 @@ import {
 } from '../../core/coins/photo-errors';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
-import { denominationLabel, suggestTitle } from '../../shared/coin-format';
+import {
+  denominationLabel,
+  faceValueLabel,
+  sideHintKey,
+  sideLabelKey,
+  suggestTitle,
+  suggestTitleFromValue,
+} from '../../shared/coin-format';
+import { LanguageService } from '../../core/i18n/language.service';
+import { faceValueInput, faceValueValidator, parseFaceValue } from './face-value';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
 import { integerValidator } from '../../shared/validators';
 import { FieldA11y } from '../../shared/field-a11y';
@@ -66,6 +77,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   private readonly collectionService = inject(CollectionService);
   private readonly collectionReturn = inject(CollectionReturn);
   private readonly unpublishConfirm = inject(UnpublishConfirm);
+  private readonly language = inject(LanguageService);
 
   /** Route param, bound by withComponentInputBinding(); undefined in create mode. */
   readonly id = input<string>();
@@ -125,7 +137,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   protected readonly formErrors = signal<string[]>([]);
   /** A photo did not fit in the user's storage: the errors link to Settings > Account. */
   protected readonly quotaExceeded = signal(false);
-  /** The user kept the national side photo to keep the collection public: not an error. */
+  /** The user kept a photo to keep the collection public: not an error. */
   protected readonly photoKept = signal(false);
 
   /** The saved coin's collection is hidden by an admin: its coins stay in it (API 403). */
@@ -136,8 +148,10 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
 
   protected readonly denominations = DENOMINATIONS;
   protected readonly denominationLabel = denominationLabel;
-  protected readonly countries = this.countryService.countries;
+  protected readonly kinds = COIN_KINDS;
   protected readonly limits = COIN_LIMITS;
+  protected readonly sideLabelKey = sideLabelKey;
+  protected readonly sideHintKey = sideHintKey;
   protected readonly maxYear = maxCoinYear();
   protected readonly errorMessage = errorMessage;
   private readonly focusFirstInvalid = injectFocusFirstInvalid();
@@ -161,6 +175,9 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     CollectionId: 'coinForm.errors.unknownCollection',
     CountryCode: 'coinForm.errors.unknownCountry',
     Year: { key: 'validation.max', params: { max: this.maxYear } },
+    // An other coin's fields are beside the form: their errors are shown above it
+    FaceValue: 'coinForm.errors.faceValue',
+    Currency: { key: 'validation.maxLength', params: { max: COIN_LIMITS.currencyMaxLength } },
   };
 
   protected readonly form = this.fb.group({
@@ -188,6 +205,28 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     description: ['', Validators.maxLength(COIN_LIMITS.descriptionMaxLength)],
   });
 
+  /**
+   * The kind and an other coin's value live beside the form: the fields both kinds share stay in
+   * it as before (a euro coin is sent exactly as before other coins existed). Their validators
+   * follow the kind (applyKind).
+   */
+  protected readonly kindControl = this.fb.control<CoinKind>('Euro');
+  protected readonly otherForm = this.fb.group({
+    faceValue: [''],
+    currency: ['', Validators.maxLength(COIN_LIMITS.currencyMaxLength)],
+  });
+  protected readonly kind = signal<CoinKind>('Euro');
+  /** Euro coins come from the euro issuers, other coins from any country. */
+  protected readonly countries = computed(() =>
+    this.kind() === 'Other' ? this.countryService.countries() : this.countryService.euroCountries(),
+  );
+  protected readonly minYear = computed(() =>
+    this.kind() === 'Other' ? COIN_LIMITS.otherMinYear : COIN_LIMITS.minYear,
+  );
+  /** The user's currencies so far, offered while typing; loaded once an other coin is edited. */
+  protected readonly currencySuggestions = signal<string[]>([]);
+  private currenciesRequested = false;
+
   constructor() {
     this.countryService.load();
 
@@ -207,17 +246,101 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       },
     });
 
-    // In create mode, fill the title from denomination/country/year until the user edits it
+    // Another kind chosen by the user: other fields and rules, and a euro coin's country must be
+    // a euro issuer
+    this.kindControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((kind) => {
+      this.applyKind(kind);
+      const countryCode = this.form.controls.countryCode;
+      if (
+        kind === 'Euro' &&
+        countryCode.value &&
+        !this.countryService.euroCountries().some((c) => c.code === countryCode.value)
+      ) {
+        countryCode.setValue('');
+      }
+    });
+
+    // In create mode, fill the title from the value, country and year until the user edits it
     const { denomination, countryCode, year, title } = this.form.controls;
-    merge(denomination.valueChanges, countryCode.valueChanges, year.valueChanges)
+    const { faceValue, currency } = this.otherForm.controls;
+    merge(
+      denomination.valueChanges,
+      countryCode.valueChanges,
+      year.valueChanges,
+      this.kindControl.valueChanges,
+      faceValue.valueChanges,
+      currency.valueChanges,
+    )
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
         if (this.isEdit() || title.dirty) {
           return;
         }
         const country = countryCode.value ? this.countryService.name(countryCode.value) : null;
-        title.setValue(suggestTitle(denomination.value, country, year.value));
+        title.setValue(
+          this.kindControl.value === 'Other'
+            ? suggestTitleFromValue(
+                faceValueLabel(
+                  parseFaceValue(faceValue.value),
+                  currency.value.trim(),
+                  this.language.current(),
+                ),
+                country,
+                year.value,
+              )
+            : suggestTitle(denomination.value, country, year.value),
+        );
       });
+  }
+
+  /**
+   * The fields and rules of a kind: a euro coin needs its denomination and is dated 1999 or
+   * later; an other coin needs its value and currency and can be from any year.
+   */
+  private applyKind(kind: CoinKind): void {
+    this.kind.set(kind);
+    const other = kind === 'Other';
+    const { denomination, year } = this.form.controls;
+    const { faceValue, currency } = this.otherForm.controls;
+    denomination.setValidators(other ? [] : [Validators.required]);
+    faceValue.setValidators(other ? [Validators.required, faceValueValidator] : []);
+    currency.setValidators(
+      other
+        ? [Validators.required, Validators.maxLength(COIN_LIMITS.currencyMaxLength)]
+        : [Validators.maxLength(COIN_LIMITS.currencyMaxLength)],
+    );
+    year.setValidators([
+      Validators.required,
+      integerValidator,
+      Validators.min(other ? COIN_LIMITS.otherMinYear : COIN_LIMITS.minYear),
+      Validators.max(this.maxYear),
+    ]);
+    for (const control of [denomination, year, faceValue, currency]) {
+      control.updateValueAndValidity({ emitEvent: false });
+    }
+    if (other) {
+      this.loadCurrencySuggestions();
+    }
+  }
+
+  private loadCurrencySuggestions(): void {
+    if (this.currenciesRequested) {
+      return;
+    }
+    this.currenciesRequested = true;
+    this.coinService.facets().subscribe({
+      next: (facets) => this.currencySuggestions.set(facets.currencies),
+      // Suggestions only: typing works without them
+      error: () => (this.currenciesRequested = false),
+    });
+  }
+
+  /** The face value's own message (the generic one would not say what a valid value is). */
+  protected faceValueError(): string | null {
+    const control = this.otherForm.controls.faceValue;
+    return control.hasError('faceValue') && (control.touched || control.dirty)
+      ? translate('coinForm.errors.faceValue')
+      : errorMessage(control);
   }
 
   ngOnInit(): void {
@@ -252,8 +375,9 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   }
 
   protected async submit(): Promise<void> {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.otherForm.invalid) {
       this.form.markAllAsTouched();
+      this.otherForm.markAllAsTouched();
       this.focusFirstInvalid();
       return;
     }
@@ -280,7 +404,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     } catch (err) {
       this.submitting.set(false);
       const error = err as HttpErrorResponse;
-      const photoError = coinWithPhotosErrorMessage(error);
+      const photoError = coinWithPhotosErrorMessage(error, this.kind());
       this.quotaExceeded.set(isQuotaExceeded(error));
       this.formErrors.set(
         photoError ? [photoError] : applyServerErrors(this.form, error, {}, this.saveMessageKeys),
@@ -301,6 +425,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     this.coin.set(coin);
     // The fields are saved; failed photo changes stay pending
     this.form.markAsPristine();
+    this.kindControl.markAsPristine();
+    this.otherForm.markAsPristine();
 
     const failures = await this.savePhotos(coin.id);
     this.submitting.set(false);
@@ -370,7 +496,10 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   hasUnsavedChanges(): boolean {
     return (
       !this.finished &&
-      (this.form.dirty || COIN_SIDES.some((side) => this.photoChanges[side]() !== null))
+      (this.form.dirty ||
+        this.kindControl.dirty ||
+        this.otherForm.dirty ||
+        COIN_SIDES.some((side) => this.photoChanges[side]() !== null))
     );
   }
 
@@ -402,7 +531,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
             await firstValueFrom(this.coinService.uploadPhoto(coinId, side, change.image)),
           );
         } else {
-          // Without its national side the coin no longer counts for a public collection
+          // Without this side (a euro coin's national side, either side of an other coin) the coin
+          // no longer counts for a public collection
           const result = await this.unpublishConfirm.run((unpublish) =>
             this.coinService.deletePhoto(coinId, side, unpublish),
           );
@@ -425,7 +555,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
         if (isQuotaExceeded(error)) {
           this.quotaExceeded.set(true);
         }
-        failures.push(`${translate(`coin.side.${side}.label`)}: ${photoErrorMessage(error)}`);
+        failures.push(`${translate(sideLabelKey(this.kind(), side))}: ${photoErrorMessage(error)}`);
       }
     }
     return failures;
@@ -448,9 +578,17 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   }
 
   private patchForm(coin: Coin): void {
+    // Not a choice of the user: no country reset, no title suggestion
+    this.kindControl.setValue(coin.kind, { emitEvent: false });
+    this.applyKind(coin.kind);
+    this.otherForm.setValue({
+      faceValue:
+        coin.faceValue === null ? '' : faceValueInput(coin.faceValue, this.language.current()),
+      currency: coin.currency ?? '',
+    });
     this.form.setValue({
       collectionId: coin.collectionId,
-      denomination: coin.denomination,
+      denomination: coin.denomination ?? '',
       countryCode: coin.countryCode,
       year: coin.year,
       title: coin.title,
@@ -461,18 +599,28 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     });
   }
 
+  /** A euro coin goes without a kind, exactly as before other coins existed; an other coin names it. */
   private toRequest(): CoinUpsertRequest {
     const v = this.form.getRawValue();
-    return {
+    const fields = {
       collectionId: v.collectionId as number,
       title: v.title.trim(),
       description: v.description.trim() || null,
-      denomination: v.denomination as Denomination,
       countryCode: v.countryCode,
       year: v.year as number,
       mintMark: v.mintMark.trim() || null,
       isCommemorative: v.isCommemorative,
       quantity: v.quantity,
     };
+    if (this.kindControl.value === 'Other') {
+      const other = this.otherForm.getRawValue();
+      return {
+        ...fields,
+        kind: 'Other',
+        faceValue: parseFaceValue(other.faceValue) as number,
+        currency: other.currency.trim(),
+      };
+    }
+    return { ...fields, denomination: v.denomination as Denomination };
   }
 }

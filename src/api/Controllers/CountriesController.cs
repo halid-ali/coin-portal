@@ -9,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CoinPortal.Api.Controllers;
 
 /// <summary>
-/// Reference data, readable without login (also needed for public profile pages later).
+/// Reference data, readable without login: every country a coin can come from, the euro issuers
+/// marked (a euro coin can only be from those).
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -22,6 +23,6 @@ public class CountriesController(AppDbContext db) : ControllerBase
         await db.Countries
             .AsNoTracking()
             .OrderBy(c => c.Code)
-            .Select(c => new CountryResponse(c.Code, c.Name))
+            .Select(c => new CountryResponse(c.Code, c.Name, c.IsEuroIssuer))
             .ToListAsync(ct);
 }

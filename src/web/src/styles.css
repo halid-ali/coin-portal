@@ -410,6 +410,59 @@
     --denomination-line: var(--color-slate-700);
   }
 
+  /*
+   * The same surface behind an other coin's icon (shared/other-coin-icon, `tile`): `other-coin`
+   * plus `other-coin-<hue>`, a tint of the coin's hue like the euro metals above.
+   */
+  .other-coin {
+    --denomination-bg: var(--other-coin-50);
+    --denomination-line: var(--other-coin-200);
+  }
+  :root.dark .other-coin {
+    --denomination-bg: color-mix(in oklab, var(--other-coin-500) 14%, var(--color-slate-900));
+    --denomination-line: color-mix(in oklab, var(--other-coin-500) 35%, var(--color-slate-900));
+  }
+  .other-coin-sky {
+    --other-coin-50: var(--color-sky-50);
+    --other-coin-200: var(--color-sky-200);
+    --other-coin-500: var(--color-sky-500);
+  }
+  .other-coin-indigo {
+    --other-coin-50: var(--color-indigo-50);
+    --other-coin-200: var(--color-indigo-200);
+    --other-coin-500: var(--color-indigo-500);
+  }
+  .other-coin-violet {
+    --other-coin-50: var(--color-violet-50);
+    --other-coin-200: var(--color-violet-200);
+    --other-coin-500: var(--color-violet-500);
+  }
+  .other-coin-fuchsia {
+    --other-coin-50: var(--color-fuchsia-50);
+    --other-coin-200: var(--color-fuchsia-200);
+    --other-coin-500: var(--color-fuchsia-500);
+  }
+  .other-coin-rose {
+    --other-coin-50: var(--color-rose-50);
+    --other-coin-200: var(--color-rose-200);
+    --other-coin-500: var(--color-rose-500);
+  }
+  .other-coin-teal {
+    --other-coin-50: var(--color-teal-50);
+    --other-coin-200: var(--color-teal-200);
+    --other-coin-500: var(--color-teal-500);
+  }
+  .other-coin-emerald {
+    --other-coin-50: var(--color-emerald-50);
+    --other-coin-200: var(--color-emerald-200);
+    --other-coin-500: var(--color-emerald-500);
+  }
+  .other-coin-lime {
+    --other-coin-50: var(--color-lime-50);
+    --other-coin-200: var(--color-lime-200);
+    --other-coin-500: var(--color-lime-500);
+  }
+
   /* The page column of header, main and footer (width: --page-max-width) */
   .page-container {
     @apply mx-auto w-full max-w-(--page-max-width) px-4;

@@ -81,7 +81,8 @@ public class AccountExport(AppDbContext db, IPhotoStorage photoStorage, ILogger<
                                 photos[photo.Side] = path;
                             }
                         }
-                        coins.Add(new CoinExport(coin.Id, coin.Title, coin.Description, coin.Denomination,
+                        coins.Add(new CoinExport(coin.Id, coin.Title, coin.Description, coin.Kind,
+                            coin.Denomination, coin.FaceValue, coin.Currency,
                             coin.CountryCode, coin.Year, coin.MintMark, coin.IsCommemorative, coin.Quantity,
                             coin.CreatedAtUtc, coin.UpdatedAtUtc, photos));
                     }

@@ -128,7 +128,7 @@ public class CoinPhotosController(
         }
 
         var losesPhotos = PublicationRules.HasPhotos(coin)
-            && !PublicationRules.HasPhotos(coin.Photos.Where(p => p != photo).Select(p => p.Side));
+            && !PublicationRules.HasPhotos(coin.Kind, coin.Photos.Where(p => p != photo).Select(p => p.Side));
         var broken = await publication.BrokenByAsync(
             [new CollectionChange(coin.CollectionId, AddsUnphotographed: losesPhotos)], ct);
         if (broken.Count > 0 && !unpublish)

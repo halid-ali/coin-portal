@@ -147,7 +147,7 @@ public class EuroCoinTests(CoinPortalFactory factory)
         await response.ShouldHaveStatusAsync(HttpStatusCode.OK);
         var expected = ("50 cent · İtalya · 2002", "Roma", Denomination.Cent50, "IT", 2002, "R", true, 3);
         static (string, string?, Denomination, string, int, string?, bool, int) Fields(CoinResponse c) =>
-            (c.Title, c.Description, c.Denomination, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity);
+            (c.Title, c.Description, c.Denomination!.Value, c.CountryCode, c.Year, c.MintMark, c.IsCommemorative, c.Quantity);
         Assert.Equal(expected, Fields(await response.ReadJsonAsync<CoinResponse>()));
         Assert.Equal(expected, Fields(await alice.Client.GetJsonAsync<CoinResponse>(url)));
         var listed = await alice.Client.GetJsonAsync<PagedResponse<CoinResponse>>("/api/coins");
