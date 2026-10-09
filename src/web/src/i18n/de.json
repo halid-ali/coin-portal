@@ -271,7 +271,7 @@
         "description": "Münzen der Euroländer, ab 1999."
       },
       "Other": {
-        "label": "Andere Münze",
+        "label": "Weltmünze",
         "description": "Andere Währungen, alte und außer Kurs gesetzte Münzen."
       }
     },
@@ -411,7 +411,7 @@
       "label": "Münzart",
       "all": "Alle",
       "Euro": "Euro",
-      "Other": "Andere"
+      "Other": "Welt"
     }
   },
   "coinForm": {

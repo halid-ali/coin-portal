@@ -279,7 +279,7 @@ export class Collection {
     nominalOptions(this.query().kind, this.facets(), this.query().currency),
   );
   /**
-   * The nominal filter's options: under an "Euro coin" and an "Other coin" heading when it has both.
+   * The nominal filter's options: under a "Euro coin" and a "World coin" heading when it has both.
    * Reads the language, so the names follow a switch.
    */
   protected readonly nominalChoices = computed<ComboboxOption[]>(() => {

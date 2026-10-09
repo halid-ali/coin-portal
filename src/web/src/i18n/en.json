@@ -271,7 +271,7 @@
         "description": "Coins of the euro area countries, from 1999 on."
       },
       "Other": {
-        "label": "Other coin",
+        "label": "World coin",
         "description": "Other currencies, old and withdrawn coins."
       }
     },
@@ -411,7 +411,7 @@
       "label": "Coin type",
       "all": "All",
       "Euro": "Euro",
-      "Other": "Other"
+      "Other": "World"
     }
   },
   "coinForm": {

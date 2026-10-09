@@ -80,17 +80,17 @@ describe('filterOptions', () => {
       { value: '', label: 'Tümü' },
       { value: 'Euro2', label: '2 €', group: 'Euro coin' },
       { value: 'Cent50', label: '50 cent', group: 'Euro coin' },
-      { value: 'currency:penny', label: 'penny', group: 'Diğer coin' },
-      { value: 'currency:kopek', label: 'kopek', group: 'Diğer coin' },
+      { value: 'currency:penny', label: 'penny', group: "Dünya coin'i" },
+      { value: 'currency:kopek', label: 'kopek', group: "Dünya coin'i" },
     ];
 
     expect(filterOptions(options, '').map((g) => [g.label, g.matches.length])).toEqual([
       [null, 1],
       ['Euro coin', 2],
-      ['Diğer coin', 2],
+      ["Dünya coin'i", 2],
     ]);
     expect(
       filterOptions(options, 'pe').map((g) => [g.label, g.matches.map((m) => m.option.label)]),
-    ).toEqual([['Diğer coin', ['penny', 'kopek']]]);
+    ).toEqual([["Dünya coin'i", ['penny', 'kopek']]]);
   });
 });

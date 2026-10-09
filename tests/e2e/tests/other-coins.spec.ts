@@ -14,7 +14,7 @@ test('a user adds an other coin and finds it with the kind buttons', async ({ br
   const page = await context.newPage();
 
   await page.goto(`/coins/new?collection=${collection.id}`);
-  await page.getByRole('radio', { name: /^Other coin/ }).check();
+  await page.getByRole('radio', { name: /^World coin/ }).check();
   await page.getByLabel('Value').fill('0.5');
   await page.getByLabel('Currency').fill('penny');
   // The country list: typing filters it, names starting with the text first
@@ -40,9 +40,9 @@ test('a user adds an other coin and finds it with the kind buttons', async ({ br
   await expect(row.getByRole('cell', { name: 'United Kingdom', exact: true })).toBeVisible();
 
   const kinds = page.getByRole('group', { name: 'Coin type' });
-  await expect(kinds.getByRole('button')).toHaveText(['All 2', 'Euro 1', 'Other 1']);
+  await expect(kinds.getByRole('button')).toHaveText(['All 2', 'Euro 1', 'World 1']);
   await expectAccessible(page, 'collection with both kinds');
-  await kinds.getByRole('button', { name: /^Other/ }).click();
+  await kinds.getByRole('button', { name: /^World/ }).click();
   await expect(page).toHaveURL(/kind=Other/);
   await expect(table.getByRole('row')).toHaveCount(2);
   await page.getByRole('combobox', { name: 'Denomination', exact: true }).click();
@@ -92,8 +92,8 @@ test('an other coin needs both sides for a public collection', async ({ browser 
   const explore = await visitor.newPage();
   await explore.goto(`/explore?owner=${owner.userName}`);
   const kinds = explore.getByRole('group', { name: 'Coin type' });
-  await expect(kinds.getByRole('button')).toHaveText(['All 10', 'Euro 9', 'Other 1']);
-  await kinds.getByRole('button', { name: /^Other/ }).click();
+  await expect(kinds.getByRole('button')).toHaveText(['All 10', 'Euro 9', 'World 1']);
+  await kinds.getByRole('button', { name: /^World/ }).click();
   await expect(explore).toHaveURL(/kind=Other/);
   await expect(
     explore.getByText('25 lira · Türkiye · 1985').filter({ visible: true }),

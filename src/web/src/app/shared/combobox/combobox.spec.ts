@@ -51,8 +51,8 @@ class FilterHost {
   readonly options: ComboboxOption[] = [
     { value: 'Euro2', label: '2 €', group: 'Euro coin' },
     { value: 'Cent50', label: '50 cent', group: 'Euro coin' },
-    { value: 'currency:penny', label: 'penny', group: 'Diğer coin' },
-    { value: 'currency:kopek', label: 'kopek', group: 'Diğer coin' },
+    { value: 'currency:penny', label: 'penny', group: "Dünya coin'i" },
+    { value: 'currency:kopek', label: 'kopek', group: "Dünya coin'i" },
   ];
   readonly value = signal('Euro2');
   readonly locked = signal(false);
@@ -326,7 +326,7 @@ describe('Combobox', () => {
         groups.map((g) =>
           page.querySelector(`#${g.getAttribute('aria-labelledby')}`)?.textContent?.trim(),
         ),
-      ).toEqual(['Euro coin', 'Diğer coin']);
+      ).toEqual(['Euro coin', "Dünya coin'i"]);
       expect(box().hasAttribute('aria-describedby')).toBe(false);
     });
 

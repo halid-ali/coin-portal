@@ -371,7 +371,7 @@ describe('CoinForm', () => {
       // No suggestions asked for a euro coin
       http.expectNone('/api/coins/facets');
 
-      await chooseKind('Diğer coin');
+      await chooseKind("Dünya coin'i");
       currencies(['kuruş', 'Mark']);
       await harness.fixture.whenStable();
 
@@ -392,7 +392,7 @@ describe('CoinForm', () => {
 
     it('suggests the title from value, currency, country and year, and sends its kind', async () => {
       await openNew();
-      await chooseKind('Diğer coin');
+      await chooseKind("Dünya coin'i");
       currencies([]);
 
       await type('faceValue', '0,5');
@@ -419,7 +419,7 @@ describe('CoinForm', () => {
 
     it('needs a value above zero and a currency', async () => {
       await openNew();
-      await chooseKind('Diğer coin');
+      await chooseKind("Dünya coin'i");
       currencies([]);
 
       await type('faceValue', '0');
@@ -435,7 +435,7 @@ describe('CoinForm', () => {
 
     it('drops a country outside the euro when the coin becomes a euro coin', async () => {
       await openNew();
-      await chooseKind('Diğer coin');
+      await chooseKind("Dünya coin'i");
       currencies([]);
       await chooseCountry('Tür');
 

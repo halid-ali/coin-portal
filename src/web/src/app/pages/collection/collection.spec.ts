@@ -397,7 +397,7 @@ describe('Collection', () => {
       expect(kindButtons()).toEqual([
         ['Tümü 3', 'true'],
         ['Euro 2', 'false'],
-        ['Diğer 1', 'false'],
+        ['Dünya 1', 'false'],
       ]);
       // Only the countries the collection has
       expect(await options('country')).toEqual(['Tümü', 'Almanya', 'Türkiye']);
@@ -405,7 +405,7 @@ describe('Collection', () => {
       const groups = [...(await openFilter('denomination')).querySelectorAll('[role=group]')];
       expect(groups.map((g) => g.firstElementChild!.textContent!.trim())).toEqual([
         'Euro coin',
-        'Diğer coin',
+        "Dünya coin'i",
       ]);
       expect(
         [...groups[1].querySelectorAll('[role=option]')].map((o) => o.textContent!.trim()),

@@ -271,7 +271,7 @@
         "description": "Euro bölgesi ülkelerinin 1999'dan bu yana çıkardığı coin'ler."
       },
       "Other": {
-        "label": "Diğer coin",
+        "label": "Dünya coin'i",
         "description": "Başka para birimleri; eski ve tedavülden kalkmış coin'ler."
       }
     },
@@ -411,7 +411,7 @@
       "label": "Coin türü",
       "all": "Tümü",
       "Euro": "Euro",
-      "Other": "Diğer"
+      "Other": "Dünya"
     }
   },
   "coinForm": {
