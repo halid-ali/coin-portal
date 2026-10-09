@@ -20,7 +20,7 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await expect(page.getByRole('heading', { name: 'Edit coin' })).toBeVisible();
 
   // The saved values, and the title is no longer suggested
-  await expect(page.getByLabel('Denomination')).toHaveValue('Euro2');
+  await expect(page.getByLabel('Denomination')).toHaveValue('2 €');
   await expect(page.getByLabel('Country')).toHaveValue('Germany');
   await expect(page.getByLabel('Year')).toHaveValue('2006');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');
@@ -28,7 +28,7 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await expect(page.getByText('Common side', { exact: true })).toBeVisible();
   await expectAccessible(page, 'coin edit form');
 
-  await page.getByLabel('Denomination').selectOption({ label: '10 cent' });
+  await chooseOption(page, 'Denomination', '10 cent');
   await chooseOption(page, 'Country', 'Austria');
   await page.getByLabel('Year').fill('2002');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');

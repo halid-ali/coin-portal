@@ -11,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { ControlValueAccessor, NgControl, Validators } from '@angular/forms';
+import { AbstractControl, ControlValueAccessor, NgControl, Validators } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -34,8 +34,9 @@ let nextId = 0;
  * In a form it is the control (`formControlName`, it says when it is invalid or required, like
  * appField): `<app-combobox inputId="countryCode" formControlName="countryCode" …>` with
  * `<label for="countryCode">`, `<p id="countryCode-error">` / `-hint`. Elsewhere it is bound:
- * `[(value)]`. `allLabel` adds an option with the value '' on top (a filter's "All"); emptying
- * the box picks it.
+ * `[(value)]`, then `[control]` ties it to a form control's error and hint texts all the same
+ * (a value the form converts, e.g. a collection's numeric id) and `disabled` closes it. `allLabel`
+ * adds an option with the value '' on top (a filter's "All"); emptying the box picks it.
  */
 @Component({
   selector: 'app-combobox',
@@ -58,14 +59,14 @@ let nextId = 0;
       [attr.aria-activedescendant]="expanded() && activeOption() ? optionId(activeIndex()) : null"
       [attr.aria-invalid]="invalid() ? 'true' : null"
       [attr.aria-required]="required() ? 'true' : null"
-      [attr.aria-describedby]="ngControl ? inputId() + '-error ' + inputId() + '-hint' : null"
+      [attr.aria-describedby]="field() ? inputId() + '-error ' + inputId() + '-hint' : null"
       [attr.placeholder]="placeholder() || null"
       [attr.maxlength]="maxLength()"
-      [disabled]="disabled()"
+      [disabled]="isDisabled()"
       [value]="text()"
       class="form-input pr-10"
-      [class.ng-invalid]="ngControl?.invalid"
-      [class.ng-touched]="ngControl?.touched"
+      [class.ng-invalid]="field()?.invalid"
+      [class.ng-touched]="field()?.touched"
       (click)="show()"
       (focus)="onFocus()"
       (input)="onInput(box.value)"
@@ -199,6 +200,9 @@ export class Combobox implements ControlValueAccessor {
   /** Any text; the options are suggestions. */
   readonly freeText = input(false, { transform: booleanAttribute });
   readonly maxLength = input<number | null>(null);
+  /** Without formControlName: the form control whose error and hint texts it is tied to. */
+  readonly control = input<AbstractControl | null>(null);
+  readonly disabled = input(false, { transform: booleanAttribute });
 
   protected readonly listId = `combobox-${++nextId}`;
   protected readonly open = signal(false);
@@ -207,7 +211,9 @@ export class Combobox implements ControlValueAccessor {
   protected readonly activeIndex = signal(0);
   /** The highlight moved by the keys: it then also gets the focus ring, like the language list. */
   protected readonly keyboard = signal(false);
-  protected readonly disabled = signal(false);
+  /** Disabled by the form control. */
+  private readonly controlDisabled = signal(false);
+  protected readonly isDisabled = computed(() => this.disabled() || this.controlDisabled());
 
   private readonly allOptions = computed<ComboboxOption[]>(() => {
     const all = this.allLabel();
@@ -284,13 +290,19 @@ export class Combobox implements ControlValueAccessor {
     return `${this.listId}-option-${index}`;
   }
 
+  /** Its form control: the one it is, or the one it is tied to. */
+  protected field(): AbstractControl | null {
+    return this.ngControl?.control ?? this.control();
+  }
+
   /** Invalid exactly when its error text is shown, like appField. */
   protected invalid(): boolean {
-    return !!this.ngControl && errorMessage(this.ngControl.control) !== null;
+    const field = this.field();
+    return !!field && errorMessage(field) !== null;
   }
 
   protected required(): boolean {
-    return this.ngControl?.control?.hasValidator(Validators.required) ?? false;
+    return this.field()?.hasValidator(Validators.required) ?? false;
   }
 
   protected onFocus(): void {
@@ -299,7 +311,7 @@ export class Combobox implements ControlValueAccessor {
   }
 
   protected show(): void {
-    if (this.open() || this.disabled()) {
+    if (this.open() || this.isDisabled()) {
       return;
     }
     this.typed.set(null);
@@ -413,6 +425,6 @@ export class Combobox implements ControlValueAccessor {
   }
 
   setDisabledState(disabled: boolean): void {
-    this.disabled.set(disabled);
+    this.controlDisabled.set(disabled);
   }
 }

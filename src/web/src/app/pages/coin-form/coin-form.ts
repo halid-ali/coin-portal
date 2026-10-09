@@ -149,8 +149,14 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     return !!this.collections()?.find((c) => c.id === collectionId)?.moderationLocked;
   });
 
-  protected readonly denominations = DENOMINATIONS;
-  protected readonly denominationLabel = denominationLabel;
+  /** The euro denominations by value; reads the language, so the names follow a switch. */
+  protected readonly denominationOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return DENOMINATIONS.map((d) => ({ value: d, label: denominationLabel(d) }));
+  });
+  protected readonly collectionOptions = computed<ComboboxOption[]>(() =>
+    (this.collections() ?? []).map((c) => ({ value: String(c.id), label: c.name })),
+  );
   protected readonly kinds = COIN_KINDS;
   protected readonly limits = COIN_LIMITS;
   protected readonly sideLabelKey = sideLabelKey;

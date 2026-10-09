@@ -95,35 +95,44 @@ describe('CoinForm', () => {
   const form = () => harness.routeDebugElement!.componentInstance as CoinForm;
   const internals = () => form() as unknown as CoinFormInternals;
   const submit = () => page().querySelector('form')!.dispatchEvent(new Event('submit'));
-  const countryBox = () => page().querySelector<HTMLInputElement>('#countryCode')!;
-  async function countryKey(key: string): Promise<void> {
-    countryBox().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+  // The collection, denomination and country fields are lists to type in (comboboxes)
+  const listBox = (id: string) => page().querySelector<HTMLInputElement>(`#${id}`)!;
+  async function listKey(id: string, key: string): Promise<void> {
+    listBox(id).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
     await harness.fixture.whenStable();
   }
-  /** The country list as it opens (closed again afterwards). */
-  async function countryNames(): Promise<string[]> {
-    countryBox().click();
+  /** A list's option names as it opens (closed again afterwards). */
+  async function listNames(id: string): Promise<string[]> {
+    listBox(id).click();
     await harness.fixture.whenStable();
     const names = [...page().querySelectorAll('[role=option]')].map((o) => o.textContent!.trim());
-    await countryKey('Escape');
+    await listKey(id, 'Escape');
     return names;
   }
-  /** Types the name into the country box and picks the first match. */
-  async function chooseCountry(name: string): Promise<void> {
-    countryBox().focus();
-    countryBox().value = name;
-    countryBox().dispatchEvent(new Event('input'));
+  /** Types into a list's box and picks the first match. */
+  async function choose(id: string, typed: string): Promise<void> {
+    listBox(id).focus();
+    listBox(id).value = typed;
+    listBox(id).dispatchEvent(new Event('input'));
     await harness.fixture.whenStable();
-    await countryKey('Enter');
+    await listKey(id, 'Enter');
   }
+  const countryBox = () => listBox('countryCode');
+  const countryNames = () => listNames('countryCode');
+  const chooseCountry = (name: string) => choose('countryCode', name);
 
-  async function open(path: string, edited?: Coin, countries: string[] = ['DE']): Promise<void> {
+  async function open(
+    path: string,
+    edited?: Coin,
+    countries: string[] = ['DE'],
+    collections: Collection[] = [vitrin],
+  ): Promise<void> {
     await harness.navigateByUrl(path);
     // Like the API: every country marked (these are all euro issuers)
     http
       .match('/api/countries')
       .forEach((r) => r.flush(countries.map((code) => ({ code, euroIssuer: true }))));
-    http.expectOne('/api/collections').flush([vitrin]);
+    http.expectOne('/api/collections').flush(collections);
     if (edited) {
       http.expectOne(`/api/coins/${edited.id}`).flush(edited);
     }
@@ -154,8 +163,6 @@ describe('CoinForm', () => {
   // Written down before coins other than euro coins (roadmap 18): the euro form stays like this
   describe('a euro coin', () => {
     const control = (id: string) => page().querySelector<HTMLInputElement>(`#${id}`)!;
-    const options = (id: string) =>
-      [...control(id).querySelectorAll('option')].map((o) => [o.value, o.textContent!.trim()]);
     const setYear = async (year: number) => {
       const input = control('year');
       input.value = String(year);
@@ -167,20 +174,50 @@ describe('CoinForm', () => {
     it('offers the eight denominations from the largest and the countries by name', async () => {
       await open('/coins/new?collection=5', undefined, ['DE', 'AT', 'BE']);
 
-      expect(options('denomination')).toEqual([
-        ['', 'Seç…'],
-        ['Euro2', '2 €'],
-        ['Euro1', '1 €'],
-        ['Cent50', '50 cent'],
-        ['Cent20', '20 cent'],
-        ['Cent10', '10 cent'],
-        ['Cent5', '5 cent'],
-        ['Cent2', '2 cent'],
-        ['Cent1', '1 cent'],
+      // Lists to type in since 2026-10-09 (were selects with these options and "Seç…" first)
+      expect(listBox('denomination').placeholder).toBe('Seç…');
+      expect(await listNames('denomination')).toEqual([
+        '2 €',
+        '1 €',
+        '50 cent',
+        '20 cent',
+        '10 cent',
+        '5 cent',
+        '2 cent',
+        '1 cent',
       ]);
-      // A list to type in since 2026-10-09 (was a select with these options and "Seç…" first)
       expect(countryBox().placeholder).toBe('Seç…');
       expect(await countryNames()).toEqual(['Almanya', 'Avusturya', 'Belçika']);
+    });
+
+    it('takes the denomination picked from the list', async () => {
+      await open('/coins/new?collection=5');
+      await choose('denomination', '50');
+
+      expect(form()['form'].controls.denomination.value).toBe('Cent50');
+      expect(control('denomination').value).toBe('50 cent');
+    });
+
+    it('moves a coin to the collection picked from the list, as its numeric id', async () => {
+      const other: Collection = { ...vitrin, id: 7, name: 'Hatıra kutusu' };
+      await open('/coins/1/edit', coin, ['DE'], [vitrin, other]);
+      expect(control('collectionId').value).toBe('Vitrin');
+      expect(await listNames('collectionId')).toEqual(['Vitrin', 'Hatıra kutusu']);
+
+      await choose('collectionId', 'hat');
+
+      expect(form()['form'].controls.collectionId.value).toBe(7);
+      expect(page().querySelector('#collectionId-hint')!.textContent).toContain('taşınır');
+      expect(control('collectionId').getAttribute('aria-describedby')).toBe(
+        'collectionId-error collectionId-hint',
+      );
+    });
+
+    it('keeps the collection list closed while the collection is locked', async () => {
+      await open('/coins/1/edit', coin, ['DE'], [{ ...vitrin, moderationLocked: true }]);
+
+      expect(control('collectionId').disabled).toBe(true);
+      expect(page().querySelector('#collectionId-hint')!.textContent).toContain('taşınamaz');
     });
 
     it('takes a year from 1999 up to next year', async () => {
@@ -262,7 +299,8 @@ describe('CoinForm', () => {
       };
       await open('/coins/1/edit', edited);
 
-      expect(control('denomination').value).toBe('Euro2');
+      expect(form()['form'].controls.denomination.value).toBe('Euro2');
+      expect(control('denomination').value).toBe('2 €');
       expect(form()['form'].controls.countryCode.value).toBe('DE');
       expect(control('countryCode').value).toBe('Almanya');
       expect(control('year').value).toBe('2006');

@@ -83,26 +83,25 @@
         }}</label>
         @if (collections(); as list) {
           @if (list.length) {
-            <select
-              id="collectionId"
-              [appField]="form.controls.collectionId"
-              class="form-input sm:max-w-sm"
-              #collectionSelect
+            <!-- Bound, not formControlName: the form keeps the collection's numeric id -->
+            <app-combobox
+              inputId="collectionId"
+              class="sm:max-w-sm"
+              [control]="form.controls.collectionId"
+              [options]="collectionOptions()"
+              [value]="form.controls.collectionId.value?.toString() ?? ''"
+              [label]="'coin.field.collection' | transloco"
               [disabled]="moveLocked()"
-              (change)="form.controls.collectionId.setValue(+collectionSelect.value)"
-            >
-              @for (c of list; track c.id) {
-                <option [value]="c.id" [selected]="c.id === form.controls.collectionId.value">
-                  {{ c.name }}
-                </option>
-              }
-            </select>
+              (valueChange)="form.controls.collectionId.setValue(+$event)"
+            />
             @if (moveLocked()) {
-              <p class="form-hint">{{ 'coinForm.moveLocked' | transloco }}</p>
+              <p id="collectionId-hint" class="form-hint">
+                {{ 'coinForm.moveLocked' | transloco }}
+              </p>
             } @else if (
               isEdit() && coin() && form.controls.collectionId.value !== coin()!.collectionId
             ) {
-              <p class="form-hint">{{ 'coinForm.moveHint' | transloco }}</p>
+              <p id="collectionId-hint" class="form-hint">{{ 'coinForm.moveHint' | transloco }}</p>
             }
           } @else if (collectionsError()) {
             <p role="alert" class="alert-error">{{ 'collections.loadError' | transloco }}</p>
@@ -206,12 +205,13 @@
             <label for="denomination" class="form-label">{{
               'coin.field.denomination' | transloco
             }}</label>
-            <select id="denomination" formControlName="denomination" appField class="form-input">
-              <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-              @for (d of denominations; track d) {
-                <option [value]="d">{{ denominationLabel(d) }}</option>
-              }
-            </select>
+            <app-combobox
+              inputId="denomination"
+              formControlName="denomination"
+              [options]="denominationOptions()"
+              [label]="'coin.field.denomination' | transloco"
+              [placeholder]="'common.choose' | transloco"
+            />
             @if (errorMessage(form.controls.denomination); as msg) {
               <p id="denomination-error" class="form-error">{{ msg }}</p>
             }

@@ -46,7 +46,7 @@ test('a new user signs up, adds a coin with a photo and browses it', async ({ pa
     .getByRole('link', { name: /Add (your first )?coin/ })
     .first()
     .click();
-  await page.getByLabel('Denomination').selectOption({ label: '2 €' });
+  await chooseOption(page, 'Denomination', '2 €');
   await chooseOption(page, 'Country', 'Germany');
   await page.getByLabel('Year').fill('2006');
   await expect(page.getByLabel('Title')).toHaveValue(/2 €.*2006/);

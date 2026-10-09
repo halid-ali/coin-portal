@@ -42,6 +42,7 @@ class FormHost {
       allLabel="Tümü"
       [options]="options"
       [value]="value()"
+      [disabled]="locked()"
       (valueChange)="chosen.push($event)"
     />
   `,
@@ -54,6 +55,7 @@ class FilterHost {
     { value: 'currency:kopek', label: 'kopek', group: 'Diğer coin' },
   ];
   readonly value = signal('Euro2');
+  readonly locked = signal(false);
   readonly chosen: string[] = [];
 }
 
@@ -344,6 +346,16 @@ describe('Combobox', () => {
       await leave();
       expect(host.chosen).toEqual(['currency:kopek', '']);
       expect(box().value).toBe('Tümü');
+    });
+
+    it('stays closed while the page disables it', async () => {
+      host.locked.set(true);
+      await fixture.whenStable();
+      box().click();
+      await fixture.whenStable();
+
+      expect(box().disabled).toBe(true);
+      expect(box().getAttribute('aria-expanded')).toBe('false');
     });
 
     it('shows the value the page gives', async () => {
