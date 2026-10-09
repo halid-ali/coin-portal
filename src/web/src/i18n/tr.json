@@ -264,10 +264,23 @@
       "Cent2": "2 cent",
       "Cent1": "1 cent"
     },
+    "kind": {
+      "Euro": {
+        "label": "Euro coin",
+        "description": "Euro bölgesi ülkelerinin 1999'dan bu yana çıkardığı coin'ler."
+      },
+      "Other": {
+        "label": "Diğer coin",
+        "description": "Başka para birimleri; eski ve tedavülden kalkmış coin'ler."
+      }
+    },
     "field": {
       "collection": "Koleksiyon",
       "title": "Başlık",
+      "kind": "Coin türü",
       "denomination": "Nominal",
+      "faceValue": "Değer",
+      "currency": "Para birimi",
       "country": "Ülke",
       "year": "Yıl",
       "mintMark": "Darphane",
@@ -405,14 +418,20 @@
     "needCollection": "Coin ekleyebilmek için önce bir koleksiyon oluşturmalısın.",
     "loadingCollections": "Koleksiyonlar yükleniyor…",
     "titleHint": "Nominal, ülke ve yıldan otomatik doldurulur; istersen değiştirebilirsin.",
+    "titleHintOther": "Değer, para birimi, ülke ve yıldan otomatik doldurulur; istersen değiştirebilirsin.",
+    "faceValueHint": "Ondalık olabilir: 0,5",
+    "currencyHint": "Örn. kuruş, lira, Mark",
+    "countryHintOther": "Bütün ülkeler; Doğu Almanya, Sovyetler Birliği gibi eski ülkeler de.",
     "mintMarkHint": "İsteğe bağlı, örn. A, D, F, G, J",
     "photosHint": "İsteğe bağlı. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
+    "photosHintOther": "İsteğe bağlı; herkese açık bir koleksiyon için iki yüzün de fotoğrafı gerekir. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
     "photosFailed": "Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:",
     "deleteTitle": "Coin'i sil",
     "deleteMessage": "\"{{title}}\" adlı coin koleksiyonundan kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "errors": {
       "unknownCollection": "Seçilen koleksiyon bulunamadı; silinmiş olabilir. Sayfayı yenileyip başka bir koleksiyon seç.",
-      "unknownCountry": "Bilinmeyen ülke."
+      "unknownCountry": "Bilinmeyen ülke.",
+      "faceValue": "25 ya da 0,5 gibi sıfırdan büyük bir sayı yaz (en çok 4 ondalık)."
     }
   },
   "photo": {

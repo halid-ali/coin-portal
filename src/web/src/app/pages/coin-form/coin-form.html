@@ -40,6 +40,43 @@
         </p>
       }
 
+      <!-- One radio group, two looks (user choice 2026-10-09): side-by-side buttons on a phone,
+       cards with their description from sm up; on a phone the chosen kind's description is below -->
+      <fieldset>
+        <legend class="form-label">{{ 'coin.field.kind' | transloco }}</legend>
+        <div
+          class="inline-flex rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm sm:grid sm:w-full sm:grid-cols-2 sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
+        >
+          @for (k of kinds; track k) {
+            <label
+              class="flex cursor-pointer items-center rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors has-checked:bg-brand-100 has-checked:font-semibold has-checked:text-brand-800 has-focus-visible:ring-2 has-focus-visible:ring-focus sm:items-start sm:gap-3 sm:rounded-lg sm:border sm:border-shade-200 sm:p-3 sm:font-normal sm:whitespace-normal sm:text-shade-900 sm:hover:bg-shade-50 sm:has-checked:border-brand-400 sm:has-checked:bg-brand-50 sm:has-checked:font-normal sm:has-checked:text-shade-900"
+            >
+              <input
+                type="radio"
+                name="kind"
+                [formControl]="kindControl"
+                [value]="k"
+                [attr.aria-describedby]="'kind-' + k + '-description'"
+                class="sr-only sm:not-sr-only sm:mt-1 sm:accent-brand-500"
+              />
+              <span>
+                <span class="block sm:font-medium">{{
+                  'coin.kind.' + k + '.label' | transloco
+                }}</span>
+                <span
+                  [id]="'kind-' + k + '-description'"
+                  class="mt-1 hidden text-shade-600 sm:block"
+                  >{{ 'coin.kind.' + k + '.description' | transloco }}</span
+                >
+              </span>
+            </label>
+          }
+        </div>
+        <p class="form-hint sm:hidden" aria-hidden="true">
+          {{ 'coin.kind.' + kind() + '.description' | transloco }}
+        </p>
+      </fieldset>
+
       <div>
         <label for="collectionId" class="form-label">{{
           'coin.field.collection' | transloco
@@ -83,25 +120,82 @@
         }
       </div>
 
-      <div class="grid gap-5 sm:grid-cols-3">
-        <div>
-          <label for="denomination" class="form-label">{{
-            'coin.field.denomination' | transloco
-          }}</label>
-          <select id="denomination" formControlName="denomination" appField class="form-input">
-            <option value="" disabled>{{ 'common.choose' | transloco }}</option>
-            @for (d of denominations; track d) {
-              <option [value]="d">{{ denominationLabel(d) }}</option>
+      @if (kind() === 'Other') {
+        <div class="grid gap-5 sm:grid-cols-3">
+          <div>
+            <label for="faceValue" class="form-label">{{
+              'coin.field.faceValue' | transloco
+            }}</label>
+            <input
+              id="faceValue"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              [formControl]="otherForm.controls.faceValue"
+              [appField]="otherForm.controls.faceValue"
+              class="form-input"
+            />
+            @if (faceValueError(); as msg) {
+              <p id="faceValue-error" class="form-error">{{ msg }}</p>
+            } @else {
+              <p id="faceValue-hint" class="form-hint">
+                {{ 'coinForm.faceValueHint' | transloco }}
+              </p>
             }
-          </select>
-          @if (errorMessage(form.controls.denomination); as msg) {
-            <p id="denomination-error" class="form-error">{{ msg }}</p>
-          }
+          </div>
+
+          <div>
+            <label for="currency" class="form-label">{{ 'coin.field.currency' | transloco }}</label>
+            <input
+              id="currency"
+              type="text"
+              autocomplete="off"
+              list="currency-suggestions"
+              [formControl]="otherForm.controls.currency"
+              [appField]="otherForm.controls.currency"
+              [maxlength]="limits.currencyMaxLength"
+              class="form-input"
+            />
+            <datalist id="currency-suggestions">
+              @for (c of currencySuggestions(); track c) {
+                <option [value]="c"></option>
+              }
+            </datalist>
+            @if (errorMessage(otherForm.controls.currency); as msg) {
+              <p id="currency-error" class="form-error">{{ msg }}</p>
+            } @else {
+              <p id="currency-hint" class="form-hint">{{ 'coinForm.currencyHint' | transloco }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="year" class="form-label">{{ 'coin.field.year' | transloco }}</label>
+            <input
+              id="year"
+              type="number"
+              inputmode="numeric"
+              formControlName="year"
+              appField
+              [min]="minYear()"
+              [max]="maxYear"
+              class="form-input"
+            />
+            @if (errorMessage(form.controls.year); as msg) {
+              <p id="year-error" class="form-error">{{ msg }}</p>
+            } @else {
+              <p id="year-hint" class="form-hint">{{ minYear() }}–{{ maxYear }}</p>
+            }
+          </div>
         </div>
 
         <div>
           <label for="countryCode" class="form-label">{{ 'coin.field.country' | transloco }}</label>
-          <select id="countryCode" formControlName="countryCode" appField class="form-input">
+          <select
+            id="countryCode"
+            formControlName="countryCode"
+            appField
+            class="form-input sm:max-w-sm"
+          >
             <option value="" disabled>{{ 'common.choose' | transloco }}</option>
             @for (c of countries(); track c.code) {
               <option [value]="c.code">{{ c.name }}</option>
@@ -109,28 +203,64 @@
           </select>
           @if (errorMessage(form.controls.countryCode); as msg) {
             <p id="countryCode-error" class="form-error">{{ msg }}</p>
-          }
-        </div>
-
-        <div>
-          <label for="year" class="form-label">{{ 'coin.field.year' | transloco }}</label>
-          <input
-            id="year"
-            type="number"
-            inputmode="numeric"
-            formControlName="year"
-            appField
-            [min]="limits.minYear"
-            [max]="maxYear"
-            class="form-input"
-          />
-          @if (errorMessage(form.controls.year); as msg) {
-            <p id="year-error" class="form-error">{{ msg }}</p>
           } @else {
-            <p id="year-hint" class="form-hint">{{ limits.minYear }}–{{ maxYear }}</p>
+            <p id="countryCode-hint" class="form-hint">
+              {{ 'coinForm.countryHintOther' | transloco }}
+            </p>
           }
         </div>
-      </div>
+      } @else {
+        <div class="grid gap-5 sm:grid-cols-3">
+          <div>
+            <label for="denomination" class="form-label">{{
+              'coin.field.denomination' | transloco
+            }}</label>
+            <select id="denomination" formControlName="denomination" appField class="form-input">
+              <option value="" disabled>{{ 'common.choose' | transloco }}</option>
+              @for (d of denominations; track d) {
+                <option [value]="d">{{ denominationLabel(d) }}</option>
+              }
+            </select>
+            @if (errorMessage(form.controls.denomination); as msg) {
+              <p id="denomination-error" class="form-error">{{ msg }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="countryCode" class="form-label">{{
+              'coin.field.country' | transloco
+            }}</label>
+            <select id="countryCode" formControlName="countryCode" appField class="form-input">
+              <option value="" disabled>{{ 'common.choose' | transloco }}</option>
+              @for (c of countries(); track c.code) {
+                <option [value]="c.code">{{ c.name }}</option>
+              }
+            </select>
+            @if (errorMessage(form.controls.countryCode); as msg) {
+              <p id="countryCode-error" class="form-error">{{ msg }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="year" class="form-label">{{ 'coin.field.year' | transloco }}</label>
+            <input
+              id="year"
+              type="number"
+              inputmode="numeric"
+              formControlName="year"
+              appField
+              [min]="minYear()"
+              [max]="maxYear"
+              class="form-input"
+            />
+            @if (errorMessage(form.controls.year); as msg) {
+              <p id="year-error" class="form-error">{{ msg }}</p>
+            } @else {
+              <p id="year-hint" class="form-hint">{{ minYear() }}–{{ maxYear }}</p>
+            }
+          </div>
+        </div>
+      }
 
       <div>
         <label for="title" class="form-label">{{ 'coin.field.title' | transloco }}</label>
@@ -145,7 +275,11 @@
         @if (errorMessage(form.controls.title); as msg) {
           <p id="title-error" class="form-error">{{ msg }}</p>
         } @else if (!isEdit()) {
-          <p id="title-hint" class="form-hint">{{ 'coinForm.titleHint' | transloco }}</p>
+          <p id="title-hint" class="form-hint">
+            {{
+              (kind() === 'Other' ? 'coinForm.titleHintOther' : 'coinForm.titleHint') | transloco
+            }}
+          </p>
         }
       </div>
 
@@ -224,13 +358,15 @@
       <fieldset>
         <legend class="form-label">{{ 'coin.field.photos' | transloco }}</legend>
         <p class="form-hint mt-0 mb-3">
-          {{ 'coinForm.photosHint' | transloco }}
+          {{
+            (kind() === 'Other' ? 'coinForm.photosHintOther' : 'coinForm.photosHint') | transloco
+          }}
         </p>
         <div class="grid grid-cols-2 gap-x-4 sm:gap-x-6">
           @for (side of sides; track side) {
             <app-photo-slot
-              [label]="'coin.side.' + side + '.label' | transloco"
-              [hint]="'coin.side.' + side + '.hint' | transloco"
+              [label]="sideLabelKey(kind(), side) | transloco"
+              [hint]="sideHintKey(kind(), side) | transloco"
               [coinId]="coin()?.id ?? null"
               [stored]="storedPhoto(side)"
               [disabled]="submitting() || deleting()"
@@ -271,6 +407,7 @@
           [coinId]="c.id"
           [photos]="c.photos"
           [title]="c.title"
+          [kind]="c.kind"
           [initialSide]="side"
           (closed)="viewerSide.set(null)"
         />

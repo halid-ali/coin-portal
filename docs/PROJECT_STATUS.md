@@ -1937,7 +1937,12 @@ mağaza için TWA.
         para birimi önerileri], `api/public/collections/{id}/facets`, `shared/{token}/facets`, `coins/facets?owner=`) →
         ~~3. client: modeller, değer biçimi, yer tutucu~~ (`OtherCoinIcon`, `coinValueLabel`, tarihî ülke adları
         `country.former.*`, görüntüleyicide `kind`; eski `CoinPlaceholder` kalktı; regresyon testlerinde sadece üç
-        coin sabitine `kind: 'Euro', faceValue: null, currency: null` eklendi) → 4. form → 5. koleksiyon sayfası
+        coin sabitine `kind: 'Euro', faceValue: null, currency: null` eklendi) → ~~4. form~~ (tür seçimi tek radyo
+        grubu: telefonda düğmeler, `sm` üstünde kartlar; tür ve diğer coin alanları ana form grubunun dışında,
+        `kindControl` + `otherForm`, Euro isteği eskisi gibi türsüz; para birimi önerileri ilk diğer coin'de
+        `api/coins/facets`'ten; değer "0,5" ya da "0.5", `face-value.ts`; e2e sitesinde iki temada, masaüstü ve
+        telefonda görsel kontrol edildi; regresyon testinde sadece `open()` yardımcısının ülke sahtesine
+        `euroIssuer: true` eklendi) → 5. koleksiyon sayfası
         ve Keşfet → seed → e2e → belgeler. Regresyon testlerinde tek değişiklik: `EuroCoinTests` güncelleme testinde
         `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +

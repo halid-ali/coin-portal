@@ -98,7 +98,10 @@ describe('CoinForm', () => {
 
   async function open(path: string, edited?: Coin, countries: string[] = ['DE']): Promise<void> {
     await harness.navigateByUrl(path);
-    http.match('/api/countries').forEach((r) => r.flush(countries.map((code) => ({ code }))));
+    // Like the API: every country marked (these are all euro issuers)
+    http
+      .match('/api/countries')
+      .forEach((r) => r.flush(countries.map((code) => ({ code, euroIssuer: true }))));
     http.expectOne('/api/collections').flush([vitrin]);
     if (edited) {
       http.expectOne(`/api/coins/${edited.id}`).flush(edited);
@@ -269,6 +272,154 @@ describe('CoinForm', () => {
       expect(slots).toHaveLength(2);
       expect(slots[0]).toContain('Ulusal yüz');
       expect(slots[1]).toContain('Ortak yüz');
+    });
+  });
+
+  describe('an other coin', () => {
+    const control = (id: string) => page().querySelector<HTMLInputElement>(`#${id}`)!;
+    const options = (id: string) =>
+      [...control(id).querySelectorAll('option')].map((o) => o.textContent!.trim());
+    const type = async (id: string, value: string) => {
+      const input = control(id);
+      input.value = value;
+      input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input'));
+      input.dispatchEvent(new Event('blur'));
+      await harness.fixture.whenStable();
+    };
+    // Angular's radio [value] is not written to the DOM: the radio is found by its label
+    const chooseKind = async (label: string) => {
+      const radio = [...page().querySelectorAll('label')]
+        .find((l) => l.textContent!.includes(label))!
+        .querySelector('input')!;
+      radio.click();
+      await harness.fixture.whenStable();
+    };
+    const currencies = (list: string[]) =>
+      http
+        .expectOne('/api/coins/facets')
+        .flush({ euroCount: 0, otherCount: list.length, currencies: list, countryCodes: [] });
+
+    /** A new coin, with a euro issuer and a country outside the euro. */
+    async function openNew(): Promise<void> {
+      await harness.navigateByUrl('/coins/new?collection=5');
+      http.expectOne('/api/countries').flush([
+        { code: 'DE', name: 'Germany', euroIssuer: true },
+        { code: 'TR', name: 'Türkiye', euroIssuer: false },
+      ]);
+      http.expectOne('/api/collections').flush([vitrin]);
+      await harness.fixture.whenStable();
+    }
+
+    it('offers its own fields, every country and the currencies used so far', async () => {
+      await openNew();
+      expect(options('countryCode')).toEqual(['Seç…', 'Almanya']);
+      // No suggestions asked for a euro coin
+      http.expectNone('/api/coins/facets');
+
+      await chooseKind('Diğer coin');
+      currencies(['kuruş', 'Mark']);
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('#denomination')).toBeNull();
+      expect(options('countryCode')).toEqual(['Seç…', 'Almanya', 'Türkiye']);
+      expect(
+        [...page().querySelectorAll('#currency-suggestions option')].map((o) =>
+          o.getAttribute('value'),
+        ),
+      ).toEqual(['kuruş', 'Mark']);
+      expect(page().querySelector('#year-hint')!.textContent).toContain('1–');
+      const slots = [...page().querySelectorAll('app-photo-slot')].map((s) => s.textContent!);
+      expect(slots[0]).toContain('Ön yüz');
+      expect(slots[1]).toContain('Arka yüz');
+      expect(page().textContent).toContain('herkese açık bir koleksiyon için iki yüzün de');
+    });
+
+    it('suggests the title from value, currency, country and year, and sends its kind', async () => {
+      await openNew();
+      await chooseKind('Diğer coin');
+      currencies([]);
+
+      await type('faceValue', '0,5');
+      await type('currency', ' penny ');
+      await type('countryCode', 'TR');
+      await type('year', '1975');
+      expect(control('title').value).toBe('0,5 penny · Türkiye · 1975');
+
+      submit();
+      expect(http.expectOne({ method: 'POST', url: '/api/coins' }).request.body).toEqual({
+        collectionId: 5,
+        title: '0,5 penny · Türkiye · 1975',
+        description: null,
+        kind: 'Other',
+        faceValue: 0.5,
+        currency: 'penny',
+        countryCode: 'TR',
+        year: 1975,
+        mintMark: null,
+        isCommemorative: false,
+        quantity: 1,
+      });
+    });
+
+    it('needs a value above zero and a currency', async () => {
+      await openNew();
+      await chooseKind('Diğer coin');
+      currencies([]);
+
+      await type('faceValue', '0');
+      submit();
+      await harness.fixture.whenStable();
+
+      http.expectNone({ method: 'POST', url: '/api/coins' });
+      expect(page().querySelector('#faceValue-error')!.textContent).toContain(
+        '25 ya da 0,5 gibi sıfırdan büyük bir sayı yaz',
+      );
+      expect(page().querySelector('#currency-error')!.textContent).toContain('zorunlu');
+    });
+
+    it('drops a country outside the euro when the coin becomes a euro coin', async () => {
+      await openNew();
+      await chooseKind('Diğer coin');
+      currencies([]);
+      await type('countryCode', 'TR');
+
+      await chooseKind('Euro coin');
+
+      expect(control('countryCode').value).toBe('');
+      expect(options('countryCode')).toEqual(['Seç…', 'Almanya']);
+    });
+
+    it('loads an edited coin with its value in the language and sends it back', async () => {
+      const edited: Coin = {
+        ...coin,
+        title: '0,5 penny · Türkiye · 1975',
+        kind: 'Other',
+        denomination: null,
+        faceValue: 0.5,
+        currency: 'penny',
+        countryCode: 'TR',
+        year: 1975,
+      };
+      await harness.navigateByUrl('/coins/1/edit');
+      http.expectOne('/api/countries').flush([{ code: 'TR', name: 'Türkiye', euroIssuer: false }]);
+      http.expectOne('/api/collections').flush([vitrin]);
+      http.expectOne('/api/coins/1').flush(edited);
+      currencies(['penny']);
+      await harness.fixture.whenStable();
+
+      expect(control('faceValue').value).toBe('0,5');
+      expect(control('currency').value).toBe('penny');
+      submit();
+
+      const request = http.expectOne({ method: 'PUT', url: '/api/coins/1' });
+      expect(request.request.body).toMatchObject({
+        kind: 'Other',
+        faceValue: 0.5,
+        currency: 'penny',
+      });
+      expect(request.request.body).not.toHaveProperty('denomination');
+      request.flush(edited);
+      await vi.waitFor(() => expect(url()).toBe('/collections/5'));
     });
   });
 

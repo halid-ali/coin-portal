@@ -264,10 +264,23 @@
       "Cent2": "2 Cent",
       "Cent1": "1 Cent"
     },
+    "kind": {
+      "Euro": {
+        "label": "Euro-Münze",
+        "description": "Münzen der Euroländer, ab 1999."
+      },
+      "Other": {
+        "label": "Andere Münze",
+        "description": "Andere Währungen, alte und außer Kurs gesetzte Münzen."
+      }
+    },
     "field": {
       "collection": "Sammlung",
       "title": "Titel",
+      "kind": "Münzart",
       "denomination": "Nennwert",
+      "faceValue": "Wert",
+      "currency": "Währung",
       "country": "Land",
       "year": "Jahr",
       "mintMark": "Münzzeichen",
@@ -405,14 +418,20 @@
     "needCollection": "Um Münzen hinzuzufügen, erstelle zuerst eine Sammlung.",
     "loadingCollections": "Sammlungen werden geladen…",
     "titleHint": "Wird aus Nennwert, Land und Jahr ausgefüllt; du kannst ihn ändern.",
+    "titleHintOther": "Wird aus Wert, Währung, Land und Jahr ausgefüllt; du kannst ihn ändern.",
+    "faceValueHint": "Auch mit Dezimalen: 0,5",
+    "currencyHint": "Z. B. Pfennig, Mark, Schilling",
+    "countryHintOther": "Alle Länder, auch ehemalige wie die DDR oder die Sowjetunion.",
     "mintMarkHint": "Optional, z. B. A, D, F, G, J",
     "photosHint": "Optional. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
+    "photosHintOther": "Optional; eine öffentliche Sammlung braucht Fotos beider Seiten. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
     "photosFailed": "Die Münze wurde gespeichert, aber einige Fotos konnten nicht gespeichert werden:",
     "deleteTitle": "Münze löschen",
     "deleteMessage": "„{{title}}“ wird endgültig aus deiner Sammlung gelöscht. Das kann nicht rückgängig gemacht werden.",
     "errors": {
       "unknownCollection": "Die gewählte Sammlung wurde nicht gefunden; vielleicht wurde sie gelöscht. Lade die Seite neu und wähle eine andere.",
-      "unknownCountry": "Unbekanntes Land."
+      "unknownCountry": "Unbekanntes Land.",
+      "faceValue": "Gib eine Zahl über null ein, z. B. 25 oder 0,5 (höchstens 4 Dezimalen)."
     }
   },
   "photo": {

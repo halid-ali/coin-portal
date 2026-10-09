@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 
 import {
   Coin,
+  CoinFacets,
+  CoinKind,
   CoinListQuery,
   CoinPhoto,
   CoinSide,
@@ -37,6 +39,14 @@ export class CoinService {
   /** Counts over all of the user's collections. */
   summary(): Observable<CoinSummary> {
     return this.http.get<CoinSummary>(`${BASE_URL}/summary`);
+  }
+
+  /**
+   * Kinds, currencies and countries of the user's coins: of one collection (its filters) or of all
+   * (the coin form's currency suggestions).
+   */
+  facets(query: { collectionId?: number; kind?: CoinKind } = {}): Observable<CoinFacets> {
+    return this.http.get<CoinFacets>('/api/coins/facets', { params: toListParams(query) });
   }
 
   get(id: number): Observable<Coin> {
