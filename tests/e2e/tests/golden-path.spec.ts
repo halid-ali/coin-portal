@@ -82,7 +82,7 @@ test('a new user signs up, adds a coin with a photo and browses it', async ({ pa
   await expect(page).not.toHaveURL(/view=/);
   await table.getByRole('button', { name: /^Year/ }).click();
   await expect(page).toHaveURL(/sort=Year/);
-  await page.getByLabel('Denomination').selectOption({ label: '1 €' });
+  await chooseOption(page, 'Denomination', '1 €');
   await expect(page).toHaveURL(/denomination=Euro1/);
   await expect(page.getByText('No coins match the filters.')).toBeVisible();
 });

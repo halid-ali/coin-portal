@@ -372,19 +372,14 @@
           @if (mode() === 'explore') {
             <div>
               <label for="owner" class="form-label">{{ 'coin.field.collector' | transloco }}</label>
-              <select
-                id="owner"
-                #ownerSelect
-                class="form-input"
-                (change)="setFilters({ owner: ownerSelect.value })"
-              >
-                <option value="" [selected]="!query().owner">{{ 'common.all' | transloco }}</option>
-                @for (c of collectors(); track c.userName) {
-                  <option [value]="c.userName" [selected]="c.userName === query().owner">
-                    &#64;{{ c.userName }} ({{ c.coinCount }})
-                  </option>
-                }
-              </select>
+              <app-combobox
+                inputId="owner"
+                [options]="collectorOptions()"
+                [value]="query().owner ?? ''"
+                [label]="'coin.field.collector' | transloco"
+                [allLabel]="'common.all' | transloco"
+                (valueChange)="setFilters({ owner: $event })"
+              />
             </div>
           }
 
@@ -393,68 +388,26 @@
               'coin.field.denomination' | transloco
             }}</label>
             <!-- Euro denominations and the list's currencies, grouped when it has both kinds -->
-            <select
-              id="denomination"
-              #denominationSelect
-              class="form-input"
-              (change)="setNominal(denominationSelect.value)"
-            >
-              <option value="" [selected]="!query().denomination && !query().currency">
-                {{ 'common.all' | transloco }}
-              </option>
-              @if (nominal().grouped) {
-                <optgroup [label]="'coin.kind.Euro.label' | transloco">
-                  @for (d of nominal().denominations; track d) {
-                    <option [value]="d" [selected]="d === query().denomination">
-                      {{ denominationLabel(d) }}
-                    </option>
-                  }
-                </optgroup>
-                <optgroup [label]="'coin.kind.Other.label' | transloco">
-                  @for (c of nominal().currencies; track c) {
-                    <option
-                      [value]="currencyOption + c"
-                      [selected]="c.toLowerCase() === query().currency?.toLowerCase()"
-                    >
-                      {{ c }}
-                    </option>
-                  }
-                </optgroup>
-              } @else {
-                @for (d of nominal().denominations; track d) {
-                  <option [value]="d" [selected]="d === query().denomination">
-                    {{ denominationLabel(d) }}
-                  </option>
-                }
-                @for (c of nominal().currencies; track c) {
-                  <option
-                    [value]="currencyOption + c"
-                    [selected]="c.toLowerCase() === query().currency?.toLowerCase()"
-                  >
-                    {{ c }}
-                  </option>
-                }
-              }
-            </select>
+            <app-combobox
+              inputId="denomination"
+              [options]="nominalChoices()"
+              [value]="nominalValue()"
+              [label]="'coin.field.denomination' | transloco"
+              [allLabel]="'common.all' | transloco"
+              (valueChange)="setNominal($event)"
+            />
           </div>
 
           <div>
             <label for="country" class="form-label">{{ 'coin.field.country' | transloco }}</label>
-            <select
-              id="country"
-              #countrySelect
-              class="form-input"
-              (change)="setFilters({ countryCode: countrySelect.value })"
-            >
-              <option value="" [selected]="!query().countryCode">
-                {{ 'common.all' | transloco }}
-              </option>
-              @for (c of countryOptions(); track c.code) {
-                <option [value]="c.code" [selected]="c.code === query().countryCode">
-                  {{ c.name }}
-                </option>
-              }
-            </select>
+            <app-combobox
+              inputId="country"
+              [options]="countryChoices()"
+              [value]="query().countryCode ?? ''"
+              [label]="'coin.field.country' | transloco"
+              [allLabel]="'common.all' | transloco"
+              (valueChange)="setFilters({ countryCode: $event })"
+            />
           </div>
 
           <div>

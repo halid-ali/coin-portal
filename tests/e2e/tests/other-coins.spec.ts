@@ -45,7 +45,11 @@ test('a user adds an other coin and finds it with the kind buttons', async ({ br
   await kinds.getByRole('button', { name: /^Other/ }).click();
   await expect(page).toHaveURL(/kind=Other/);
   await expect(table.getByRole('row')).toHaveCount(2);
-  await expect(page.getByLabel('Denomination')).toContainText('penny');
+  await page.getByRole('combobox', { name: 'Denomination', exact: true }).click();
+  await expect(
+    page.getByRole('listbox', { name: 'Denomination', exact: true }).getByRole('option'),
+  ).toHaveText(['All', 'penny']);
+  await page.keyboard.press('Escape');
 
   await context.close();
   await owner.dispose();

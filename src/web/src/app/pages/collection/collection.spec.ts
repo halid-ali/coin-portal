@@ -90,6 +90,32 @@ describe('Collection', () => {
   });
 
   const page = () => harness.routeNativeElement!;
+  const filterBox = (id: string) => page().querySelector<HTMLInputElement>(`#${id}`)!;
+  async function filterKey(id: string, key: string): Promise<void> {
+    filterBox(id).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    await harness.fixture.whenStable();
+  }
+  /** A filter's list as it opens, by its box's id; the list is open afterwards. */
+  async function openFilter(id: string): Promise<HTMLElement> {
+    filterBox(id).click();
+    await harness.fixture.whenStable();
+    return filterBox(id).parentElement!;
+  }
+  /** A filter's option names (the list closed again). */
+  async function options(id: string): Promise<string[]> {
+    const list = await openFilter(id);
+    const names = [...list.querySelectorAll('[role=option]')].map((o) => o.textContent!.trim());
+    await filterKey(id, 'Escape');
+    return names;
+  }
+  /** Types into a filter's box and picks the first match. */
+  async function chooseFilter(id: string, typed: string): Promise<void> {
+    filterBox(id).focus();
+    filterBox(id).value = typed;
+    filterBox(id).dispatchEvent(new Event('input'));
+    await harness.fixture.whenStable();
+    await filterKey(id, 'Enter');
+  }
   const url = () => TestBed.inject(Router).url;
 
   /** Opens the page and answers its header and coin list requests. */
@@ -271,46 +297,30 @@ describe('Collection', () => {
 
   // Written down before coins other than euro coins (roadmap 18): the euro list stays like this
   describe('euro coins', () => {
-    const options = (id: string) =>
-      [...page().querySelectorAll(`#${id} option`)].map((o) => [
-        o.getAttribute('value'),
-        o.textContent!.trim(),
-      ]);
-
     it('offers the euro denominations and the countries by name as filters', async () => {
       await open('/collections/5', 1, pageWithCoin(), {}, ['DE', 'AT']);
 
-      expect(options('denomination')).toEqual([
-        ['', 'Tümü'],
-        ['Euro2', '2 €'],
-        ['Euro1', '1 €'],
-        ['Cent50', '50 cent'],
-        ['Cent20', '20 cent'],
-        ['Cent10', '10 cent'],
-        ['Cent5', '5 cent'],
-        ['Cent2', '2 cent'],
-        ['Cent1', '1 cent'],
+      // Lists to type in since 2026-10-09 (were selects with these options and their values)
+      expect(await options('denomination')).toEqual([
+        'Tümü',
+        '2 €',
+        '1 €',
+        '50 cent',
+        '20 cent',
+        '10 cent',
+        '5 cent',
+        '2 cent',
+        '1 cent',
       ]);
-      expect(options('country')).toEqual([
-        ['', 'Tümü'],
-        ['DE', 'Almanya'],
-        ['AT', 'Avusturya'],
-      ]);
+      expect(await options('country')).toEqual(['Tümü', 'Almanya', 'Avusturya']);
     });
 
     it('puts the chosen denomination and country in the URL and the request', async () => {
       await open('/collections/5', 1, pageWithCoin(), {}, ['DE', 'AT']);
-      const choose = async (id: string, value: string) => {
-        const select = page().querySelector<HTMLSelectElement>(`#${id}`)!;
-        select.value = value;
-        select.dispatchEvent(new Event('change'));
-        await harness.fixture.whenStable();
-      };
-
-      await choose('denomination', 'Cent10');
+      await chooseFilter('denomination', '10 c');
       expect(url()).toBe('/collections/5?denomination=Cent10');
       latestCoinRequest().flush(pageWithCoin());
-      await choose('country', 'AT');
+      await chooseFilter('country', 'Avus');
       expect(url()).toBe('/collections/5?denomination=Cent10&countryCode=AT');
 
       const params = latestCoinRequest().request.params;
@@ -350,8 +360,6 @@ describe('Collection', () => {
       currencies: ['kuruş'],
       countryCodes: ['DE', 'TR'],
     };
-    const options = (id: string) =>
-      [...page().querySelectorAll(`#${id} option`)].map((o) => o.textContent!.trim());
     const kindButtons = () =>
       [...page().querySelectorAll('[aria-label="Coin türü"] button')].map((b) => [
         b.textContent!.replace(/\s+/g, ' ').trim(),
@@ -380,13 +388,17 @@ describe('Collection', () => {
         ['Diğer 1', 'false'],
       ]);
       // Only the countries the collection has
-      expect(options('country')).toEqual(['Tümü', 'Almanya', 'Türkiye']);
+      expect(await options('country')).toEqual(['Tümü', 'Almanya', 'Türkiye']);
       // The currencies under their own heading
-      const groups = [...page().querySelectorAll('#denomination optgroup')];
-      expect(groups.map((g) => g.getAttribute('label'))).toEqual(['Euro coin', 'Diğer coin']);
-      expect([...groups[1].querySelectorAll('option')].map((o) => o.textContent!.trim())).toEqual([
-        'kuruş',
+      const groups = [...(await openFilter('denomination')).querySelectorAll('[role=group]')];
+      expect(groups.map((g) => g.firstElementChild!.textContent!.trim())).toEqual([
+        'Euro coin',
+        'Diğer coin',
       ]);
+      expect(
+        [...groups[1].querySelectorAll('[role=option]')].map((o) => o.textContent!.trim()),
+      ).toEqual(['kuruş']);
+      await filterKey('denomination', 'Escape');
       // An other coin's value in the table
       const cells = [...page().querySelectorAll('table tbody tr')][1].querySelectorAll('td');
       expect(cells[2].textContent!.trim()).toBe('25 kuruş');
@@ -398,7 +410,7 @@ describe('Collection', () => {
       await harness.fixture.whenStable();
 
       expect(page().querySelector('[role=group][aria-label="Coin türü"]')).toBeNull();
-      expect(page().querySelector('#denomination optgroup')).toBeNull();
+      expect((await openFilter('denomination')).querySelector('[role=group]')).toBeNull();
     });
 
     it('filters by kind, dropping the filters of the other kind', async () => {
@@ -415,16 +427,13 @@ describe('Collection', () => {
       expect([params.get('kind'), params.get('denomination')]).toEqual(['Other', null]);
       flushFacets({ ...mixed, countryCodes: ['TR'] }, 'Other');
       await harness.fixture.whenStable();
-      expect(options('denomination')).toEqual(['Tümü', 'kuruş']);
-      expect(options('country')).toEqual(['Tümü', 'Türkiye']);
+      expect(await options('denomination')).toEqual(['Tümü', 'kuruş']);
+      expect(await options('country')).toEqual(['Tümü', 'Türkiye']);
     });
 
     it('puts a chosen currency in the URL and the request', async () => {
       await openMixed();
-      const select = page().querySelector<HTMLSelectElement>('#denomination')!;
-      select.value = 'currency:kuruş';
-      select.dispatchEvent(new Event('change'));
-      await harness.fixture.whenStable();
+      await chooseFilter('denomination', 'kur');
 
       expect(decodeURIComponent(url())).toBe('/collections/5?currency=kuruş');
       expect(latestCoinRequest().request.params.get('currency')).toBe('kuruş');

@@ -46,11 +46,11 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   }
 
   // The filters find it by its new values only
-  await page.getByLabel('Denomination').selectOption({ label: '10 cent' });
-  await page.getByLabel('Country').selectOption('AT');
+  await chooseOption(page, 'Denomination', '10 cent');
+  await chooseOption(page, 'Country', 'Austria');
   await expect(page).toHaveURL(/denomination=Cent10&countryCode=AT/);
   await expect(table.getByRole('row')).toHaveCount(2);
-  await page.getByLabel('Denomination').selectOption({ label: '2 €' });
+  await chooseOption(page, 'Denomination', '2 €');
   await expect(page.getByText('No coins match the filters.')).toBeVisible();
 
   // Deleting asks first, then the collection is empty

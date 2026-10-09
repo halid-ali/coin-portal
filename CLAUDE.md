@@ -604,6 +604,18 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   gelene kadar bütün ülkeler. Coin formunda tür seçimi masaüstünde kartlar, telefonda düğmeler (tek radyo
   grubu); tür ve diğer coin alanları ana form grubunun dışında (`kindControl`, `otherForm`), değer "0,5" ya da
   "0.5" (`face-value.ts`). Bir coin'in değeri her yerde `coinValueLabel(coin, dil)` ile ("2 €", "25 kuruş").
+- **Uzun seçim listeleri yazılabilen kısa liste** (`shared/combobox`, kullanıcı kararları 2026-10-09): coin
+  formundaki Ülke, koleksiyon sayfası ve Keşfet'teki Koleksiyoncu, Nominal, Ülke filtreleri. Native `<select>`'in
+  listesinin boyu sayfadan kısaltılamıyor (telefonda ekranı kaplar). ARIA combobox: odak kutuda kalır, liste
+  ~8 satır kayar, yazınca süzülür: önce yazılanla başlayan, sonra bir kelimesi yazılanla başlayan, sonra içinde
+  geçen (her grupta verilen sıra), büyük/küçük harf ve aksan duyarsız, eşleşen kısım koyu (`combobox-filter.ts`).
+  Grup başlıkları (`group`, altındakiler girintili), filtrelerde en üstte `allLabel` ("Tümü", değer `''`; kutu
+  boşaltılınca o seçilir). Sadece listedeki bir seçenek seçilir; seçmeden çıkmak eskisini geri getirir (adı
+  birebir yazılmışsa onu alır). Formda kontrolün kendisi (`formControlName`, `appField` gibi `aria-invalid` /
+  `-required` / `-describedby`; id `inputId`), filtrede `[value]` + `(valueChange)`. Seçenek adları dile bağlıysa
+  computed `LanguageService.current()`'ı okur. Kısa listeler (Euro nominali, Hatıra, sıralama) `<select>` kalır.
+  e2e'de `support/combobox.ts` `chooseOption`; seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
+  `option`'ları da `getByRole('option')`'a uyar).
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
   listesi (admin panelinde `xl`: sayfa geniş, solda bölüm menüsü var).
