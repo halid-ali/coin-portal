@@ -1,8 +1,10 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-09 (**Euro dışı coin'ler geliştirildi** (yol haritası 18, Tamamlananlar 98;
-`feat/non-euro-coins` main'e alındı, push edilmedi): önce Euro coin regresyon testleri (96), istemcinin kapattığı
-istek loga hata yazmıyor (97). Sıradaki: kullanıcının manuel testleri, sonra `v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+Son güncelleme: 2026-10-10 (**Manuel test bulguları düzeltildi** (Tamamlananlar 99, `fix/non-euro-coins-findings`
+main'e alındı, push edilmedi): seçim listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa
+boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
+istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
+`v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -17,11 +19,13 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 
 ## Yeni sohbete başlarken
 
-- Durum (2026-10-09 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
-  **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97) ve Euro dışı
-  coin'ler (98, `feat/non-euro-coins` main'e alındı). **Sıradaki:** kullanıcı manuel testleri yapıyor; yeni sohbette
-  önce bulguları sorulur ve düzeltilir, sonra (kullanıcı onayıyla) push ve `v1.10.0` (minor; `AddOtherCoins`
-  migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy) adımları"). Lokal dev
+- Durum (2026-10-10 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
+  **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97), Euro dışı
+  coin'ler (98) ve manuel test bulgularının düzeltmeleri (99, `fix/non-euro-coins-findings` main'e alındı).
+  **Sıradaki:** kullanıcı 2026-10-10'da "şimdilik başka bulgum yok" dedi ve `v1.10.0` için henüz bir şey
+  yapılmamasını istedi; yeni sohbette önce yeni bulgu var mı sorulur, sonra (kullanıcı onayıyla) push ve `v1.10.0`
+  (minor; `AddOtherCoins` migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy)
+  adımları"). Lokal dev
   veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -1855,6 +1859,28 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           uyarlamaları (yol haritası 18'de tek tek). Görsel kontrol e2e sitesinde iki temada, masaüstü ve telefon.
     - Bilinen: lokal dev veritabanında `jonas.weber` admin kilitli (2026-10-01 denemesinden), paylaşılan
           koleksiyonları bu yüzden görünmüyor; seed kilide dokunmuyor.
+99. **Manuel test bulguları** (`fix/non-euro-coins-findings`, 2026-10-09/10; 98'in testlerinden, kullanıcıyla tek
+    tek, her biri görüntüyle karar verilip ayrı commit'te). Kural ve ayrıntı CLAUDE.md "Seçim listeleri yazılabilen
+    kısa liste"de; taslaklar ve gerçek sayfa görüntüleri `.notes/designs/combobox/`.
+    - **Yazılabilen kısa liste** (`shared/combobox`, ARIA combobox): native `<select>`'in listesi sayfadan
+          kısaltılamıyordu (253 ülke telefonda ekranı kaplıyordu). Liste ~8 satır, yazınca süzülür (başlayan → bir
+          kelimesi başlayan → içinde geçen; harf ve aksan duyarsız), eşleşen harfler kalın ve tema renginde (yedi
+          renkte, iki temada en az 4,5:1 ölçüldü), grup başlıkları girintili, filtrelerde "Tümü", liste en uzun seçenek
+          kadar geniş (en çok 24rem; ekrandan taşacaksa sağa hizalı; uzun ad liste içinde bölünür). Kullanıldığı yerler:
+          coin formunda Koleksiyon, Nominal, Ülke ve serbest metinle Para birimi (`<datalist>` yerine; tarayıcının
+          listesi koyu temaya uymuyordu), koleksiyon sayfası ve Keşfet'te bütün filtreler (Koleksiyoncu, Nominal, Ülke,
+          Hatıra, Fotoğraf). `<select>` sadece liste araç çubuğunda (sıralama, sayfa başına) kaldı.
+    - **"Diğer coin" → "Dünya coin'i"** (düğmede "Dünya"; EN World coin, DE Weltmünze, BG Световна монета; iç ad
+          `Other` kaldı). Şartlar, gizlilik ve panel metinlerindeki cümle içi "diğer coin'ler" bilerek değişmedi.
+    - Ana sayfa başlığı diğer sayfalarla aynı yükseklikte (fazladan üst boşluk vardı, `v1.4.0`'dan beri).
+    - Karara bağlanıp değişmeyen: seed'in yer tutucu fotoğraflarındaki açık gri halka (JPEG'in zemini; sadece lokal
+          seed, kullanıcı kararı: kalsın).
+    - Regresyon testlerindeki değişiklikler (kullanıcıya bildirildi): coin formu ve koleksiyon sayfası testleri
+          Ülke / Nominal seçeneklerini değerleriyle değil görünen adlarıyla kontrol ediyor, "Seç…" artık kutunun
+          yazısı; seçilen değerin (`DE`, `Euro2`, `Cent10`) forma, adrese ve isteğe gidişi aynı. e2e'de seçimler
+          `support/combobox.ts` `chooseOption` ile, beklenen değerler görünen adlarla.
+    - Testler: client 448 (+37), e2e 21 (adet aynı; açık listeye axe taraması eklendi), API 481 (değişmedi).
+          Prettier, `ng build`, tam e2e koşusu temiz.
 
 ## Yol haritası
 
@@ -1918,7 +1944,8 @@ mağaza için TWA.
       E-posta doğrulama 2026-10-06'da yapıldı (Tamamlananlar 88), parola sıfırlama 2026-10-07'de (Tamamlananlar 93).
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
-- [x] 18. **Euro dışı coin'ler** (yapıldı 2026-10-09, Tamamlananlar 98; `v1.10.0` ile yayınlanacak; aşağısı plan ve
+- [x] 18. **Euro dışı coin'ler** (yapıldı 2026-10-09, Tamamlananlar 98; görünen adı 2026-10-10'dan beri "Dünya
+      coin'i", Tamamlananlar 99; `v1.10.0` ile yayınlanacak; aşağısı plan ve
       kararlar; kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
       ekleme sayfasının başında "Euro coin / Diğer coin" seçimi; Euro bugünkü form, Diğer serbest değer ve
       para birimi, tüm ülkeler (`Intl.DisplayNames`), yüz adları "Ön yüz / Arka yüz" (veritabanındaki iki yüz
@@ -2098,9 +2125,10 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş: Euro dışı coin'lerin manuel testi, sonra `v1.10.0`** (yol haritası 18, Tamamlananlar 98). Geliştirme
-bitti ve `main`'e alındı (2026-10-09, push edilmedi); kullanıcı manuel testleri bitirmeden sürüm adımına geçilmez
-(kullanıcı kararı 2026-10-09). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
+**Sıradaki iş: `v1.10.0`** (yol haritası 18, Tamamlananlar 98–99). Geliştirme ve ilk manuel test turunun
+düzeltmeleri bitti ve `main`'e alındı (2026-10-10, push edilmedi). Kullanıcı 2026-10-10'da başka bulgusu olmadığını
+söyledi ama sürüm için henüz bir şey yapılmamasını istedi: yeni sohbette önce yeni bulgu sorulur; sürüm adımı
+kullanıcı onayıyla (kullanıcı kararı 2026-10-09: manuel testler bitmeden sürüme geçilmez). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
 para birimi önerileri, tarihî ülkeler, tür değiştirerek düzenleme), ayse'nin "Karışık kutu"su (düğmeler, gruplu
 Nominal), "Dünya paraları" (iki yüz, görüntüleyicide Ön/Arka yüz), "Yeni başladım" (yayın bandı), herkese açık
 koleksiyonda diğer coin'in arka yüzünü silmek (yayından iner sorusu), Keşfet, dört dil ve iki tema. Yayında migration var: kurulumu onaylamadan önce panelden veritabanı yedeği. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
