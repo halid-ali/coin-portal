@@ -10,8 +10,15 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { COIN_SIDES, CoinPhoto, CoinSide, Denomination } from '../../core/coins/coin.models';
+import {
+  COIN_SIDES,
+  CoinKind,
+  CoinPhoto,
+  CoinSide,
+  Denomination,
+} from '../../core/coins/coin.models';
 import { photoUrl } from '../../core/coins/coin.service';
+import { sideLabelKey } from '../coin-format';
 import { DenominationIcon } from '../denomination-icon/denomination-icon';
 import { WheelGesture } from './wheel-gesture';
 
@@ -28,7 +35,7 @@ let nextId = 0;
  * between the national and common side (buttons, arrow keys or the mouse wheel). Render it with
  * @if and remove it on (closed), like the other dialogs. Given the denomination, a missing common
  * side photo is shown as the denomination icon: the common side is the same in every country and
- * shows the value.
+ * shows the value. An other coin (`kind`) names its sides front and back and has no such side.
  */
 @Component({
   selector: 'app-photo-viewer',
@@ -126,8 +133,10 @@ export class PhotoViewer {
   readonly photos = input.required<CoinPhoto[]>();
   readonly title = input('');
   readonly initialSide = input<CoinSide>();
-  /** Shows a missing common side as the denomination icon. */
-  readonly denomination = input<Denomination>();
+  /** Names the sides: national / common (euro) or front / back (other). */
+  readonly kind = input<CoinKind>('Euro');
+  /** Shows a missing common side as the denomination icon (euro coins only). */
+  readonly denomination = input<Denomination | null>();
   /** Share link secret, for photos of unlisted collections. */
   readonly shareToken = input<string | null>(null);
   readonly closed = output<void>();
@@ -166,7 +175,7 @@ export class PhotoViewer {
   }
 
   protected sideKey(side: CoinSide): string {
-    return `coin.side.${side}.label`;
+    return sideLabelKey(this.kind(), side);
   }
 
   protected step(delta: number): void {

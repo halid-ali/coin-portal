@@ -1,4 +1,12 @@
-/** Mirrors the API's Denomination enum (serialized as names). */
+/**
+ * Mirrors the API's CoinKind enum. A euro coin has a denomination, an other coin a face value in a
+ * currency the user writes. Texts: coin.kind.<value>.label / .description.
+ */
+export type CoinKind = 'Euro' | 'Other';
+
+export const COIN_KINDS: readonly CoinKind[] = ['Euro', 'Other'];
+
+/** Mirrors the API's Denomination enum (serialized as names); euro coins only. */
 export type Denomination =
   'Cent1' | 'Cent2' | 'Cent5' | 'Cent10' | 'Cent20' | 'Cent50' | 'Euro1' | 'Euro2';
 
@@ -48,7 +56,14 @@ export const COIN_LIMITS = {
   titleMaxLength: 100,
   descriptionMaxLength: 2000,
   mintMarkMaxLength: 10,
+  currencyMaxLength: 30,
+  /** Euro coins are dated 1999 or later. */
   minYear: 1999,
+  /** Other coins: no dates before the common era. */
+  otherMinYear: 1,
+  /** An other coin's face value: above 0, at most this, up to faceValueDecimals decimals. */
+  maxFaceValue: 1_000_000_000_000,
+  faceValueDecimals: 4,
   maxQuantity: 999,
 } as const;
 
@@ -65,7 +80,12 @@ export interface Coin {
   collectionId: number;
   title: string;
   description: string | null;
-  denomination: Denomination;
+  kind: CoinKind;
+  /** Euro coins only. */
+  denomination: Denomination | null;
+  /** Other coins only, e.g. 25 (kuruş) or 0.5 (penny). */
+  faceValue: number | null;
+  currency: string | null;
   countryCode: string;
   year: number;
   mintMark: string | null;
@@ -78,7 +98,8 @@ export interface Coin {
 /**
  * Mirrors the API's CoinSide enum, in euro coin terms (ECB: national side / common side).
  * "Obverse/reverse" is avoided on purpose: people use it for either side. The national side
- * identifies the coin, so it comes first. Texts: coin.side.<value>.label / .hint.
+ * identifies the coin, so it comes first. An other coin calls them front and back (same values).
+ * Texts: sideLabelKey / sideHintKey (shared/coin-format).
  */
 export type CoinSide = 'National' | 'Common';
 
@@ -104,12 +125,12 @@ export const PHOTO_LIMITS = {
   maxPixels: 1600,
 } as const;
 
-export interface CoinUpsertRequest {
+/** The fields both kinds share. */
+interface CoinUpsertFields {
   /** A different collection on update moves the coin. */
   collectionId: number;
   title: string;
   description: string | null;
-  denomination: Denomination;
   countryCode: string;
   year: number;
   mintMark: string | null;
@@ -117,9 +138,20 @@ export interface CoinUpsertRequest {
   quantity: number;
 }
 
+/**
+ * A euro coin is sent without a kind, as before other coins existed (the API reads a missing kind
+ * as euro); an other coin names its kind.
+ */
+export type CoinUpsertRequest =
+  | (CoinUpsertFields & { denomination: Denomination })
+  | (CoinUpsertFields & { kind: 'Other'; faceValue: number; currency: string });
+
 export interface CoinListQuery {
   collectionId?: number;
+  kind?: CoinKind;
   denomination?: Denomination;
+  /** Other coins in this currency (the API ignores case). */
+  currency?: string;
   countryCode?: string;
   year?: number;
   isCommemorative?: boolean;
@@ -151,5 +183,19 @@ export interface PagedResponse<T> {
 
 export interface Country {
   code: string;
+  /** English reference name; the client names countries itself (CountryService). */
   name: string;
+  /** Issues euro coins: a euro coin can only come from these. */
+  euroIssuer: boolean;
+}
+
+/**
+ * What a coin list holds, for its filters (GET .../facets): coins per kind (the All / Euro / Other
+ * buttons), the currencies of its other coins and the countries of the chosen kind.
+ */
+export interface CoinFacets {
+  euroCount: number;
+  otherCount: number;
+  currencies: string[];
+  countryCodes: string[];
 }

@@ -1935,7 +1935,9 @@ mağaza için TWA.
         denendi: 574 coin, 151 fotoğraf, 20 koleksiyon sağlama toplamıyla aynı, hepsi `Euro`; ülkeler 25 → 253) →
         ~~2. API: liste, özet, öneriler~~ (filtreler `kind`, `currency`; özet `GET api/coins/facets` [koleksiyonsuz:
         para birimi önerileri], `api/public/collections/{id}/facets`, `shared/{token}/facets`, `coins/facets?owner=`) →
-        3. client: modeller, değer biçimi, yer tutucu → 4. form → 5. koleksiyon sayfası
+        ~~3. client: modeller, değer biçimi, yer tutucu~~ (`OtherCoinIcon`, `coinValueLabel`, tarihî ülke adları
+        `country.former.*`, görüntüleyicide `kind`; eski `CoinPlaceholder` kalktı; regresyon testlerinde sadece üç
+        coin sabitine `kind: 'Euro', faceValue: null, currency: null` eklendi) → 4. form → 5. koleksiyon sayfası
         ve Keşfet → seed → e2e → belgeler. Regresyon testlerinde tek değişiklik: `EuroCoinTests` güncelleme testinde
         `c.Denomination` → `c.Denomination!.Value` (yanıt alanı artık boş olabiliyor; kontrol edilen değerler aynı).
   - **Sıra:** ~~regresyon planı~~ → ~~`chore/euro-regression-tests`~~ (Tamamlananlar 96) → ekran görüntüleri (önce) +

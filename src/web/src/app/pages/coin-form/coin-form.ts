@@ -450,7 +450,7 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   private patchForm(coin: Coin): void {
     this.form.setValue({
       collectionId: coin.collectionId,
-      denomination: coin.denomination,
+      denomination: coin.denomination ?? '',
       countryCode: coin.countryCode,
       year: coin.year,
       title: coin.title,

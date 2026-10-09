@@ -35,6 +35,18 @@ describe('CoinThumb', () => {
     expect(thumb.classList).toContain('size-10');
   });
 
+  it('shows an other coin without photos as its icon in its hue', async () => {
+    fixture.componentInstance.coin.set({ id: 12, photos: [], denomination: null });
+    await fixture.whenStable();
+
+    const icon = thumb.querySelector('app-other-coin-icon')!;
+    expect(icon.querySelector('text')!.textContent).toBe('¤');
+    expect(icon.querySelector('svg')!.getAttribute('viewBox')).toBe('1.6 1.6 20.8 20.8');
+    // Id 12: the fifth hue
+    expect(icon.querySelector('circle')!.getAttribute('class')).toContain('fill-rose-300');
+    expect(thumb.querySelector('app-denomination-icon')).toBeNull();
+  });
+
   it('shows the national side photo when there is one', async () => {
     fixture.componentInstance.coin.set({
       id: 7,

@@ -317,6 +317,16 @@
         "hint": "The side showing the value, the same in every country"
       }
     },
+    "otherSide": {
+      "National": {
+        "label": "Front",
+        "hint": "The side with the portrait or coat of arms"
+      },
+      "Common": {
+        "label": "Back",
+        "hint": "The side showing the value"
+      }
+    },
     "commemorativeBadge": "Commemorative",
     "quantityBadge": {
       "one": "{{count}} piece",
@@ -324,6 +334,14 @@
     },
     "viewPhotos": "Show photos of {{title}}",
     "editNamed": "Edit {{title}}"
+  },
+  "country": {
+    "former": {
+      "SU": "Soviet Union",
+      "DD": "East Germany",
+      "YU": "Yugoslavia",
+      "CS": "Czechoslovakia"
+    }
   },
   "sort": {
     "ascending": "Sort ascending",

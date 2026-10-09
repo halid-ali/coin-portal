@@ -317,6 +317,16 @@
         "hint": "Die Seite mit dem Wert, in allen Ländern gleich"
       }
     },
+    "otherSide": {
+      "National": {
+        "label": "Vorderseite",
+        "hint": "Die Seite mit Bild oder Wappen"
+      },
+      "Common": {
+        "label": "Rückseite",
+        "hint": "Die Seite mit dem Wert"
+      }
+    },
     "commemorativeBadge": "Gedenkmünze",
     "quantityBadge": {
       "one": "{{count}} Stück",
@@ -324,6 +334,14 @@
     },
     "viewPhotos": "Fotos von {{title}} vergrößern",
     "editNamed": "{{title}} bearbeiten"
+  },
+  "country": {
+    "former": {
+      "SU": "Sowjetunion",
+      "DD": "DDR",
+      "YU": "Jugoslawien",
+      "CS": "Tschechoslowakei"
+    }
   },
   "sort": {
     "ascending": "Aufsteigend sortieren",

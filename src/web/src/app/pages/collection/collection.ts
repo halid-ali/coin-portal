@@ -39,10 +39,12 @@ import { ExploreReturn } from '../../core/public/explore-return';
 import { Collector, ExploreCoin } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { EMAIL_LIMIT_IDS } from '../../layout/email-banner/email-banner';
-import { denominationLabel, isDenomination } from '../../shared/coin-format';
+import { coinValueLabel, denominationLabel, isDenomination } from '../../shared/coin-format';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
 import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
+import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
+import { LanguageService } from '../../core/i18n/language.service';
 import { scrollToTop } from '../../shared/motion';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -85,6 +87,7 @@ type QueryParamValue = string | number | boolean | null;
     SortHeader,
     CoinThumb,
     DenominationIcon,
+    OtherCoinIcon,
     PhotoViewer,
     ViewToggle,
     VisibilityBadge,
@@ -97,6 +100,7 @@ type QueryParamValue = string | number | boolean | null;
 export class Collection {
   private readonly coinService = inject(CoinService);
   private readonly countryService = inject(CountryService);
+  private readonly language = inject(LanguageService);
   private readonly collectionService = inject(CollectionService);
   private readonly publicService = inject(PublicService);
   private readonly auth = inject(AuthService);
@@ -598,6 +602,11 @@ export class Collection {
 
   protected countryName(code: string): string {
     return this.countryService.name(code);
+  }
+
+  /** "2 €" or "25 kuruş", in the active language's number format. */
+  protected valueLabel(coin: ListedCoin): string {
+    return coinValueLabel(coin, this.language.current());
   }
 
   /** Grid tiles are larger than list thumbnails, so they use the 600 px size. */

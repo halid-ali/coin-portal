@@ -634,12 +634,14 @@
                         decoding="async"
                         class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
                       />
-                    } @else {
+                    } @else if (coin.denomination; as denomination) {
                       <app-denomination-icon
                         tile
                         class="size-full p-[24%]"
-                        [denomination]="coin.denomination"
+                        [denomination]="denomination"
                       />
+                    } @else {
+                      <app-other-coin-icon tile class="size-full p-[24%]" [coinId]="coin.id" />
                     }
                     @if (coin.isCommemorative) {
                       <span
@@ -657,7 +659,7 @@
                       <span
                         class="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-semibold text-brand-900"
                       >
-                        {{ denominationLabel(coin.denomination) }}
+                        {{ valueLabel(coin) }}
                       </span>
                       <span class="truncate"
                         >{{ countryName(coin.countryCode) }} · {{ coin.year }}</span
@@ -751,7 +753,7 @@
                       <span
                         class="shrink-0 rounded-md bg-brand-100 px-2 py-0.5 text-sm font-semibold text-brand-900"
                       >
-                        {{ denominationLabel(coin.denomination) }}
+                        {{ valueLabel(coin) }}
                       </span>
                     </div>
                     <p class="mt-1 text-sm text-shade-600">
@@ -875,7 +877,7 @@
                       <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
                         {{ coin.title }}
                       </td>
-                      <td class="truncate px-3 py-3">{{ denominationLabel(coin.denomination) }}</td>
+                      <td class="truncate px-3 py-3">{{ valueLabel(coin) }}</td>
                       <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
                         {{ countryName(coin.countryCode) }}
                       </td>
@@ -961,6 +963,7 @@
       [coinId]="coin.id"
       [photos]="coin.photos"
       [title]="coin.title"
+      [kind]="coin.kind"
       [denomination]="coin.denomination"
       [shareToken]="shareToken()"
       (closed)="viewerCoin.set(null)"

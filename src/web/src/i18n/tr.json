@@ -317,6 +317,16 @@
         "hint": "Değerin yazdığı, tüm ülkelerde aynı taraf"
       }
     },
+    "otherSide": {
+      "National": {
+        "label": "Ön yüz",
+        "hint": "Resmin ya da armanın olduğu taraf"
+      },
+      "Common": {
+        "label": "Arka yüz",
+        "hint": "Değerin yazdığı taraf"
+      }
+    },
     "commemorativeBadge": "Hatıra",
     "quantityBadge": {
       "one": "{{count}} adet",
@@ -324,6 +334,14 @@
     },
     "viewPhotos": "{{title}} fotoğraflarını büyük göster",
     "editNamed": "{{title}} düzenle"
+  },
+  "country": {
+    "former": {
+      "SU": "Sovyetler Birliği",
+      "DD": "Doğu Almanya",
+      "YU": "Yugoslavya",
+      "CS": "Çekoslovakya"
+    }
   },
   "sort": {
     "ascending": "Artan sırala",

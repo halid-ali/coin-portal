@@ -720,8 +720,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `denomination-tile-outlined`; ızgarada). Yuvarlak küçük resimde (`CoinThumb`) zemin yok, `tight` ile coin
   daireyi fotoğraf gibi doldurur (iç içe iki daire olmasın, kullanıcı kararı). Görüntüleyiciye `[denomination]` verilirse eksik ortak yüz bu ikonla
   gösterilir (ortak yüz her ülkede aynı, değeri gösterir). Noktalı halkanın deseni çevreye oturtulur (tam
-  sayıda nokta), yoksa başlangıçta iki nokta yan yana düşer. Genel çizim `CoinPlaceholder`
-  (`shared/coin-placeholder`) şu an kullanılmıyor; Euro dışı coin'lerin yer tutucusu olacak (yol haritası 18).
+  sayıda nokta), yoksa başlangıçta iki nokta yan yana düşer. **Diğer (Euro dışı) coin'in yer tutucusu**
+  `OtherCoinIcon` (`shared/other-coin-icon`): aynı biçim, yüzü her coin'de ¤, renk coin'e sabit (`otherCoinHue`,
+  Id mod 8: sky, indigo, violet, fuchsia, rose, teal, emerald, lime; kullanıcı kararı 2026-10-09). Amber, sarı,
+  turuncu ve gri eklenmez (Euro'nun altın, bakır, gümüşüyle karışır). Zemini `denomination-tile other-coin
+  other-coin-<renk>`. Bir coin'in ikonu nominalinden seçilir: nominali varsa (Euro) değer ikonu, yoksa bu ikon;
+  görüntüleyici diğer coin'de eksik arka yüzü göstermez, yüz adları `sideLabelKey(kind, side)` (`shared/coin-format`).
 - Custom element'ler varsayılan inline; boşluklar için `host: { class: 'block' }`.
 - Sayfa iskeleti `app.html`: header, `main`, footer; üçü de `page-container` (genişlik
   `--page-max-width`, kenarlar hizalı). Okuma genişliği 64rem; bir rota `data: { pageWidth: 'wide' }`
