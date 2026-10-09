@@ -455,7 +455,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **Loglar** (Serilog, `Hosting/AppLogging`): seviyeler `Serilog` ayar bölümünde (`Logging` bölümü
   yok), dosyalar `Logs:Path`'e. İstek logu adresi sorgusuyla yazar; paylaşım anahtarı, arama terimleri
   (`search=`) ve Keşfet filtresi (`owner=`) maskelenir (`MaskLoggedAddress`). URL'e yeni bir gizli değer
-  (token, anahtar) ya da kişisel veri girerse maskeye eklenir. Dosyalar `Logs:RetainedDays` gün tutulur. Loga parola,
+  (token, anahtar) ya da kişisel veri girerse maskeye eklenir. **İstemcinin kapattığı istek** (yerine yenisi
+  gelen liste, kapanan sekme) 499 ile biter ve Information satırı olur, hata değil (`EndAbortedRequestAsync`):
+  iptal edilen iş `OperationCanceledException` ya da sorgu sürerken `SqlException` ("Operation cancelled by
+  user") fırlatır, istisna sadece Debug'da. İstemci beklerken oluşan her hata Error kalır.
+  Dosyalar `Logs:RetainedDays` gün tutulur. Loga parola,
   cookie, token ya da istek gövdesi yazılmaz.
 - **Hesap silme ve dışa aktarma tek yerde:** `Accounts/AccountDeletion` (kullanıcının kendi silmesi,
   admin'in tekli ve toplu silmesi, doğrulanmamış hesabın otomatik silinmesi) ve `Accounts/AccountExport` (ZIP). **Kullanıcıya ait yeni bir veri (tablo, dosya)

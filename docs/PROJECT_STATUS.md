@@ -1,7 +1,7 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-09 (**Euro dışı coin'ler başladı** (yol haritası 18): kararlar alındı, önce Euro coin
-regresyon testleri yazıldı (Tamamlananlar 96); sıradaki adım ekran görüntüleri + mockup'lar. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+regresyon testleri yazıldı (Tamamlananlar 96), istemcinin kapattığı istek artık loga hata yazmıyor (97); sıradaki adım ekran görüntüleri + mockup'lar. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -1821,10 +1821,21 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Client (+10): coin formu (seçenekler ve sırası, yıl sınırları, önerilen başlık, yeni ve düzenlenen coin'in
           istek gövdesi, yüz adları), koleksiyon sayfası (filtre seçenekleri, seçim URL'e ve isteğe, tablo hücreleri).
     - E2E `coin-editing.spec.ts` (+1): bütün alanları düzenle, liste ve filtreler, sil.
-    - Yan bulgu (davranış değişmedi): filtre değişince tarayıcının iptal ettiği coin listesi isteği API logunda
-          `OperationCanceledException` ile "500" Error olarak yazılıyor (e2e logunda görüldü); kullanıcıya etkisi
-          yok, canlıda log gürültüsü. Ayrı küçük bir `fix/` işi olabilir, kullanıcıya soruldu.
+    - Yan bulgu: filtre değişince tarayıcının iptal ettiği coin listesi isteği API logunda "500" Error olarak
+          yazılıyordu (e2e logunda görüldü); Tamamlananlar 97'de düzeltildi.
     - Testler: API 438, client 379, e2e 19 (hepsi geçti, axe dahil).
+97. **İstemcinin kapattığı istek hata sayılmaz** (`fix/aborted-request-logging`, 2026-10-09; 96'nın yan bulgusu,
+    kullanıcı düzeltilmesini istedi). Önceden iptal edilen istek (yerine yenisi gelen liste, kapanan sekme) istek
+    logunda "responded 500" + Error + yığın izi ve ayrıca `DeveloperExceptionPage`'in "unhandled exception"
+    satırını yazıyordu; canlıda gerçek hataları gölgeleyen gürültü. `AppLogging.EndAbortedRequestAsync` (istek
+    logunun hemen içinde): istemci bağlantıyı kapattıysa (`RequestAborted`) istisna yutulur, durum 499, istek
+    logu Information; istisna Debug'da. İstemci beklerken oluşan hata Error kalır. İptal iki biçimde geliyor:
+    `OperationCanceledException` (EF) ve sorgu sürerken `SqlException` "Operation cancelled by user" (ilk
+    düzeltme sadece birincisini yakalıyordu; gerçek sunucuda denenirken bulundu), bu yüzden filtre istisna
+    türüne değil iptal durumuna bakar.
+    - Doğrulama: birim testleri `AbortedRequestTests` (+5; test sunucusunda iptali doğru anda yakalamak yarış);
+          Kestrel'de e2e derlemesi + kısa sürede iptal edilen 300 istek: işin ortasında kesilen 10 istek
+          "responded 499" (INF), hiç ERR yok (düzeltmeden önce aynı betikte 500 + ERR). Testler: API 443.
 
 ## Yol haritası
 
