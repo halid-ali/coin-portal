@@ -14,7 +14,71 @@
       }}</a>
     </div>
   } @else if (loading()) {
-    <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+    <!-- The form's shapes after a moment (user choice 2026-10-10), laid out as for a euro coin
+     (the kind is not known yet); the labels are known -->
+    <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+    @if (showSkeleton()) {
+      <div class="card space-y-5" aria-hidden="true">
+        <div>
+          <p class="form-label">{{ 'coin.field.kind' | transloco }}</p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="skeleton h-10.5 rounded-lg sm:h-22 sm:rounded-xl"></div>
+            <div class="skeleton h-22 rounded-xl max-sm:hidden"></div>
+          </div>
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.collection' | transloco }}</p>
+          <div class="skeleton h-10.5 rounded-lg sm:max-w-sm"></div>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-3">
+          @for (
+            key of ['coin.field.denomination', 'coin.field.country', 'coin.field.year'];
+            track key
+          ) {
+            <div>
+              <p class="form-label">{{ key | transloco }}</p>
+              <div class="skeleton h-10.5 rounded-lg"></div>
+            </div>
+          }
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.title' | transloco }}</p>
+          <div class="skeleton h-10.5 rounded-lg"></div>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-3">
+          @for (key of ['coin.field.mintMarkLong', 'coin.field.quantity']; track key) {
+            <div>
+              <p class="form-label">{{ key | transloco }}</p>
+              <div class="skeleton h-10.5 rounded-lg"></div>
+            </div>
+          }
+          <div class="flex items-center gap-2 sm:mt-6 sm:h-10.5 sm:self-start">
+            <div class="skeleton size-4 rounded"></div>
+            <p class="text-sm font-medium text-shade-700">
+              {{ 'coin.field.commemorativeCoin' | transloco }}
+            </p>
+          </div>
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.description' | transloco }}</p>
+          <div class="skeleton h-28 rounded-lg"></div>
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.photos' | transloco }}</p>
+          <div class="grid grid-cols-2 gap-x-4 sm:gap-x-6">
+            @for (i of [0, 1]; track i) {
+              <div>
+                <div class="mb-2 space-y-2 py-1">
+                  <div class="skeleton h-3.5 w-24 rounded-full"></div>
+                  <div class="skeleton h-3 w-32 max-w-full rounded-full"></div>
+                </div>
+                <div class="skeleton aspect-square rounded-xl"></div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
   } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
       @if (formErrors().length) {

@@ -12,6 +12,7 @@ import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { ImageChange } from '../../shared/image-change';
 import { CoinForm } from './coin-form';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 @Component({ template: '' })
 class CollectionPage {}
@@ -443,6 +444,34 @@ describe('CoinForm', () => {
 
       expect(form()['form'].controls.countryCode.value).toBe('');
       expect(await countryNames()).toEqual(['Almanya']);
+    });
+
+    it('shows the form as placeholders while an edited coin takes a while', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/coins/1/edit');
+        http.expectOne('/api/countries').flush([{ code: 'DE', name: 'Almanya', euroIssuer: true }]);
+        http.expectOne('/api/collections').flush([vitrin]);
+        vi.advanceTimersByTime(SKELETON_DELAY_MS);
+        await harness.fixture.whenStable();
+
+        expect(page().querySelector('form')).toBeNull();
+        const shapes = page().querySelector('.card[aria-hidden=true]')!;
+        // The labels are known, the fields are shapes
+        expect(shapes.textContent).toContain('Başlık');
+        expect(shapes.querySelectorAll('.skeleton').length).toBeGreaterThan(5);
+        // The coin's collection in the way here, still a placeholder
+        expect(page().querySelectorAll('app-breadcrumbs .skeleton')).toHaveLength(1);
+
+        http.expectOne('/api/coins/1').flush(coin);
+        await harness.fixture.whenStable();
+        expect(page().querySelector('form')).not.toBeNull();
+        // (The photo keeps its own shape until it arrives, which jsdom never does)
+        expect(page().querySelector('.card[aria-hidden=true]')).toBeNull();
+        expect(page().querySelectorAll('app-breadcrumbs .skeleton')).toHaveLength(0);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('loads an edited coin with its value in the language and sends it back', async () => {

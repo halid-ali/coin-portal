@@ -32,6 +32,7 @@ import {
 } from '../../core/coins/photo-errors';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
+import { delayedLoading } from '../../shared/skeleton';
 import {
   denominationLabel,
   faceValueLabel,
@@ -118,7 +119,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     const collectionId = this.coin()?.collectionId ?? (Number(this.collection()) || null);
     const name = this.collections()?.find((c) => c.id === collectionId)?.name;
     if (collectionId === null || name === undefined) {
-      return [home, current];
+      // The coin's collection is on the way: its place is kept
+      return this.showSkeleton() ? [home, { loading: true }, current] : [home, current];
     }
     const remembered = this.collectionReturn.url();
     const link =
@@ -134,6 +136,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   /** The saved coin as last returned by the API (photos included). */
   protected readonly coin = signal<Coin | null>(null);
   protected readonly loading = signal(false);
+  /** The form's placeholder shapes while the coin takes a while. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
   protected readonly notFound = signal(false);
   protected readonly submitting = signal(false);
   protected readonly deleting = signal(false);
