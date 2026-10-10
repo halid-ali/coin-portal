@@ -28,6 +28,7 @@ import {
 import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { delayedLoading } from '../../shared/skeleton';
 import { AdminStatusBadge } from './admin-status-badge';
 import { UnverifiedMark } from './unverified-mark';
 
@@ -259,6 +260,62 @@ import { UnverifiedMark } from './unverified-mark';
             </ul>
           }
         </div>
+      } @else {
+        <!-- While the user takes a while: the labels, placeholders for the values (user choice
+         2026-10-10); which badges and buttons appear depends on the user -->
+        <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+        @if (showSkeleton()) {
+          <div class="card space-y-4" aria-hidden="true">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="flex items-center gap-2 py-1">
+                <div class="skeleton h-4.5 w-40 rounded-full"></div>
+                <div class="skeleton h-5 w-16 rounded-full"></div>
+              </div>
+              <div class="flex gap-2">
+                <div class="skeleton h-10 w-24 rounded-lg"></div>
+                <div class="skeleton h-10 w-36 rounded-lg"></div>
+              </div>
+            </div>
+            <dl class="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+              @for (key of detailLabels; track key) {
+                <div>
+                  <dt class="text-shade-500">{{ key | transloco }}</dt>
+                  <dd class="flex h-5 items-center">
+                    <div class="skeleton h-3 w-32 rounded-full"></div>
+                  </dd>
+                </div>
+              }
+            </dl>
+          </div>
+          <div class="card" aria-hidden="true">
+            <h3 class="mb-3 font-semibold text-shade-900">
+              {{ 'admin.user.content' | transloco }}
+            </h3>
+            <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-4">
+              @for (key of contentLabels; track key) {
+                <div>
+                  <dt class="text-shade-500">{{ key | transloco }}</dt>
+                  <dd class="flex h-5 items-center">
+                    <div class="skeleton h-3 w-12 rounded-full"></div>
+                  </dd>
+                </div>
+              }
+            </dl>
+          </div>
+          <div class="card" aria-hidden="true">
+            <h3 class="mb-3 font-semibold text-shade-900">
+              {{ 'admin.user.history' | transloco }}
+            </h3>
+            <div class="space-y-3">
+              @for (width of ['w-3/5', 'w-2/5', 'w-1/2']; track width) {
+                <div class="flex gap-4">
+                  <div class="skeleton h-3 w-24 shrink-0 rounded-full"></div>
+                  <div class="skeleton h-3 rounded-full" [class]="width"></div>
+                </div>
+              }
+            </div>
+          </div>
+        }
       }
     </div>
   `,
@@ -276,6 +333,23 @@ export class AdminUserDetailPage {
   protected readonly history = signal<AdminAuditEntry[]>([]);
   protected readonly notFound = signal(false);
   protected readonly loadError = signal(false);
+  protected readonly showSkeleton = delayedLoading(
+    computed(() => this.user() === null && !this.notFound() && !this.loadError()),
+  );
+  /** The labels shown while the user loads. */
+  protected readonly detailLabels = [
+    'admin.user.name',
+    'admin.user.email',
+    'admin.user.createdAt',
+    'admin.user.lastSignIn',
+    'admin.user.lastSeen',
+  ];
+  protected readonly contentLabels = [
+    'admin.user.collections',
+    'admin.user.coins',
+    'admin.user.photos',
+    'admin.user.storage',
+  ];
   protected readonly actionError = signal(false);
   protected readonly busy = signal(false);
   private readonly reloads = signal(0);

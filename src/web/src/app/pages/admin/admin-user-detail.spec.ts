@@ -9,6 +9,7 @@ import { AdminUserDetail } from '../../core/admin/admin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { AdminUserDetailPage } from './admin-user-detail';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 const jonas = (changes: Partial<AdminUserDetail> = {}): AdminUserDetail => ({
   id: 'u1',
@@ -189,5 +190,31 @@ describe('AdminUserDetailPage', () => {
       expect(page.querySelector('[role=alert]')?.textContent).toContain('İşlem yapılamadı');
     });
     expect(button(page, 'Kilitle').getAttribute('aria-disabled')).toBeNull();
+  });
+
+  it('shows the labels and placeholders for the values while the user takes a while', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      harness = await RouterTestingHarness.create();
+      await harness.navigateByUrl('/admin/users/u1');
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await harness.fixture.whenStable();
+      const page = harness.routeNativeElement!;
+
+      const shapes = page.querySelectorAll('.card[aria-hidden=true]');
+      expect(shapes).toHaveLength(3);
+      // Name, e-mail, joined, last sign-in, last seen; collections, coins, photos, storage
+      expect(page.querySelectorAll('.card[aria-hidden=true] dt')).toHaveLength(9);
+      expect(page.querySelectorAll('button')).toHaveLength(0);
+
+      http.expectOne('/api/admin/users/u1').flush(jonas());
+      http
+        .expectOne((r) => r.url === '/api/admin/audit')
+        .flush({ items: [], page: 1, pageSize: 50, totalCount: 0, totalPages: 0 });
+      await harness.fixture.whenStable();
+      expect(page.querySelectorAll('.skeleton')).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
