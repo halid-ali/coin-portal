@@ -368,16 +368,78 @@
 
         <div>
           <label for="quantity" class="form-label">{{ 'coin.field.quantity' | transloco }}</label>
-          <input
-            id="quantity"
-            type="number"
-            inputmode="numeric"
-            formControlName="quantity"
-            appField
-            min="1"
-            [max]="limits.maxQuantity"
-            class="form-input"
-          />
+          <!-- − / + at the ends (user choice 2026-10-10): small numbers, +1 is the usual change, big
+           enough for a finger. Out of the Tab order (↑/↓ in the field do the same) and they leave
+           the focus where it is; unavailable at the limits, not disabled (a disabled button drops
+           the focus it took) -->
+          @let quantity = quantityValue();
+          <div class="relative">
+            <button
+              type="button"
+              tabindex="-1"
+              class="absolute inset-y-px left-px flex w-10 items-center justify-center rounded-l-lg border-r border-shade-200 text-shade-600"
+              [class]="
+                quantity > 1
+                  ? 'hover:bg-shade-100 hover:text-shade-900'
+                  : 'cursor-not-allowed opacity-40'
+              "
+              [attr.aria-disabled]="quantity > 1 ? null : true"
+              [attr.aria-label]="'coinForm.quantityDecrease' | transloco"
+              [title]="'coinForm.quantityDecrease' | transloco"
+              (mousedown)="$event.preventDefault()"
+              (click)="stepQuantity(-1)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="size-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.25"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <input
+              id="quantity"
+              type="number"
+              inputmode="numeric"
+              formControlName="quantity"
+              appField
+              min="1"
+              [max]="limits.maxQuantity"
+              class="form-input px-11 text-center"
+            />
+            <button
+              type="button"
+              tabindex="-1"
+              class="absolute inset-y-px right-px flex w-10 items-center justify-center rounded-r-lg border-l border-shade-200 text-shade-600"
+              [class]="
+                quantity < limits.maxQuantity
+                  ? 'hover:bg-shade-100 hover:text-shade-900'
+                  : 'cursor-not-allowed opacity-40'
+              "
+              [attr.aria-disabled]="quantity < limits.maxQuantity ? null : true"
+              [attr.aria-label]="'coinForm.quantityIncrease' | transloco"
+              [title]="'coinForm.quantityIncrease' | transloco"
+              (mousedown)="$event.preventDefault()"
+              (click)="stepQuantity(1)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="size-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.25"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+            </button>
+          </div>
           @if (errorMessage(form.controls.quantity); as msg) {
             <p id="quantity-error" class="form-error">{{ msg }}</p>
           }

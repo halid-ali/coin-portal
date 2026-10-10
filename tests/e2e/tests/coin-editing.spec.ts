@@ -36,7 +36,9 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await page.getByLabel('Title').fill('Mozart');
   await page.getByLabel('Mint mark').fill('W');
   await page.getByLabel('Commemorative').check();
-  await page.getByLabel('Quantity').fill('2');
+  // The quantity's + button (exact: the − / + buttons are named after the field too)
+  await page.getByRole('button', { name: 'Increase quantity' }).click();
+  await expect(page.getByLabel('Quantity', { exact: true })).toHaveValue('2');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   // Back on the list with the new values

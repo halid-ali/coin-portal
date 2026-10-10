@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
-import { Coin, CoinSide } from '../../core/coins/coin.models';
+import { COIN_LIMITS, Coin, CoinSide } from '../../core/coins/coin.models';
 import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
@@ -239,6 +239,45 @@ describe('CoinForm', () => {
       await setYear(1999);
       expect(page().querySelector('#year-error')).toBeNull();
       expect(page().querySelector('#year-hint')!.textContent).toContain(`1999–${nextYear}`);
+    });
+
+    it('steps the quantity with its − / + buttons, within the limits', async () => {
+      await open('/coins/new?collection=5');
+      const quantity = form()['form'].controls.quantity;
+      const button = (name: string) =>
+        page().querySelector<HTMLButtonElement>(`button[aria-label="${name}"]`)!;
+      const less = () => button('Adedi azalt');
+      const more = () => button('Adedi artır');
+      const type = async (value: string) => {
+        control('quantity').value = value;
+        control('quantity').dispatchEvent(new Event('input'));
+        await harness.fixture.whenStable();
+      };
+      // Out of the Tab order: ↑/↓ in the field do the same
+      expect([less().tabIndex, more().tabIndex]).toEqual([-1, -1]);
+
+      // At 1 nothing less, and the form stays unchanged
+      expect(less().getAttribute('aria-disabled')).toBe('true');
+      less().click();
+      expect(quantity.value).toBe(1);
+      expect(internals().hasUnsavedChanges()).toBe(false);
+
+      more().click();
+      await harness.fixture.whenStable();
+      expect(quantity.value).toBe(2);
+      expect(control('quantity').value).toBe('2');
+      expect(less().getAttribute('aria-disabled')).toBeNull();
+      expect(internals().hasUnsavedChanges()).toBe(true);
+
+      await type(String(COIN_LIMITS.maxQuantity));
+      expect(more().getAttribute('aria-disabled')).toBe('true');
+      more().click();
+      expect(quantity.value).toBe(COIN_LIMITS.maxQuantity);
+
+      // An empty field starts over from 1
+      await type('');
+      more().click();
+      expect(quantity.value).toBe(1);
     });
 
     it('suggests the title of a new coin until the user writes one', async () => {

@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { Component, OnInit, WritableSignal, computed, inject, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, UrlTree } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
@@ -247,6 +247,11 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     this.currencySuggestions().map((c) => ({ value: c, label: c })),
   );
   private currenciesRequested = false;
+  /** The quantity as a number, for its − / + buttons (empty or odd text is 0). */
+  protected readonly quantityValue = computed(() => Number(this.quantityText()) || 0);
+  private readonly quantityText = toSignal(this.form.controls.quantity.valueChanges, {
+    initialValue: this.form.controls.quantity.value,
+  });
 
   constructor() {
     this.countryService.load();
@@ -354,6 +359,17 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       // Suggestions only: typing works without them
       error: () => (this.currenciesRequested = false),
     });
+  }
+
+  /** A − / + button: one step within the limits; an empty or odd value starts over from 1. */
+  protected stepQuantity(step: 1 | -1): void {
+    const control = this.form.controls.quantity;
+    const current = Math.trunc(Number(control.value)) || 0;
+    const next = Math.min(Math.max(current + step, 1), COIN_LIMITS.maxQuantity);
+    if (next !== control.value) {
+      control.setValue(next);
+      control.markAsDirty();
+    }
   }
 
   /** The face value's own message (the generic one would not say what a valid value is). */

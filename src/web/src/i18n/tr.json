@@ -431,6 +431,8 @@
     "currencyHint": "Örn. kuruş, lira, Mark",
     "countryHintOther": "Bütün ülkeler; Doğu Almanya, Sovyetler Birliği gibi eski ülkeler de.",
     "mintMarkHint": "İsteğe bağlı, örn. A, D, F, G, J",
+    "quantityDecrease": "Adedi azalt",
+    "quantityIncrease": "Adedi artır",
     "photosHint": "İsteğe bağlı. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
     "photosHintOther": "İsteğe bağlı; herkese açık bir koleksiyon için iki yüzün de fotoğrafı gerekir. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
     "photosFailed": "Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:",

@@ -431,6 +431,8 @@
     "currencyHint": "E.g. penny, dollar, mark",
     "countryHintOther": "Every country, also former ones like East Germany or the Soviet Union.",
     "mintMarkHint": "Optional, e.g. A, D, F, G, J",
+    "quantityDecrease": "Decrease quantity",
+    "quantityIncrease": "Increase quantity",
     "photosHint": "Optional. Changes are applied when you press Save; Cancel discards them all.",
     "photosHintOther": "Optional; a public collection needs photos of both sides. Changes are applied when you press Save; Cancel discards them all.",
     "photosFailed": "The coin was saved, but some photos couldn't be saved:",
