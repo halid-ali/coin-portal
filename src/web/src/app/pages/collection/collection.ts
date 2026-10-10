@@ -64,9 +64,9 @@ import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { toInt, toPageSize, toPhotographed } from './collection-url';
 import {
   CURRENCY_OPTION,
+  listKinds,
   nominalOptions,
   nominalSelection,
-  showKinds,
   toKind,
 } from './coin-filters';
 import { cachedIntl } from '../../core/i18n/intl-cache';
@@ -299,8 +299,11 @@ export class Collection {
    * currencies are the whole list's), another collector all of them.
    */
   protected readonly facetsReloading = signal<'none' | 'countries' | 'all'>('none');
-  protected readonly showKinds = computed(() => showKinds(this.facets()));
-  protected readonly kinds: readonly (CoinKind | null)[] = [null, 'Euro', 'Other'];
+  /** A list's first facets are on the way: the kinds' row keeps its place (a shape after a moment). */
+  protected readonly facetsLoading = signal(false);
+  protected readonly showKindsSkeleton = delayedLoading(this.facetsLoading);
+  /** All / Euro / Other, or the list's one kind alone (shown chosen, nothing to choose). */
+  protected readonly kinds = computed(() => listKinds(this.facets()));
   protected readonly nominal = computed(() =>
     nominalOptions(this.query().kind, this.facets(), this.query().currency),
   );
@@ -585,6 +588,7 @@ export class Collection {
           if (!sameList) {
             this.facets.set(null);
           }
+          this.facetsLoading.set(!sameList);
           this.facetsReloading.set(
             !sameList ? 'none' : shownFor![3] === owner ? 'countries' : 'all',
           );
@@ -595,7 +599,18 @@ export class Collection {
       )
       .subscribe((facets) => {
         this.facets.set(facets);
+        this.facetsLoading.set(false);
         this.facetsReloading.set('none');
+        // A kind the list does not have (another collector, an old link) would show nothing: the
+        // list's one kind instead, chosen on its own
+        const kinds = this.kinds();
+        const kind = this.query().kind;
+        if (kinds.length === 1 && kind && kind !== kinds[0]) {
+          this.navigate(
+            { kind: null, denomination: null, currency: null, countryCode: null, page: null },
+            true,
+          );
+        }
       });
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests

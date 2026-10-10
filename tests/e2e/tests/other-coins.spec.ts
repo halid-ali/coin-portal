@@ -5,13 +5,20 @@ import { chooseOption } from '../support/combobox';
 import { TestUser } from '../support/users';
 
 // A coin other than a euro coin (roadmap 18): added in the form with its value and currency, found
-// with the All / Euro / Other buttons, which show only where both kinds are
+// with the All / Euro / Other buttons, which show where both kinds are (one kind alone, chosen,
+// before)
 test('a user adds an other coin and finds it with the kind buttons', async ({ browser }) => {
   const owner = await TestUser.signUp();
   const collection = await owner.firstCollection();
   await owner.createCoin(collection.id, 'Brandenburger Tor');
   const context = await owner.browser(browser);
   const page = await context.newPage();
+
+  await page.goto(`/collections/${collection.id}`);
+  const single = page.getByRole('group', { name: 'Coin type' });
+  await expect(single).toHaveText('Euro 1');
+  await expect(single.getByRole('button')).toHaveCount(0);
+  await expectAccessible(page, 'collection with one kind');
 
   await page.goto(`/coins/new?collection=${collection.id}`);
   await page.getByRole('radio', { name: /^World coin/ }).check();

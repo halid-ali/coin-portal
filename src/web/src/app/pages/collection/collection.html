@@ -318,42 +318,40 @@
     <!-- Filters; an empty collection has nothing to search or filter -->
     @if (showFilters()) {
       <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
-        <!-- All / Euro / Other with their counts, only where both kinds are (user choice
-         2026-10-09); on a phone above the search, outside the folded filters. From sm up "clear
-         filters" and the sort select sit at the right end of this row, also without the kind
-         buttons, in every view; "clear filters" stays when there is nothing to clear
+        <!-- All / Euro / Other with their counts where both kinds are, the list's one kind alone
+         (chosen) where only one is (user choices 2026-10-09/10); on a phone above the search,
+         outside the folded filters. From sm up "clear filters" and the sort select sit at the right
+         end of this row, in every view; "clear filters" stays when there is nothing to clear
          (unavailable), so the card never changes height (user choices 2026-10-10). Where the row
          is too narrow the pair wraps to a line of its own, on the left (space-between). Phones
-         have "clear filters" at the end of the folded filters, the sort select below -->
+         have "clear filters" at the end of the folded filters, the sort select below. While a
+         list's first kinds load the row keeps its place (a shape after a moment), so a phone's
+         page does not jump -->
+        @let kindsShown = kinds().length > 0 || facetsLoading();
         <div
           class="flex-wrap items-center gap-3 sm:col-span-2 sm:flex lg:col-span-6"
-          [class]="showKinds() ? 'flex justify-between' : 'hidden justify-end'"
+          [class]="kindsShown ? 'flex justify-between' : 'hidden justify-end'"
         >
-          @if (showKinds()) {
+          @if (kinds().length > 0) {
+            @let single = kinds().length === 1;
             <!-- The choice's background slides from button to button; no hover background on the
              others, it would hide the slide. Each kind's count is a badge on its bottom right corner,
              out of the button's width (user choices 2026-10-10): the buttons do not change size as
-             the counts come and go; the top right corner stays for notification badges -->
+             the counts come and go; the top right corner stays for notification badges. The gap
+             between the buttons keeps a badge off the next one; the last one's badge sits on the
+             frame's corner, the chosen background as close to the frame on every side. A single
+             kind is not a button: there is nothing to choose -->
             <div
-              class="inline-flex max-w-full rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
-              [appSlidingSelection]="query().kind ?? null"
+              class="inline-flex max-w-full gap-1.5 rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
+              [appSlidingSelection]="single ? kinds()[0] : (query().kind ?? null)"
               highlightClass="bg-brand-100"
+              chosen="[data-chosen]"
               role="group"
               [attr.aria-label]="'coinList.kinds.label' | transloco"
             >
-              @for (k of kinds; track $index) {
-                @let selected = (query().kind ?? null) === k;
-                <button
-                  type="button"
-                  class="relative mr-1.5 inline-flex items-center rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-3.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
-                  [class]="
-                    selected
-                      ? 'font-semibold text-brand-800'
-                      : 'font-medium text-shade-600 hover:text-shade-900'
-                  "
-                  [attr.aria-pressed]="selected"
-                  (click)="setKind(k)"
-                >
+              @for (k of kinds(); track k) {
+                @let selected = single || (query().kind ?? null) === k;
+                <ng-template #kindContent>
                   {{ (k ? 'coinList.kinds.' + k : 'coinList.kinds.all') | transloco }}
                   @if (kindCount(k); as count) {
                     <span
@@ -364,9 +362,39 @@
                       >{{ formatCount(count) }}</span
                     >
                   }
-                </button>
+                </ng-template>
+                @if (single) {
+                  <span
+                    class="relative inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-brand-800 sm:px-3.5"
+                    data-chosen
+                  >
+                    <ng-container [ngTemplateOutlet]="kindContent" />
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="relative inline-flex items-center rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-3.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                    [class]="
+                      selected
+                        ? 'font-semibold text-brand-800'
+                        : 'font-medium text-shade-600 hover:text-shade-900'
+                    "
+                    [attr.aria-pressed]="selected"
+                    [attr.data-chosen]="selected ? '' : null"
+                    (click)="setKind(k)"
+                  >
+                    <ng-container [ngTemplateOutlet]="kindContent" />
+                  </button>
+                }
               }
             </div>
+          } @else if (facetsLoading()) {
+            <!-- As high as the buttons' frame -->
+            <div
+              class="h-9.5 w-52 max-w-full rounded-lg"
+              [class.skeleton]="showKindsSkeleton()"
+              aria-hidden="true"
+            ></div>
           }
           <div class="hidden max-w-full min-w-0 items-center gap-3 sm:flex">
             <!-- Tablets: only the icon (a square as high as the sort select), so the row fits from

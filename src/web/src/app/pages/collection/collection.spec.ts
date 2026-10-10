@@ -430,13 +430,41 @@ describe('Collection', () => {
       expect(cells[2].textContent!.trim()).toBe('25 kuruş');
     });
 
-    it('leaves the buttons out of a collection with one kind', async () => {
+    it('shows the one kind of a collection alone, chosen and not a button', async () => {
       await open('/collections/5', 1, pageWithCoin(), {}, ['DE']);
       flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
       await harness.fixture.whenStable();
 
-      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).toBeNull();
+      const group = page().querySelector('[role=group][aria-label="Coin türü"]')!;
+      expect(group.textContent!.replace(/\s+/g, ' ').trim()).toBe('Euro 1');
+      expect(group.querySelector('button')).toBeNull();
+      expect(group.querySelector('[data-chosen]')).not.toBeNull();
       expect((await openFilter('denomination')).querySelector('[role=group]')).toBeNull();
+    });
+
+    it("drops a kind the list does not have, the other kind's filters with it", async () => {
+      await open('/collections/5?kind=Other&currency=kuru%C5%9F', 1, pageWithCoin(), {}, ['DE']);
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] }, 'Other');
+      await harness.fixture.whenStable();
+
+      expect(url()).toBe('/collections/5');
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
+      await harness.fixture.whenStable();
+      expect(page().querySelector('[aria-label="Coin türü"] [data-chosen]')!.textContent).toContain(
+        'Euro',
+      );
+    });
+
+    it('keeps the kinds row in place while its first facets load', async () => {
+      await open('/collections/5', 1, pageWithCoin(), {}, ['DE']);
+
+      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).toBeNull();
+      const row = page().querySelector('.card > div')!;
+      expect(row.classList.contains('hidden')).toBe(false);
+
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
+      await harness.fixture.whenStable();
+      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).not.toBeNull();
     });
 
     it('filters by kind, dropping the filters of the other kind', async () => {
@@ -818,6 +846,12 @@ describe('Collection', () => {
         latestCoinRequest().flush(pageWithCoin());
         await harness.fixture.whenStable();
         expect(heading.textContent!.trim()).toBe('Koleksiyonum');
+        // The kinds' row until its facets are there
+        expect(page().querySelectorAll('.skeleton')).toHaveLength(1);
+        http
+          .expectOne((r) => r.url === '/api/coins/facets')
+          .flush({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: [] });
+        await harness.fixture.whenStable();
         expect(page().querySelectorAll('.skeleton')).toHaveLength(0);
       } finally {
         vi.useRealTimers();
