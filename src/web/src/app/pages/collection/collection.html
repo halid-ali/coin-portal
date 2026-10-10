@@ -345,7 +345,7 @@
                 @let selected = (query().kind ?? null) === k;
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                  class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-3.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                   [class]="
                     selected
                       ? 'bg-brand-100 font-semibold text-brand-800'
@@ -382,7 +382,7 @@
             </button>
             <ng-container
               [ngTemplateOutlet]="sortBox"
-              [ngTemplateOutletContext]="{ id: 'sort', fit: true }"
+              [ngTemplateOutletContext]="{ id: 'sort', short: false }"
             />
           </div>
         </div>
@@ -514,18 +514,20 @@
         </div>
 
         <!-- Phones: the filters toggle and the sort select; from sm up the sort select is in the
-         first row -->
+         first row. Both short (user choice 2026-10-10): the toggle is the funnel (and the count of
+         the filters set), the sort box shows the column and the table header's arrow -->
         <div class="order-1 flex min-w-0 items-center gap-3 sm:hidden">
           <button
             type="button"
-            class="btn-secondary shrink-0 gap-2 py-1.5"
+            class="btn-secondary relative shrink-0 p-2"
             aria-controls="coin-filters"
             [attr.aria-expanded]="filtersOpen()"
+            [title]="'coinList.filters' | transloco"
             (click)="filtersOpen.set(!filtersOpen())"
           >
             <svg
               viewBox="0 0 24 24"
-              class="size-4"
+              class="size-5"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -535,28 +537,18 @@
             >
               <path d="M3 5h18l-7 8.5V19l-4 2v-7.5z" />
             </svg>
-            {{ 'coinList.filters' | transloco }}
+            <span class="sr-only">{{ 'coinList.filters' | transloco }}</span>
+            <!-- On the corner, so the button keeps its size (the sort box beside it does not move) -->
             @if (foldedFilterCount(); as count) {
-              <span class="rounded-full bg-brand-100 px-1.5 text-xs font-semibold text-brand-900">{{
-                count
-              }}</span>
+              <span
+                class="absolute -top-2 -right-2 min-w-5 rounded-full bg-brand-100 px-1 text-xs leading-5 font-semibold text-brand-900 ring-2 ring-shade-0"
+                >{{ count }}</span
+              >
             }
-            <svg
-              viewBox="0 0 24 24"
-              class="size-4 text-shade-400 transition-transform"
-              [class.rotate-180]="filtersOpen()"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
           </button>
           <ng-container
             [ngTemplateOutlet]="sortBox"
-            [ngTemplateOutletContext]="{ id: 'sort-phone', fit: false }"
+            [ngTemplateOutletContext]="{ id: 'sort-phone', short: true }"
           />
         </div>
 
@@ -584,13 +576,13 @@
          desktop list the table headers sort too, both read the order from the URL. Its width comes
          from the orders and "Sort" only ("clear sort" is never shown in the box), so a choice does
          not move the row -->
-        <ng-template #sortBox let-id="id" let-fit="fit">
+        <ng-template #sortBox let-id="id" let-short="short">
           <app-combobox
             [inputId]="id"
             searchable="false"
-            [fitOptions]="fit"
+            fitOptions
             compact
-            [class]="fit ? '' : 'min-w-0 flex-1'"
+            [display]="short ? sortShort : null"
             [options]="sortOptions()"
             [fitTo]="sortOrders()"
             [value]="sortValue()"
@@ -614,6 +606,35 @@
               <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
             </svg>
           </app-combobox>
+        </ng-template>
+
+        <!-- The phone's sort box: the table header's short column name and arrow (the same as
+         th[appSortHeader]'s), the full name for screen readers; the list keeps the full names -->
+        <ng-template #sortShort let-option>
+          @let order = option.value.split(':');
+          <span class="inline-flex items-center gap-1.5" aria-hidden="true">
+            {{ 'coin.column.' + order[0] | transloco }}
+            <span
+              class="inline-flex size-5 items-center justify-center rounded bg-brand-100 text-brand-700"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                class="size-3.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                @if (order[1] === 'Asc') {
+                  <path d="M8 12.5v-9M4.75 6.75 8 3.5l3.25 3.25" />
+                } @else {
+                  <path d="M8 3.5v9M4.75 9.25 8 12.5l3.25-3.25" />
+                }
+              </svg>
+            </span>
+          </span>
+          <span class="sr-only">{{ option.label }}</span>
         </ng-template>
       </div>
     }

@@ -593,9 +593,20 @@ describe('Collection', () => {
   });
 
   it('keeps the sort selects and the table headers on the same order', async () => {
-    // The box's first line (a fitted box also holds every name, hidden, for its width)
-    const shown = () =>
-      ['sort', 'sort-phone'].map((id) => filterBox(id).querySelector('span')!.textContent!.trim());
+    // The box's first line (a fitted box also holds every name, hidden, for its width). The
+    // phone's box shows the short column name and the header's arrow, the full name for screen
+    // readers (user choice 2026-10-10): 'Yıl / Yıl (yeni → eski)'
+    const line = (id: string) => filterBox(id).querySelector('span')!;
+    const shown = () => {
+      const phone = line('sort-phone');
+      const full = phone.querySelector('.sr-only');
+      const short = phone.querySelector('[aria-hidden=true]')?.textContent!.trim();
+      return [
+        line('sort').textContent!.trim(),
+        full ? short + ' / ' + full.textContent : phone.textContent!.trim(),
+      ];
+    };
+    const phoneArrow = () => line('sort-phone').querySelector('path')!.getAttribute('d');
     const sortedHeader = () => page().querySelector('th[aria-sort]');
 
     await open('/collections/5', 1, pageWithCoin());
@@ -611,7 +622,9 @@ describe('Collection', () => {
     await harness.navigateByUrl('/collections/5?sort=Year&dir=Desc');
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
     await harness.fixture.whenStable();
-    expect(shown()).toEqual(['Yıl (yeni → eski)', 'Yıl (yeni → eski)']);
+    expect(shown()).toEqual(['Yıl (yeni → eski)', 'Yıl / Yıl (yeni → eski)']);
+    // The header's down arrow
+    expect(phoneArrow()).toBe('M8 3.5v9M4.75 9.25 8 12.5l3.25-3.25');
     expect(sortedHeader()!.textContent).toContain('Yıl');
     expect(sortedHeader()!.getAttribute('aria-sort')).toBe('descending');
     expect((await options('sort'))[0]).toBe('Sıralamayı kaldır');
@@ -621,7 +634,8 @@ describe('Collection', () => {
     expect(url()).toBe('/collections/5?sort=Country');
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
     await harness.fixture.whenStable();
-    expect(shown()).toEqual(['Ülke (A → Z)', 'Ülke (A → Z)']);
+    expect(shown()).toEqual(['Ülke (A → Z)', 'Ülke / Ülke (A → Z)']);
+    expect(phoneArrow()).toBe('M8 12.5v-9M4.75 6.75 8 3.5l3.25 3.25');
     expect(sortedHeader()!.textContent).toContain('Ülke');
     expect(sortedHeader()!.getAttribute('aria-sort')).toBe('ascending');
 
@@ -631,6 +645,18 @@ describe('Collection', () => {
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
     await harness.fixture.whenStable();
     expect(shown()).toEqual(['Sırala', 'Sırala']);
+  });
+
+  it("shows the phone's filters toggle as the funnel, named and counting the folded filters", async () => {
+    await open('/collections/5?year=2002&isCommemorative=true&search=euro', 1, pageWithCoin());
+    const toggle = page().querySelector<HTMLButtonElement>('button[aria-controls=coin-filters]')!;
+
+    // Named for screen readers and on hover; the search box is not folded, so it is not counted
+    expect(toggle.querySelector('.sr-only')!.textContent).toBe('Filtrele');
+    expect(toggle.title).toBe('Filtrele');
+    // The count on the button's corner (it keeps its size)
+    expect(toggle.querySelector('.absolute')!.textContent!.trim()).toBe('2');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('loads a list sorted by country order once, after the countries', async () => {
