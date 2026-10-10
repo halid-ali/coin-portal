@@ -8,7 +8,7 @@ import { provideTestTransloco, useTestLanguage } from '../i18n/testing';
 import { AccentService } from '../theme/accent.service';
 import { ThemeService } from '../theme/theme.service';
 import { UserResponse } from './auth.models';
-import { AuthService } from './auth.service';
+import { AuthService, SIGNED_IN_KEY } from './auth.service';
 
 const alice: UserResponse = {
   id: '1',
@@ -69,6 +69,7 @@ describe('AuthService', () => {
     await started;
 
     expect(auth.currentUser()?.userName).toBe('alice');
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBe('1');
   });
 
   it('starts signed out, also when the API is down', async () => {
@@ -78,6 +79,24 @@ describe('AuthService', () => {
 
     await expect(started).resolves.toBeUndefined();
     expect(auth.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBeNull();
+  });
+
+  it('tells the shell in index.html whether this browser is signed in', async () => {
+    // A session that ended elsewhere: the hint goes once the app learns so
+    localStorage.setItem(SIGNED_IN_KEY, '1');
+    const started = auth.init();
+    http.expectOne('/api/auth/me').flush(null, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/antiforgery').flush(null);
+    await started;
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBeNull();
+
+    await signIn();
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBe('1');
+
+    auth.handleSessionExpired();
+    http.expectOne('/api/auth/antiforgery').flush(null);
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBeNull();
   });
 
   it("applies the account's language, theme and accent on sign-in", async () => {
@@ -118,6 +137,7 @@ describe('AuthService', () => {
     await signedOut;
 
     expect(auth.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBeNull();
   });
 
   it('forgets an expired session once, with a fresh token', async () => {
