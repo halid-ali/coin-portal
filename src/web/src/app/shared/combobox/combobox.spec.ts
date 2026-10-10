@@ -80,6 +80,37 @@ class FreeTextHost {
   readonly currency = new FormControl('', { nonNullable: true });
 }
 
+@Component({
+  imports: [Combobox, ReactiveFormsModule],
+  template: `
+    <app-combobox
+      inputId="sort"
+      label="Sırala"
+      ariaLabel="Sıralama"
+      placeholder="Seç…"
+      searchable="false"
+      fitOptions
+      [placeholderIsName]="named()"
+      [fitLabels]="fitLabels()"
+      [formControl]="choice"
+      [options]="options"
+    >
+      <svg comboboxIcon #comboboxIcon></svg>
+    </app-combobox>
+  `,
+})
+class ListOnlyHost {
+  readonly options: ComboboxOption[] = [
+    { value: 'Title', label: 'Başlık' },
+    { value: 'Year', label: 'Yıl' },
+    { value: 'YearDesc', label: 'Yıl (yeni)' },
+    { value: 'Country', label: 'Ülke' },
+  ];
+  readonly named = signal(false);
+  readonly fitLabels = signal<string[] | null>(null);
+  readonly choice = new FormControl('', { nonNullable: true, validators: Validators.required });
+}
+
 describe('Combobox', () => {
   let page: HTMLElement;
   let fixture: ComponentFixture<unknown>;
@@ -435,6 +466,139 @@ describe('Combobox', () => {
       await type('lira');
       expect(box().getAttribute('aria-expanded')).toBe('false');
       expect(host.currency.value).toBe('lira');
+    });
+  });
+
+  // Short fixed lists with nothing to type (user choice 2026-10-10)
+  describe('without typing', () => {
+    let host: ListOnlyHost;
+
+    beforeEach(async () => {
+      host = (await create(ListOnlyHost)).componentInstance;
+    });
+
+    /** The box's first line; a fitted box also holds every name, hidden, for its width. */
+    const shown = () => box().querySelector('span')!;
+
+    it('is a button showing the choice, or the placeholder faded', async () => {
+      expect(box().tagName).toBe('BUTTON');
+      expect(box().getAttribute('aria-haspopup')).toBe('listbox');
+      expect(box().getAttribute('aria-label')).toBe('Sıralama');
+      expect(shown().textContent!.trim()).toBe('Seç…');
+      expect(shown().classList).toContain('text-shade-500');
+      // The icon's room on the left
+      expect(box().classList).toContain('pl-9');
+
+      host.choice.setValue('Year');
+      await fixture.whenStable();
+      expect(shown().textContent!.trim()).toBe('Yıl');
+      expect(shown().classList).not.toContain('text-shade-500');
+    });
+
+    it('shows a placeholder that names the box like a value', async () => {
+      host.named.set(true);
+      await fixture.whenStable();
+
+      expect(shown().textContent!.trim()).toBe('Seç…');
+      expect(shown().classList).not.toContain('text-shade-500');
+    });
+
+    it('opens and closes with a click', async () => {
+      box().click();
+      await fixture.whenStable();
+      expect(box().getAttribute('aria-expanded')).toBe('true');
+      expect(listed()).toEqual(['Başlık', 'Yıl', 'Yıl (yeni)', 'Ülke']);
+
+      box().click();
+      await fixture.whenStable();
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('moves with the arrow keys, Home and End, and picks with Enter or Space', async () => {
+      const opened = await key('ArrowDown');
+      expect(opened.defaultPrevented).toBe(true);
+      expect(active()).toBe('Başlık');
+      await key('ArrowDown');
+      expect(active()).toBe('Yıl');
+      await key('End');
+      expect(active()).toBe('Ülke');
+      await key('Home');
+      expect(active()).toBe('Başlık');
+      await key('ArrowUp');
+      expect(active()).toBe('Ülke');
+      await key('Enter');
+      expect(host.choice.value).toBe('Country');
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+
+      // Space opens on the choice and picks too
+      await key(' ');
+      expect(active()).toBe('Ülke');
+      await key('ArrowUp');
+      await key(' ');
+      expect(host.choice.value).toBe('YearDesc');
+    });
+
+    it('jumps to an option by its first letters, without picking it', async () => {
+      await key('ü');
+      // Opens on it; ü and u alike, like typing in the filters
+      expect(box().getAttribute('aria-expanded')).toBe('true');
+      expect(active()).toBe('Ülke');
+      expect(host.choice.value).toBe('');
+      await key('Escape');
+
+      // The same letter again: the next option starting with it
+      await key('y');
+      expect(active()).toBe('Yıl');
+      await key('y');
+      expect(active()).toBe('Yıl (yeni)');
+    });
+
+    it('takes a space as part of the typed name', async () => {
+      for (const letter of ['y', 'ı', 'l', ' ', '(']) {
+        await key(letter);
+      }
+      expect(active()).toBe('Yıl (yeni)');
+      await key('Enter');
+      expect(host.choice.value).toBe('YearDesc');
+    });
+
+    it('closes on Escape without a change, and lets a closed box pass Escape on', async () => {
+      host.choice.setValue('Year');
+      await key('ArrowDown');
+      await key('ArrowDown');
+      const escape = await key('Escape');
+
+      expect(escape.defaultPrevented).toBe(true);
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+      expect(host.choice.value).toBe('Year');
+      expect((await key('Escape')).defaultPrevented).toBe(false);
+    });
+
+    it('keeps the choice when left, and counts as touched', async () => {
+      host.choice.setValue('Year');
+      await key('ArrowDown');
+      await key('ArrowDown');
+      await leave();
+
+      expect(box().getAttribute('aria-expanded')).toBe('false');
+      expect(host.choice.value).toBe('Year');
+      expect(host.choice.touched).toBe(true);
+      // Required and empty once touched: invalid like a form field
+      host.choice.setValue('');
+      await fixture.whenStable();
+      expect(box().getAttribute('aria-invalid')).toBe('true');
+      expect(box().getAttribute('aria-describedby')).toBe('sort-error sort-hint');
+    });
+
+    it('fitted: makes room for the placeholder and every option, or the names given', async () => {
+      const sizers = () =>
+        [...box().querySelectorAll('span[aria-hidden=true]')].map((s) => s.textContent!.trim());
+      expect(sizers()).toEqual(['Seç…', 'Başlık', 'Yıl', 'Yıl (yeni)', 'Ülke']);
+      expect(page.querySelector('app-combobox')!.classList).toContain('inline-block');
+
+      host.fitLabels.set(['Başlık', 'Ülke']);
+      await fixture.whenStable();
+      expect(sizers()).toEqual(['Seç…', 'Başlık', 'Ülke']);
     });
   });
 });
