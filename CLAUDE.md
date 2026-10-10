@@ -607,10 +607,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   detayı, Genel ayarlar): listeler coin listesiyle aynı desende (`showSkeleton`, `skeletonRows`, ilk yüklemede tablo
   başlığı gerçek), kullanıcıya göre değişen rozet ve düğmeler şekil, ayarlarda not ve Kaydet değerler gelene kadar
   yok. Yeni bir yüklenen bölüm de böyle gelir. **Açılış kabuğu** (`index.html`, Angular başlayana kadar; eski
-  logolu açılış ekranının yerine): header gerçeğiyle aynı düzende (logo ve ad gerçek, menü ve düğmeler şekil:
-  girişli mi henüz bilinmiyor) ve hemen görünür, altında her sayfaya uyan genel şekiller 400 ms sonra belirir
-  (`.app-shell-page`). `app.html` ya da header'ın düzeni (yükseklik, kenar boşluğu, logo boyu) değişince kabuk
-  da değişir.
+  logolu açılış ekranının yerine): header gerçeğiyle aynı düzende (logo ve ad gerçek, menü ve düğmeler şekil) ve
+  hemen görünür, sayfa şekilleri 400 ms sonra belirir (`.app-shell-page`). Auth cookie'si HttpOnly olduğu için
+  girişli mi `localStorage` `coinportal.signedIn` işaretinden okunur (`AuthService.SIGNED_IN_KEY`, kullanıcı
+  her değiştiğinde `setUser` yazar ya da siler; sadece şekil seçimi için bir ipucu, gizlilik politikasında).
+  İlk betik `<html>`'e `data-shell-signed-in` / `data-shell-home` koyar: header'ın girişli ya da girişsiz hâli
+  (`.app-shell-in` / `-out`), ana sayfada tanıtım sayfası ya da pano, başka her adreste genel şekiller
+  (`-home` / `-generic`). Kabuk app.html, header, `HomeWelcome` ve `HomeDashboard`'ın sınıflarıyla yazılı:
+  onların düzeni (menüye yeni öğe dahil) değişince kabuk da değişir. Yeni bir sayfa genel şekilleri kendiliğinden alır.
   **Sunucudan gelen her fotoğraf** (`<img>`: coin fotoğrafı, kapak) `appImageSkeleton` alır (`shared/image-skeleton.ts`,
   `[src]`'yi o alır): fotoğraf inene ya da hata verene kadar yerinde şekil, gecikmesiz (beklerken gösterilecek eski
   bir şey yok); tarayıcıda zaten olan fotoğrafta şekil görünmez. Elemanın kendi köşesi ve zemini şeklinkine baskın.

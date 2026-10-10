@@ -590,6 +590,14 @@
     opacity: 0;
     animation: shell-in 300ms ease-out 400ms forwards;
   }
+
+  /* The shell's variants, chosen by index.html's first script (signed in on this browser, home page) */
+  :root:not([data-shell-signed-in]) .app-shell-in,
+  :root[data-shell-signed-in] .app-shell-out,
+  :root:not([data-shell-home]) .app-shell-home,
+  :root[data-shell-home] .app-shell-generic {
+    display: none !important;
+  }
 }
 
 @layer base {
