@@ -32,8 +32,8 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
   alınmadı, çalışma ağacı temiz; son sohbet 2026-10-10 öğleden sonra bitti, kullanıcının başka bulguları var). **Sıradaki:** kullanıcının kalan bulguları bu branch'te, önceki sohbetteki gibi
   tek tek düzeltilir (bulgu → görüntülü öneri → onay → düzeltme → commit onayı); bulgular bitince bu doküman
   güncellenir ve branch kullanıcı onayıyla main'e alınır. Sonra (kullanıcı onayıyla) push ve `v1.10.0` (minor;
-  `AddOtherCoins` migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy)
-  adımları"). Lokal dev
+  `AddOtherCoins` ve `AddStorageWarningLevel` migration'ları var: kurulumu onaylamadan önce panelden veritabanı
+  yedeği, "Yayın (deploy) adımları"). Lokal dev
   veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -1956,9 +1956,20 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - **Kaydırma çubukları** (kullanıcı kararı; tarayıcının ince çubuğu, gri hap ve tema renginde hap
           görsellerle karşılaştırıldı): Windows'un oklu klasik çubuğu yerine her yerde oksuz gri hap, oluk
           şeffaf, üzerine gelince koyulaşır. Firefox aynı renklerde ince çubuk gösterir; telefonlar kendi çubuğunu.
+    - **Fotoğraf alanı: renkler ve uyarı e-postaları** (kullanıcı kararları; tonlar görsellerle karşılaştırıldı, A
+          canlı seçildi): Ayarlar > Hesap'taki çubuk tema rengi yerine sabit renklerde: %75'e kadar yeşil, %90'a kadar
+          turuncu, sonra kırmızı ("dolmak üzere" notu %90'da, "doldu" %100'de; kırmızı tema renginde %1 dolu çubuk uyarı
+          gibi görünüyordu). Kullanım %75'i ve %90'ı geçince e-posta (dört dil, Ayarlar'a düğme;
+          `Photos/StorageWarnings`): her uyarı bir kez, kullanım %70 / %85'in altına inince yeniden mümkün; sadece
+          doğrulanmış ve kilitsiz hesaplara; yükleme ve silmeden sonra arka planda kontrol, kota değişince ilgili
+          herkese toplu (düşürmek uyarır, artırmak sıfırlar). Migration `AddStorageWarningLevel` (kullanıcıya bir sütun;
+          mevcut hesaplar uyarısız başlar, bir sonraki yükleme ya da silmelerinde kontrol edilir). Gizlilik
+          politikasının e-posta listesine bu uyarılar ve önceden eksik olan silme hatırlatmaları eklendi (dört dil).
+          E-postalar dev API'de iki geçici kullanıcıyla smtp4dev'de görüldü (Türkçe %75, İngilizce %90), kullanıcılar
+          silindi.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 503 (+55), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 505 (+57), e2e 21, API 501 (+20, fotoğraf alanı uyarıları). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası

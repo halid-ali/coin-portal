@@ -380,6 +380,16 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`GET api/settings/storage`); **yaklaşık**:
   kontrolle kayıt arasında kilit yok, aynı anda yapılan yüklemeler kotayı birkaç görsel (her biri en fazla
   ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
+- **Fotoğraf alanı uyarıları** (`Photos/StorageWarnings`, kullanıcı kararları 2026-10-10): kullanım kotanın %75'ini
+  ve %90'ını geçince e-posta (`EmailTexts.StorageWarning`, Ayarlar > Hesap'a düğme). Her uyarı bir kez
+  (`ApplicationUser.StorageWarningLevel`, migration `AddStorageWarningLevel`; sadece e-posta gidince yazılır, giden
+  e-posta hatası bir sonraki kontrolde yeniden dener), ancak kullanım eşiğin 5 puan altına inince (%70 / %85)
+  unutulur. Sadece doğrulanmış ve admin'in kilitlemediği hesaplara. Kontroller arka planda, tek tek: fotoğraf ya da
+  kapak **ekleyen ve silen her uç** `StorageWarnings.Enqueue(sahip)` çağırır (yeni bir görsel ucu da), kota
+  değişince (`AdminSettingsController`) `CheckAfterQuotaChange` ilgili herkese `Email:BulkDelaySeconds` aralıkla
+  bakar (düşürmek uyarır, artırmak sıfırlar). Eşikler Ayarlar'daki çubuğun renkleriyle aynı (client
+  `account-settings.ts` `FILLING` / `NEARLY_FULL`); biri değişirse öbürü de. Testlerde `StorageWarnings.CheckAsync`
+  doğrudan çağrılır (`StorageWarningTests`).
 - **E-posta sadece `IMailSender` arkasında** (`Email/`, MailKit; görsel kütüphanesi kuralının aynısı):
   `Email:Smtp:Host` doluysa `SmtpMailSender`, boşsa `PickupFolderMailSender` (`Email:PickupPath`'e
   `.eml`; e2e, `Email__Smtp__Host` boş verilerek). Lokalde (`appsettings.Development.json`) e-postalar
@@ -780,7 +790,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
   dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
   `color-mix` ile, koyu tema ayarı da `styles.css`'te), `usage-bar` + `usage-bar-fill` (`-warn`, `-full`;
-  bir sınırın doluluğu: tema rengi, dolmak üzereyken sabit turuncu, doluyken tehlike rengi), `skeleton`
+  bir sınırın doluluğu: sabit yeşil, dolarken turuncu, dolmak üzereyken ve doluyken kırmızı; tema renginden bağımsız), `skeleton`
   (yükleme iskeletinin şekli). Yeni ortak stil
   gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
