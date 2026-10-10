@@ -1,9 +1,10 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
 Son güncelleme: 2026-10-10 (**İkinci bulgu turu sürüyor** (Tamamlananlar 100, `fix/world-coins-and-ui-findings`,
-20 commit, **main'e alınmadı**): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
+**main'e alınmadı**): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
 kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
-ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni). Kullanıcının başka bulguları
+ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni), filtre kartında "Filtreleri
+temizle" ve "Sırala" ilk satırda, hep yerinde. Kullanıcının başka bulguları
 var, yeni sohbette aynı branch'te devam edilir. Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
 listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
 istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
@@ -1907,9 +1908,18 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           HttpOnly; gizlilik politikası 2026-10-10 güncellendi): header'ın girişli / girişsiz hâli, ana sayfada pano ya
           da tanıtım sayfası, başka her adreste genel şekiller. Yeni bir sayfa genel kabuğu kendiliğinden alır; header
           ya da ana sayfanın düzeni değişirse kabuk da güncellenir.
+    - **Filtre kartı oynamıyor** (kullanıcı kararları): "Filtreleri temizle" görünüp kaybolup sayfayı kaydırıyordu;
+          artık tür düğmelerinin satırında sağda (tek türlü listede de), temizlenecek bir şey yokken yerinde ve pasif
+          (`aria-disabled`, odak butonda kalır). "Sırala" da her görünümde ve ekran boyunda aynı satırda, en sağda
+          (liste görünümünde sütun başlıklarıyla birlikte; ikisi de URL'den okur). "Sıralamayı kaldır" seçeneği hep
+          listede (varsayılan sırada pasif): select'in genişliği, yani satır, sıralama seçilince değişmez. Dar tablette
+          ikili alt satıra geçer, sola yaslı. Temizle butonunda huni + çarpı ikonu: masaüstünde ikon + metin, tablette
+          (640–1023 px) sadece ikon (kullanıcı kararı); satır yaklaşık 700 px'ten itibaren dört dilde de tek satır
+          (ölçüldü). Telefonda değişmedi (Sırala "Filtrele"nin yanında); temizle butonu
+          panelin sonunda hep var. Alttaki ayrı Sırala satırı geniş ekranda kalktı.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 474 (+26), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 476 (+28), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası

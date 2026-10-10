@@ -621,8 +621,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
   listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;
-  `core/admin/admin-list.ts`). Mobilde tablo
-  yok, aynı seçenekler "Sırala" select'inde. Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
+  `core/admin/admin-list.ts`). Coin listelerinde aynı seçenekler her görünümde ve ekran boyunda "Sırala"
+  select'inde de (kullanıcı kararı 2026-10-10: standart filtre paneli; mobilde tablo yok): ikisi de sırayı URL'den
+  okur, kendiliğinden eş kalır. Filtre kartının ilk satırında solda tür düğmeleri, sağda "Filtreleri temizle" +
+  "Sırala" (temizle `lg` altında sadece huni + çarpı ikonu, `aria-label` + `title`; böylece ~700 px'ten itibaren
+  tek satır, sığmazsa ikili alt satırda, solda); telefonda "Filtrele"nin yanında Sırala, panelin sonunda temizle.
+  Kart yüksekliği ve satır kullanılırken oynamaz: temizlenecek filtre yokken buton kalır, `aria-disabled`;
+  "Sıralamayı kaldır" seçeneği hep listede (varsayılan sırada pasif; select en uzun seçeneği kadar geniş).
+  Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
   (`COIN_SORT_COLUMNS`, API `CoinSort`); diğer sütun başlıkları düz. Telefonda filtreler "Filtrele"
   butonunun arkasında katlanır (arama kutusu hariç).
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
