@@ -14,11 +14,20 @@ import { PublicProfile } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
+import { CollectionCardSkeleton } from '../../shared/collection-card/collection-card-skeleton';
+import { delayedLoading } from '../../shared/skeleton';
 
 /** Public profile (/u/:userName): the user's public collections. Works signed out. */
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, TranslocoPipe, PluralPipe, Breadcrumbs, CollectionCard],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    PluralPipe,
+    Breadcrumbs,
+    CollectionCard,
+    CollectionCardSkeleton,
+  ],
   template: `
     <section class="space-y-6">
       @if (notFound()) {
@@ -71,7 +80,26 @@ import { CollectionCard } from '../../shared/collection-card/collection-card';
           }
         </ul>
       } @else {
-        <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+        <!-- Placeholder shapes after a moment (user choice 2026-10-10); the way here is known -->
+        <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+        @if (showSkeleton()) {
+          <div>
+            <app-breadcrumbs class="mb-3" [items]="breadcrumbs()" />
+            <div class="flex items-center gap-4" aria-hidden="true">
+              <div class="skeleton size-14 shrink-0 rounded-full"></div>
+              <div class="min-w-0 space-y-3">
+                <div class="skeleton h-6 w-40 max-w-full rounded-full"></div>
+                <div class="skeleton h-3 w-48 max-w-full rounded-full"></div>
+              </div>
+              <div class="skeleton ml-auto h-10 w-32 shrink-0 rounded-lg"></div>
+            </div>
+          </div>
+          <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            @for (i of [0, 1, 2]; track i) {
+              <li><app-collection-card-skeleton /></li>
+            }
+          </ul>
+        }
       }
     </section>
   `,
@@ -88,9 +116,13 @@ export class Profile {
   protected readonly notFound = signal(false);
   /** Translation key when the profile could not be loaded for another reason than 404. */
   protected readonly loadError = signal<string | null>(null);
+  protected readonly showSkeleton = delayedLoading(
+    computed(() => this.profile() === null && !this.notFound() && this.loadError() === null),
+  );
 
-  protected readonly initial = computed(
-    () => this.profile()?.userName.charAt(0).toUpperCase() ?? '',
+  /** From the address while the profile loads (the way here shows it). */
+  protected readonly initial = computed(() =>
+    (this.profile()?.userName ?? this.userName()).charAt(0).toUpperCase(),
   );
   /** Explore > @user: profiles are reached from Explore (or a link from outside). */
   protected readonly breadcrumbs = computed<readonly Crumb[]>(() => [
