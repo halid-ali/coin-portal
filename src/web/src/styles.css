@@ -613,6 +613,20 @@
     cursor: pointer;
   }
 
+  /*
+   * Number fields without the browser's up/down arrows (user choice 2026-10-10): they only showed
+   * under the pointer and did not match the site; years and settings are typed, ↑/↓ still step.
+   * The coin form's quantity has its own − / + buttons. The wheel: shared/number-wheel.
+   */
+  input[type='number'] {
+    appearance: textfield;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
   /* Every password field has its own show/hide button (shared/password-field): not Edge's too */
   input::-ms-reveal {
     display: none;
