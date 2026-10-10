@@ -641,7 +641,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **Tür düğmeleri ve filtreler** (koleksiyon sayfası ve Keşfet; kullanıcı kararları 2026-10-09; saf mantık
   `pages/collection/coin-filters.ts`): Tümü / Euro / Dünya düğmeleri sayılı (sayı düğmenin sağ alt köşesinde
   yuvarlak bir rozet, düğmenin genişliğine girmez; seçilinin rozeti tema renginde; kullanıcı kararı 2026-10-10)
-  ve sadece listede iki tür de varsa
+  ve sadece listede iki tür de varsa; tek türlü listede sadece o tür, seçili görünümde ve düğme değil (`listKinds`;
+  kullanıcı kararı 2026-10-10; son düğmenin rozeti çerçevenin köşesine biner, rozet payı düğmelerin arasında). Sayı
+  sadece rozetlerde, sayfa başlığında değil (Keşfet). Adresteki tür listede yoksa tür ve o türün filtreleri adresten
+  kalkar (`replaceUrl`). İlk özet gelene kadar satır yerinde kalır (gecikmeli şekil)
   (URL `kind`; tür değişince nominal, para birimi ve ülke filtresi sıfırlanır). Nominal filtresi seçilen türün
   değerlerini sunar: Euro'da 8 değer, Dünya'da para birimleri (`currency:` önekli seçenek), Tümü'nde iki tür
   varsa "Euro coin" / "Dünya coin'i" grupları. Ülke filtresi sadece listede (seçilen türde) olan ülkeler; özet

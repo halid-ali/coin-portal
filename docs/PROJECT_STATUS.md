@@ -1940,9 +1940,17 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           görsellerle karşılaştırıldı): sayı düğmenin sağ alt köşesinde yuvarlak bir rozet. Düğme grubu yaklaşık 50 px
           daraldı (640 px'te temizle + Sırala artık alt satıra geçmiyor), sayılar gelip giderken düğmeler artık
           genişlemiyor. Kontrast her tema renginde, iki temada en az 5,56:1. Sağ üst köşe bildirim rozetlerine ayrıldı.
+    - **Tür alanı her listede** (kullanıcı kararları; çerçeve için sıkı, eşit iç boşluk ve çerçevesiz seçenekleri
+          görsellerle karşılaştırıldı): iki tür varsa Tümü / Euro / Dünya, tek tür varsa sadece o tür, seçili
+          görünümde (düğme değil: seçilecek bir şey yok; ekran okuyucu "Euro 90"). Keşfet başlığının altındaki
+          "· N kayıt (filtrelenmiş)" kalktı (sayı rozetlerde; telefonda ikinci satır açıyordu). Çerçevenin sağındaki
+          fazla boşluk kapandı: rozet payı düğmelerin arasında (`gap-1.5`), son rozet çerçevenin köşesine biner.
+          Adresteki tür listede yoksa (başka koleksiyoncu, eski link) tür ve o türün filtreleri adresten kendiliğinden
+          kalkar (`replaceUrl`). İlk özet gelene kadar satır yerinde kalır (300 ms sonra şekil): telefonda sayfa
+          artık zıplamıyor.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 496 (+48), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 498 (+50), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası
