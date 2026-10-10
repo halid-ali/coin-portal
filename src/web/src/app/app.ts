@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, viewChild } from '@angular/core';
+import { Component, DOCUMENT, DestroyRef, ElementRef, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -8,6 +8,7 @@ import { EmailBanner } from './layout/email-banner/email-banner';
 import { Footer } from './layout/footer/footer';
 import { Header } from './layout/header/header';
 import { PageWidthService } from './layout/page-width.service';
+import { scrollPastNumberFields } from './shared/number-wheel';
 
 /** The address without query and fragment: filters, sort and paging stay on the same page. */
 function pagePath(url: string): string {
@@ -26,6 +27,7 @@ export class App {
     // Follows the routes from the first navigation on
     inject(PageWidthService);
     this.followPageChanges();
+    inject(DestroyRef).onDestroy(scrollPastNumberFields(inject(DOCUMENT)));
   }
 
   /** The skip link: focus moves into the content, without adding #main to the address. */
