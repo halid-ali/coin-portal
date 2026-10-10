@@ -575,7 +575,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - **Form erişilebilirliği:** her alan `appField` (`shared/field-a11y.ts`; `aria-invalid`, `aria-required`,
   `aria-describedby`), hata metni `id="<alanId>-error"`, ipucu `id="<alanId>-hint"`; formControlName'siz
   alan kontrolü verir (`[appField]="form.controls.x"`). Geçersiz gönderimde ve sunucunun alan hatalarından
-  sonra `injectFocusFirstInvalid()` ile ilk hatalı alana odak. Hata kutuları `role="alert"`, yükleme
+  sonra `injectFocusFirstInvalid()` ile ilk hatalı alana odak.
+  **Yer tutucu (placeholder)** (kullanıcı kararı 2026-10-10): yazılan alanlarda yok, örnek ve aralık alttaki
+  ipucunda (yazınca kaybolmaz, ekran okuyucu `aria-describedby`'dan okur); boş seçim listesinde `common.choose`
+  ("Seç…"), serbest metinli öneri listesinde `common.typeOrChoose` ("Yaz ya da seç…"; önerisi yokken düz metin
+  kutusudur, `Combobox` yer tutucuyu ve oku kendisi gizler); arama kutularında var (`coinList.searchPlaceholder`). Hata kutuları `role="alert"`, yükleme
   metinleri `role="status"`, yeniden yüklenen liste `[attr.aria-busy]`. Sayfa iskeletinde "İçeriğe atla"
   linki; yol değişince (sorgu değil) sayfa başa kayar ve odak `main`'e geçer (`app.ts`).
   **Her parola alanı** `<app-password-field>` içinde (`shared/password-field`; kullanıcı kararı 2026-10-07): göz

@@ -152,6 +152,7 @@
               [formControl]="otherForm.controls.currency"
               [options]="currencyOptions()"
               [label]="'coin.field.currency' | transloco"
+              [placeholder]="'common.typeOrChoose' | transloco"
               [maxLength]="limits.currencyMaxLength"
             />
             @if (errorMessage(otherForm.controls.currency); as msg) {

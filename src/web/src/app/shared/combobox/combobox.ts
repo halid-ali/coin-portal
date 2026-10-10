@@ -60,7 +60,7 @@ let nextId = 0;
       [attr.aria-invalid]="invalid() ? 'true' : null"
       [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-describedby]="field() ? inputId() + '-error ' + inputId() + '-hint' : null"
-      [attr.placeholder]="placeholder() || null"
+      [attr.placeholder]="(listLike() && placeholder()) || null"
       [attr.maxlength]="maxLength()"
       [disabled]="isDisabled()"
       [value]="text()"
@@ -72,7 +72,7 @@ let nextId = 0;
       (input)="onInput(box.value)"
       (keydown)="onKey($event)"
     />
-    @if (!freeText() || options().length) {
+    @if (listLike()) {
       <svg
         viewBox="0 0 24 24"
         class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-shade-500 transition-transform"
@@ -195,7 +195,10 @@ export class Combobox implements ControlValueAccessor {
   readonly label = input.required<string>();
   /** An option with the value '' on top, e.g. "All". */
   readonly allLabel = input<string | null>(null);
-  /** Shown in the empty box, e.g. "Choose…". */
+  /**
+   * Shown in the empty box, e.g. "Choose…". A free text box without suggestions is a plain text box
+   * and shows none (like the other typed fields; their examples are in the hint under them).
+   */
   readonly placeholder = input('');
   /** Any text; the options are suggestions. */
   readonly freeText = input(false, { transform: booleanAttribute });
@@ -203,6 +206,9 @@ export class Combobox implements ControlValueAccessor {
   /** Without formControlName: the form control whose error and hint texts it is tied to. */
   readonly control = input<AbstractControl | null>(null);
   readonly disabled = input(false, { transform: booleanAttribute });
+
+  /** A list to choose from: the arrow and the placeholder; free text only with suggestions. */
+  protected readonly listLike = computed(() => !this.freeText() || this.options().length > 0);
 
   protected readonly listId = `combobox-${++nextId}`;
   protected readonly open = signal(false);

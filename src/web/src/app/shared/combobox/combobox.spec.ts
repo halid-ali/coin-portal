@@ -65,6 +65,7 @@ class FilterHost {
     <app-combobox
       inputId="currency"
       label="Para birimi"
+      placeholder="Yaz ya da seç…"
       freeText
       [formControl]="currency"
       [options]="suggestions()"
@@ -374,6 +375,7 @@ describe('Combobox', () => {
     });
 
     it('takes any text as typed, the suggestions that match listed', async () => {
+      expect(box().placeholder).toBe('Yaz ya da seç…');
       await type('Lir');
 
       expect(host.currency.value).toBe('Lir');
@@ -427,6 +429,8 @@ describe('Combobox', () => {
       host.suggestions.set([]);
       await fixture.whenStable();
       expect(page.querySelector('svg')).toBeNull();
+      // Like the other typed fields: no placeholder
+      expect(box().hasAttribute('placeholder')).toBe(false);
 
       await type('lira');
       expect(box().getAttribute('aria-expanded')).toBe('false');
