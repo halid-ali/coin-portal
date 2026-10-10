@@ -15,60 +15,49 @@
     </div>
     <div class="max-w-full min-w-0">
       <label for="admin-user-status" class="sr-only">{{ 'admin.users.status' | transloco }}</label>
-      <select
-        id="admin-user-status"
-        class="form-input w-auto max-w-full min-w-0"
-        (change)="setStatus(statusSelect.value)"
-        #statusSelect
-      >
-        <option value="" [selected]="!statusValue()">
-          {{ 'admin.users.allStatuses' | transloco }}
-        </option>
-        @for (s of statuses; track s) {
-          <option [value]="s" [selected]="s === statusValue()">
-            {{ 'admin.status.' + s | transloco }}
-          </option>
-        }
-      </select>
+      <!-- List-only comboboxes like the coin lists' (user choice 2026-10-10) -->
+      <app-combobox
+        inputId="admin-user-status"
+        searchable="false"
+        fitOptions
+        class="max-w-full min-w-0"
+        [options]="statusOptions()"
+        [allLabel]="'admin.users.allStatuses' | transloco"
+        [value]="statusValue() ?? ''"
+        [label]="'admin.users.status' | transloco"
+        (valueChange)="setStatus($event)"
+      />
     </div>
     <div class="max-w-full min-w-0">
       <label for="admin-user-email" class="sr-only">{{
         'admin.users.emailFilter' | transloco
       }}</label>
-      <select
-        id="admin-user-email"
-        class="form-input w-auto max-w-full min-w-0"
-        (change)="setEmail(emailSelect.value)"
-        #emailSelect
-      >
-        <option value="" [selected]="emailValue() === undefined">
-          {{ 'admin.users.allEmails' | transloco }}
-        </option>
-        <option value="true" [selected]="emailValue() === true">
-          {{ 'admin.users.emailConfirmed' | transloco }}
-        </option>
-        <option value="false" [selected]="emailValue() === false">
-          {{ 'admin.users.emailUnconfirmed' | transloco }}
-        </option>
-      </select>
+      <app-combobox
+        inputId="admin-user-email"
+        searchable="false"
+        fitOptions
+        class="max-w-full min-w-0"
+        [options]="emailOptions()"
+        [allLabel]="'admin.users.allEmails' | transloco"
+        [value]="emailValue() === undefined ? '' : '' + emailValue()"
+        [label]="'admin.users.emailFilter' | transloco"
+        (valueChange)="setEmail($event)"
+      />
     </div>
     <div class="max-w-full min-w-0 xl:hidden">
       <label for="admin-user-sort" class="sr-only">{{ 'admin.sort' | transloco }}</label>
-      <select
-        id="admin-user-sort"
-        class="form-input w-auto max-w-full min-w-0"
-        (change)="setSortOption(sortSelect.value)"
-        #sortSelect
-      >
-        @for (s of sorts; track s.value) {
-          <option
-            [value]="s.value"
-            [selected]="sortState().sort === s.value && sortState().dir === s.first"
-          >
-            {{ 'admin.users.sorts.' + s.value | transloco }}
-          </option>
-        }
-      </select>
+      <app-combobox
+        inputId="admin-user-sort"
+        searchable="false"
+        fitOptions
+        class="max-w-full min-w-0"
+        [options]="sortOptions()"
+        [value]="sortValue()"
+        [label]="'admin.sort' | transloco"
+        [placeholder]="'admin.sort' | transloco"
+        placeholderIsName
+        (valueChange)="setSortOption($event)"
+      />
     </div>
   </div>
 

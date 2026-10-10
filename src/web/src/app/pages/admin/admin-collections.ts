@@ -3,10 +3,16 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, translate } from '@jsverse/transloco';
+import { TranslocoPipe, translate, translateSignal } from '@jsverse/transloco';
 import { Observable, catchError, firstValueFrom, of, switchMap, tap } from 'rxjs';
 
-import { AdminSortState, nextAdminSort, parseAdminSort } from '../../core/admin/admin-list';
+import {
+  AdminSortState,
+  namedOptions,
+  nextAdminSort,
+  parseAdminSort,
+  sortOptionValue,
+} from '../../core/admin/admin-list';
 import {
   ADMIN_NOTE_MAX_LENGTH,
   AdminCollection,
@@ -17,6 +23,7 @@ import { AdminService } from '../../core/admin/admin.service';
 import { PagedResponse, SortDirection } from '../../core/coins/coin.models';
 import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
+import { Combobox } from '../../shared/combobox/combobox';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
 import { SortHeader } from '../../shared/sort-header/sort-header';
@@ -56,6 +63,7 @@ const DEFAULT_SORT: AdminSortState<AdminCollectionSort> = { sort: 'UpdatedAt', d
     Pagination,
     SortHeader,
     VisibilityBadge,
+    Combobox,
   ],
   templateUrl: './admin-collections.html',
 })
@@ -67,8 +75,19 @@ export class AdminCollections extends AdminListBase {
   readonly sort = input(undefined, { transform: firstQueryParam });
   readonly dir = input(undefined, { transform: firstQueryParam });
 
-  protected readonly showValues = SHOW_VALUES;
-  protected readonly sorts = SORTS;
+  // The filter and sort boxes' choices (list-only comboboxes, user choice 2026-10-10)
+  private readonly showNames = translateSignal(SHOW_VALUES.map((s) => `collections.${s}`));
+  private readonly sortNames = translateSignal(SORTS.map((s) => `collections.sorts.${s.value}`));
+  protected readonly showOptions = computed(() =>
+    namedOptions(SHOW_VALUES, this.showNames() as string[]),
+  );
+  protected readonly sortOptions = computed(() =>
+    namedOptions(
+      SORTS.map((s) => s.value),
+      this.sortNames() as string[],
+    ),
+  );
+  protected readonly sortValue = computed(() => sortOptionValue(this.sortState(), SORTS));
 
   protected readonly showValue = computed(() => SHOW_VALUES.find((s) => s === this.show()));
   protected readonly sortState = computed(() =>

@@ -2,14 +2,16 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, translateSignal } from '@jsverse/transloco';
 import { catchError, of, switchMap, tap } from 'rxjs';
 
 import { AUDIT_ACTIONS, AdminAuditEntry, AdminAuditQuery } from '../../core/admin/admin.models';
+import { namedOptions } from '../../core/admin/admin-list';
 import { AdminService } from '../../core/admin/admin.service';
 import { PagedResponse } from '../../core/coins/coin.models';
 import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe } from '../../core/i18n/plural';
+import { Combobox } from '../../shared/combobox/combobox';
 import { Pagination } from '../../shared/pagination/pagination';
 import { AdminListBase } from './admin-list-base';
 import { delayedLoading } from '../../shared/skeleton';
@@ -17,7 +19,7 @@ import { delayedLoading } from '../../shared/skeleton';
 /** Admin > Audit log: what admins did, newest first, with an action filter. */
 @Component({
   selector: 'app-admin-audit',
-  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, PluralPipe, Pagination],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, PluralPipe, Pagination, Combobox],
   template: `
     <div class="space-y-4">
       <div class="flex flex-wrap items-end gap-3">
@@ -25,21 +27,17 @@ import { delayedLoading } from '../../shared/skeleton';
           <label for="admin-audit-action" class="sr-only">{{
             'admin.audit.action' | transloco
           }}</label>
-          <select
-            id="admin-audit-action"
-            class="form-input w-auto max-w-full min-w-0"
-            (change)="setAction(actionSelect.value)"
-            #actionSelect
-          >
-            <option value="" [selected]="!actionValue()">
-              {{ 'admin.audit.allActions' | transloco }}
-            </option>
-            @for (a of actions; track a) {
-              <option [value]="a" [selected]="a === actionValue()">
-                {{ 'admin.audit.actions.' + a | transloco }}
-              </option>
-            }
-          </select>
+          <app-combobox
+            inputId="admin-audit-action"
+            searchable="false"
+            fitOptions
+            class="max-w-full min-w-0"
+            [options]="actionOptions()"
+            [allLabel]="'admin.audit.allActions' | transloco"
+            [value]="actionValue() ?? ''"
+            [label]="'admin.audit.action' | transloco"
+            (valueChange)="setAction($event)"
+          />
         </div>
       </div>
 
@@ -239,7 +237,11 @@ export class AdminAudit extends AdminListBase {
 
   readonly action = input(undefined, { transform: firstQueryParam });
 
-  protected readonly actions = AUDIT_ACTIONS;
+  // The action filter's choices (a list-only combobox, user choice 2026-10-10)
+  private readonly actionNames = translateSignal(AUDIT_ACTIONS.map((a) => `audit.actions.${a}`));
+  protected readonly actionOptions = computed(() =>
+    namedOptions(AUDIT_ACTIONS, this.actionNames() as string[]),
+  );
   protected readonly actionValue = computed(() => AUDIT_ACTIONS.find((a) => a === this.action()));
   private readonly query = computed<AdminAuditQuery>(() => ({
     action: this.actionValue(),

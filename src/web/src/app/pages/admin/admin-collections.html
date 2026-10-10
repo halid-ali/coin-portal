@@ -18,39 +18,33 @@
       <label for="admin-collection-show" class="sr-only">{{
         'admin.collections.filter' | transloco
       }}</label>
-      <select
-        id="admin-collection-show"
-        class="form-input w-auto max-w-full min-w-0"
-        (change)="setShow(showSelect.value)"
-        #showSelect
-      >
-        <option value="" [selected]="!showValue()">
-          {{ 'admin.collections.all' | transloco }}
-        </option>
-        @for (s of showValues; track s) {
-          <option [value]="s" [selected]="s === showValue()">
-            {{ 'admin.collections.' + s | transloco }}
-          </option>
-        }
-      </select>
+      <!-- List-only comboboxes like the coin lists' (user choice 2026-10-10) -->
+      <app-combobox
+        inputId="admin-collection-show"
+        searchable="false"
+        fitOptions
+        class="max-w-full min-w-0"
+        [options]="showOptions()"
+        [allLabel]="'admin.collections.all' | transloco"
+        [value]="showValue() ?? ''"
+        [label]="'admin.collections.filter' | transloco"
+        (valueChange)="setShow($event)"
+      />
     </div>
     <div class="max-w-full min-w-0 xl:hidden">
       <label for="admin-collection-sort" class="sr-only">{{ 'admin.sort' | transloco }}</label>
-      <select
-        id="admin-collection-sort"
-        class="form-input w-auto max-w-full min-w-0"
-        (change)="setSortOption(sortSelect.value)"
-        #sortSelect
-      >
-        @for (s of sorts; track s.value) {
-          <option
-            [value]="s.value"
-            [selected]="sortState().sort === s.value && sortState().dir === s.first"
-          >
-            {{ 'admin.collections.sorts.' + s.value | transloco }}
-          </option>
-        }
-      </select>
+      <app-combobox
+        inputId="admin-collection-sort"
+        searchable="false"
+        fitOptions
+        class="max-w-full min-w-0"
+        [options]="sortOptions()"
+        [value]="sortValue()"
+        [label]="'admin.sort' | transloco"
+        [placeholder]="'admin.sort' | transloco"
+        placeholderIsName
+        (valueChange)="setSortOption($event)"
+      />
     </div>
   </div>
 

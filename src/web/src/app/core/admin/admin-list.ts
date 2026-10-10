@@ -1,4 +1,5 @@
 import { SortDirection } from '../coins/coin.models';
+import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 import { ADMIN_DEFAULT_PAGE_SIZE, ADMIN_PAGE_SIZES } from './admin.models';
 
 export interface AdminSortState<T extends string> {
@@ -20,6 +21,28 @@ export function nextAdminSort<T extends string>(
     return { sort: column, dir: firstDirection };
   }
   return { sort: column, dir: current.dir === 'Asc' ? 'Desc' : 'Asc' };
+}
+
+/**
+ * An admin filter or sort box's options: the values and their names in the same order. The names
+ * come from the panel's texts (translateSignal: '' until they load, again in a new language).
+ */
+export function namedOptions(
+  values: readonly string[],
+  names: readonly string[],
+): ComboboxOption[] {
+  return values.map((value, i) => ({ value, label: names[i] ?? '' }));
+}
+
+/**
+ * The sort box's value: the column while the list is sorted in its first direction (the box's
+ * options), otherwise '' (a header turned it around on a wide screen): the box then reads "Sort".
+ */
+export function sortOptionValue<T extends string>(
+  state: AdminSortState<T>,
+  sorts: readonly { value: T; first: SortDirection }[],
+): string {
+  return sorts.some((s) => s.value === state.sort && s.first === state.dir) ? state.sort : '';
 }
 
 /** URL value -> sort state; unknown columns and directions fall back to the default. */
