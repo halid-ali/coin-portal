@@ -889,6 +889,10 @@ export class Collection {
   }
 
   protected clearFilters(): void {
+    // The button stays (aria-disabled) when there is nothing to clear
+    if (!this.hasFilters()) {
+      return;
+    }
     // Keep the chosen sort order, page size and view
     this.router.navigate([], {
       relativeTo: this.route,

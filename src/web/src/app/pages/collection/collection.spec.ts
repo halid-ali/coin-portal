@@ -557,6 +557,29 @@ describe('Collection', () => {
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin(25));
   });
 
+  it('keeps "clear filters" in place, unavailable, when there is nothing to clear', async () => {
+    const clearButtons = () =>
+      [...page().querySelectorAll('button')].filter((b) =>
+        b.textContent!.includes('Filtreleri temizle'),
+      );
+
+    await open('/collections/5', 1, pageWithCoin());
+
+    // The row's button (sm and up) and the folded filters' one (phones)
+    expect(clearButtons()).toHaveLength(2);
+    expect(clearButtons().every((b) => b.getAttribute('aria-disabled') === 'true')).toBe(true);
+    clearButtons()[0].click();
+    await harness.fixture.whenStable();
+    expect(url()).toBe('/collections/5');
+    http.expectNone((r) => r.url === '/api/coins');
+
+    await harness.navigateByUrl('/collections/5?year=2002');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(clearButtons()).toHaveLength(2);
+    expect(clearButtons().every((b) => !b.hasAttribute('aria-disabled'))).toBe(true);
+  });
+
   it('loads a list sorted by country order once, after the countries', async () => {
     await harness.navigateByUrl('/collections/5?sort=Country');
     http.expectOne('/api/collections/5').flush(collection(3));

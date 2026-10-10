@@ -325,15 +325,19 @@
     @if (showFilters()) {
       <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
         <!-- All / Euro / Other with their counts, only where both kinds are (user choice
-         2026-10-09); on a phone above the search, outside the folded filters -->
-        @if (showKinds()) {
-          <div
-            class="sm:col-span-2 lg:col-span-6"
-            role="group"
-            [attr.aria-label]="'coinList.kinds.label' | transloco"
-          >
+         2026-10-09); on a phone above the search, outside the folded filters. From sm up "clear
+         filters" sits at the right end of this row, also without the kind buttons, and stays when
+         there is nothing to clear (unavailable), so the card never changes height (user choice
+         2026-10-10). Phones have it at the end of the folded filters -->
+        <div
+          class="flex-wrap items-center gap-3 sm:col-span-2 sm:flex lg:col-span-6"
+          [class]="showKinds() ? 'flex' : 'hidden'"
+        >
+          @if (showKinds()) {
             <div
               class="inline-flex max-w-full rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
+              role="group"
+              [attr.aria-label]="'coinList.kinds.label' | transloco"
             >
               @for (k of kinds; track $index) {
                 @let selected = (query().kind ?? null) === k;
@@ -359,8 +363,16 @@
                 </button>
               }
             </div>
-          </div>
-        }
+          }
+          <button
+            type="button"
+            class="btn-secondary ml-auto hidden shrink-0 py-1.5 whitespace-nowrap sm:inline-flex"
+            [attr.aria-disabled]="hasFilters() ? null : true"
+            (click)="clearFilters()"
+          >
+            {{ 'coinList.clearFilters' | transloco }}
+          </button>
+        </div>
 
         <!-- Explore (collector) and own collections (photos) have one filter more: there the
          search takes one column on large screens, so the row still holds six -->
@@ -475,23 +487,22 @@
             </div>
           }
 
-          @if (hasFilters()) {
-            <button
-              type="button"
-              class="btn-secondary justify-self-start py-1.5 sm:hidden"
-              (click)="clearFilters()"
-            >
-              {{ 'coinList.clearFilters' | transloco }}
-            </button>
-          }
+          <button
+            type="button"
+            class="btn-secondary justify-self-start py-1.5 sm:hidden"
+            [attr.aria-disabled]="hasFilters() ? null : true"
+            (click)="clearFilters()"
+          >
+            {{ 'coinList.clearFilters' | transloco }}
+          </button>
         </div>
 
-        <!-- In the desktop list the table headers sort, so there this row only holds "clear filters";
-         the grid has no headers and keeps the sort select on every screen size. Phones: the
-         filters toggle and the sort select -->
+        <!-- In the desktop list the table headers sort, so there is no row; the grid has no headers
+         and keeps the sort select on every screen size. Phones: the filters toggle and the sort
+         select -->
         <div
           class="order-1 flex min-w-0 items-center gap-3 sm:flex-wrap sm:order-0 sm:col-span-2 sm:items-end lg:col-span-6"
-          [class]="hasFilters() || viewMode() === 'grid' ? '' : 'lg:hidden'"
+          [class]="viewMode() === 'grid' ? '' : 'lg:hidden'"
         >
           <button
             type="button"
@@ -531,15 +542,6 @@
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          @if (hasFilters()) {
-            <button
-              type="button"
-              class="btn-secondary hidden py-1.5 sm:inline-flex"
-              (click)="clearFilters()"
-            >
-              {{ 'coinList.clearFilters' | transloco }}
-            </button>
-          }
           <!-- Looks like the filters toggle: an icon on the left and no label; with the default order
            it reads "Sort" (a hidden placeholder option), otherwise the chosen order and "clear sort"
            joins the list. The frame is on the wrapper, not on the select: Chrome indents the
