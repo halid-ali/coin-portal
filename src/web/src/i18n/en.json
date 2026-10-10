@@ -742,7 +742,7 @@
     },
     "purposes": {
       "title": "Why we process it (legal basis)",
-      "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the age limit of 18. We send your email address only emails about your account (the verification and password reset links, the password change notice), no newsletters or advertising.",
+      "i1": "To provide your account and collection: account and content data (Art. 6(1)(b) GDPR, performance of a contract). Your date of birth is only used to check the age limit of 18. We send your email address only emails about your account (the verification and password reset links, the password change notice, reminders before an unverified account is deleted, warnings when your photo storage is 75% and 90% full), no newsletters or advertising.",
       "i2": "To keep the site safe: technical records, request limits, the temporary lock after failed sign-ins and moderation against abuse (Art. 6(1)(f) GDPR, legitimate interest).",
       "i3": "To run the site, as totals: for example the number of accounts that used the site in the last 30 days. These numbers are not used to assess individuals (Art. 6(1)(f) GDPR, legitimate interest).",
       "i4": "To answer the emails you send us: your email address and message (Art. 6(1)(f) GDPR, legitimate interest).",
