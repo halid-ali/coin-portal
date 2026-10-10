@@ -4,6 +4,75 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-10-10
+
+### Added
+
+- **api:** Add coins other than euro coins
+- **api:** Filter coins by kind and currency, and list their facets
+- **client:** Show coins other than euro coins with their value and icon
+- **client:** Add other coins in the coin form
+- **client:** Filter collections and explore by coin kind
+- **client:** Present the site for every coin collection
+- **client:** Add a combobox that filters its list as you type
+- **client:** Pick the coin's country from a filterable list
+- **client:** Filter coin lists with filterable lists
+- **client:** Suggest the coin's currency in a filterable list
+- **client:** Show the matching letters in the accent color
+- **client:** Open a combobox list as wide as its longest option
+- **client:** Filter by commemorative and photos with the same list
+- **client:** Pick the coin's collection and denomination from the same list
+- **client:** Call coins other than euro coins world coins
+- **client:** Show placeholder shapes while a coin list loads
+- **client:** Show a placeholder shape until a photo arrives
+- **client:** Show placeholder cards while my collections load
+- **client:** Show placeholder shapes while a profile loads
+- **client:** Show placeholder shapes while the home dashboard loads
+- **client:** Show placeholder shapes while a collection's header loads
+- **client:** Show the coin form as placeholder shapes while a coin loads
+- **client:** Show placeholder shapes while the photo storage loads
+- **client:** Show placeholder shapes while the admin overview loads
+- **client:** Show placeholder rows while the admin lists load
+- **client:** Show placeholder shapes while an admin's user detail loads
+- **client:** Show placeholder shapes while the admin settings load
+- **client:** Show the app's shell instead of the logo while it starts
+- **client:** Remember on this browser whether it is signed in
+- **client:** Show the shell signed in or out, and the home page's own
+- **client:** Keep "clear filters" in place next to the kind buttons
+- **client:** Put the sort select in the filter card's first row
+- **client:** Show "clear filters" as an icon on tablets
+- **client:** Add a list-only mode to the combobox
+- **client:** Make the short fixed lists list-only
+- **client:** Show the sort and page size as list-only comboboxes
+- **client:** Make the admin panel's filters and sorts list-only comboboxes
+- **client:** Pick the delete dialog's move target from a combobox
+- **client:** Let the combobox show its choice through a template
+- **client:** Shorten the phone's filters toggle and sort box
+- **client:** Slide the kind buttons' choice
+- **client:** Slide the coin form's kind choice on phones
+- **client:** Show the kind counts as badges on the buttons' corner
+- **client:** Show a list's one kind alone and close the gap in the kind buttons' frame
+- **client:** Hide the browser's arrows on number fields
+- **client:** Add − / + buttons to the coin form's quantity
+- **client:** Give the scrollbars a gray pill without arrows
+- **client:** Color the storage bar by how full it is
+- **api:** E-mail the user when the photo storage passes 75% and 90%
+- **client:** List every account e-mail in the privacy policy
+- **client:** Show a coin's description in the list and the photo viewer
+
+### Fixed
+
+- **api:** Log requests the client closed as 499, not as errors
+- **api:** Take the order of every country in coin lists
+- **client:** Show a cut coin value in full on hover
+- **client:** Start the home page at the same height as the other pages
+- **client:** Prompt to type or select in the currency box while it has suggestions
+- **client:** Center the commemorative checkbox on the inputs beside it
+- **client:** Keep the kind buttons while the filters' facets reload
+- **client:** Drop the coin count from the Explore subtitle
+- **client:** Scroll the page instead of stepping a focused number field
+- **client:** Give the startup shell's logo its own size
+
 ## [1.9.0] - 2026-10-07
 
 ### Added
