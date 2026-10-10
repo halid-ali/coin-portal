@@ -1,16 +1,17 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-10 (**İkinci bulgu turu sürüyor** (Tamamlananlar 100, `fix/world-coins-and-ui-findings`,
-**main'e alınmadı**): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
+Son güncelleme: 2026-10-10 (**`v1.10.0` hazırlanıyor**, ikinci bulgu turu bitti (Tamamlananlar 100, `fix/world-coins-and-ui-findings`
+main'e alındı): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
 kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
 ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni), filtre kartında "Filtreleri
 temizle" ve "Sırala" ilk satırda, hep yerinde, kısa sabit listeler (Sırala, Sayfa başına, yönetim paneli dahil)
 yazısız seçim kutusu, uygulamada native `<select>` kalmadı, telefonda "Filtrele" ikon ve Sırala "Yıl ↓", tür
-düğmelerinde kayan seçim ve sağ alt köşede sayı rozeti (42 commit). Kullanıcının başka bulguları var, yeni sohbette
-aynı branch'te devam edilir. Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
+düğmelerinde kayan seçim ve sağ alt köşede sayı rozeti, tek türlü listede tek tür, sayı alanlarında tarayıcı oku yok
+(Adet'te − / +), oksuz gri kaydırma çubukları, fotoğraf alanı çubuğu sabit renklerde ve %75 / %90'da uyarı e-postası,
+coin açıklaması listede ve fotoğraf görüntüleyicide (62 commit). Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
 listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
-istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
-`v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: `v1.10.0` yayını (push, kurulum,
+Release notları; kullanıcı onayıyla). **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -28,10 +29,8 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 - Durum (2026-10-10 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
   **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97), Euro dışı
   coin'ler (98) ve manuel test bulgularının düzeltmeleri (99, `fix/non-euro-coins-findings` main'e alındı).
-  **Açık branch:** `fix/world-coins-and-ui-findings` (ikinci bulgu turu, Tamamlananlar 100; 42 commit, main'e
-  alınmadı, çalışma ağacı temiz; son sohbet 2026-10-10 öğleden sonra bitti, kullanıcının başka bulguları var). **Sıradaki:** kullanıcının kalan bulguları bu branch'te, önceki sohbetteki gibi
-  tek tek düzeltilir (bulgu → görüntülü öneri → onay → düzeltme → commit onayı); bulgular bitince bu doküman
-  güncellenir ve branch kullanıcı onayıyla main'e alınır. Sonra (kullanıcı onayıyla) push ve `v1.10.0` (minor;
+  İkinci bulgu turu (`fix/world-coins-and-ui-findings`, Tamamlananlar 100) bitti ve main'e alındı (2026-10-10
+  akşamı; kullanıcının başka bulgusu yok). **Sıradaki:** kullanıcı onayıyla push ve `v1.10.0` (minor;
   `AddOtherCoins` ve `AddStorageWarningLevel` migration'ları var: kurulumu onaylamadan önce panelden veritabanı
   yedeği, "Yayın (deploy) adımları"). Lokal dev
   veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
@@ -1890,7 +1889,7 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Testler: client 448 (+37), e2e 21 (adet aynı; açık listeye axe taraması eklendi), API 481 (değişmedi).
           Prettier, `ng build`, tam e2e koşusu temiz.
 
-100. **İkinci bulgu turu** (`fix/world-coins-and-ui-findings`, 2026-10-10, sürüyor; kullanıcıyla tek tek, her biri
+100. **İkinci bulgu turu** (`fix/world-coins-and-ui-findings`, 2026-10-10, bitti, main'e alındı; kullanıcıyla tek tek, her biri
     görüntüyle karar verilip ayrı commit'te; bazıları dünya coin'leri dışından). Kurallar CLAUDE.md'de ("Form
     erişilebilirliği" yer tutucu, "Yükleme iskeleti").
     - **Yer tutucu kuralı** (kullanıcı kararı): yazılan alanlarda yok (örnek alttaki ipucunda), boş seçim listesinde
@@ -2230,10 +2229,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş: ikinci bulgu turunun devamı, sonra `v1.10.0`** (yol haritası 18, Tamamlananlar 98–100). İlk tur
-`main`'de (push edilmedi); ikinci tur `fix/world-coins-and-ui-findings` branch'inde sürüyor (Tamamlananlar 100,
-main'e alınmadı). Kullanıcının kalan bulguları yeni sohbette aynı branch'te düzeltilir; bitince bu doküman ve
-merge, sonra sürüm adımı kullanıcı onayıyla (kullanıcı kararı 2026-10-09: manuel testler bitmeden sürüme geçilmez). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
+**Sıradaki iş: `v1.10.0` yayını** (yol haritası 18, Tamamlananlar 98–100). İki bulgu turu da bitti ve `main`'de
+(push edilmedi); yayın kullanıcı onayıyla (CLAUDE.md "Sürüm ve yayın"). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
 para birimi önerileri, tarihî ülkeler, tür değiştirerek düzenleme), ayse'nin "Karışık kutu"su (düğmeler, gruplu
 Nominal), "Dünya paraları" (iki yüz, görüntüleyicide Ön/Arka yüz), "Yeni başladım" (yayın bandı), herkese açık
 koleksiyonda diğer coin'in arka yüzünü silmek (yayından iner sorusu), Keşfet, dört dil ve iki tema. Yayında migration var: kurulumu onaylamadan önce panelden veritabanı yedeği. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
