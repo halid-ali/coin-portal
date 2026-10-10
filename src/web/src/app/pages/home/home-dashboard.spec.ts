@@ -9,6 +9,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Coin, CoinSummary, PagedResponse } from '../../core/coins/coin.models';
 import { Collection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 import { HomeDashboard, QUICK_CHECK_SIZE, RECENT_SIZE } from './home-dashboard';
 
 const user = { userName: 'ayse.yilmaz', firstName: 'Ayşe' } as UserResponse;
@@ -106,6 +107,67 @@ describe('HomeDashboard', () => {
     input.value = value;
     input.dispatchEvent(new Event('input'));
   }
+
+  describe('while loading', () => {
+    // rxjs timers run on setInterval
+    beforeEach(() => vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] }));
+    afterEach(() => vi.useRealTimers());
+
+    const element = () => fixture.nativeElement as HTMLElement;
+    const recentRequest = () =>
+      http.expectOne((r) => r.url === '/api/coins' && !r.params.has('search'));
+
+    async function waitASecond(): Promise<void> {
+      fixture = TestBed.createComponent(HomeDashboard);
+      await fixture.whenStable();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await fixture.whenStable();
+    }
+
+    it('shows placeholders for what is still loading after a moment, then the content', async () => {
+      await waitASecond();
+
+      // The counts' icons and names stay, a placeholder for each number
+      expect(text()).toMatch(/coins*koleksiyons*ülkes*hatıra parası/);
+      expect(element().querySelectorAll('section.grid .skeleton')).toHaveLength(4);
+      expect(text()).toContain('Son eklediklerin');
+      expect(element().querySelectorAll('app-collection-card-skeleton')).toHaveLength(3);
+      expect(
+        [...element().querySelectorAll('[role=status]')].map((e) => e.textContent!.trim()),
+      ).toContain('Yükleniyor…');
+
+      http.expectOne('/api/collections').flush([collection(1, 'Koleksiyonum', 'Private')]);
+      http.expectOne('/api/coins/summary').flush({
+        coinCount: 3,
+        countryCount: 2,
+        commemorativeCount: 1,
+      });
+      recentRequest().flush(page([coin(7, '2 € · Malta · 2019')]));
+      await fixture.whenStable();
+
+      expect(element().querySelectorAll('.skeleton')).toHaveLength(0);
+      expect(text()).toMatch(/3s*coin/);
+      expect(text()).toContain('2 € · Malta · 2019');
+    });
+
+    it('drops the recent coins placeholders once the account has no coins', async () => {
+      await waitASecond();
+      http.expectOne('/api/coins/summary').flush({
+        coinCount: 0,
+        countryCount: 0,
+        commemorativeCount: 0,
+      });
+      await fixture.whenStable();
+
+      expect(text()).not.toContain('Son eklediklerin');
+      // The collections are still on the way
+      expect(element().querySelectorAll('app-collection-card-skeleton')).toHaveLength(3);
+
+      http.expectOne('/api/collections').flush([]);
+      recentRequest().flush(page([]));
+      await fixture.whenStable();
+    });
+  });
 
   it('greets the user and shows the counts, recent coins and collections', async () => {
     await open(

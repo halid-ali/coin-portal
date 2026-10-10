@@ -9,6 +9,7 @@ import {
   concat,
   debounceTime,
   distinctUntilChanged,
+  finalize,
   map,
   of,
   switchMap,
@@ -26,6 +27,8 @@ import { CoinThumb } from '../../shared/coin-thumb/coin-thumb';
 import { DenominationIcon } from '../../shared/denomination-icon/denomination-icon';
 import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
+import { CollectionCardSkeleton } from '../../shared/collection-card/collection-card-skeleton';
+import { delayedLoading } from '../../shared/skeleton';
 import { SEARCH_MAX_LENGTH } from '../../shared/url-search';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { ImageSkeleton } from '../../shared/image-skeleton';
@@ -59,6 +62,7 @@ export const HOME_COLLECTIONS = 5;
     DenominationIcon,
     OtherCoinIcon,
     CollectionCard,
+    CollectionCardSkeleton,
     CollectionFormDialog,
   ],
   host: { class: 'block' },
@@ -76,6 +80,10 @@ export const HOME_COLLECTIONS = 5;
               {{ 'home.dashboard.empty' | transloco }}
             }
           </p>
+        } @else if (showSkeleton() && summaryLoading()) {
+          <div class="mt-1 flex h-6 items-center" aria-hidden="true">
+            <div class="skeleton h-3.5 w-44 rounded-full"></div>
+          </div>
         }
       </div>
       <!-- Side by side; if they do not fit they wrap, their text does not -->
@@ -197,7 +205,8 @@ export const HOME_COLLECTIONS = 5;
       </div>
     </section>
 
-    @if (summary(); as s) {
+    <!-- While the counts load: the icons and names, a placeholder for each number -->
+    @if (summary() || (showSkeleton() && summaryLoading())) {
       <section class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <h2 class="sr-only">{{ 'home.stats.title' | transloco }}</h2>
         @for (stat of stats(); track stat.key) {
@@ -241,11 +250,17 @@ export const HOME_COLLECTIONS = 5;
               </svg>
             </span>
             <p class="min-w-0">
-              <span class="block text-xl leading-tight font-bold text-shade-900">{{
-                stat.value
-              }}</span>
+              @if (stat.value === null) {
+                <span class="flex h-6.5 items-center" aria-hidden="true">
+                  <span class="skeleton h-4 w-10 rounded-full"></span>
+                </span>
+              } @else {
+                <span class="block text-xl leading-tight font-bold text-shade-900">{{
+                  stat.value
+                }}</span>
+              }
               <span class="block text-sm break-words text-shade-500">{{
-                'home.stats.' + stat.key | plural: stat.value
+                'home.stats.' + stat.key | plural: stat.value ?? 0
               }}</span>
             </p>
           </div>
@@ -297,6 +312,30 @@ export const HOME_COLLECTIONS = 5;
           }
         </ul>
       </section>
+    } @else if (showSkeleton() && recentLoading() && summary()?.coinCount !== 0) {
+      <!-- Until the account's coin count says there are none -->
+      <section class="mt-9" aria-hidden="true">
+        <h2 class="mb-3.5 text-xl font-bold text-shade-900">
+          {{ 'home.dashboard.recent' | transloco }}
+        </h2>
+        <ul
+          class="-mx-1 grid auto-cols-[42%] grid-flow-col gap-3 overflow-x-hidden px-1 pb-1 sm:auto-cols-[30%] md:grid-flow-row md:grid-cols-5 md:gap-3.5"
+        >
+          @for (i of recentSlots; track i) {
+            <li class="card h-full overflow-hidden p-0">
+              <div
+                class="grid aspect-square place-items-center border-b border-shade-200 bg-shade-50"
+              >
+                <div class="skeleton size-3/4 rounded-full"></div>
+              </div>
+              <div class="space-y-2.5 px-3 py-3">
+                <div class="skeleton h-3.5 w-4/5 rounded-full"></div>
+                <div class="skeleton h-3 w-1/2 rounded-full"></div>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
     }
 
     <section class="mt-9">
@@ -341,7 +380,15 @@ export const HOME_COLLECTIONS = 5;
           </li>
         </ul>
       } @else {
-        <p role="status" class="text-shade-500">{{ 'common.loading' | transloco }}</p>
+        <!-- Placeholder cards after a moment (user choice 2026-10-10); a screen reader hears this -->
+        <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+        @if (showSkeleton()) {
+          <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            @for (i of [0, 1, 2]; track i) {
+              <li><app-collection-card-skeleton /></li>
+            }
+          </ul>
+        }
       }
     </section>
 
@@ -412,6 +459,19 @@ export class HomeDashboard {
     return max !== null && summary !== null && summary.coinCount >= max;
   });
   protected readonly recent = signal<Coin[] | null>(null);
+  /** The counts and the recent coins are null after a failure too: these say they are on the way. */
+  protected readonly summaryLoading = signal(true);
+  protected readonly recentLoading = signal(true);
+  /** Placeholder shapes for the parts still loading, once the page has waited a moment. */
+  protected readonly showSkeleton = delayedLoading(
+    computed(
+      () =>
+        this.summaryLoading() ||
+        this.recentLoading() ||
+        (this.collections() === null && !this.collectionsError()),
+    ),
+  );
+  protected readonly recentSlots = [...Array(RECENT_SIZE).keys()];
   protected readonly creating = signal(false);
   private readonly copyState = signal<'idle' | 'copied' | 'failed'>('idle');
 
@@ -439,14 +499,18 @@ export class HomeDashboard {
     return check.state === 'error' ? check.key : '';
   });
 
+  /** The numbers are null while the counts load (a placeholder in their place). */
   protected readonly stats = computed(() => {
     const s = this.summary();
-    if (!s) return [];
     return [
-      { key: 'coins', hue: 'stat-icon-amber', value: s.coinCount },
-      { key: 'collections', hue: 'stat-icon-sky', value: this.collections()?.length ?? 0 },
-      { key: 'countries', hue: 'stat-icon-emerald', value: s.countryCount },
-      { key: 'commemoratives', hue: 'stat-icon-violet', value: s.commemorativeCount },
+      { key: 'coins', hue: 'stat-icon-amber', value: s?.coinCount ?? null },
+      {
+        key: 'collections',
+        hue: 'stat-icon-sky',
+        value: s ? (this.collections()?.length ?? 0) : null,
+      },
+      { key: 'countries', hue: 'stat-icon-emerald', value: s?.countryCount ?? null },
+      { key: 'commemoratives', hue: 'stat-icon-violet', value: s?.commemorativeCount ?? null },
     ];
   });
 
@@ -481,14 +545,20 @@ export class HomeDashboard {
       error: () => this.collectionsError.set(true),
     });
     // Counts and recent coins are extras: without them the page still works
-    this.coinService.summary().subscribe({
-      next: (s) => this.summary.set(s),
-      error: () => this.summary.set(null),
-    });
-    this.coinService.list({ sort: 'Newest', pageSize: RECENT_SIZE }).subscribe({
-      next: (page) => this.recent.set(page.items),
-      error: () => this.recent.set(null),
-    });
+    this.coinService
+      .summary()
+      .pipe(finalize(() => this.summaryLoading.set(false)))
+      .subscribe({
+        next: (s) => this.summary.set(s),
+        error: () => this.summary.set(null),
+      });
+    this.coinService
+      .list({ sort: 'Newest', pageSize: RECENT_SIZE })
+      .pipe(finalize(() => this.recentLoading.set(false)))
+      .subscribe({
+        next: (page) => this.recent.set(page.items),
+        error: () => this.recent.set(null),
+      });
   }
 
   protected collectionName(id: number): string {
