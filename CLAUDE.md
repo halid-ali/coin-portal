@@ -592,6 +592,15 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   firstQueryParam })` (tekrarlanan param dizi gelir), arama kutusu `syncSearchWithUrl`
   (`shared/url-search.ts`; URL'deki değerle karşılaştırır, `maxlength` `SEARCH_MAX_LENGTH`), son
   sayfanın ötesindeki boş sayfa `replaceUrl` ile son sayfaya gider.
+- **Yükleme iskeleti** (kullanıcı kararları 2026-10-10): yüklenen içeriğin yerinde gri şekiller (`.skeleton`:
+  çubuk, daire, kutu; `motion-safe` nabız), **sadece yükleme `SKELETON_DELAY_MS` (300 ms) sürerse**
+  (`delayedLoading(loading)`, `shared/skeleton.ts`): hızlı cevap içeriği şekiller görünmeden değiştirir, o arada
+  eski içerik soluklaşmadan kalır. Şekiller `aria-hidden`, bölge `aria-busy`, ilk yüklemede `sr-only`
+  `role="status"` "Yükleniyor". Satır sayısı ekrandaki kadar (sayfa zıplamaz). Koleksiyon sayfasında tablo
+  başlığı, sayfa düğmeleri ve görünüm seçimi yerinde kalır. Filtre özeti (facets) sadece liste, koleksiyoncu ya da
+  tür değişince istenir; yeniden yüklenirken eskisi tutulur (tür düğmeleri kalır), değişecek filtre kilitlenir
+  (`facetsReloading`: tür → Ülke; koleksiyoncu → Nominal, Ülke ve düğmelerdeki sayılar). Kilitli `Combobox`
+  soluk görünür. İskelet site geneline yayılıyor (kalan sayfalar PROJECT_STATUS'ta).
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
   listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;
@@ -705,7 +714,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
   dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
   `color-mix` ile, koyu tema ayarı da `styles.css`'te), `usage-bar` + `usage-bar-fill` (`-warn`, `-full`;
-  bir sınırın doluluğu: tema rengi, dolmak üzereyken sabit turuncu, doluyken tehlike rengi). Yeni ortak stil
+  bir sınırın doluluğu: tema rengi, dolmak üzereyken sabit turuncu, doluyken tehlike rengi), `skeleton`
+  (yükleme iskeletinin şekli). Yeni ortak stil
   gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
   `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış

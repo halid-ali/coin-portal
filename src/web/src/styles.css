@@ -567,6 +567,15 @@
   }
 
   /* Modal <dialog> opened with showModal(): centered panel over a blurred backdrop */
+  /*
+   * A placeholder shape while content loads (user choice 2026-10-10): a gray bar, circle or box in
+   * the content's place, gently pulsing (still without motion). Shown after SKELETON_DELAY_MS
+   * (shared/skeleton.ts), hidden from screen readers (aria-hidden); the region says it is busy.
+   */
+  .skeleton {
+    @apply rounded-md bg-shade-200 motion-safe:animate-pulse;
+  }
+
   .dialog-panel {
     @apply m-auto w-[calc(100%-2rem)] rounded-xl border border-shade-200 bg-shade-0 p-0 text-shade-900 shadow-xl
       backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm;

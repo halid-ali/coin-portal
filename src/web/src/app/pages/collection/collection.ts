@@ -50,6 +50,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { Combobox } from '../../shared/combobox/combobox';
 import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 import { scrollToTop } from '../../shared/motion';
+import { delayedLoading } from '../../shared/skeleton';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
@@ -452,6 +453,18 @@ export class Collection {
     return (this.header()?.coinCount ?? 0) > 0;
   });
   protected readonly loading = signal(true);
+  /** Placeholder shapes in the list's place: a load that takes a while. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
+  /**
+   * As many placeholder rows as the list has now, so the page keeps its height; a list's first load
+   * (or one with no coins shown) takes the collection's coins up to a page.
+   */
+  protected readonly skeletonRows = computed(() => {
+    const shown = this.result()?.items.length || Math.min(this.header()?.coinCount ?? 10, 10);
+    return [...Array(Math.min(Math.max(shown, 1), 50)).keys()];
+  });
+  /** Bar widths that vary from row to row, like real titles. */
+  protected readonly skeletonWidths = ['w-3/5', 'w-2/5', 'w-1/2', 'w-1/3', 'w-[55%]'];
   /** Translation key when the coin list could not be loaded. */
   protected readonly loadError = signal<string | null>(null);
   /** Coin whose photos are shown fullscreen. */

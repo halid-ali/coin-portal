@@ -10,6 +10,7 @@ import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection as CoinCollection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 import { Collection } from './collection';
 
 const collection = (coinCount: number, more: Partial<CoinCollection> = {}): CoinCollection => ({
@@ -668,6 +669,51 @@ describe('Collection', () => {
       expect(titles()).toEqual(['Akropolis']);
       expect(page().textContent).toContain('2 / 3');
       expect(pageButtons().some((b) => b.getAttribute('aria-disabled') === null)).toBe(true);
+    });
+
+    it('shows placeholder rows in place of a list that takes a while', async () => {
+      await open('/collections/5', 30, firstOfThree);
+      // rxjs timers run on setInterval
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/collections/5?page=2');
+        vi.advanceTimersByTime(SKELETON_DELAY_MS - 1);
+        await harness.fixture.whenStable();
+        expect(titles()).toEqual(['Brandenburger Tor']);
+
+        vi.advanceTimersByTime(1);
+        await harness.fixture.whenStable();
+        // As many as the list had: the table row and the phone card, hidden from screen readers
+        const rows = [...page().querySelectorAll('table tbody tr')];
+        expect(rows.map((r) => r.getAttribute('aria-hidden'))).toEqual(['true']);
+        expect(page().querySelectorAll('li[aria-hidden=true]')).toHaveLength(1);
+        expect(page().textContent).not.toContain('Brandenburger Tor');
+        expect(busy()).toBe('true');
+
+        latestCoinRequest().flush(secondOfThree);
+        await harness.fixture.whenStable();
+        expect(titles()).toEqual(['Akropolis']);
+        expect(page().querySelectorAll('[aria-hidden=true] .skeleton')).toHaveLength(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('shows placeholder rows for the first list too, up to its coins', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/collections/5');
+        http.match('/api/countries').forEach((r) => r.flush([]));
+        http.expectOne('/api/collections/5').flush(collection(3));
+        vi.advanceTimersByTime(SKELETON_DELAY_MS);
+        await harness.fixture.whenStable();
+
+        expect(page().querySelectorAll('table tbody tr[aria-hidden=true]')).toHaveLength(3);
+        expect(page().querySelector('[role=status]')!.textContent).toContain('Yükleniyor…');
+        latestCoinRequest().flush(pageWithCoin());
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('says when the next list cannot be loaded', async () => {
