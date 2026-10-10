@@ -1,6 +1,7 @@
 import {
   Component,
   ElementRef,
+  TemplateRef,
   afterRenderEffect,
   booleanAttribute,
   computed,
@@ -115,15 +116,30 @@ let nextId = 0;
         <span
           class="col-start-1 row-start-1 truncate"
           [class.text-shade-500]="!text() && !placeholderIsName()"
-          >{{ text() || placeholder() }}</span
         >
+          @if (shownOption(); as option) {
+            <ng-container *ngTemplateOutlet="display()!; context: { $implicit: option }" />
+          } @else {
+            {{ text() || placeholder() }}
+          }
+        </span>
         @if (fitOptions()) {
-          @for (label of sizerLabels(); track $index) {
+          <span
+            class="invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap"
+            aria-hidden="true"
+            >{{ placeholder() }}</span
+          >
+          @for (option of sizerOptions(); track $index) {
             <span
               class="invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap"
               aria-hidden="true"
-              >{{ label }}</span
             >
+              @if (display(); as shown) {
+                <ng-container *ngTemplateOutlet="shown; context: { $implicit: option }" />
+              } @else {
+                {{ option.label }}
+              }
+            </span>
           }
         }
       </button>
@@ -272,8 +288,13 @@ export class Combobox implements ControlValueAccessor {
   readonly searchable = input(true, { transform: booleanAttribute });
   /** As wide as the longest option or the placeholder (only without typing). */
   readonly fitOptions = input(false, { transform: booleanAttribute });
-  /** The names a fitted box makes room for instead of the options (e.g. one that comes and goes). */
-  readonly fitLabels = input<readonly string[] | null>(null);
+  /** The options a fitted box makes room for instead of its own (e.g. without one that comes and goes). */
+  readonly fitTo = input<readonly ComboboxOption[] | null>(null);
+  /**
+   * How the box shows the chosen option (only without typing), e.g. shorter than in the list; it
+   * gets the option. The list keeps the names; give the full name to screen readers (sr-only).
+   */
+  readonly display = input<TemplateRef<{ $implicit: ComboboxOption }> | null>(null);
   /** The 38 px height of the buttons beside it (py-1.5). */
   readonly compact = input(false, { transform: booleanAttribute });
   /**
@@ -335,11 +356,12 @@ export class Combobox implements ControlValueAccessor {
     return this.allOptions().find((o) => o.value === this.value())?.label ?? '';
   });
 
-  /** The names a fitted box makes room for. */
-  protected readonly sizerLabels = computed(() => [
-    this.placeholder(),
-    ...(this.fitLabels() ?? this.allOptions().map((o) => o.label)),
-  ]);
+  /** The options a fitted box makes room for (beside the placeholder). */
+  protected readonly sizerOptions = computed(() => this.fitTo() ?? this.allOptions());
+  /** The chosen option, when the box shows it through `display`. */
+  protected readonly shownOption = computed(() =>
+    this.display() ? (this.allOptions().find((o) => o.value === this.value()) ?? null) : null,
+  );
 
   private readonly box =
     viewChild.required<ElementRef<HTMLInputElement | HTMLButtonElement>>('box');

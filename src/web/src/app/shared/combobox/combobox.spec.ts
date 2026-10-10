@@ -91,12 +91,17 @@ class FreeTextHost {
       searchable="false"
       fitOptions
       [placeholderIsName]="named()"
-      [fitLabels]="fitLabels()"
+      [fitTo]="fitTo()"
+      [display]="short() ? shortName : null"
       [formControl]="choice"
       [options]="options"
     >
       <svg comboboxIcon #comboboxIcon></svg>
     </app-combobox>
+    <ng-template #shortName let-option>
+      <b>{{ option.value }}</b>
+      <span class="sr-only">{{ option.label }}</span>
+    </ng-template>
   `,
 })
 class ListOnlyHost {
@@ -107,7 +112,8 @@ class ListOnlyHost {
     { value: 'Country', label: 'Ülke' },
   ];
   readonly named = signal(false);
-  readonly fitLabels = signal<string[] | null>(null);
+  readonly fitTo = signal<ComboboxOption[] | null>(null);
+  readonly short = signal(false);
   readonly choice = new FormControl('', { nonNullable: true, validators: Validators.required });
 }
 
@@ -590,15 +596,35 @@ describe('Combobox', () => {
       expect(box().getAttribute('aria-describedby')).toBe('sort-error sort-hint');
     });
 
-    it('fitted: makes room for the placeholder and every option, or the names given', async () => {
-      const sizers = () =>
-        [...box().querySelectorAll('span[aria-hidden=true]')].map((s) => s.textContent!.trim());
-      expect(sizers()).toEqual(['Seç…', 'Başlık', 'Yıl', 'Yıl (yeni)', 'Ülke']);
+    const sizers = () => [...box().querySelectorAll<HTMLElement>('span[aria-hidden=true]')];
+
+    it('fitted: makes room for the placeholder and every option, or the options given', async () => {
+      const names = () => sizers().map((s) => s.textContent!.trim());
+      expect(names()).toEqual(['Seç…', 'Başlık', 'Yıl', 'Yıl (yeni)', 'Ülke']);
       expect(page.querySelector('app-combobox')!.classList).toContain('inline-block');
 
-      host.fitLabels.set(['Başlık', 'Ülke']);
+      host.fitTo.set([host.options[0], host.options[3]]);
       await fixture.whenStable();
-      expect(sizers()).toEqual(['Seç…', 'Başlık', 'Ülke']);
+      expect(names()).toEqual(['Seç…', 'Başlık', 'Ülke']);
+    });
+
+    it('shows the choice through a display template, and fits that', async () => {
+      host.short.set(true);
+      host.choice.setValue('YearDesc');
+      await fixture.whenStable();
+
+      expect(shown().querySelector('b')!.textContent).toBe('YearDesc');
+      // The full name stays for screen readers
+      expect(shown().querySelector('.sr-only')!.textContent).toBe('Yıl (yeni)');
+      // The width is the shown forms' (and the placeholder's)
+      expect(
+        sizers().map((s) => s.querySelector('b')?.textContent ?? s.textContent!.trim()),
+      ).toEqual(['Seç…', 'Title', 'Year', 'YearDesc', 'Country']);
+
+      // Nothing chosen: the placeholder, as before
+      host.choice.setValue('');
+      await fixture.whenStable();
+      expect(shown().textContent!.trim()).toBe('Seç…');
     });
   });
 });

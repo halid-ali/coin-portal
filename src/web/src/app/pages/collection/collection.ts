@@ -374,8 +374,8 @@ export class Collection {
 
   /** Sort from the URL; unknown values fall back to the default order. */
   protected readonly sortState = computed<SortState>(() => parseSort(this.sort(), this.dir()));
-  /** The sort select's orders, values like "Year:Desc". */
-  private readonly sortOrders = computed<ComboboxOption[]>(() => {
+  /** The sort select's orders, values like "Year:Desc"; its width is theirs ("clear sort" comes and goes). */
+  protected readonly sortOrders = computed<ComboboxOption[]>(() => {
     this.language.current();
     return this.sortColumns.flatMap((c) =>
       (['Asc', 'Desc'] as const).map((dir) => ({
@@ -392,8 +392,6 @@ export class Collection {
     this.language.current();
     return [{ value: 'Newest', label: translate('sort.clear') }, ...this.sortOrders()];
   });
-  /** What the sort select makes room for: the orders ("clear sort" is never shown in the box). */
-  protected readonly sortOrderLabels = computed(() => this.sortOrders().map((o) => o.label));
   /** '' (the "Sort" placeholder) for the default order. */
   protected readonly sortValue = computed(() => {
     const { sort, dir } = this.sortState();
