@@ -601,6 +601,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   tür değişince istenir; yeniden yüklenirken eskisi tutulur (tür düğmeleri kalır), değişecek filtre kilitlenir
   (`facetsReloading`: tür → Ülke; koleksiyoncu → Nominal, Ülke ve düğmelerdeki sayılar). Kilitli `Combobox`
   soluk görünür. İskelet site geneline yayılıyor (kalan sayfalar PROJECT_STATUS'ta).
+  **Sunucudan gelen her fotoğraf** (`<img>`: coin fotoğrafı, kapak) `appImageSkeleton` alır (`shared/image-skeleton.ts`,
+  `[src]`'yi o alır): fotoğraf inene ya da hata verene kadar yerinde şekil, gecikmesiz (beklerken gösterilecek eski
+  bir şey yok); tarayıcıda zaten olan fotoğrafta şekil görünmez. Elemanın kendi köşesi ve zemini şeklinkine baskın.
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
   listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;

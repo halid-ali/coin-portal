@@ -21,6 +21,7 @@ import { photoUrl } from '../../core/coins/coin.service';
 import { sideLabelKey } from '../coin-format';
 import { DenominationIcon } from '../denomination-icon/denomination-icon';
 import { WheelGesture } from './wheel-gesture';
+import { ImageSkeleton } from '../image-skeleton';
 
 /** One side in the viewer: its photo, or none (a common side shown as the denomination icon). */
 interface ViewerSide {
@@ -39,7 +40,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-photo-viewer',
-  imports: [TranslocoPipe, DenominationIcon],
+  imports: [ImageSkeleton, TranslocoPipe, DenominationIcon],
   template: `
     <dialog
       #dialog
@@ -78,6 +79,7 @@ let nextId = 0;
       @if (current(); as shown) {
         @if (shown.photo; as photo) {
           <img
+            appImageSkeleton
             [src]="url(photo)"
             [alt]="title() + ' – ' + (sideKey(photo.side) | transloco)"
             class="mx-auto aspect-square max-h-[calc(100dvh-9rem)] w-full rounded-xl bg-slate-800 object-contain"

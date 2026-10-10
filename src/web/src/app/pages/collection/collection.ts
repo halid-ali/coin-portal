@@ -69,6 +69,7 @@ import {
 } from './coin-filters';
 import { cachedIntl } from '../../core/i18n/intl-cache';
 import { CollectionView, ViewToggle } from './view-toggle';
+import { ImageSkeleton } from '../../shared/image-skeleton';
 
 /**
  * Where the coin list comes from (route data "mode"):
@@ -92,6 +93,7 @@ type QueryParamValue = string | number | boolean | null;
 @Component({
   selector: 'app-collection',
   imports: [
+    ImageSkeleton,
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,

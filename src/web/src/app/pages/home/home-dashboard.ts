@@ -28,6 +28,7 @@ import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
 import { SEARCH_MAX_LENGTH } from '../../shared/url-search';
 import { CollectionFormDialog } from '../collections/collection-form-dialog';
+import { ImageSkeleton } from '../../shared/image-skeleton';
 
 /** Results of the quick check ("do I have this coin?"). */
 export type QuickCheck =
@@ -50,6 +51,7 @@ export const HOME_COLLECTIONS = 5;
 @Component({
   selector: 'app-home-dashboard',
   imports: [
+    ImageSkeleton,
     RouterLink,
     TranslocoPipe,
     PluralPipe,
@@ -271,6 +273,7 @@ export const HOME_COLLECTIONS = 5;
                 >
                   @if (previewUrl(coin); as src) {
                     <img
+                      appImageSkeleton
                       [src]="src"
                       alt=""
                       loading="lazy"

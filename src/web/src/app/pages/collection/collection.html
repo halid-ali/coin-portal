@@ -44,6 +44,7 @@
             @if (collectionCover(); as src) {
               <!-- lazy: a hidden (phone) image is not downloaded, an eager one would be -->
               <img
+                appImageSkeleton
                 [src]="src"
                 alt=""
                 loading="lazy"
@@ -658,6 +659,7 @@
                 <div class="relative aspect-square overflow-hidden bg-shade-100">
                   @if (previewUrl(coin); as src) {
                     <img
+                      appImageSkeleton
                       [src]="src"
                       alt=""
                       loading="lazy"
