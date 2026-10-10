@@ -76,6 +76,7 @@ describe('Collection', () => {
           [
             { path: 'collections/:collectionId', component: Collection, data: { mode: 'owner' } },
             { path: 'u/:userName/:collectionId', component: Collection, data: { mode: 'public' } },
+            { path: 'explore', component: Collection, data: { mode: 'explore' } },
           ],
           withComponentInputBinding(),
         ),
@@ -451,6 +452,41 @@ describe('Collection', () => {
       expect(latestCoinRequest().request.params.get('currency')).toBe('kuruş');
     });
 
+    it('keeps the kind buttons while another kind loads, the countries locked until then', async () => {
+      await openMixed();
+      const other = [
+        ...page().querySelectorAll<HTMLButtonElement>('[aria-label="Coin türü"] button'),
+      ][2];
+
+      other.click();
+      await harness.fixture.whenStable();
+
+      // The counts are the whole list's: they stay
+      expect(kindButtons()).toEqual([
+        ['Tümü 3', 'false'],
+        ['Euro 2', 'false'],
+        ['Dünya 1', 'true'],
+      ]);
+      expect(filterBox('country').disabled).toBe(true);
+      // The currencies are the whole list's too
+      expect(filterBox('denomination').disabled).toBe(false);
+
+      flushFacets({ ...mixed, countryCodes: ['TR'] }, 'Other');
+      await harness.fixture.whenStable();
+      expect(filterBox('country').disabled).toBe(false);
+      expect(await options('country')).toEqual(['Tümü', 'Türkiye']);
+    });
+
+    it('asks for the facets again for another kind only, not for another page', async () => {
+      await openMixed();
+
+      await harness.navigateByUrl('/collections/5?page=2&search=tor');
+
+      expect(http.match((r) => r.url === '/api/coins/facets')).toHaveLength(0);
+      expect(kindButtons()).toHaveLength(3);
+      expect(filterBox('country').disabled).toBe(false);
+    });
+
     it('asks a public collection for its facets', async () => {
       await harness.navigateByUrl('/u/elif.kaya/7');
       const request = http.expectOne((r) => r.url === '/api/public/collections/7/facets');
@@ -548,6 +584,44 @@ describe('Collection', () => {
     const request = latestCoinRequest();
     expect(request.request.params.get('sort')).toBe('Year');
     expect(request.request.params.has('countryOrder')).toBe(false);
+  });
+
+  it("locks the nominal and country filters while another collector's facets load", async () => {
+    const counts = () =>
+      [...page().querySelectorAll('[aria-label="Coin türü"] button')].map((b) =>
+        b.textContent!.replace(/s+/g, ' ').trim(),
+      );
+    await harness.navigateByUrl('/explore');
+    http.match('/api/countries').forEach((r) => r.flush([{ code: 'DE' }, { code: 'TR' }]));
+    await harness.fixture.whenStable();
+    http.expectOne('/api/public/collectors').flush([
+      { userName: 'elif.kaya', coinCount: 2 },
+      { userName: 'marco.bianchi', coinCount: 4 },
+    ]);
+    http
+      .expectOne((r) => r.url === '/api/public/coins')
+      .flush({ ...pageWithCoin(), totalCount: 6 });
+    http
+      .expectOne((r) => r.url === '/api/public/coins/facets')
+      .flush({ euroCount: 4, otherCount: 2, currencies: ['kuruş'], countryCodes: ['DE', 'TR'] });
+    await harness.fixture.whenStable();
+    expect(counts()).toEqual(['Tümü 6', 'Euro 4', 'Dünya 2']);
+
+    await chooseFilter('owner', 'elif');
+
+    expect(url()).toBe('/explore?owner=elif.kaya');
+    // The buttons stay; their counts are the next collector's, not known yet
+    expect(counts()).toEqual(['Tümü', 'Euro', 'Dünya']);
+    expect(filterBox('denomination').disabled).toBe(true);
+    expect(filterBox('country').disabled).toBe(true);
+
+    const facets = http.expectOne((r) => r.url === '/api/public/coins/facets');
+    expect(facets.request.params.get('owner')).toBe('elif.kaya');
+    facets.flush({ euroCount: 1, otherCount: 1, currencies: ['kuruş'], countryCodes: ['TR'] });
+    await harness.fixture.whenStable();
+    expect(counts()).toEqual(['Tümü 2', 'Euro 1', 'Dünya 1']);
+    expect(filterBox('denomination').disabled).toBe(false);
+    expect(filterBox('country').disabled).toBe(false);
   });
 
   describe('while loading', () => {

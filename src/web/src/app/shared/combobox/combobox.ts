@@ -43,6 +43,8 @@ let nextId = 0;
   imports: [NgTemplateOutlet, TranslocoPipe],
   host: {
     class: 'relative block',
+    // Faded while disabled, the arrow too (like a disabled button)
+    '[class.opacity-60]': 'isDisabled()',
     '(focusout)': 'onFocusOut($event)',
   },
   template: `
@@ -64,7 +66,7 @@ let nextId = 0;
       [attr.maxlength]="maxLength()"
       [disabled]="isDisabled()"
       [value]="text()"
-      class="form-input pr-10"
+      class="form-input pr-10 disabled:cursor-not-allowed"
       [class.ng-invalid]="field()?.invalid"
       [class.ng-touched]="field()?.touched"
       (click)="show()"

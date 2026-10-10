@@ -394,6 +394,7 @@
               [value]="nominalValue()"
               [label]="'coin.field.denomination' | transloco"
               [allLabel]="'common.all' | transloco"
+              [disabled]="facetsReloading() === 'all'"
               (valueChange)="setNominal($event)"
             />
           </div>
@@ -406,6 +407,7 @@
               [value]="query().countryCode ?? ''"
               [label]="'coin.field.country' | transloco"
               [allLabel]="'common.all' | transloco"
+              [disabled]="facetsReloading() !== 'none'"
               (valueChange)="setFilters({ countryCode: $event })"
             />
           </div>

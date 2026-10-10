@@ -271,8 +271,17 @@ export class Collection {
   /** The year filter takes every coin's year (other coins are older than the euro). */
   protected readonly minYear = COIN_LIMITS.otherMinYear;
 
-  /** Kinds, currencies and countries of this list (null while loading or when it failed). */
+  /**
+   * Kinds, currencies and countries of this list (null while a list's first ones load or when they
+   * failed). Another kind or collector keeps the old ones until the new ones are there, so the kind
+   * buttons stay; the filters they feed are locked meanwhile (`facetsReloading`).
+   */
   protected readonly facets = signal<CoinFacets | null>(null);
+  /**
+   * What the facets being loaded will change: another kind only the countries (the counts and
+   * currencies are the whole list's), another collector all of them.
+   */
+  protected readonly facetsReloading = signal<'none' | 'countries' | 'all'>('none');
   protected readonly showKinds = computed(() => showKinds(this.facets()));
   protected readonly kinds: readonly (CoinKind | null)[] = [null, 'Euro', 'Other'];
   protected readonly nominal = computed(() =>
@@ -497,6 +506,7 @@ export class Collection {
 
     // Kinds, currencies and countries for the filters: per list and kind (the other filters do
     // not change them)
+    let shownFor: readonly unknown[] | null = null;
     toObservable(
       computed(
         () =>
@@ -507,14 +517,34 @@ export class Collection {
             this.query().owner,
             this.query().kind,
           ] as const,
+        // A new page, sort or other filter is the same key: no new request
+        { equal: (a, b) => a.every((value, i) => value === b[i]) },
       ),
     )
       .pipe(
-        tap(() => this.facets.set(null)),
+        tap((key) => {
+          const [mode, id, token, owner] = key;
+          const sameList =
+            shownFor !== null &&
+            this.facets() !== null &&
+            shownFor[0] === mode &&
+            shownFor[1] === id &&
+            shownFor[2] === token;
+          if (!sameList) {
+            this.facets.set(null);
+          }
+          this.facetsReloading.set(
+            !sameList ? 'none' : shownFor![3] === owner ? 'countries' : 'all',
+          );
+          shownFor = key;
+        }),
         switchMap(() => this.loadFacets().pipe(catchError(() => of(null)))),
         takeUntilDestroyed(),
       )
-      .subscribe((facets) => this.facets.set(facets));
+      .subscribe((facets) => {
+        this.facets.set(facets);
+        this.facetsReloading.set('none');
+      });
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
     toObservable(this.listQuery)
@@ -648,7 +678,8 @@ export class Collection {
   /** A kind's coins on its button, in the language's number format ("1.240"). */
   protected kindCount(kind: CoinKind | null): number | null {
     const facets = this.facets();
-    if (!facets) {
+    // Another collector's counts are on the way
+    if (!facets || this.facetsReloading() === 'all') {
       return null;
     }
     return kind === 'Euro'
