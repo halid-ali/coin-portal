@@ -4,8 +4,8 @@ Son güncelleme: 2026-10-10 (**İkinci bulgu turu sürüyor** (Tamamlananlar 100
 **main'e alınmadı**): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
 kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
 ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni), filtre kartında "Filtreleri
-temizle" ve "Sırala" ilk satırda, hep yerinde, kısa sabit listeler (Sırala, Sayfa başına dahil) yazısız seçim
-kutusu. Kullanıcının başka bulguları
+temizle" ve "Sırala" ilk satırda, hep yerinde, kısa sabit listeler (Sırala, Sayfa başına, yönetim paneli dahil)
+yazısız seçim kutusu, uygulamada native `<select>` kalmadı. Kullanıcının başka bulguları
 var, yeni sohbette aynı branch'te devam edilir. Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
 listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
 istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
@@ -1921,12 +1921,15 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - **Yazısız seçim kutusu** (kullanıcı kararı: kısa ve sabit listede yazı gerekmiyor, standart bir görünüm):
           `Combobox` `searchable="false"` bir düğme olur, liste aynı; tuşlar native select gibi, ilk harfler
           seçeneğe atlar. Hatıra parası, Fotoğraf filtresi, coin formunun Euro nominali, Sırala (sıralama ikonu,
-          38 px, en uzun sıralama adı kadar geniş, "Sırala" soluk değil) ve Sayfa başına. Yönetim paneli ve
-          koleksiyon silme penceresindeki seçim kutuları ayrı adım (Açık konular 27); telefonda uzun sıralama
-          adının kesilmesi ayrı (Açık konular 28).
+          38 px, en uzun sıralama adı kadar geniş, "Sırala" soluk değil) ve Sayfa başına. Sonra (Açık konular 27):
+          yönetim panelinin altı kutusu (Kullanıcılar: durum, e-posta, sıralama; Koleksiyonlar: göster, sıralama;
+          Denetim kaydı: işlem) yazısız, adları panelin geç yüklenen metinlerinden (`translateSignal`); koleksiyon
+          silme penceresinin "taşınacak koleksiyon"u yazılabilir (kullanıcının adları, 50'ye kadar), pencerede
+          Esc önce listeyi kapatır. Uygulamada native `<select>` kalmadı (`select.form-input` stili de kalktı).
+          Telefonda uzun sıralama adının kesilmesi ayrı (Açık konular 28).
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 485 (+37), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 490 (+42), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası
@@ -2695,10 +2698,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (yanıtı bekleyen kimse yok), ama loglarda sahte hata ve 500 sayısı. Olası çözüm: istek iptal edilmişse
     (`HttpContext.RequestAborted.IsCancellationRequested`) hatayı 499 / Information'a indiren bir ara katman
     ya da exception handler; önce lokalde tekrar üretilip mevcut davranış doğrulanır.
-27. **Kalan native `<select>`'ler** (2026-10-10, kullanıcı kararı: ayrı adım): yönetim panelindeki filtre ve
-    sıralama kutuları (Kullanıcılar: durum, e-posta, sıralama; Koleksiyonlar: göster, sıralama; Denetim kaydı:
-    işlem) ve koleksiyon silme penceresindeki "taşınacak koleksiyon" kutusu da `Combobox`'a (kısa sabit
-    listeler yazısız) geçecek; coin listeleri 2026-10-10'da geçti (Tamamlananlar 100).
+27. ~~**Kalan native `<select>`'ler**~~ (kapandı 2026-10-10, Tamamlananlar 100): yönetim panelinin filtre ve
+    sıralama kutuları yazısız, koleksiyon silme penceresinin "taşınacak koleksiyon"u yazılabilir `Combobox`.
 28. **Telefonda uzun sıralama adı kesiliyor** (2026-10-10, kullanıcı: sonra ele alınacak): "Filtrele"nin
     yanındaki Sırala kutusu dar, "Yıl (yeni → eski)" gibi bir ad "Yıl (yeni …" olarak görünür.
 

@@ -660,19 +660,23 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   koleksiyonun coin'i taşınamaz). Seçenek adları dile bağlıysa computed `LanguageService.current()`'ı okur.
   **Yazısız liste** (`searchable="false"`, kullanıcı kararı 2026-10-10): seçenekleri sabit ve kısa (10 ya da
   daha az) olan kutuda yazılacak bir şey yok: Hatıra parası, Fotoğraf filtresi, coin formunun Euro nominali,
-  Sırala, Sayfa başına (`shared/pagination`). Kullanıcı verisinden gelen ya da uzayabilen listeler (Ülke,
-  Koleksiyoncu, Koleksiyon, Para birimi, filtredeki Nominal) yazılabilir kalır. Kutu bir `<button
+  Sırala, Sayfa başına (`shared/pagination`), yönetim panelinin filtre ve sıralama kutuları. Kullanıcı verisinden
+  gelen ya da uzayabilen listeler (Ülke, Koleksiyoncu, Koleksiyon, Para birimi, filtredeki Nominal, silme
+  penceresinin "taşınacak koleksiyon"u) yazılabilir kalır. **Uygulamada native `<select>` yok** (2026-10-10);
+  yeni bir seçim de `Combobox` olur. Kutu bir `<button
   role="combobox">` (native select gibi: tıklama, Enter / Boşluk / oklar açar, Home / End, Enter / Boşluk seçer,
   ilk harfler o harfle başlayan seçeneğe atlar, aynı harf sıradakine; liste görünümü aynı). Etiketsiz kutuda
   `ariaLabel`; `compact` 38 px (yanındaki butonlar); `comboboxIcon` (+ `#comboboxIcon`) soldaki ikon; testte
-  görünen ad kutunun ilk `span`'ı (`fitOptions`'lı kutu bütün adları gizli taşır). Yönetim panelindeki ve
-  koleksiyon silme penceresindeki `<select>`'ler henüz eski (PROJECT_STATUS Açık konular 27).
+  görünen ad kutunun ilk `span`'ı (`fitOptions`'lı kutu bütün adları gizli taşır). Panelde seçenek adları
+  panelin geç yüklenen metinlerinden: `translateSignal` (kapsam anahtarı, `admin.` öneksiz) + `namedOptions`
+  (`core/admin/admin-list.ts`); sıralama kutusu ters çevrilmiş sırada "Sırala" yazar (`sortOptionValue`).
+  Pencere içinde de çalışır: açık listede Esc listeyi kapatır, pencereyi değil (keydown'ın varsayılanı engellenir).
   `freeText` (coin formunun Para birimi; `<datalist>` yerine, tarayıcının listesi temaya uymuyordu): değer
   yazılan metin, seçenekler öneri; kendiliğinden vurgu yok (Enter formu gönderir, metni değiştirmez), öneri
   okla ya da tıklayarak alınır, eşleşme yoksa liste gizlenir, öneri yoksa ok da yok (düz metin kutusu).
   e2e'de `support/combobox.ts` `chooseOption` (yazılan kutuda yazar, yazısızda tıklar; yazısız kutunun değeri
-  `toHaveText` ile, `toHaveValue` değil); seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
-  `option`'ları da `getByRole('option')`'a uyar).
+  `toHaveText` ile, `toHaveValue` değil); seçenekleri listbox'la sınırla (aynı anda açık başka bir listenin ya da
+  dil seçicinin `option`'ları da `getByRole('option')`'a uyar).
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
   listesi (admin panelinde `xl`: sayfa geniş, solda bölüm menüsü var).
