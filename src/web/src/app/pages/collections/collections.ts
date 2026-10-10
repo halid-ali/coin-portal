@@ -8,6 +8,8 @@ import { CollectionService } from '../../core/collections/collection.service';
 import { EMAIL_LIMIT_IDS } from '../../layout/email-banner/email-banner';
 import { PluralPipe } from '../../core/i18n/plural';
 import { CollectionCard } from '../../shared/collection-card/collection-card';
+import { CollectionCardSkeleton } from '../../shared/collection-card/collection-card-skeleton';
+import { delayedLoading } from '../../shared/skeleton';
 import { CollectionFormDialog } from './collection-form-dialog';
 
 /**
@@ -16,7 +18,13 @@ import { CollectionFormDialog } from './collection-form-dialog';
  */
 @Component({
   selector: 'app-collections',
-  imports: [TranslocoPipe, PluralPipe, CollectionCard, CollectionFormDialog],
+  imports: [
+    TranslocoPipe,
+    PluralPipe,
+    CollectionCard,
+    CollectionCardSkeleton,
+    CollectionFormDialog,
+  ],
   template: `
     <section class="space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -29,6 +37,10 @@ import { CollectionFormDialog } from './collection-form-dialog';
               {{ 'collections.collectionCount' | plural: list.length }} ·
               {{ 'common.coinCount' | plural: totalCoins() }}
             </p>
+          } @else if (showSkeleton()) {
+            <div class="flex h-5 items-center" aria-hidden="true">
+              <div class="skeleton h-3 w-40 rounded-full"></div>
+            </div>
           }
         </div>
         <!-- Gray until the address is verified (the reason is in the e-mail notice above) -->
@@ -76,7 +88,15 @@ import { CollectionFormDialog } from './collection-form-dialog';
           </ul>
         }
       } @else {
-        <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+        <!-- Placeholder cards after a moment (user choice 2026-10-10); a screen reader hears this -->
+        <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+        @if (showSkeleton()) {
+          <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            @for (i of [0, 1, 2]; track i) {
+              <li><app-collection-card-skeleton /></li>
+            }
+          </ul>
+        }
       }
     </section>
 
@@ -92,6 +112,9 @@ export class Collections {
 
   protected readonly collections = signal<Collection[] | null>(null);
   protected readonly loadError = signal(false);
+  protected readonly showSkeleton = delayedLoading(
+    computed(() => this.collections() === null && !this.loadError()),
+  );
   protected readonly creating = signal(false);
   protected readonly emailBlocked = computed(
     () => this.auth.currentUser()?.emailConfirmed === false,
