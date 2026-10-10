@@ -593,38 +593,44 @@ describe('Collection', () => {
   });
 
   it('keeps the sort selects and the table headers on the same order', async () => {
-    const selects = () => [
-      ...page().querySelectorAll<HTMLSelectElement>('select[aria-label="Sırala"]'),
-    ];
+    // The box's first line (a fitted box also holds every name, hidden, for its width)
+    const shown = () =>
+      ['sort', 'sort-phone'].map((id) => filterBox(id).querySelector('span')!.textContent!.trim());
     const sortedHeader = () => page().querySelector('th[aria-sort]');
 
     await open('/collections/5', 1, pageWithCoin());
-    // The first row's (sm and up) and the phones'
-    expect(selects().map((s) => s.id)).toEqual(['sort', 'sort-phone']);
-    // "Clear sort" is always there (the select keeps its width), unavailable with the default order
-    const clearSort = selects()[0].querySelector<HTMLOptionElement>('option[value="Newest"]')!;
-    expect(clearSort.disabled).toBe(true);
+    // The first row's (sm and up) and the phones': lists without typing, "Sırala" with the
+    // default order and no "clear sort" in the list then
+    expect(filterBox('sort').tagName).toBe('BUTTON');
+    expect(filterBox('sort').getAttribute('aria-label')).toBe('Sırala');
+    expect(shown()).toEqual(['Sırala', 'Sırala']);
+    expect((await options('sort'))[0]).toBe('Başlık (A → Z)');
     expect(sortedHeader()).toBeNull();
 
-    // A header sorts: the selects show it
+    // A header sorts: the selects show it, "clear sort" joins the list
     await harness.navigateByUrl('/collections/5?sort=Year&dir=Desc');
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
     await harness.fixture.whenStable();
-    expect(selects().map((s) => s.value)).toEqual(['Year:Desc', 'Year:Desc']);
+    expect(shown()).toEqual(['Yıl (yeni → eski)', 'Yıl (yeni → eski)']);
     expect(sortedHeader()!.textContent).toContain('Yıl');
     expect(sortedHeader()!.getAttribute('aria-sort')).toBe('descending');
-    expect(clearSort.disabled).toBe(false);
+    expect((await options('sort'))[0]).toBe('Sıralamayı kaldır');
 
     // The select sorts: the header shows it
-    selects()[0].value = 'Country:Asc';
-    selects()[0].dispatchEvent(new Event('change'));
-    await harness.fixture.whenStable();
+    await pickFilter('sort', 'Ülke (A → Z)');
     expect(url()).toBe('/collections/5?sort=Country');
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
     await harness.fixture.whenStable();
-    expect(selects().map((s) => s.value)).toEqual(['Country:Asc', 'Country:Asc']);
+    expect(shown()).toEqual(['Ülke (A → Z)', 'Ülke (A → Z)']);
     expect(sortedHeader()!.textContent).toContain('Ülke');
     expect(sortedHeader()!.getAttribute('aria-sort')).toBe('ascending');
+
+    // "Clear sort" goes back to the default order
+    await pickFilter('sort', 'Sıralamayı kaldır');
+    expect(url()).toBe('/collections/5');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(shown()).toEqual(['Sırala', 'Sırala']);
   });
 
   it('loads a list sorted by country order once, after the countries', async () => {

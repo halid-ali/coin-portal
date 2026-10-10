@@ -374,6 +374,31 @@ export class Collection {
 
   /** Sort from the URL; unknown values fall back to the default order. */
   protected readonly sortState = computed<SortState>(() => parseSort(this.sort(), this.dir()));
+  /** The sort select's orders, values like "Year:Desc". */
+  private readonly sortOrders = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return this.sortColumns.flatMap((c) =>
+      (['Asc', 'Desc'] as const).map((dir) => ({
+        value: `${c.value}:${dir}`,
+        label: `${translate(c.labelKey)} (${translate(`coin.sort.${c.value}.${dir.toLowerCase()}`)})`,
+      })),
+    );
+  });
+  /** The orders, and "clear sort" on top while one is chosen. */
+  protected readonly sortOptions = computed<ComboboxOption[]>(() => {
+    if (this.sortState().sort === 'Newest') {
+      return this.sortOrders();
+    }
+    this.language.current();
+    return [{ value: 'Newest', label: translate('sort.clear') }, ...this.sortOrders()];
+  });
+  /** What the sort select makes room for: the orders ("clear sort" is never shown in the box). */
+  protected readonly sortOrderLabels = computed(() => this.sortOrders().map((o) => o.label));
+  /** '' (the "Sort" placeholder) for the default order. */
+  protected readonly sortValue = computed(() => {
+    const { sort, dir } = this.sortState();
+    return sort === 'Newest' ? '' : `${sort}:${dir}`;
+  });
 
   protected readonly query = computed<CoinListQuery & { owner?: string }>(() => {
     const denomination = this.denomination();

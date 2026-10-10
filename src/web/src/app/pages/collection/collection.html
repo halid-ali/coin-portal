@@ -382,7 +382,7 @@
             </button>
             <ng-container
               [ngTemplateOutlet]="sortBox"
-              [ngTemplateOutletContext]="{ id: 'sort', wrapperClass: '' }"
+              [ngTemplateOutletContext]="{ id: 'sort', fit: true }"
             />
           </div>
         </div>
@@ -556,7 +556,7 @@
           </button>
           <ng-container
             [ngTemplateOutlet]="sortBox"
-            [ngTemplateOutletContext]="{ id: 'sort-phone', wrapperClass: 'ml-auto flex-1' }"
+            [ngTemplateOutletContext]="{ id: 'sort-phone', fit: false }"
           />
         </div>
 
@@ -577,56 +577,43 @@
           </svg>
         </ng-template>
 
-        <!-- The sort select, in the first row from sm up and next to the filters toggle on phones.
-         Looks like the filters toggle: an icon on the left and no label; with the default order
-         it reads "Sort" (a hidden placeholder option), otherwise the chosen order. It is in every
-         view: in the desktop list the table headers sort too, both read the order from the URL.
-         "Clear sort" is always in the list, unavailable with the default order: a select is as
-         wide as its longest option, so the row does not move when an order is chosen. The frame
-         is on the wrapper, not on the select: Chrome indents the options of the open list by the
-         select's left padding, which would be the icon's room. The select keeps its own
-         background: Chrome paints the open list with it (transparent gives a white list in the
-         dark theme) -->
-        <ng-template #sortBox let-id="id" let-wrapperClass="wrapperClass">
-          <div
-            class="flex min-w-0 max-w-full items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm focus-within:border-focus focus-within:ring-2 focus-within:ring-focus/30"
-            [class]="wrapperClass"
+        <!-- The sort select, in the first row from sm up (as wide as its longest order) and next to
+         the filters toggle on phones: a list-only combobox like the short filters (user choice
+         2026-10-10), the sort icon on its left and no label; with the default order it reads "Sort",
+         otherwise the chosen order, and "clear sort" joins the list. It is in every view: in the
+         desktop list the table headers sort too, both read the order from the URL. Its width comes
+         from the orders and "Sort" only ("clear sort" is never shown in the box), so a choice does
+         not move the row -->
+        <ng-template #sortBox let-id="id" let-fit="fit">
+          <app-combobox
+            [inputId]="id"
+            searchable="false"
+            [fitOptions]="fit"
+            compact
+            [class]="fit ? '' : 'min-w-0 flex-1'"
+            [options]="sortOptions()"
+            [fitLabels]="sortOrderLabels()"
+            [value]="sortValue()"
+            [label]="'coinList.sort' | transloco"
+            [ariaLabel]="'coinList.sort' | transloco"
+            [placeholder]="'coinList.sort' | transloco"
+            placeholderIsName
+            (valueChange)="setSortOption($event || 'Newest')"
           >
             <svg
+              comboboxIcon
+              #comboboxIcon
               viewBox="0 0 24 24"
-              class="pointer-events-none size-4 shrink-0 text-shade-700"
+              class="size-4"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              aria-hidden="true"
             >
               <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
             </svg>
-            <select
-              [id]="id"
-              #sortSelect
-              class="form-input w-full min-w-0 border-0 py-1.5 pl-2 font-medium text-shade-700 shadow-none focus:ring-0 sm:w-auto"
-              [attr.aria-label]="'coinList.sort' | transloco"
-              (change)="setSortOption(sortSelect.value)"
-            >
-              <option value="" disabled hidden [selected]="sortState().sort === 'Newest'">
-                {{ 'coinList.sort' | transloco }}
-              </option>
-              <option value="Newest" [disabled]="sortState().sort === 'Newest'">
-                {{ 'sort.clear' | transloco }}
-              </option>
-              @for (c of sortColumns; track c.value) {
-                <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
-                  {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.asc' | transloco }})
-                </option>
-                <option [value]="c.value + ':Desc'" [selected]="sortDirection(c.value) === 'Desc'">
-                  {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.desc' | transloco }})
-                </option>
-              }
-            </select>
-          </div>
+          </app-combobox>
         </ng-template>
       </div>
     }
