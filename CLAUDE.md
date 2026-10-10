@@ -996,6 +996,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `img.decode()` bekler durur; adresi `fetch` ile kontrol et.
 - Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
   Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
+- Kaydırma çubuğu şeridini (`scrollbar-gutter: stable`) `innerWidth - documentElement.clientWidth` ile ölçme:
+  Chromium kısa sayfada ayrılan boş şeridi bu farka katmaz, 0 der (2026-10-10'da yanlış bir bulguya yol açtı).
+  Öğelerin gerçek genişliğine ve yerine bak (`body.getBoundingClientRect().width`, logonun `left`'i). Playwright'ın
+  `setContent`'ine verilen doctype'sız deneme sayfası eski uyumluluk modunda (`BackCompat`) açılır ve farklı
+  davranır: deneme sayfasına `<!doctype html>` yaz.
 - Seed komutu `src/api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
 - Proje klasörünü yeniden adlandırmak (`git mv`) Windows'ta "Permission denied" verebilir: API ve
   `ng serve`'den başka, çalışma dizini o klasörde olan PowerShell terminalleri ve VS Code'un C# dil
