@@ -1,8 +1,11 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-10 (**Manuel test bulguları düzeltildi** (Tamamlananlar 99, `fix/non-euro-coins-findings`
-main'e alındı, push edilmedi): seçim listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa
-boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
+Son güncelleme: 2026-10-10 (**İkinci bulgu turu sürüyor** (Tamamlananlar 100, `fix/world-coins-and-ui-findings`,
+20 commit, **main'e alınmadı**): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
+kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
+ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni). Kullanıcının başka bulguları
+var, yeni sohbette aynı branch'te devam edilir. Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
+listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
 istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
 `v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
@@ -22,9 +25,11 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 - Durum (2026-10-10 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
   **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97), Euro dışı
   coin'ler (98) ve manuel test bulgularının düzeltmeleri (99, `fix/non-euro-coins-findings` main'e alındı).
-  **Sıradaki:** kullanıcı 2026-10-10'da "şimdilik başka bulgum yok" dedi ve `v1.10.0` için henüz bir şey
-  yapılmamasını istedi; yeni sohbette önce yeni bulgu var mı sorulur, sonra (kullanıcı onayıyla) push ve `v1.10.0`
-  (minor; `AddOtherCoins` migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy)
+  **Açık branch:** `fix/world-coins-and-ui-findings` (ikinci bulgu turu, Tamamlananlar 100; 20 commit, main'e
+  alınmadı, çalışma ağacı temiz). **Sıradaki:** kullanıcının kalan bulguları bu branch'te, önceki sohbetteki gibi
+  tek tek düzeltilir (bulgu → görüntülü öneri → onay → düzeltme → commit onayı); bulgular bitince bu doküman
+  güncellenir ve branch kullanıcı onayıyla main'e alınır. Sonra (kullanıcı onayıyla) push ve `v1.10.0` (minor;
+  `AddOtherCoins` migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy)
   adımları"). Lokal dev
   veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
@@ -1882,6 +1887,31 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Testler: client 448 (+37), e2e 21 (adet aynı; açık listeye axe taraması eklendi), API 481 (değişmedi).
           Prettier, `ng build`, tam e2e koşusu temiz.
 
+100. **İkinci bulgu turu** (`fix/world-coins-and-ui-findings`, 2026-10-10, sürüyor; kullanıcıyla tek tek, her biri
+    görüntüyle karar verilip ayrı commit'te; bazıları dünya coin'leri dışından). Kurallar CLAUDE.md'de ("Form
+    erişilebilirliği" yer tutucu, "Yükleme iskeleti").
+    - **Yer tutucu kuralı** (kullanıcı kararı): yazılan alanlarda yok (örnek alttaki ipucunda), boş seçim listesinde
+          "Seç…", serbest metinli öneri listesinde (Para birimi) öneri varken "Yaz ya da seç…"; arama kutularında var.
+    - Hatıra parası kutusu yanındaki alanlarla dikeyde ortalı (satırı ipucu uzatıyordu).
+    - **Tür düğmeleri kaybolmuyor:** filtre özeti (facets) her adres değişikliğinde (sayfa, arama, sıralama) yeniden
+          isteniyor ve siliniyordu (hata); artık sadece liste, koleksiyoncu ya da tür değişince, eskisi tutulur,
+          değişecek filtre kilitlenir (tür → Ülke, koleksiyoncu → Nominal, Ülke ve sayılar). Kilitli seçim kutusu soluk.
+    - **Yükleme iskeleti** (kullanıcı kararları: 300 ms gecikme, site geneli): içerik yerinde yanıp sönen gri şekiller
+          (`.skeleton`, `delayedLoading`); sabit metin yerinde, sadece yüklenen veri şekil. Coin listesi (tablo,
+          ızgara, kartlar; eski soluklaştırma kalktı), sunucudan gelen her fotoğraf (`appImageSkeleton`, gecikmesiz),
+          Koleksiyonlarım, profil, ana sayfa panosu ("Son eklediklerin" coin yoksa kalkar), koleksiyon başlığı (sayfa
+          yolunda ad çubuğu, `Crumb.loading`), coin düzenleme formu, Ayarlar › Hesap, yönetim paneli (Genel bakış,
+          üç liste, kullanıcı detayı, Genel ayarlar: Kaydet değerler gelince).
+    - **Uygulama kabuğu** (`index.html`, logolu açılış ekranının yerine): header gerçeğiyle aynı yerde, sayfa şekilleri
+          400 ms sonra. Girişli mi `localStorage` `coinportal.signedIn` işaretinden (kullanıcı kararı; auth cookie'si
+          HttpOnly; gizlilik politikası 2026-10-10 güncellendi): header'ın girişli / girişsiz hâli, ana sayfada pano ya
+          da tanıtım sayfası, başka her adreste genel şekiller. Yeni bir sayfa genel kabuğu kendiliğinden alır; header
+          ya da ana sayfanın düzeni değişirse kabuk da güncellenir.
+    - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
+          değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
+    - Testler: client 474 (+26), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+          Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
+
 ## Yol haritası
 
 2026-09-29'daki proje yönü değerlendirmesinden çıkan sıra. Gerekçeler, elenen seçenekler, tuzaklar ve
@@ -2125,10 +2155,10 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş: `v1.10.0`** (yol haritası 18, Tamamlananlar 98–99). Geliştirme ve ilk manuel test turunun
-düzeltmeleri bitti ve `main`'e alındı (2026-10-10, push edilmedi). Kullanıcı 2026-10-10'da başka bulgusu olmadığını
-söyledi ama sürüm için henüz bir şey yapılmamasını istedi: yeni sohbette önce yeni bulgu sorulur; sürüm adımı
-kullanıcı onayıyla (kullanıcı kararı 2026-10-09: manuel testler bitmeden sürüme geçilmez). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
+**Sıradaki iş: ikinci bulgu turunun devamı, sonra `v1.10.0`** (yol haritası 18, Tamamlananlar 98–100). İlk tur
+`main`'de (push edilmedi); ikinci tur `fix/world-coins-and-ui-findings` branch'inde sürüyor (Tamamlananlar 100,
+main'e alınmadı). Kullanıcının kalan bulguları yeni sohbette aynı branch'te düzeltilir; bitince bu doküman ve
+merge, sonra sürüm adımı kullanıcı onayıyla (kullanıcı kararı 2026-10-09: manuel testler bitmeden sürüme geçilmez). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
 para birimi önerileri, tarihî ülkeler, tür değiştirerek düzenleme), ayse'nin "Karışık kutu"su (düğmeler, gruplu
 Nominal), "Dünya paraları" (iki yüz, görüntüleyicide Ön/Arka yüz), "Yeni başladım" (yayın bandı), herkese açık
 koleksiyonda diğer coin'in arka yüzünü silmek (yayından iner sorusu), Keşfet, dört dil ve iki tema. Yayında migration var: kurulumu onaylamadan önce panelden veritabanı yedeği. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
@@ -2393,6 +2423,9 @@ Kararlar (2026-10-01, kullanıcıyla):
 - **Kayıtta işaretlenmesi zorunlu kutu** (bilgi metni + link yerine; kullanıcı daha resmi olanı seçti).
   2026-10-02'den beri aynı kutu kullanım şartlarını da kabul ettirir (#18, kullanıcı kararı); şartlar
   moderasyonun kurallarını kullanıcıya bildirir.
+- **`localStorage` `coinportal.signedIn`** (2026-10-10, kullanıcı kararı): bu tarayıcıda giriş yapılmış mı (evet /
+  hayır), sadece açılış kabuğunun doğru şekilleri için; çıkışta ve oturum düşünce silinir. Gizlilik metninin
+  tarayıcı deposu cümlesine dört dilde eklendi, `PRIVACY_UPDATED` 2026-10-10.
 - Metinler hukuki danışmanlık değildir; Claude yazdı, kullanıcı yayından önce okuyacak. İletişim formu
   yok (site e-posta göndermiyor); GitHub reposu hata bildirimi için anılır.
 
