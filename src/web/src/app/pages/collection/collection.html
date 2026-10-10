@@ -23,15 +23,9 @@
         <h1 class="text-2xl font-semibold text-shade-900">
           {{ 'coinList.exploreTitle' | transloco }}
         </h1>
-        <p class="mt-1 text-sm text-shade-600">
-          {{ 'coinList.exploreSubtitle' | transloco }}
-          @if (result(); as r) {
-            · {{ 'coinList.recordCount' | plural: r.totalCount }}
-          }
-          @if (hasFilters()) {
-            {{ 'coinList.filtered' | transloco }}
-          }
-        </p>
+        <!-- No count here: the kind buttons carry it as badges, and on phones it took a
+         second line (user choice 2026-10-10) -->
+        <p class="mt-1 text-sm text-shade-600">{{ 'coinList.exploreSubtitle' | transloco }}</p>
       </div>
     } @else {
       <!-- Above the whole header (and the cover beside it): where this collection sits -->
