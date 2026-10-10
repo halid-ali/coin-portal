@@ -858,7 +858,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `flag`, `collection-placeholder`): `url(#…)` sayfadaki ilk eşleşen id'yi kullanır.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer` (yüz değiştirme: butonlar, ok tuşları döngülü, fare tekerleği döngüsüz ve hamle başına
-  bir adım, `WheelGesture`). Fotoğrafı olmayan coin'in yerine değer ikonu `DenominationIcon`
+  bir adım, `WheelGesture`). **Coin'in açıklaması** (kullanıcı kararları 2026-10-10, en çok 2000 karakter):
+  listede başlığın altında tek satır (`truncate`, tamamı `title`'da; tabloda ve telefon kartında, ızgarada yok),
+  tamamı görüntüleyicide: uzunsa (200 karakterden ya da 3 satırdan fazla, `SHORT_DESCRIPTION_MAX`) `lg` ve üstünde
+  fotoğrafın yanında, fotoğrafla aynı yükseklikte ve onun kutusunun zemininde kayan bir kutuda (görüntüleyici
+  genişler, yüz düğmeleri fotoğrafın altında), kısaysa fotoğrafın altında (fotoğraf 3 satır
+  kadar küçülür, her şey ekrana sığar); `lg` altında hep fotoğrafın altında, bütün görüntüleyici kayar; satır sonları korunur (`textContent` +
+  `whitespace-pre-line`), bölge odaklanabilir (`role="region"`, klavye de kaydırır). Tekerlek metnin ve kayan
+  görüntüleyicinin üstünde kaydırır, fotoğrafın üstünde yüz değiştirir. Görüntüleyicinin karartılmış ekranı
+  `::backdrop` değil `<dialog>`'un kendisi (Bilinen tuzaklar: axe). Fotoğraf kutusu karedir (kenarı sütun genişliği
+  ile ekran yüksekliğinden küçüğü, `photoSize`; geniş ve kısa ekranda iki yanda bant kalıyordu), görüntüleyicinin
+  genişliği ona göre (`contentWidth`): başlık ve kapatma düğmesi fotoğrafla (ve metin kutusuyla) hizalı. Fotoğrafı olmayan coin'in yerine değer ikonu `DenominationIcon`
   (`shared/denomination-icon`; dolu metal: bakır 1–5c, altın 10–50c, iki metalli 1 €/2 €, 20c 7 oyuklu):
   **coin iki temada aynı** (düz palet sınıfları, kullanıcı kararı 2026-10-06), sadece arkasındaki zemin
   temayla değişir (`tile` input'u → `denomination-tile` + `denomination-<metal>`, `styles.css`; çerçeve
@@ -1021,6 +1031,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   betiğiyle (`fetch`) ya da `--data-binary @dosya.json` ile yap.
 - `sqlcmd` ile filtreli index'i olan tablolarda (ör. `AspNetUsers`) DELETE/UPDATE için `-I`
   (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
+- **axe `::backdrop`'u görmez:** zemini sadece `backdrop:` ile koyulaşan, kendisi saydam bir `<dialog>`'daki beyaz
+  metni arkadaki açık sayfanın üstünde sayar ve ciddi kontrast bulgusu verir (fotoğraf görüntüleyici, 2026-10-10).
+  Karartma `<dialog>`'un kendi zemini olur (tam ekran, `bg-…/85` + `backdrop-blur`), içerik ortada; görünüm aynı
+  kalır. Arka plan tıklaması o zaman dialog'a ya da içeriği saran çerçeveye gelir.
 - `sticky` bir eleman ebeveyninin dışına çıkamaz: bileşen host'u (`<app-header>`) içerikle aynı
   yükseklikteyse içteki elemana verilen `sticky` işe yaramaz; `sticky` host'a verilir (`host: { class }`).
 - `ng serve`'ün `src/index.html` değişikliklerini almadığı bir kez görüldü (2026-09, eski başlık);

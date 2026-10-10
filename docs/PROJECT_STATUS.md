@@ -1967,9 +1967,20 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           politikasının e-posta listesine bu uyarılar ve önceden eksik olan silme hatırlatmaları eklendi (dört dil).
           E-postalar dev API'de iki geçici kullanıcıyla smtp4dev'de görüldü (Türkçe %75, İngilizce %90), kullanıcılar
           silindi.
+    - **Coin açıklaması görünür** (kullanıcı bulgusu: Keşfet'te görünmüyordu; aslında hiçbir listede ve görüntüleyicide
+          yoktu, sadece düzenleme formunda; kullanıcı kararları, 2000 karakterlik metin tam tarayıcı görünümünde
+          denendi): listede başlığın altında tek satır (B1), tamamı fotoğraf görüntüleyicide (A3: masaüstünde uzun metin
+          fotoğrafın yanında, fotoğrafla aynı yükseklikte ve fotoğraf kutusunun zemininde kayan bir kutuda (çerçeveli
+          ve dolu kutu görsellerle karşılaştırıldı, dolu seçildi), 200 karaktere ve 3 satıra kadar kısa metin fotoğrafın altında (yanda sütun
+          boş kalıyordu; sınır görsellerle seçildi); telefonda hep altında, bütün görüntüleyici kayar). axe görüntüleyiciyi ilk kez taradı ve
+          başlıkta kontrast bulgusu verdi (karartma `::backdrop`'taydı, axe onu görmüyor): karartma artık
+          görüntüleyicinin kendi zemini, görünüm aynı (renk ölçülerek karşılaştırıldı). E2E: Keşfet testi açıklamayı
+          listede ve görüntüleyicide kontrol eder, görüntüleyici taranır. Kullanıcı bulgusu: masaüstünde kare
+          fotoğrafın iki yanında koyu bant vardı (kutu sütunu dolduruyor, yüksekliği ekranla sınırlıydı; eskiden beri):
+          kutu artık kare, görüntüleyici fotoğraf kadar geniş, başlık ve kapatma düğmesi onunla hizalı.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 505 (+57), e2e 21, API 501 (+20, fotoğraf alanı uyarıları). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 512 (+64), e2e 21, API 501 (+20, fotoğraf alanı uyarıları). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası
