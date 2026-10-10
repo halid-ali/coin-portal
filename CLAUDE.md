@@ -622,12 +622,14 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
   listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;
   `core/admin/admin-list.ts`). Coin listelerinde aynı seçenekler her görünümde ve ekran boyunda "Sırala"
-  select'inde de (kullanıcı kararı 2026-10-10: standart filtre paneli; mobilde tablo yok): ikisi de sırayı URL'den
+  kutusunda da (yazısız combobox, solda sıralama ikonu) (kullanıcı kararı 2026-10-10: standart filtre paneli; mobilde tablo yok): ikisi de sırayı URL'den
   okur, kendiliğinden eş kalır. Filtre kartının ilk satırında solda tür düğmeleri, sağda "Filtreleri temizle" +
   "Sırala" (temizle `lg` altında sadece huni + çarpı ikonu, `aria-label` + `title`; böylece ~700 px'ten itibaren
   tek satır, sığmazsa ikili alt satırda, solda); telefonda "Filtrele"nin yanında Sırala, panelin sonunda temizle.
   Kart yüksekliği ve satır kullanılırken oynamaz: temizlenecek filtre yokken buton kalır, `aria-disabled`;
-  "Sıralamayı kaldır" seçeneği hep listede (varsayılan sırada pasif; select en uzun seçeneği kadar geniş).
+  Sırala geniş ekranda en uzun sıralama adı kadar geniş (`fitOptions` + `fitLabels`: kutuda hiç görünmeyen
+  "Sıralamayı kaldır" ölçüye girmez, o sadece bir sıralama seçiliyken listede), seçim satırı oynatmaz;
+  varsayılan sırada "Sırala" yazar, soluk değil (`placeholderIsName`).
   Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
   (`COIN_SORT_COLUMNS`, API `CoinSort`); diğer sütun başlıkları düz. Telefonda filtreler "Filtrele"
   butonunun arkasında katlanır (arama kutusu hariç).
@@ -656,11 +658,20 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `-required` / `-describedby`; id `inputId`), filtrede `[value]` + `(valueChange)`; formun dönüştürdüğü bir
   değerde (koleksiyonun sayı Id'si) bağlı + `[control]` (hata ve ipucu bağlantısı), `[disabled]` (kilitli
   koleksiyonun coin'i taşınamaz). Seçenek adları dile bağlıysa computed `LanguageService.current()`'ı okur.
-  Sadece liste araç çubuğundaki sıralama ve sayfa başına `<select>` kalır.
+  **Yazısız liste** (`searchable="false"`, kullanıcı kararı 2026-10-10): seçenekleri sabit ve kısa (10 ya da
+  daha az) olan kutuda yazılacak bir şey yok: Hatıra parası, Fotoğraf filtresi, coin formunun Euro nominali,
+  Sırala, Sayfa başına (`shared/pagination`). Kullanıcı verisinden gelen ya da uzayabilen listeler (Ülke,
+  Koleksiyoncu, Koleksiyon, Para birimi, filtredeki Nominal) yazılabilir kalır. Kutu bir `<button
+  role="combobox">` (native select gibi: tıklama, Enter / Boşluk / oklar açar, Home / End, Enter / Boşluk seçer,
+  ilk harfler o harfle başlayan seçeneğe atlar, aynı harf sıradakine; liste görünümü aynı). Etiketsiz kutuda
+  `ariaLabel`; `compact` 38 px (yanındaki butonlar); `comboboxIcon` (+ `#comboboxIcon`) soldaki ikon; testte
+  görünen ad kutunun ilk `span`'ı (`fitOptions`'lı kutu bütün adları gizli taşır). Yönetim panelindeki ve
+  koleksiyon silme penceresindeki `<select>`'ler henüz eski (PROJECT_STATUS Açık konular 27).
   `freeText` (coin formunun Para birimi; `<datalist>` yerine, tarayıcının listesi temaya uymuyordu): değer
   yazılan metin, seçenekler öneri; kendiliğinden vurgu yok (Enter formu gönderir, metni değiştirmez), öneri
   okla ya da tıklayarak alınır, eşleşme yoksa liste gizlenir, öneri yoksa ok da yok (düz metin kutusu).
-  e2e'de `support/combobox.ts` `chooseOption`; seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
+  e2e'de `support/combobox.ts` `chooseOption` (yazılan kutuda yazar, yazısızda tıklar; yazısız kutunun değeri
+  `toHaveText` ile, `toHaveValue` değil); seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
   `option`'ları da `getByRole('option')`'a uyar).
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
