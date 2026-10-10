@@ -606,7 +606,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `Crumb.loading` (çubuk, link değil: adsız link olmasın). Yönetim panelinde de (Genel bakış, listeler, kullanıcı
   detayı, Genel ayarlar): listeler coin listesiyle aynı desende (`showSkeleton`, `skeletonRows`, ilk yüklemede tablo
   başlığı gerçek), kullanıcıya göre değişen rozet ve düğmeler şekil, ayarlarda not ve Kaydet değerler gelene kadar
-  yok. Yeni bir yüklenen bölüm de böyle gelir.
+  yok. Yeni bir yüklenen bölüm de böyle gelir. **Açılış kabuğu** (`index.html`, Angular başlayana kadar; eski
+  logolu açılış ekranının yerine): header gerçeğiyle aynı düzende (logo ve ad gerçek, menü ve düğmeler şekil:
+  girişli mi henüz bilinmiyor) ve hemen görünür, altında her sayfaya uyan genel şekiller 400 ms sonra belirir
+  (`.app-shell-page`). `app.html` ya da header'ın düzeni (yükseklik, kenar boşluğu, logo boyu) değişince kabuk
+  da değişir.
   **Sunucudan gelen her fotoğraf** (`<img>`: coin fotoğrafı, kapak) `appImageSkeleton` alır (`shared/image-skeleton.ts`,
   `[src]`'yi o alır): fotoğraf inene ya da hata verene kadar yerinde şekil, gecikmesiz (beklerken gösterilecek eski
   bir şey yok); tarayıcıda zaten olan fotoğrafta şekil görünmez. Elemanın kendi köşesi ve zemini şeklinkine baskın.
@@ -719,7 +723,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-unavailable` (hesabın henüz
   kullanamadığı buton, iki temada gri; meşgul butonun solukluğundan ayrı), `btn-danger` (kırmızı dolgu, sadece
   onay penceresinin butonu), `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış
-  animasyonu), `app-splash` (`index.html`'deki açılış ekranı),
+  animasyonu), `app-shell-page` (`index.html`'deki açılış kabuğunun sayfası, geç belirir),
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
   dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
   `color-mix` ile, koyu tema ayarı da `styles.css`'te), `usage-bar` + `usage-bar-fill` (`-warn`, `-full`;
@@ -762,7 +766,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
   oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
 - Logo `shared/logo` (`<app-logo>`, inline SVG: dolu daire + uçları yuvarlak çizgilerle €; header ve
-  footer). Açılış ekranında `index.html`'de aynı çizimin kopyası var; ikisi birlikte değişir. Uygulama
+  footer). Açılış kabuğunda (`index.html`) aynı çizimin kopyası var; ikisi birlikte değişir. Uygulama
   ikonları ve favicon ondan üretilir: `node scripts/make-icons.mjs` (`src/web`, headless Edge; çizim ve
   renkler betikte de yazılı) `public/icons/`, `public/favicon.ico` ve `public/favicon.svg` (tarayıcının
   açık/koyu moduna göre renk değiştirir) yazar; logo değişince betik güncellenip yeniden çalıştırılır.
