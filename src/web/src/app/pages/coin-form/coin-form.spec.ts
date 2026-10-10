@@ -175,8 +175,10 @@ describe('CoinForm', () => {
     it('offers the eight denominations from the largest and the countries by name', async () => {
       await open('/coins/new?collection=5', undefined, ['DE', 'AT', 'BE']);
 
-      // Lists to type in since 2026-10-09 (were selects with these options and "Seç…" first)
-      expect(listBox('denomination').placeholder).toBe('Seç…');
+      // Lists to type in since 2026-10-09 (were selects with these options and "Seç…" first); the
+      // denomination is a list without typing since 2026-10-10 (a button showing "Seç…")
+      expect(listBox('denomination').tagName).toBe('BUTTON');
+      expect(listBox('denomination').textContent!.trim()).toBe('Seç…');
       expect(await listNames('denomination')).toEqual([
         '2 €',
         '1 €',
@@ -193,10 +195,13 @@ describe('CoinForm', () => {
 
     it('takes the denomination picked from the list', async () => {
       await open('/coins/new?collection=5');
-      await choose('denomination', '50');
+      // Nothing to type: the first letters jump to an option, Enter takes it
+      await listKey('denomination', '5');
+      await listKey('denomination', '0');
+      await listKey('denomination', 'Enter');
 
       expect(form()['form'].controls.denomination.value).toBe('Cent50');
-      expect(control('denomination').value).toBe('50 cent');
+      expect(control('denomination').textContent!.trim()).toBe('50 cent');
     });
 
     it('moves a coin to the collection picked from the list, as its numeric id', async () => {
@@ -301,7 +306,7 @@ describe('CoinForm', () => {
       await open('/coins/1/edit', edited);
 
       expect(form()['form'].controls.denomination.value).toBe('Euro2');
-      expect(control('denomination').value).toBe('2 €');
+      expect(control('denomination').textContent!.trim()).toBe('2 €');
       expect(form()['form'].controls.countryCode.value).toBe('DE');
       expect(control('countryCode').value).toBe('Almanya');
       expect(control('year').value).toBe('2006');

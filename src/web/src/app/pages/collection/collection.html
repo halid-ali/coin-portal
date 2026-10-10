@@ -478,6 +478,7 @@
             }}</label>
             <app-combobox
               inputId="commemorative"
+              searchable="false"
               [options]="commemorativeOptions()"
               [value]="commemorativeValue()"
               [label]="'coin.field.commemorativeCoin' | transloco"
@@ -491,6 +492,7 @@
               <label for="photo" class="form-label">{{ 'coinList.photoFilter' | transloco }}</label>
               <app-combobox
                 inputId="photo"
+                searchable="false"
                 [options]="photoOptions()"
                 [value]="photoValue()"
                 [label]="'coinList.photoFilter' | transloco"

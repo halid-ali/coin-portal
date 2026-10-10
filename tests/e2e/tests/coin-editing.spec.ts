@@ -20,7 +20,8 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await expect(page.getByRole('heading', { name: 'Edit coin' })).toBeVisible();
 
   // The saved values, and the title is no longer suggested
-  await expect(page.getByLabel('Denomination')).toHaveValue('2 €');
+  // A list without typing: the box is a button showing the choice
+  await expect(page.getByRole('combobox', { name: 'Denomination', exact: true })).toHaveText('2 €');
   await expect(page.getByLabel('Country')).toHaveValue('Germany');
   await expect(page.getByLabel('Year')).toHaveValue('2006');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');

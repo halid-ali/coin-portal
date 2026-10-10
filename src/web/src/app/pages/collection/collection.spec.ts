@@ -110,6 +110,15 @@ describe('Collection', () => {
     await filterKey(id, 'Escape');
     return names;
   }
+  /** Opens a filter's list and clicks an option by its name (also for a list without typing). */
+  async function pickFilter(id: string, name: string): Promise<void> {
+    const list = await openFilter(id);
+    const option = [...list.querySelectorAll<HTMLElement>('[role=option]')].find(
+      (o) => o.textContent!.trim() === name,
+    )!;
+    option.click();
+    await harness.fixture.whenStable();
+  }
   /** Types into a filter's box and picks the first match. */
   async function chooseFilter(id: string, typed: string): Promise<void> {
     filterBox(id).focus();
@@ -294,7 +303,7 @@ describe('Collection', () => {
     request.flush(emptyPage(1, 0));
     await harness.fixture.whenStable();
     expect(page().querySelector('#photo')).not.toBeNull();
-    expect(filterBox('photo').value).toBe('Fotoğrafı eksik');
+    expect(filterBox('photo').textContent!.trim()).toBe('Fotoğrafı eksik');
     expect(page().textContent).toContain('Filtreleri temizle');
   });
 
@@ -303,8 +312,11 @@ describe('Collection', () => {
 
     expect(await options('commemorative')).toEqual(['Tümü', 'Sadece hatıra', 'Hatıra olmayanlar']);
     expect(await options('photo')).toEqual(['Tümü', 'Fotoğrafı eksik', 'Fotoğrafları tam']);
+    // Short fixed lists: nothing to type (user choice 2026-10-10)
+    expect(filterBox('commemorative').tagName).toBe('BUTTON');
+    expect(filterBox('photo').tagName).toBe('BUTTON');
 
-    await chooseFilter('commemorative', 'olmayan');
+    await pickFilter('commemorative', 'Hatıra olmayanlar');
     expect(url()).toBe('/collections/5?isCommemorative=false');
     expect(latestCoinRequest().request.params.get('isCommemorative')).toBe('false');
   });
