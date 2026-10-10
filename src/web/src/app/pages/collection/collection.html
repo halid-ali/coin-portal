@@ -336,8 +336,12 @@
           [class]="showKinds() ? 'flex justify-between' : 'hidden justify-end'"
         >
           @if (showKinds()) {
+            <!-- The choice's background slides from button to button; no hover background on the
+             others, it would hide the slide (user choices 2026-10-10) -->
             <div
               class="inline-flex max-w-full rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
+              [appSlidingSelection]="query().kind ?? null"
+              highlightClass="bg-brand-100"
               role="group"
               [attr.aria-label]="'coinList.kinds.label' | transloco"
             >
@@ -345,11 +349,11 @@
                 @let selected = (query().kind ?? null) === k;
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-3.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                  class="relative inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-3.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                   [class]="
                     selected
-                      ? 'bg-brand-100 font-semibold text-brand-800'
-                      : 'font-medium text-shade-600 hover:bg-shade-100 hover:text-shade-800'
+                      ? 'font-semibold text-brand-800'
+                      : 'font-medium text-shade-600 hover:text-shade-900'
                   "
                   [attr.aria-pressed]="selected"
                   (click)="setKind(k)"

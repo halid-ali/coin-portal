@@ -49,6 +49,7 @@ import { DenominationIcon } from '../../shared/denomination-icon/denomination-ic
 import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Combobox } from '../../shared/combobox/combobox';
+import { SlidingSelection } from '../../shared/sliding-selection';
 import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 import { scrollToTop } from '../../shared/motion';
 import { delayedLoading } from '../../shared/skeleton';
@@ -112,6 +113,7 @@ type QueryParamValue = string | number | boolean | null;
     CollectionDeleteDialog,
     Combobox,
     NgTemplateOutlet,
+    SlidingSelection,
   ],
   templateUrl: './collection.html',
 })
