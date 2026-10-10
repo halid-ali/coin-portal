@@ -603,6 +603,40 @@
   }
 
   /*
+   * Scrollbars (user choice 2026-10-10): a gray pill without arrows on a clear track, darker under
+   * the pointer; the page, lists, dialogs and the sliding tab rows alike, in the neutral shade so
+   * both themes follow. Chromium and Safari draw it from the ::-webkit-scrollbar parts, which they
+   * ignore on an element with scrollbar-color or scrollbar-width set: those stay for Firefox only
+   * (a thin bar in the same colors). Phones keep their own overlay bars.
+   */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+    background-color: var(--color-shade-300);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-shade-400);
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-shade-300) transparent;
+    }
+  }
+
+  /*
    * Buttons show the hand, like links (user decision 2026-10-07): Tailwind 4 resets them to the
    * arrow, and the site's buttons and button-styled links look alike. Disabled and busy ones keep
    * the not-allowed cursor of the btn-* classes. Options of the language list are clicked too.
