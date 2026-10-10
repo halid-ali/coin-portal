@@ -908,6 +908,9 @@
                     {{ countryName(coin.countryCode) }} · {{ coin.year
                     }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
                   </p>
+                  @if (coin.description; as description) {
+                    <p class="mt-1 truncate text-sm text-shade-500">{{ description }}</p>
+                  }
                   @if (coin.ownerUserName) {
                     <a
                       [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
@@ -1061,6 +1064,15 @@
                     </td>
                     <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
                       {{ coin.title }}
+                      @if (coin.description; as description) {
+                        <!-- One line (user choice 2026-10-10), the rest in the photo viewer -->
+                        <p
+                          class="mt-0.5 truncate text-sm font-normal text-shade-500"
+                          [title]="description"
+                        >
+                          {{ description }}
+                        </p>
+                      }
                     </td>
                     <td class="truncate px-3 py-3" [title]="valueLabel(coin)">
                       {{ valueLabel(coin) }}
@@ -1151,6 +1163,7 @@
       [coinId]="coin.id"
       [photos]="coin.photos"
       [title]="coin.title"
+      [description]="coin.description"
       [kind]="coin.kind"
       [denomination]="coin.denomination"
       [shareToken]="shareToken()"

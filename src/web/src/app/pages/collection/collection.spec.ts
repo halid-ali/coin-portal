@@ -207,6 +207,26 @@ describe('Collection', () => {
     expect(addCoin.getAttribute('aria-describedby')).toBe('email-limit-coins');
   });
 
+  it("shows a coin's description in one line under its title, in the table and on the card", async () => {
+    const described = { ...coin, description: 'Babamın hatırası.\nKenarında bir çentik var.' };
+    await open('/collections/5', 1, { ...pageWithCoin(), items: [described] });
+
+    const cell = page().querySelectorAll('table tbody tr td')[1];
+    const line = cell.querySelector('p')!;
+    expect(line.textContent!.trim()).toBe(described.description);
+    expect(line.classList).toContain('truncate');
+    // The whole text on hover; the photo viewer shows it too
+    expect(line.getAttribute('title')).toBe(described.description);
+    const card = page().querySelector('ul li')!;
+    expect(card.textContent).toContain('Babamın hatırası.');
+  });
+
+  it('leaves the line out of a coin without a description', async () => {
+    await open('/collections/5', 1, pageWithCoin());
+
+    expect(page().querySelectorAll('table tbody tr td')[1].querySelector('p')).toBeNull();
+  });
+
   it('lists every coin without photos from the banner, whatever the filters', async () => {
     await open('/collections/5?search=tor&countryCode=DE&view=grid', 3, pageWithCoin(), {
       photographedCoinCount: 1,
