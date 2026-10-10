@@ -147,6 +147,16 @@ export class Collection {
   protected readonly notFound = signal(false);
   /** Translation key when the collection could not be loaded for another reason than 404. */
   protected readonly headerError = signal<string | null>(null);
+  /** Placeholder shapes for the name, description and count while the header takes a while. */
+  protected readonly showHeaderSkeleton = delayedLoading(
+    computed(
+      () =>
+        this.mode() !== 'explore' &&
+        this.header() === null &&
+        !this.notFound() &&
+        this.headerError() === null,
+    ),
+  );
   protected readonly collectionCover = computed(() => {
     const header = this.header();
     return header ? coverUrl(header, this.shareToken()) : null;
@@ -161,7 +171,7 @@ export class Collection {
       case 'owner':
         return [
           { key: 'nav.collections', link: '/collections', icon: 'collections' },
-          { text: header?.name ?? '' },
+          { text: header?.name ?? '', loading: !header && this.showHeaderSkeleton() },
         ];
       case 'public':
         return header?.ownerUserName

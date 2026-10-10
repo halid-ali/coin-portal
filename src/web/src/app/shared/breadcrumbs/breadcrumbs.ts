@@ -14,6 +14,11 @@ export interface Crumb {
   readonly icon?: 'explore' | 'collections';
   /** A user's initial: a small avatar, as in the header and on the profile. */
   readonly avatar?: string;
+  /**
+   * A name still loading (a collection's): a placeholder bar (`.skeleton`), and no link yet, so
+   * there is no link without a name.
+   */
+  readonly loading?: boolean;
 }
 
 /**
@@ -31,15 +36,24 @@ export interface Crumb {
         @for (crumb of items(); track $index; let first = $first, last = $last) {
           @if (!last) {
             <li class="flex items-center gap-2" [class]="first ? 'shrink-0' : 'min-w-0'">
-              <a
-                [routerLink]="crumb.link"
-                [queryParams]="crumb.queryParams"
-                class="flex min-w-0 items-center gap-1.5 rounded-full bg-shade-0 px-3 py-1 font-medium text-shade-700 shadow-sm ring-1 ring-shade-200 hover:bg-shade-100 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
-              >
-                <ng-container
-                  *ngTemplateOutlet="label; context: { $implicit: crumb }"
-                ></ng-container>
-              </a>
+              @if (crumb.loading) {
+                <span
+                  class="flex items-center rounded-full bg-shade-0 px-3 py-1 shadow-sm ring-1 ring-shade-200"
+                  aria-hidden="true"
+                >
+                  <span class="skeleton my-1 h-3 w-24 rounded-full"></span>
+                </span>
+              } @else {
+                <a
+                  [routerLink]="crumb.link"
+                  [queryParams]="crumb.queryParams"
+                  class="flex min-w-0 items-center gap-1.5 rounded-full bg-shade-0 px-3 py-1 font-medium text-shade-700 shadow-sm ring-1 ring-shade-200 hover:bg-shade-100 hover:text-shade-900 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                >
+                  <ng-container
+                    *ngTemplateOutlet="label; context: { $implicit: crumb }"
+                  ></ng-container>
+                </a>
+              }
               <svg
                 viewBox="0 0 24 24"
                 class="size-3.5 shrink-0 text-shade-400"
@@ -70,7 +84,9 @@ export interface Crumb {
     </nav>
 
     <ng-template #label let-crumb>
-      @if (crumb.avatar) {
+      @if (crumb.loading) {
+        <span class="skeleton h-3 w-28 rounded-full" aria-hidden="true"></span>
+      } @else if (crumb.avatar) {
         <span
           aria-hidden="true"
           class="grid size-4.5 shrink-0 place-items-center rounded-full bg-slate-800 text-[10px] font-semibold text-white dark:bg-slate-700"
@@ -99,7 +115,9 @@ export interface Crumb {
           }
         </svg>
       }
-      <span class="truncate">{{ crumb.key ? (crumb.key | transloco) : crumb.text }}</span>
+      @if (!crumb.loading) {
+        <span class="truncate">{{ crumb.key ? (crumb.key | transloco) : crumb.text }}</span>
+      }
     </ng-template>
   `,
 })

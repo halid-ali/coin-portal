@@ -65,8 +65,17 @@
                   @if (header(); as h) {
                     {{ h.name }}
                   } @else {
-                    <!-- Keeps the line height while loading, without an empty heading -->
-                    &nbsp;<span class="sr-only">{{ 'common.loading' | transloco }}</span>
+                    <!-- Keeps the line height while loading, without an empty heading; a
+                     placeholder bar after a moment (user choice 2026-10-10) -->
+                    @if (showHeaderSkeleton()) {
+                      <span
+                        class="skeleton inline-block h-5 w-56 max-w-full rounded-full align-middle"
+                        aria-hidden="true"
+                      ></span>
+                    } @else {
+                      &nbsp;
+                    }
+                    <span class="sr-only">{{ 'common.loading' | transloco }}</span>
                   }
                 </h1>
                 @if (header(); as h) {
@@ -76,10 +85,16 @@
                       [moderationLocked]="!!h.moderationLocked"
                     />
                   }
+                } @else if (showHeaderSkeleton() && mode() === 'owner') {
+                  <span class="skeleton h-6 w-20 shrink-0 rounded-full" aria-hidden="true"></span>
                 }
               </div>
               @if (header()?.description; as description) {
                 <p class="mt-1 max-w-prose text-sm text-shade-600">{{ description }}</p>
+              } @else if (showHeaderSkeleton()) {
+                <div class="mt-1 flex h-5 items-center" aria-hidden="true">
+                  <div class="skeleton h-3 w-64 max-w-full rounded-full"></div>
+                </div>
               }
               @if (result(); as r) {
                 <p class="mt-1 text-sm text-shade-500">
@@ -88,6 +103,10 @@
                     {{ 'coinList.filtered' | transloco }}
                   }
                 </p>
+              } @else if (showSkeleton()) {
+                <div class="mt-1 flex h-5 items-center" aria-hidden="true">
+                  <div class="skeleton h-3 w-20 rounded-full"></div>
+                </div>
               }
             </div>
           </div>

@@ -699,6 +699,29 @@ describe('Collection', () => {
       }
     });
 
+    it('shows placeholders for the name and its place in the way here while the header loads', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/collections/5');
+        http.match('/api/countries').forEach((r) => r.flush([]));
+        vi.advanceTimersByTime(SKELETON_DELAY_MS);
+        await harness.fixture.whenStable();
+
+        const heading = page().querySelector('h1')!;
+        expect(heading.querySelector('.skeleton')).not.toBeNull();
+        expect(heading.textContent).toContain('Yükleniyor…');
+        expect(page().querySelectorAll('app-breadcrumbs .skeleton')).toHaveLength(1);
+
+        http.expectOne('/api/collections/5').flush(collection(1));
+        latestCoinRequest().flush(pageWithCoin());
+        await harness.fixture.whenStable();
+        expect(heading.textContent!.trim()).toBe('Koleksiyonum');
+        expect(page().querySelectorAll('.skeleton')).toHaveLength(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('shows placeholder rows for the first list too, up to its coins', async () => {
       vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
       try {
