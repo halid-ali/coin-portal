@@ -1926,10 +1926,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           Denetim kaydı: işlem) yazısız, adları panelin geç yüklenen metinlerinden (`translateSignal`); koleksiyon
           silme penceresinin "taşınacak koleksiyon"u yazılabilir (kullanıcının adları, 50'ye kadar), pencerede
           Esc önce listeyi kapatır. Uygulamada native `<select>` kalmadı (`select.form-input` stili de kalktı).
-          Telefonda uzun sıralama adının kesilmesi ayrı (Açık konular 28).
+          Sonra (Açık konular 28, kullanıcı kararı: önerilen iki seçeneğin birleşimi): telefonda "Filtrele" sadece
+          huni ikonu (sayı köşede, buton boyu değişmez, Sırala kaymaz), Sırala kutusu tablo başlığının kısa sütun adı
+          ve okuyla ("Yıl ↓"; `Combobox` `display` şablonu, genişliği en uzun kısa ad kadar; liste ve ekran
+          okuyucu tam adla). Tür düğmeleri telefonda biraz daha dar (`px-3`): Bulgarca 360 px'te kartın içine
+          sığıyor (6 px taşıyordu; kullanıcı tür düğmelerinde başka değişiklik düşünüyor).
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 490 (+42), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 492 (+44), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası
@@ -2700,8 +2704,8 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     ya da exception handler; önce lokalde tekrar üretilip mevcut davranış doğrulanır.
 27. ~~**Kalan native `<select>`'ler**~~ (kapandı 2026-10-10, Tamamlananlar 100): yönetim panelinin filtre ve
     sıralama kutuları yazısız, koleksiyon silme penceresinin "taşınacak koleksiyon"u yazılabilir `Combobox`.
-28. **Telefonda uzun sıralama adı kesiliyor** (2026-10-10, kullanıcı: sonra ele alınacak): "Filtrele"nin
-    yanındaki Sırala kutusu dar, "Yıl (yeni → eski)" gibi bir ad "Yıl (yeni …" olarak görünür.
+28. ~~**Telefonda uzun sıralama adı kesiliyor**~~ (kapandı 2026-10-10, Tamamlananlar 100): "Filtrele" ikon,
+    Sırala kutusu kısa sütun adı + ok.
 
 ## Yayın öncesi yapılacaklar
 

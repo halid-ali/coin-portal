@@ -625,9 +625,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   kutusunda da (yazısız combobox, solda sıralama ikonu) (kullanıcı kararı 2026-10-10: standart filtre paneli; mobilde tablo yok): ikisi de sırayı URL'den
   okur, kendiliğinden eş kalır. Filtre kartının ilk satırında solda tür düğmeleri, sağda "Filtreleri temizle" +
   "Sırala" (temizle `lg` altında sadece huni + çarpı ikonu, `aria-label` + `title`; böylece ~700 px'ten itibaren
-  tek satır, sığmazsa ikili alt satırda, solda); telefonda "Filtrele"nin yanında Sırala, panelin sonunda temizle.
+  tek satır, sığmazsa ikili alt satırda, solda); telefonda (kullanıcı kararı 2026-10-10) "Filtrele" sadece huni
+  ikonu (seçili filtre sayısı köşesinde, buton boyu sabit; adı `sr-only` + `title`), yanında Sırala kutusu
+  tablo başlığının kısa sütun adı ve okuyla ("Yıl ↓", `display` şablonu `sortShort`; liste tam adlarla,
+  ekran okuyucuya tam ad), panelin sonunda temizle.
   Kart yüksekliği ve satır kullanılırken oynamaz: temizlenecek filtre yokken buton kalır, `aria-disabled`;
-  Sırala geniş ekranda en uzun sıralama adı kadar geniş (`fitOptions` + `fitLabels`: kutuda hiç görünmeyen
+  Sırala en uzun sıralama adı kadar geniş (`fitOptions` + `fitTo`: kutuda hiç görünmeyen
   "Sıralamayı kaldır" ölçüye girmez, o sadece bir sıralama seçiliyken listede), seçim satırı oynatmaz;
   varsayılan sırada "Sırala" yazar, soluk değil (`placeholderIsName`).
   Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
@@ -667,7 +670,8 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   role="combobox">` (native select gibi: tıklama, Enter / Boşluk / oklar açar, Home / End, Enter / Boşluk seçer,
   ilk harfler o harfle başlayan seçeneğe atlar, aynı harf sıradakine; liste görünümü aynı). Etiketsiz kutuda
   `ariaLabel`; `compact` 38 px (yanındaki butonlar); `comboboxIcon` (+ `#comboboxIcon`) soldaki ikon; testte
-  görünen ad kutunun ilk `span`'ı (`fitOptions`'lı kutu bütün adları gizli taşır). Panelde seçenek adları
+  görünen ad kutunun ilk `span`'ı (`fitOptions`'lı kutu bütün adları gizli taşır). `display` (TemplateRef)
+  seçileni kutuda farklı gösterir (genişlik ölçüsü de onunla; tam adı `sr-only` ver). Panelde seçenek adları
   panelin geç yüklenen metinlerinden: `translateSignal` (kapsam anahtarı, `admin.` öneksiz) + `namedOptions`
   (`core/admin/admin-list.ts`); sıralama kutusu ters çevrilmiş sırada "Sırala" yazar (`sortOptionValue`).
   Pencere içinde de çalışır: açık listede Esc listeyi kapatır, pencereyi değil (keydown'ın varsayılanı engellenir).
