@@ -134,6 +134,9 @@ builder.Services.AddOptions<PhotoOptions>()
 builder.Services.AddSingleton<IPhotoStorage, FileSystemPhotoStorage>();
 builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
 builder.Services.AddScoped<PhotoQuota>();
+// E-mails at 75 % and 90 % of the photo storage, checked in the background
+builder.Services.AddSingleton<StorageWarnings>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<StorageWarnings>());
 // Removes image folders no row refers to (PhotoStorage:SweepIntervalHours)
 builder.Services.AddSingleton<PhotoSweeper>();
 builder.Services.AddHostedService<PhotoSweepService>();

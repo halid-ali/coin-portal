@@ -29,6 +29,7 @@ public class CoinPhotosController(
     IImageProcessor imageProcessor,
     IPhotoStorage photoStorage,
     PhotoQuota photoQuota,
+    StorageWarnings storageWarnings,
     PublicationGuard publication,
     IOptions<PhotoOptions> photoOptions,
     ILogger<CoinPhotosController> logger) : ControllerBase
@@ -106,6 +107,7 @@ public class CoinPhotosController(
         {
             await photoStorage.DeleteAsync(coin.OwnerId, existing.Id);
         }
+        storageWarnings.Enqueue(coin.OwnerId);
 
         return CoinResponse.From(coin);
     }
@@ -142,6 +144,7 @@ public class CoinPhotosController(
         coin.UpdatedAtUtc = now;
         await db.SaveChangesAsync(ct);
         await photoStorage.DeleteAsync(coin.OwnerId, photo.Id);
+        storageWarnings.Enqueue(coin.OwnerId);
 
         return NoContent();
     }

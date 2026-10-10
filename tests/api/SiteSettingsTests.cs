@@ -225,6 +225,51 @@ public class SiteSettingsTests(CoinPortalFactory factory)
         }
     }
 
+    [Fact]
+    public async Task ChangedQuota_WarnsWhomItPushesPastAShare_AndARaiseResetsTheWarning()
+    {
+        var admin = await factory.SignUpAdminAsync();
+        var alice = await factory.SignUpAsync();
+        var coin = await alice.CreateCoinAsync((await alice.FirstCollectionAsync()).Id);
+        var photo = await alice.UploadPhotoAsync(coin.Id);
+        // 80 MB: a quarter of today's quota, 80 % of 100 MB
+        await factory.WithDbAsync(db => db.CoinPhotos.Where(p => p.Id == photo.Id).ExecuteUpdateAsync(s =>
+            s.SetProperty(p => p.SizeBytes, 80 * PhotoQuota.BytesPerMegabyte)));
+        Task<StorageWarningLevel> LevelAsync() => factory.WithDbAsync(db =>
+            db.Users.Where(u => u.Id == alice.User.Id).Select(u => u.StorageWarningLevel).SingleAsync());
+        try
+        {
+            using (var lower = await admin.Client.PutAsync(Url,
+                       Settings(CoinPortalFactory.MinPublicCoins, userQuotaMegabytes: 100)))
+            {
+                await lower.ShouldHaveStatusAsync(HttpStatusCode.OK);
+            }
+            await WaitUntilAsync(async () => await LevelAsync() == StorageWarningLevel.Filling);
+            var warning = Assert.Single(factory.Mail.To(alice.User.Email), m => m.Body.Contains("/settings/account"));
+            Assert.Equal("CoinVitrine: 75% of your photo storage is used", warning.Subject);
+            Assert.Contains("80 MB of 100 MB", warning.Body);
+
+            // Raised again: the warning is forgotten, without an e-mail
+            await RestoreAsync(admin);
+            await WaitUntilAsync(async () => await LevelAsync() == StorageWarningLevel.None);
+            Assert.Single(factory.Mail.To(alice.User.Email), m => m.Body.Contains("/settings/account"));
+        }
+        finally
+        {
+            await RestoreAsync(admin);
+        }
+    }
+
+    private static async Task WaitUntilAsync(Func<Task<bool>> done)
+    {
+        var until = DateTime.UtcNow.AddSeconds(10);
+        while (!await done())
+        {
+            Assert.True(DateTime.UtcNow < until, "Timed out waiting for the storage warnings.");
+            await Task.Delay(20);
+        }
+    }
+
     [Theory]
     [InlineData(49)]
     [InlineData(2001)]

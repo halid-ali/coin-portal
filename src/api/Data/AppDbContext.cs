@@ -38,6 +38,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             {
                 t.HasCheckConstraint("CK_AspNetUsers_PreferredTheme", "[PreferredTheme] IN (0, 1, 2)");
                 t.HasCheckConstraint("CK_AspNetUsers_PreferredAccent", "[PreferredAccent] BETWEEN 0 AND 6");
+                t.HasCheckConstraint("CK_AspNetUsers_StorageWarningLevel", "[StorageWarningLevel] BETWEEN 0 AND 2");
             });
 
             // Identity only validates unique email in code; enforce it in the database as well
