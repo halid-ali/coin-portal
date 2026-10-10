@@ -67,8 +67,10 @@
             <span
               class="flex shrink-0 items-center gap-2 text-lg font-bold whitespace-nowrap text-shade-900"
             >
-              <!-- Same drawing as shared/logo (colors from styles.css) -->
-              <svg class="size-8" viewBox="2 2 60 60" aria-hidden="true">
+              <!-- Same drawing as shared/logo (colors from styles.css). Its own size too: a browser
+               may paint the shell before styles.css (Firefox when a script reads the layout
+               early), and an SVG without one fills the page -->
+              <svg class="size-8" width="32" height="32" viewBox="2 2 60 60" aria-hidden="true">
                 <circle cx="32" cy="32" r="30" style="fill: var(--logo-coin)" />
                 <path
                   d="M41.83 22.19A13.2 13.2 0 1 0 41.83 41.81M16 27.7H30.5M16 36.3H30.5"
