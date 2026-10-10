@@ -75,7 +75,8 @@ describe('CollectionDeleteDialog', () => {
     )!;
   const submit = () => button('Koleksiyonu sil');
   async function type(name: string): Promise<void> {
-    const input = page.querySelector<HTMLInputElement>('input[type=text]')!;
+    // The name box (the move target's box is a combobox, a text box too)
+    const input = page.querySelector<HTMLInputElement>('input[id$=-confirm]')!;
     input.value = name;
     input.dispatchEvent(new Event('input'));
     await fixture.whenStable();
@@ -148,6 +149,26 @@ describe('CollectionDeleteDialog', () => {
     expect(fixture.componentInstance.results).toEqual([true]);
   });
 
+  it('closes the target list on Escape before the dialog, and locks it when the coins go too', async () => {
+    const box = () => page.querySelector<HTMLInputElement>('[role=combobox]')!;
+    box().click();
+    await fixture.whenStable();
+    expect(box().getAttribute('aria-expanded')).toBe('true');
+
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    box().dispatchEvent(escape);
+    await fixture.whenStable();
+    // Handled by the list: its default prevented, the dialog's own Escape does not follow
+    expect(escape.defaultPrevented).toBe(true);
+    expect(box().getAttribute('aria-expanded')).toBe('false');
+    expect(dialog()).not.toBeNull();
+    expect(fixture.componentInstance.results).toEqual([]);
+
+    page.querySelectorAll<HTMLInputElement>('input[type=radio]')[1].click();
+    await fixture.whenStable();
+    expect(box().disabled).toBe(true);
+  });
+
   it('forgets what the API said when another target is chosen', async () => {
     fixture.componentInstance.all.set([
       collection(4, 'Koleksiyonum'),
@@ -166,9 +187,12 @@ describe('CollectionDeleteDialog', () => {
     await fixture.whenStable();
     expect(page.textContent).toContain('"Koleksiyonum" herkese açık');
 
-    const select = page.querySelector<HTMLSelectElement>('select')!;
-    select.value = '6';
-    select.dispatchEvent(new Event('change'));
+    // The target is a list to type in (a combobox since 2026-10-10; was a select)
+    page.querySelector<HTMLInputElement>('[role=combobox]')!.click();
+    await fixture.whenStable();
+    [...page.querySelectorAll<HTMLElement>('[role=option]')]
+      .find((o) => o.textContent!.trim() === 'Yedek')!
+      .click();
     await fixture.whenStable();
 
     expect(page.textContent).not.toContain('herkese açık ve');

@@ -20,6 +20,8 @@ import {
 } from '../../core/collections/collection.service';
 import { wouldUnpublish } from '../../core/collections/publication';
 import { PluralPipe } from '../../core/i18n/plural';
+import { Combobox } from '../../shared/combobox/combobox';
+import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 
 let nextId = 0;
 
@@ -30,7 +32,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-collection-delete-dialog',
-  imports: [TranslocoPipe, PluralPipe],
+  imports: [TranslocoPipe, PluralPipe, Combobox],
   template: `
     <dialog
       #dialog
@@ -106,17 +108,18 @@ let nextId = 0;
                     'collectionDelete.moveTo' | transloco
                   }}</span>
                 </label>
-                <select
-                  class="form-input ml-7 w-[calc(100%-1.75rem)] py-1.5"
-                  #targetSelect
+                <!-- A list to type in, like the coin form's collection (the user's names, up to 50) -->
+                <app-combobox
+                  class="ml-7 w-[calc(100%-1.75rem)]"
+                  compact
+                  [inputId]="titleId + '-target'"
+                  [options]="targetOptions()"
+                  [value]="targetId() === null ? '' : '' + targetId()"
+                  [label]="'collectionDelete.moveTarget' | transloco"
+                  [ariaLabel]="'collectionDelete.moveTarget' | transloco"
                   [disabled]="mode() !== 'move'"
-                  [attr.aria-label]="'collectionDelete.moveTarget' | transloco"
-                  (change)="selectTarget(+targetSelect.value)"
-                >
-                  @for (t of targets(); track t.id) {
-                    <option [value]="t.id" [selected]="t.id === targetId()">{{ t.name }}</option>
-                  }
-                </select>
+                  (valueChange)="selectTarget(+$event)"
+                />
                 @if (mode() === 'move' && unpublishesTarget()) {
                   <!-- Told by the API after a click: announced, the next click confirms it -->
                   <p
@@ -221,6 +224,9 @@ export class CollectionDeleteDialog {
 
   protected readonly targets = computed(() =>
     this.collections().filter((c) => c.id !== this.collection().id),
+  );
+  protected readonly targetOptions = computed<ComboboxOption[]>(() =>
+    this.targets().map((t) => ({ value: String(t.id), label: t.name })),
   );
   protected readonly targetId = signal<number | null>(null);
   protected readonly target = computed(() => this.targets().find((t) => t.id === this.targetId()));
