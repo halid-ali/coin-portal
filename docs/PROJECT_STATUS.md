@@ -1,6 +1,6 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-10 (**`v1.10.0` hazırlanıyor**, ikinci bulgu turu bitti (Tamamlananlar 100, `fix/world-coins-and-ui-findings`
+Son güncelleme: 2026-10-10 (**`v1.10.0` yayında** (Tamamlananlar 101): Euro dışı coin'ler ve iki bulgu turu; ikinci tur (Tamamlananlar 100, `fix/world-coins-and-ui-findings`
 main'e alındı): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
 kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
 ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni), filtre kartında "Filtreleri
@@ -10,8 +10,7 @@ düğmelerinde kayan seçim ve sağ alt köşede sayı rozeti, tek türlü liste
 (Adet'te − / +), oksuz gri kaydırma çubukları, fotoğraf alanı çubuğu sabit renklerde ve %75 / %90'da uyarı e-postası,
 coin açıklaması listede ve fotoğraf görüntüleyicide (62 commit). Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
 listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
-istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: `v1.10.0` yayını (push, kurulum,
-Release notları; kullanıcı onayıyla). **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki iş kullanıcıyla seçilir. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -26,18 +25,13 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 
 ## Yeni sohbete başlarken
 
-- Durum (2026-10-10 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
-  **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97), Euro dışı
-  coin'ler (98) ve manuel test bulgularının düzeltmeleri (99, `fix/non-euro-coins-findings` main'e alındı).
-  İkinci bulgu turu (`fix/world-coins-and-ui-findings`, Tamamlananlar 100) bitti ve main'e alındı (2026-10-10
-  akşamı; kullanıcının başka bulgusu yok). **Sıradaki:** kullanıcı onayıyla push ve `v1.10.0` (minor;
-  `AddOtherCoins` ve `AddStorageWarningLevel` migration'ları var: kurulumu onaylamadan önce panelden veritabanı
-  yedeği, "Yayın (deploy) adımları"). Lokal dev
+- Durum (2026-10-10 sohbetinin sonu): son etiket `v1.10.0`, canlıda `v1.10.0` (Tamamlananlar 101); lokal `main`
+  `origin/main` ile aynı, açık branch yok. **Sıradaki:** iş kullanıcıyla seçilir ("Sıradaki adım"). Lokal dev
   veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
   (komutlar CLAUDE.md'de).
-- Canlı site: https://coinvitrine.com (`v1.9.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
+- Canlı site: https://coinvitrine.com (`v1.10.0`, MonsterASP.NET; `coinportal.runasp.net` ve `www.` 308 ile
   oraya yönlenir; kullanıcı admin; alan adı ve DNS Cloudflare'de, e-posta `contact@coinvitrine.com`;
   uygulamanın e-postaları da bu kutudan, MonsterASP SMTP'si `mail2248.mailasp.net:587` STARTTLS, ayarlar
   sunucudaki `web.config`'te `Email__*`).
@@ -1985,6 +1979,15 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
     - Testler: client 512 (+64), e2e 21, API 501 (+20, fotoğraf alanı uyarıları). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
+101. **`v1.10.0`** (`chore/release-v1.10.0`, 2026-10-10): Euro dışı coin'ler (98), ilk bulgu turu (99), ikinci bulgu
+    turu (100), Euro coin regresyon testleri (96) ve iptal edilen isteğin logu (97). git-cliff `v1.10.0` önerdi (`feat`).
+    Yayından önce lokalde API 501, client 512, tam e2e 21 geçti (README rozeti 1034). Kullanıcı panelden veritabanı
+    yedeği aldı; pipeline (Release #14): Checks (Web, API, E2E + ZAP), Package, kullanıcı onayladı, Deploy; hepsi
+    başarılı. Migration'lar `AddOtherCoins` ve `AddStorageWarningLevel` açılışta uygulandı; sunucuda hazırlık yok.
+    Canlı `/api/health` `1.10.0+a297c89`. Release notları `.notes/release-v1.10.0.md`, yayınlandı (latest
+    `v1.10.0`). **Yayın sonrası denenecek:** canlıda bir Dünya coin'i eklemek (değer, para birimi, tarihî ülke),
+    Keşfet'te tür düğmeleri ve açıklamalı coin'in görüntüleyicisi, Firefox'ta ilk açılış (kabuğun stilleri gömülü
+    olmalı, siyah daire olmamalı), ilk fotoğraf alanı uyarı e-postası (bir kullanıcı %75'i geçince, SMTP).
 
 ## Yol haritası
 
@@ -2049,7 +2052,7 @@ mağaza için TWA.
 - [ ] 16. Mağaza: TWA → gerekirse Capacitor → iOS.
 - [ ] 17. Koşullu: container/PaaS, yalnızca tetikleyiciyle.
 - [x] 18. **Euro dışı coin'ler** (yapıldı 2026-10-09, Tamamlananlar 98; görünen adı 2026-10-10'dan beri "Dünya
-      coin'i", Tamamlananlar 99; `v1.10.0` ile yayınlanacak; aşağısı plan ve
+      coin'i", Tamamlananlar 99; `v1.10.0` ile yayında; aşağısı plan ve
       kararlar; kullanıcı 2026-10-05'te not ettirdi; ayrıntı Açık konular 10): coin
       ekleme sayfasının başında "Euro coin / Diğer coin" seçimi; Euro bugünkü form, Diğer serbest değer ve
       para birimi, tüm ülkeler (`Intl.DisplayNames`), yüz adları "Ön yüz / Arka yüz" (veritabanındaki iki yüz
@@ -2229,8 +2232,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş: `v1.10.0` yayını** (yol haritası 18, Tamamlananlar 98–100). İki bulgu turu da bitti ve `main`'de
-(push edilmedi); yayın kullanıcı onayıyla (CLAUDE.md "Sürüm ve yayın"). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
+**Sıradaki iş kullanıcıyla seçilir.** Euro dışı coin'ler (yol haritası 18) ve iki bulgu turu `v1.10.0` ile yayında
+(Tamamlananlar 98–101). Yayın sonrası canlıda denenecekler Tamamlananlar 101'de. Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
 para birimi önerileri, tarihî ülkeler, tür değiştirerek düzenleme), ayse'nin "Karışık kutu"su (düğmeler, gruplu
 Nominal), "Dünya paraları" (iki yüz, görüntüleyicide Ön/Arka yüz), "Yeni başladım" (yayın bandı), herkese açık
 koleksiyonda diğer coin'in arka yüzünü silmek (yayından iner sorusu), Keşfet, dört dil ve iki tema. Yayında migration var: kurulumu onaylamadan önce panelden veritabanı yedeği. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
