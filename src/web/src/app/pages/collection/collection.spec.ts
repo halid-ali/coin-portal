@@ -692,7 +692,7 @@ describe('Collection', () => {
   it("locks the nominal and country filters while another collector's facets load", async () => {
     const counts = () =>
       [...page().querySelectorAll('[aria-label="Coin türü"] button')].map((b) =>
-        b.textContent!.replace(/s+/g, ' ').trim(),
+        b.textContent!.replace(/\s+/g, ' ').trim(),
       );
     await harness.navigateByUrl('/explore');
     http.match('/api/countries').forEach((r) => r.flush([{ code: 'DE' }, { code: 'TR' }]));
