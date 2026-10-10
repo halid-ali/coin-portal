@@ -34,6 +34,7 @@ import { SortHeader } from '../../shared/sort-header/sort-header';
 import { AdminListBase } from './admin-list-base';
 import { AdminStatusBadge } from './admin-status-badge';
 import { UnverifiedMark } from './unverified-mark';
+import { delayedLoading } from '../../shared/skeleton';
 
 /** Sortable columns with the direction of their first click (the mobile select uses that one). */
 const SORTS: readonly { value: AdminUserSort; first: SortDirection }[] = [
@@ -105,6 +106,11 @@ export class AdminUsers extends AdminListBase {
   protected readonly result = signal<PagedResponse<AdminUser> | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
+  /** Placeholder rows when a load takes a while: as many as shown now, so the page keeps its height. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
+  protected readonly skeletonRows = computed(() => [
+    ...Array(Math.min(this.result()?.items.length || 10, 50)).keys(),
+  ]);
   /** Bumped after a bulk deletion: the same query again. */
   private readonly reloads = signal(0);
 

@@ -22,6 +22,7 @@ import { Pagination } from '../../shared/pagination/pagination';
 import { SortHeader } from '../../shared/sort-header/sort-header';
 import { VisibilityBadge } from '../../shared/visibility-badge/visibility-badge';
 import { AdminListBase } from './admin-list-base';
+import { delayedLoading } from '../../shared/skeleton';
 
 /** The "show" filter (?show=…) and what it asks the API for. */
 const SHOW_FILTERS = {
@@ -95,6 +96,11 @@ export class AdminCollections extends AdminListBase {
   protected readonly result = signal<PagedResponse<AdminCollection> | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
+  /** Placeholder rows when a load takes a while: as many as shown now, so the page keeps its height. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
+  protected readonly skeletonRows = computed(() => [
+    ...Array(Math.min(this.result()?.items.length || 10, 50)).keys(),
+  ]);
   /** Id of the collection whose action is running. */
   protected readonly busyId = signal<number | null>(null);
   protected readonly actionError = signal(false);

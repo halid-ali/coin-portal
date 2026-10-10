@@ -8,6 +8,7 @@ import { AdminAuditEntry } from '../../core/admin/admin.models';
 import { PagedResponse } from '../../core/coins/coin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { AdminAudit } from './admin-audit';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 const entry = (id: number, changes: Partial<AdminAuditEntry>): AdminAuditEntry => ({
   id,
@@ -72,5 +73,30 @@ describe('AdminAudit', () => {
     const links = [...element.querySelectorAll('a')].map((a) => a.textContent!.trim());
     expect(links.filter((l) => l.startsWith('@'))).toEqual(['@jonas.weber', '@jonas.weber']);
     expect(text).not.toContain('@null');
+  });
+
+  it('shows placeholder rows on the first load, then the list', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const fixture = TestBed.createComponent(AdminAudit);
+      await fixture.whenStable();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await fixture.whenStable();
+      const element = fixture.nativeElement as HTMLElement;
+
+      // The table (wide screens) and the cards, ten rows each until the list is known
+      expect(element.querySelectorAll('tbody tr[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelectorAll('ul > li[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelector('[role=status].sr-only')).not.toBeNull();
+
+      const http = TestBed.inject(HttpTestingController);
+      http
+        .expectOne((r) => r.url === '/api/admin/audit')
+        .flush({ items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0 });
+      await fixture.whenStable();
+      expect(element.querySelectorAll('.skeleton')).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

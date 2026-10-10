@@ -8,6 +8,7 @@ import { AdminCollection, AdminStats } from '../../core/admin/admin.models';
 import { PagedResponse } from '../../core/coins/coin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { AdminCollections } from './admin-collections';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 describe('AdminCollections', () => {
   beforeEach(async () => {
@@ -51,5 +52,31 @@ describe('AdminCollections', () => {
       expect(text).toContain('5 koleksiyon');
       expect(text).toContain('11 özel koleksiyon listelenmez');
     });
+  });
+
+  it('shows placeholder rows on the first load, then the list', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const fixture = TestBed.createComponent(AdminCollections);
+      await fixture.whenStable();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await fixture.whenStable();
+      const element = fixture.nativeElement as HTMLElement;
+
+      // The table (wide screens) and the cards, ten rows each until the list is known
+      expect(element.querySelectorAll('tbody tr[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelectorAll('ul > li[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelector('[role=status].sr-only')).not.toBeNull();
+
+      const http = TestBed.inject(HttpTestingController);
+      http
+        .expectOne((r) => r.url === '/api/admin/collections')
+        .flush({ items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0 });
+      http.expectOne('/api/admin/stats').flush({} as AdminStats);
+      await fixture.whenStable();
+      expect(element.querySelectorAll('.skeleton')).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

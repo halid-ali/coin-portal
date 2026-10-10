@@ -10,6 +10,7 @@ import { PagedResponse } from '../../core/coins/coin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { AdminUsers } from './admin-users';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 const user = (userName: string, changes: Partial<AdminUser> = {}): AdminUser => ({
   id: userName,
@@ -177,5 +178,30 @@ describe('AdminUsers', () => {
       totalCount: 30,
       totalPages: 2,
     });
+  });
+
+  it('shows placeholder rows on the first load, then the list', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const fixture = TestBed.createComponent(AdminUsers);
+      await fixture.whenStable();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await fixture.whenStable();
+      const element = fixture.nativeElement as HTMLElement;
+
+      // The table (wide screens) and the cards, ten rows each until the list is known
+      expect(element.querySelectorAll('tbody tr[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelectorAll('ul > li[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelector('[role=status].sr-only')).not.toBeNull();
+
+      const http = TestBed.inject(HttpTestingController);
+      http
+        .expectOne((r) => r.url === '/api/admin/users')
+        .flush({ items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0 });
+      await fixture.whenStable();
+      expect(element.querySelectorAll('.skeleton')).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
