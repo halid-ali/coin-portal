@@ -367,13 +367,18 @@
             </div>
           }
           <div class="hidden max-w-full min-w-0 items-center gap-3 sm:flex">
+            <!-- Tablets: only the icon (a square as high as the sort select), so the row fits from
+             about 700 px; from lg up the text too (user choice 2026-10-10) -->
             <button
               type="button"
-              class="btn-secondary shrink-0 py-1.5 whitespace-nowrap"
+              class="btn-secondary shrink-0 gap-2 p-2 whitespace-nowrap lg:px-4 lg:py-1.5"
               [attr.aria-disabled]="hasFilters() ? null : true"
+              [attr.aria-label]="'coinList.clearFilters' | transloco"
+              [title]="'coinList.clearFilters' | transloco"
               (click)="clearFilters()"
             >
-              {{ 'coinList.clearFilters' | transloco }}
+              <ng-container [ngTemplateOutlet]="clearFiltersIcon" />
+              <span class="hidden lg:inline">{{ 'coinList.clearFilters' | transloco }}</span>
             </button>
             <ng-container
               [ngTemplateOutlet]="sortBox"
@@ -497,10 +502,11 @@
 
           <button
             type="button"
-            class="btn-secondary justify-self-start py-1.5 sm:hidden"
+            class="btn-secondary justify-self-start gap-2 py-1.5 sm:hidden"
             [attr.aria-disabled]="hasFilters() ? null : true"
             (click)="clearFilters()"
           >
+            <ng-container [ngTemplateOutlet]="clearFiltersIcon" />
             {{ 'coinList.clearFilters' | transloco }}
           </button>
         </div>
@@ -551,6 +557,23 @@
             [ngTemplateOutletContext]="{ id: 'sort-phone', wrapperClass: 'ml-auto flex-1' }"
           />
         </div>
+
+        <!-- "Clear filters": the filters toggle's funnel, cut at the top right for an x -->
+        <ng-template #clearFiltersIcon>
+          <svg
+            viewBox="0 0 24 24"
+            class="size-5 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M11 5H3l7 8.5V19l4 2v-7.5l1.2-1.5" />
+            <path d="m15 4 6 6m0-6-6 6" />
+          </svg>
+        </ng-template>
 
         <!-- The sort select, in the first row from sm up and next to the filters toggle on phones.
          Looks like the filters toggle: an icon on the left and no label; with the default order
