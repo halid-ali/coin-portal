@@ -572,6 +572,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   problem her durumda önce `messageKeys`'te aranır, ör. 403 `moderation_locked`). Yükleme hatalarında
   sadece 404 "bulunamadı" der; diğerleri `httpErrorKey(err)` (ağ, 403, 423, 429, beklenmeyen), signal
   çeviri anahtarını tutar.
+- **Sayı alanları** (`type="number"`; kullanıcı kararları 2026-10-10): tarayıcının yukarı/aşağı okları yok
+  (`styles.css`, bütün sayı alanları; yıllar ve ayarlar yazılır, ↑ / ↓ yine çalışır). Seçili bir sayı alanının
+  üzerinde fare tekerleği değeri değiştirmez, sayfayı kaydırır (`shared/number-wheel`, `App`'te tek dinleyici;
+  Chromium değeri değiştirip sayfayı durduruyordu). Coin formunun Adet'i iki uçta − / + düğmeleriyle: Tab sırasında
+  değil, odağı almaz, sınırda `aria-disabled` (`stepQuantity`). e2e'de `getByLabel('Quantity', { exact: true })`
+  (düğmelerin adı da alanın adını taşır).
 - **Form erişilebilirliği:** her alan `appField` (`shared/field-a11y.ts`; `aria-invalid`, `aria-required`,
   `aria-describedby`), hata metni `id="<alanId>-error"`, ipucu `id="<alanId>-hint"`; formControlName'siz
   alan kontrolü verir (`[appField]="form.controls.x"`). Geçersiz gönderimde ve sunucunun alan hatalarından

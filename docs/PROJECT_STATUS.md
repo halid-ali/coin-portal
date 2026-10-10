@@ -1948,9 +1948,14 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           Adresteki tür listede yoksa (başka koleksiyoncu, eski link) tür ve o türün filtreleri adresten kendiliğinden
           kalkar (`replaceUrl`). İlk özet gelene kadar satır yerinde kalır (300 ms sonra şekil): telefonda sayfa
           artık zıplamıyor.
+    - **Sayı alanları** (kullanıcı kararı; ok yok, − / + ve hep görünen ince oklar görsellerle karşılaştırıldı,
+          karışık çözüm seçildi): tarayıcının sadece fare üzerindeyken görünen okları her sayı alanında kalktı (Yıl
+          filtresi, coin formunda Yıl, yönetim ayarları). Adet'te iki uçta − / + düğmeleri (Tab sırasında değil,
+          sınırda sönük, ekran okuyucuda "Adedi azalt / artır"). Seçili bir sayı alanının üzerinde tekerlek artık
+          değeri değiştirmiyor, sayfayı kaydırıyor (Edge'de denendi: önce 2002 → 2001 ve sayfa duruyordu).
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 498 (+50), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 503 (+55), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası
