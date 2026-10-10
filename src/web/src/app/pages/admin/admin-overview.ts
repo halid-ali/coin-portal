@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -8,6 +8,7 @@ import { formatBytes, formatNumber, formatRelative } from '../../core/admin/admi
 import { AdminAccountCleanup, AdminStats } from '../../core/admin/admin.models';
 import { AdminService } from '../../core/admin/admin.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { delayedLoading } from '../../shared/skeleton';
 import { AdminVerificationRequestsPanel } from './admin-verification-requests';
 
 type TileIcon =
@@ -245,9 +246,14 @@ function cleanupCount(
   selector: 'app-admin-overview',
   imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, AdminVerificationRequestsPanel],
   template: `
+    @if (!stats() && !loadError()) {
+      <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+    }
     @if (loadError()) {
       <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
-    } @else if (stats(); as s) {
+    } @else if (stats() || showSkeleton()) {
+      <!-- While the counts take a while: the tiles with a placeholder for each number (user choice
+       2026-10-10) -->
       <div class="space-y-6">
         @for (group of groups; track group.titleKey) {
           <section>
@@ -256,8 +262,14 @@ function cleanupCount(
                 {{ group.titleKey | transloco }}
               </h2>
               @if (group.note) {
-                @let note = group.note(s, language.current());
-                <p class="text-xs text-shade-500">{{ note.key | transloco: note.params }}</p>
+                @if (stats(); as s) {
+                  @let note = group.note(s, language.current());
+                  <p class="text-xs text-shade-500">{{ note.key | transloco: note.params }}</p>
+                } @else {
+                  <div class="flex h-4 items-center" aria-hidden="true">
+                    <div class="skeleton h-2.5 w-40 rounded-full"></div>
+                  </div>
+                }
               }
             </div>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -269,20 +281,22 @@ function cleanupCount(
                     [queryParams]="link.queryParams"
                   >
                     <ng-container
-                      *ngTemplateOutlet="tileBody; context: { $implicit: tile, stats: s }"
+                      *ngTemplateOutlet="tileBody; context: { $implicit: tile, stats: stats() }"
                     />
                   </a>
                 } @else {
                   <div class="card p-4">
                     <ng-container
-                      *ngTemplateOutlet="tileBody; context: { $implicit: tile, stats: s }"
+                      *ngTemplateOutlet="tileBody; context: { $implicit: tile, stats: stats() }"
                     />
                   </div>
                 }
               }
             </div>
-            @if (group.alert && group.alert(s); as alertKey) {
-              <p role="alert" class="alert-error mt-3">{{ alertKey | transloco }}</p>
+            @if (stats(); as s) {
+              @if (group.alert && group.alert(s); as alertKey) {
+                <p role="alert" class="alert-error mt-3">{{ alertKey | transloco }}</p>
+              }
             }
           </section>
         }
@@ -294,9 +308,15 @@ function cleanupCount(
     <ng-template #tileBody let-tile let-s="stats">
       <!-- Number and icon side by side, the label below over the full width (long labels on phones) -->
       <div class="flex items-start justify-between gap-2">
-        <p class="text-2xl font-semibold whitespace-nowrap text-shade-900 tabular-nums">
-          {{ tile.value(s, language.current()) }}
-        </p>
+        @if (s) {
+          <p class="text-2xl font-semibold whitespace-nowrap text-shade-900 tabular-nums">
+            {{ tile.value(s, language.current()) }}
+          </p>
+        } @else {
+          <p class="flex h-8 items-center" aria-hidden="true">
+            <span class="skeleton h-5 w-16 rounded-full"></span>
+          </p>
+        }
         <span
           class="stat-icon size-9 sm:size-10"
           [class]="'stat-icon-' + tile.color"
@@ -398,6 +418,9 @@ export class AdminOverview {
   protected readonly groups = GROUPS;
   protected readonly stats = signal<AdminStats | null>(null);
   protected readonly loadError = signal(false);
+  protected readonly showSkeleton = delayedLoading(
+    computed(() => this.stats() === null && !this.loadError()),
+  );
 
   constructor() {
     inject(AdminService)
