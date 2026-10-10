@@ -5,6 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAdminTranslations } from '../../core/admin/admin-translations';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { AdminSettings } from './admin-settings';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 const stored = {
   minPublicCoins: 10,
@@ -149,5 +150,29 @@ describe('AdminSettings', () => {
     expect(input('unverified-max-coins').getAttribute('aria-invalid')).toBe('true');
     expect(input('unverified-lifetime-days').getAttribute('aria-invalid')).toBe('true');
     expect(input('user-quota-megabytes').getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('shows a placeholder for each value while they take a while, without Save', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const slow = TestBed.createComponent(AdminSettings);
+      await slow.whenStable();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await slow.whenStable();
+      const element = slow.nativeElement as HTMLElement;
+
+      expect(element.querySelectorAll('section.card')).toHaveLength(3);
+      expect(element.querySelectorAll('.skeleton')).toHaveLength(4);
+      expect(element.querySelector('#min-public-coins')).toBeNull();
+      expect(element.querySelector('button[type=submit]')).toBeNull();
+
+      http.expectOne('/api/admin/settings').flush(stored);
+      await slow.whenStable();
+      expect(element.querySelectorAll('.skeleton')).toHaveLength(0);
+      expect(element.querySelector('#min-public-coins')).not.toBeNull();
+      expect(element.querySelector('button[type=submit]')).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

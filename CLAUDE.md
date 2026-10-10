@@ -603,8 +603,10 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   soluk görünür. Diğer sayfalarda da aynı kural (Koleksiyonlarım, profil, ana sayfa panosu, koleksiyon başlığı, coin
   düzenleme formu, Ayarlar › Hesap): **sabit metin (başlık, etiket, ikon) yerinde kalır, sadece yüklenen veri şekle
   döner**; koleksiyon kartının şekli `shared/collection-card/collection-card-skeleton`, sayfa yolunda yüklenen ad
-  `Crumb.loading` (çubuk, link değil: adsız link olmasın). Yeni bir yüklenen bölüm de böyle gelir. Yönetim paneli
-  sıradaki adım (PROJECT_STATUS).
+  `Crumb.loading` (çubuk, link değil: adsız link olmasın). Yönetim panelinde de (Genel bakış, listeler, kullanıcı
+  detayı, Genel ayarlar): listeler coin listesiyle aynı desende (`showSkeleton`, `skeletonRows`, ilk yüklemede tablo
+  başlığı gerçek), kullanıcıya göre değişen rozet ve düğmeler şekil, ayarlarda not ve Kaydet değerler gelene kadar
+  yok. Yeni bir yüklenen bölüm de böyle gelir.
   **Sunucudan gelen her fotoğraf** (`<img>`: coin fotoğrafı, kapak) `appImageSkeleton` alır (`shared/image-skeleton.ts`,
   `[src]`'yi o alır): fotoğraf inene ya da hata verene kadar yerinde şekil, gecikmesiz (beklerken gösterilecek eski
   bir şey yok); tarayıcıda zaten olan fotoğrafta şekil görünmez. Elemanın kendi köşesi ve zemini şeklinkine baskın.

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, WritableSignal, inject, signal } from '@angular/core';
+import { Component, WritableSignal, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -25,6 +25,7 @@ import { applyServerErrors } from '../../core/http/problem-details';
 import { PluralPipe } from '../../core/i18n/plural';
 import { FieldA11y } from '../../shared/field-a11y';
 import { errorMessage, injectFocusFirstInvalid } from '../../shared/form-errors';
+import { delayedLoading } from '../../shared/skeleton';
 import { integerValidator } from '../../shared/validators';
 
 /**
@@ -40,9 +41,14 @@ import { integerValidator } from '../../shared/validators';
   template: `
     @if (loadError()) {
       <p role="alert" class="alert-error">{{ 'admin.loadFailed' | transloco }}</p>
-    } @else if (saved() === null) {
-      <p role="status" class="text-sm text-shade-500">{{ 'common.loading' | transloco }}</p>
+    } @else if (saved() === null && !showSkeleton()) {
+      <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
     } @else {
+      <!-- While the values take a while: the groups and their texts, a placeholder for each value,
+       no note and Save yet (user choice 2026-10-10) -->
+      @if (saved() === null) {
+        <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+      }
       <!-- One card per group (its icon and hue as on the overview), each setting a row: name and
        hint on the left, the value with its unit on the right (below on phones). Note and Save in
        a card of their own: they save every group at once. -->
@@ -89,25 +95,32 @@ import { integerValidator } from '../../shared/validators';
                   {{ 'admin.settings.minPublicCoinsHint' | transloco: range }}
                 </p>
               </div>
-              <div class="relative mt-2 self-start sm:mt-0">
-                <input
-                  id="min-public-coins"
-                  type="number"
-                  inputmode="numeric"
-                  class="form-input pr-16"
-                  [min]="range.min"
-                  [max]="range.max"
-                  formControlName="minPublicCoins"
-                  appField
-                />
-                <span
-                  class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+              @if (saved() === null) {
+                <div
+                  class="skeleton mt-2 h-10.5 w-full self-start rounded-lg sm:mt-0 sm:w-40"
                   aria-hidden="true"
-                  >{{
-                    'admin.settings.unit.coins' | plural: form.controls.minPublicCoins.value ?? 0
-                  }}</span
-                >
-              </div>
+                ></div>
+              } @else {
+                <div class="relative mt-2 self-start sm:mt-0">
+                  <input
+                    id="min-public-coins"
+                    type="number"
+                    inputmode="numeric"
+                    class="form-input pr-16"
+                    [min]="range.min"
+                    [max]="range.max"
+                    formControlName="minPublicCoins"
+                    appField
+                  />
+                  <span
+                    class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+                    aria-hidden="true"
+                    >{{
+                      'admin.settings.unit.coins' | plural: form.controls.minPublicCoins.value ?? 0
+                    }}</span
+                  >
+                </div>
+              }
               @if (errorMessage(form.controls.minPublicCoins); as message) {
                 <p id="min-public-coins-error" class="form-error sm:col-span-2">{{ message }}</p>
               }
@@ -164,26 +177,33 @@ import { integerValidator } from '../../shared/validators';
                   {{ 'admin.settings.unverifiedMaxCoinsHint' | transloco: unverifiedRange }}
                 </p>
               </div>
-              <div class="relative mt-2 self-start sm:mt-0">
-                <input
-                  id="unverified-max-coins"
-                  type="number"
-                  inputmode="numeric"
-                  class="form-input pr-16"
-                  [min]="unverifiedRange.min"
-                  [max]="unverifiedRange.max"
-                  formControlName="unverifiedMaxCoins"
-                  appField
-                />
-                <span
-                  class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+              @if (saved() === null) {
+                <div
+                  class="skeleton mt-2 h-10.5 w-full self-start rounded-lg sm:mt-0 sm:w-40"
                   aria-hidden="true"
-                  >{{
-                    'admin.settings.unit.coins'
-                      | plural: form.controls.unverifiedMaxCoins.value ?? 0
-                  }}</span
-                >
-              </div>
+                ></div>
+              } @else {
+                <div class="relative mt-2 self-start sm:mt-0">
+                  <input
+                    id="unverified-max-coins"
+                    type="number"
+                    inputmode="numeric"
+                    class="form-input pr-16"
+                    [min]="unverifiedRange.min"
+                    [max]="unverifiedRange.max"
+                    formControlName="unverifiedMaxCoins"
+                    appField
+                  />
+                  <span
+                    class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+                    aria-hidden="true"
+                    >{{
+                      'admin.settings.unit.coins'
+                        | plural: form.controls.unverifiedMaxCoins.value ?? 0
+                    }}</span
+                  >
+                </div>
+              }
               @if (errorMessage(form.controls.unverifiedMaxCoins); as message) {
                 <p id="unverified-max-coins-error" class="form-error sm:col-span-2">
                   {{ message }}
@@ -208,26 +228,33 @@ import { integerValidator } from '../../shared/validators';
                   {{ 'admin.settings.unverifiedLifetimeDaysHint' | transloco: lifetimeRange }}
                 </p>
               </div>
-              <div class="relative mt-2 self-start sm:mt-0">
-                <input
-                  id="unverified-lifetime-days"
-                  type="number"
-                  inputmode="numeric"
-                  class="form-input pr-16"
-                  [min]="lifetimeRange.min"
-                  [max]="lifetimeRange.max"
-                  formControlName="unverifiedLifetimeDays"
-                  appField
-                />
-                <span
-                  class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+              @if (saved() === null) {
+                <div
+                  class="skeleton mt-2 h-10.5 w-full self-start rounded-lg sm:mt-0 sm:w-40"
                   aria-hidden="true"
-                  >{{
-                    'admin.settings.unit.days'
-                      | plural: form.controls.unverifiedLifetimeDays.value ?? 0
-                  }}</span
-                >
-              </div>
+                ></div>
+              } @else {
+                <div class="relative mt-2 self-start sm:mt-0">
+                  <input
+                    id="unverified-lifetime-days"
+                    type="number"
+                    inputmode="numeric"
+                    class="form-input pr-16"
+                    [min]="lifetimeRange.min"
+                    [max]="lifetimeRange.max"
+                    formControlName="unverifiedLifetimeDays"
+                    appField
+                  />
+                  <span
+                    class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+                    aria-hidden="true"
+                    >{{
+                      'admin.settings.unit.days'
+                        | plural: form.controls.unverifiedLifetimeDays.value ?? 0
+                    }}</span
+                  >
+                </div>
+              }
               @if (errorMessage(form.controls.unverifiedLifetimeDays); as message) {
                 <p id="unverified-lifetime-days-error" class="form-error sm:col-span-2">
                   {{ message }}
@@ -278,23 +305,30 @@ import { integerValidator } from '../../shared/validators';
                   {{ 'admin.settings.userQuotaMegabytesHint' | transloco: quotaRange }}
                 </p>
               </div>
-              <div class="relative mt-2 self-start sm:mt-0">
-                <input
-                  id="user-quota-megabytes"
-                  type="number"
-                  inputmode="numeric"
-                  class="form-input pr-16"
-                  [min]="quotaRange.min"
-                  [max]="quotaRange.max"
-                  formControlName="userQuotaMegabytes"
-                  appField
-                />
-                <span
-                  class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+              @if (saved() === null) {
+                <div
+                  class="skeleton mt-2 h-10.5 w-full self-start rounded-lg sm:mt-0 sm:w-40"
                   aria-hidden="true"
-                  >{{ 'admin.settings.unit.megabytes' | transloco }}</span
-                >
-              </div>
+                ></div>
+              } @else {
+                <div class="relative mt-2 self-start sm:mt-0">
+                  <input
+                    id="user-quota-megabytes"
+                    type="number"
+                    inputmode="numeric"
+                    class="form-input pr-16"
+                    [min]="quotaRange.min"
+                    [max]="quotaRange.max"
+                    formControlName="userQuotaMegabytes"
+                    appField
+                  />
+                  <span
+                    class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-shade-500"
+                    aria-hidden="true"
+                    >{{ 'admin.settings.unit.megabytes' | transloco }}</span
+                  >
+                </div>
+              }
               @if (errorMessage(form.controls.userQuotaMegabytes); as message) {
                 <p id="user-quota-megabytes-error" class="form-error sm:col-span-2">
                   {{ message }}
@@ -310,43 +344,45 @@ import { integerValidator } from '../../shared/validators';
           </div>
         </section>
 
-        <div class="card space-y-5 px-4 py-5 sm:px-6">
-          <div>
-            <label for="settings-note" class="form-label">{{
-              'admin.note.label' | transloco
-            }}</label>
-            <textarea
-              id="settings-note"
-              rows="2"
-              class="form-input"
-              [maxlength]="noteMaxLength"
-              formControlName="note"
-              appField
-            ></textarea>
-            <p id="settings-note-hint" class="form-hint">{{ 'admin.note.hint' | transloco }}</p>
-          </div>
+        @if (saved() !== null) {
+          <div class="card space-y-5 px-4 py-5 sm:px-6">
+            <div>
+              <label for="settings-note" class="form-label">{{
+                'admin.note.label' | transloco
+              }}</label>
+              <textarea
+                id="settings-note"
+                rows="2"
+                class="form-input"
+                [maxlength]="noteMaxLength"
+                formControlName="note"
+                appField
+              ></textarea>
+              <p id="settings-note-hint" class="form-hint">{{ 'admin.note.hint' | transloco }}</p>
+            </div>
 
-          @for (message of formErrors(); track message) {
-            <p role="alert" class="alert-error">{{ message }}</p>
-          }
+            @for (message of formErrors(); track message) {
+              <p role="alert" class="alert-error">{{ message }}</p>
+            }
 
-          <div class="flex flex-wrap items-center justify-end gap-3">
-            <p
-              role="status"
-              class="text-sm"
-              [class]="outcome() === 'unchanged' ? 'text-shade-700' : 'text-success-700'"
-            >
-              @if (outcome() === 'saved') {
-                {{ 'admin.settings.saved' | transloco }}
-              } @else if (outcome() === 'unchanged') {
-                {{ 'admin.settings.unchanged' | transloco }}
-              }
-            </p>
-            <button type="submit" class="btn-primary" [attr.aria-disabled]="saving() || null">
-              {{ (saving() ? 'common.saving' : 'common.save') | transloco }}
-            </button>
+            <div class="flex flex-wrap items-center justify-end gap-3">
+              <p
+                role="status"
+                class="text-sm"
+                [class]="outcome() === 'unchanged' ? 'text-shade-700' : 'text-success-700'"
+              >
+                @if (outcome() === 'saved') {
+                  {{ 'admin.settings.saved' | transloco }}
+                } @else if (outcome() === 'unchanged') {
+                  {{ 'admin.settings.unchanged' | transloco }}
+                }
+              </p>
+              <button type="submit" class="btn-primary" [attr.aria-disabled]="saving() || null">
+                {{ (saving() ? 'common.saving' : 'common.save') | transloco }}
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </form>
     }
   `,
@@ -366,6 +402,9 @@ export class AdminSettings {
   /** The stored values; null while loading. */
   protected readonly saved = signal<Settings | null>(null);
   protected readonly loadError = signal(false);
+  protected readonly showSkeleton = delayedLoading(
+    computed(() => this.saved() === null && !this.loadError()),
+  );
   protected readonly saving = signal(false);
   /**
    * After Save. "unchanged": the values are the stored ones, so nothing is sent (the API writes
