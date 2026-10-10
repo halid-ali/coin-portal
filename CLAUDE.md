@@ -639,7 +639,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - **Tür düğmeleri ve filtreler** (koleksiyon sayfası ve Keşfet; kullanıcı kararları 2026-10-09; saf mantık
-  `pages/collection/coin-filters.ts`): Tümü / Euro / Dünya düğmeleri sayılı ve sadece listede iki tür de varsa
+  `pages/collection/coin-filters.ts`): Tümü / Euro / Dünya düğmeleri sayılı (sayı düğmenin sağ alt köşesinde
+  yuvarlak bir rozet, düğmenin genişliğine girmez; seçilinin rozeti tema renginde; kullanıcı kararı 2026-10-10)
+  ve sadece listede iki tür de varsa
   (URL `kind`; tür değişince nominal, para birimi ve ülke filtresi sıfırlanır). Nominal filtresi seçilen türün
   değerlerini sunar: Euro'da 8 değer, Dünya'da para birimleri (`currency:` önekli seçenek), Tümü'nde iki tür
   varsa "Euro coin" / "Dünya coin'i" grupları. Ülke filtresi sadece listede (seçilen türde) olan ülkeler; özet
@@ -748,6 +750,9 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   ~200 ms, ilk gösterimde ve boyut değişiminde kaymaz, hareketi azaltta hiç kaymaz): koleksiyon sayfası ve
   Keşfet'in tür düğmeleri, coin formunun telefondaki tür seçimi (kartlarda yok). Düğmeler `relative`, seçiliyken
   kendi zemini yok; seçili olmayanın üzerine gelince zemin değil sadece yazı rengi değişir (zemin kaymayı örtüyordu).
+  **Rozet köşeleri** (kullanıcı kararı 2026-10-10): sağ üst köşe dikkat çeken rozetlerin (seçili filtre sayısı,
+  ileride okunmamış mesaj ve bildirimler: dolgu renkli, belirip kaybolur), sağ alt köşe sakin sayı rozetlerinin
+  (tür düğmelerinin coin sayıları: gri, seçilide tema renginin açık tonu, hep orada).
 - **Butonlarda el imleci** (kullanıcı kararı 2026-10-07): Tailwind 4 butonları ok imlecine çeker, buton
   görünümlü linkler el gösterir; `styles.css` base katmanındaki kural `button`, `[role=button]` ve
   `[role=option]`'a el imleci verir (devre dışı ve `aria-disabled` olanlar hariç, onlar `btn-*`'in

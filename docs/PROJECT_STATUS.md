@@ -1935,6 +1935,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           `shared/sliding-selection` yönergesi; ilk gösterimde ve sayılar/dil yüzünden boyut değişince kaymaz,
           "hareketi azalt"ta hiç kaymaz). Coin formunun telefondaki tür seçimi de (tablet ve masaüstündeki kartlar
           aynı). Seçili olmayan düğmenin hover zemini kalktı (kaymayı örtüyordu), sadece yazı koyulaşır.
+    - **Tür sayısı rozette** (kullanıcı kararı; köşe rozeti, üst orta, alt çekmece ve düğme içi seçenekleri
+          görsellerle karşılaştırıldı): sayı düğmenin sağ alt köşesinde yuvarlak bir rozet. Düğme grubu yaklaşık 50 px
+          daraldı (640 px'te temizle + Sırala artık alt satıra geçmiyor), sayılar gelip giderken düğmeler artık
+          genişlemiyor. Kontrast her tema renginde, iki temada en az 5,56:1. Sağ üst köşe bildirim rozetlerine ayrıldı.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
     - Testler: client 496 (+48), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
