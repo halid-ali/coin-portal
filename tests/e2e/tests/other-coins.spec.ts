@@ -5,13 +5,20 @@ import { chooseOption } from '../support/combobox';
 import { TestUser } from '../support/users';
 
 // A coin other than a euro coin (roadmap 18): added in the form with its value and currency, found
-// with the All / Euro / Other buttons, which show only where both kinds are
+// with the All / Euro / Other buttons, which show where both kinds are (one kind alone, chosen,
+// before)
 test('a user adds an other coin and finds it with the kind buttons', async ({ browser }) => {
   const owner = await TestUser.signUp();
   const collection = await owner.firstCollection();
   await owner.createCoin(collection.id, 'Brandenburger Tor');
   const context = await owner.browser(browser);
   const page = await context.newPage();
+
+  await page.goto(`/collections/${collection.id}`);
+  const single = page.getByRole('group', { name: 'Coin type' });
+  await expect(single).toHaveText('Euro 1');
+  await expect(single.getByRole('button')).toHaveCount(0);
+  await expectAccessible(page, 'collection with one kind');
 
   await page.goto(`/coins/new?collection=${collection.id}`);
   await page.getByRole('radio', { name: /^World coin/ }).check();
@@ -55,7 +62,10 @@ test('a user adds an other coin and finds it with the kind buttons', async ({ br
   await owner.dispose();
 });
 
-// An other coin counts for a public collection with both sides; explore shows the kinds too
+const NOTE = 'From a trip to Izmir.\nThe edge has a small notch.';
+
+// An other coin counts for a public collection with both sides; explore shows the kinds too, and
+// its description
 test('an other coin needs both sides for a public collection', async ({ browser }) => {
   const owner = await TestUser.signUp();
   const collection = await owner.firstCollection();
@@ -70,6 +80,7 @@ test('an other coin needs both sides for a public collection', async ({ browser 
       currency: 'lira',
       countryCode: 'TR',
       year: 1985,
+      description: NOTE,
     },
     'front',
   );
@@ -99,6 +110,20 @@ test('an other coin needs both sides for a public collection', async ({ browser 
     explore.getByText('25 lira · Türkiye · 1985').filter({ visible: true }),
   ).toBeVisible();
   await expectAccessible(explore, 'explore with both kinds');
+
+  // Its description: one line in the list, all of it in the photo viewer
+  await expect(
+    explore
+      .getByText('From a trip to Izmir. The edge has a small notch.')
+      .filter({ visible: true }),
+  ).toBeVisible();
+  await explore
+    .getByRole('button', { name: 'Show photos of 25 lira · Türkiye · 1985' })
+    .filter({ visible: true })
+    .click();
+  const viewer = explore.getByRole('dialog', { name: '25 lira · Türkiye · 1985' });
+  await expect(viewer.getByRole('region', { name: 'Description' })).toHaveText(NOTE);
+  await expectAccessible(explore, 'photo viewer with a description');
 
   await visitor.close();
   await context.close();

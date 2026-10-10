@@ -19,6 +19,7 @@
     "remove": "Entfernen",
     "undo": "Rückgängig",
     "choose": "Auswählen…",
+    "typeOrChoose": "Eingeben oder auswählen…",
     "noMatch": "Keine Treffer",
     "optional": "Optional.",
     "goToExplore": "Zu „Entdecken“",
@@ -430,6 +431,8 @@
     "currencyHint": "Z. B. Pfennig, Mark, Schilling",
     "countryHintOther": "Alle Länder, auch ehemalige wie die DDR oder die Sowjetunion.",
     "mintMarkHint": "Optional, z. B. A, D, F, G, J",
+    "quantityDecrease": "Anzahl verringern",
+    "quantityIncrease": "Anzahl erhöhen",
     "photosHint": "Optional. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
     "photosHintOther": "Optional; eine öffentliche Sammlung braucht Fotos beider Seiten. Änderungen werden beim Speichern übernommen; „Abbrechen“ verwirft alle.",
     "photosFailed": "Die Münze wurde gespeichert, aber einige Fotos konnten nicht gespeichert werden:",
@@ -739,7 +742,7 @@
     },
     "purposes": {
       "title": "Zwecke und Rechtsgrundlagen",
-      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (die Links zur Bestätigung und zum Zurücksetzen des Passworts, den Hinweis auf eine Passwortänderung), keine Newsletter und keine Werbung.",
+      "i1": "Um dein Konto und deine Sammlung bereitzustellen: Konto- und Inhaltsdaten (Art. 6 Abs. 1 lit. b DSGVO, Vertragserfüllung). Dein Geburtsdatum dient nur der Prüfung des Mindestalters von 18 Jahren. An deine E-Mail-Adresse senden wir nur E-Mails zu deinem Konto (die Links zur Bestätigung und zum Zurücksetzen des Passworts, den Hinweis auf eine Passwortänderung, Erinnerungen vor dem Löschen eines unbestätigten Kontos, Warnungen, wenn dein Fotospeicher zu 75 % und 90 % belegt ist), keine Newsletter und keine Werbung.",
       "i2": "Um die Website sicher zu halten: technische Protokolle, Anfragelimits, die vorübergehende Sperre nach fehlgeschlagenen Anmeldungen und Moderation gegen Missbrauch (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i3": "Um die Website zu betreiben, als Gesamtzahlen: zum Beispiel die Zahl der Konten, die die Website in den letzten 30 Tagen genutzt haben. Diese Zahlen dienen nicht der Bewertung einzelner Personen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
       "i4": "Um deine E-Mails an uns zu beantworten: deine E-Mail-Adresse und deine Nachricht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse).",
@@ -755,7 +758,7 @@
       "p1": "Die Website verwendet nur Cookies, die für ihren Betrieb erforderlich sind, und fragt deshalb nicht nach einer Einwilligung:",
       "i1": "coinportal.auth hält dich angemeldet. Nach der Registrierung und mit „Angemeldet bleiben“ gilt es 14 Tage und verlängert sich, solange du die Website nutzt; ohne „Angemeldet bleiben“ endet es, wenn du den Browser schließt. Beim Abmelden wird es sofort gelöscht.",
       "i2": "coinportal.af und XSRF-TOKEN verhindern, dass Formulare von anderen Websites aus abgeschickt werden (Sicherheit).",
-      "p2": "Deine Wahl von Sprache, Farbschema und Akzentfarbe wird im lokalen Speicher des Browsers (localStorage) abgelegt. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies, und die Seiten laden nichts (Schriften, Skripte) von anderen Websites."
+      "p2": "Deine Wahl von Sprache, Farbschema und Akzentfarbe wird im lokalen Speicher des Browsers (localStorage) abgelegt. Dort wird auch vermerkt, ob du in diesem Browser angemeldet bist (nur ja oder nein), damit die Seite beim Start den passenden Umriss zeigen kann; beim Abmelden wird es gelöscht. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies, und die Seiten laden nichts (Schriften, Skripte) von anderen Websites."
     },
     "hosting": {
       "title": "Hosting",

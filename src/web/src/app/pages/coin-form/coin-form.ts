@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { Component, OnInit, WritableSignal, computed, inject, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, UrlTree } from '@angular/router';
 import { TranslocoPipe, translate } from '@jsverse/transloco';
@@ -32,6 +32,7 @@ import {
 } from '../../core/coins/photo-errors';
 import { MessageKey, applyServerErrors } from '../../core/http/problem-details';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs/breadcrumbs';
+import { delayedLoading } from '../../shared/skeleton';
 import {
   denominationLabel,
   faceValueLabel,
@@ -52,6 +53,7 @@ import { DISCARD_CHANGES_STATE, HasUnsavedChanges } from '../../shared/unsaved-c
 import { UNPUBLISH_DECLINED, UnpublishConfirm } from '../../shared/unpublish-confirm';
 import { PhotoSlot } from './photo-slot';
 import { Combobox } from '../../shared/combobox/combobox';
+import { SlidingSelection } from '../../shared/sliding-selection';
 import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
@@ -66,6 +68,7 @@ import { ComboboxOption } from '../../shared/combobox/combobox-filter';
     PhotoSlot,
     PhotoViewer,
     Combobox,
+    SlidingSelection,
   ],
   templateUrl: './coin-form.html',
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
@@ -118,7 +121,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     const collectionId = this.coin()?.collectionId ?? (Number(this.collection()) || null);
     const name = this.collections()?.find((c) => c.id === collectionId)?.name;
     if (collectionId === null || name === undefined) {
-      return [home, current];
+      // The coin's collection is on the way: its place is kept
+      return this.showSkeleton() ? [home, { loading: true }, current] : [home, current];
     }
     const remembered = this.collectionReturn.url();
     const link =
@@ -134,6 +138,8 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
   /** The saved coin as last returned by the API (photos included). */
   protected readonly coin = signal<Coin | null>(null);
   protected readonly loading = signal(false);
+  /** The form's placeholder shapes while the coin takes a while. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
   protected readonly notFound = signal(false);
   protected readonly submitting = signal(false);
   protected readonly deleting = signal(false);
@@ -241,6 +247,11 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
     this.currencySuggestions().map((c) => ({ value: c, label: c })),
   );
   private currenciesRequested = false;
+  /** The quantity as a number, for its − / + buttons (empty or odd text is 0). */
+  protected readonly quantityValue = computed(() => Number(this.quantityText()) || 0);
+  private readonly quantityText = toSignal(this.form.controls.quantity.valueChanges, {
+    initialValue: this.form.controls.quantity.value,
+  });
 
   constructor() {
     this.countryService.load();
@@ -348,6 +359,17 @@ export class CoinForm implements OnInit, HasUnsavedChanges {
       // Suggestions only: typing works without them
       error: () => (this.currenciesRequested = false),
     });
+  }
+
+  /** A − / + button: one step within the limits; an empty or odd value starts over from 1. */
+  protected stepQuantity(step: 1 | -1): void {
+    const control = this.form.controls.quantity;
+    const current = Math.trunc(Number(control.value)) || 0;
+    const next = Math.min(Math.max(current + step, 1), COIN_LIMITS.maxQuantity);
+    if (next !== control.value) {
+      control.setValue(next);
+      control.markAsDirty();
+    }
   }
 
   /** The face value's own message (the generic one would not say what a valid value is). */

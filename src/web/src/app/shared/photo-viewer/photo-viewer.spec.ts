@@ -18,6 +18,7 @@ const PHOTOS: CoinPhoto[] = [
       [coinId]="7"
       [photos]="photos()"
       [denomination]="denomination()"
+      [description]="description()"
       title="2 € Almanya 2006"
       shareToken="abc"
       (closed)="open.set(false)"
@@ -28,6 +29,7 @@ class Host {
   readonly open = signal(true);
   readonly photos = signal(PHOTOS);
   readonly denomination = signal<Denomination | undefined>('Euro2');
+  readonly description = signal<string | null>(null);
 }
 
 /** An other coin: front and back, no denomination to stand in for a missing back. */
@@ -60,6 +62,8 @@ describe('PhotoViewer', () => {
 
   const dialog = () => page.querySelector('dialog')!;
   const shown = () => page.querySelector('[aria-pressed=true]')?.textContent?.trim();
+  /** The viewer's content: as wide as the photo (and the text beside it). */
+  const content = () => dialog().querySelector<HTMLElement>('.w-full')!;
   const imageUrl = () => page.querySelector('img')!.getAttribute('src');
 
   async function key(name: string): Promise<void> {
@@ -102,6 +106,61 @@ describe('PhotoViewer', () => {
     expect(shown()).toBe('Ulusal yüz');
   });
 
+  describe('with a description', () => {
+    const TEXT = 'Babamın hatırası.\nKenarında bir çentik var.';
+    const region = () => page.querySelector<HTMLElement>('[role=region]');
+
+    beforeEach(async () => {
+      fixture.componentInstance.description.set(TEXT);
+      await fixture.whenStable();
+    });
+
+    it('shows a short one with its line breaks under the photo, in a region of its own', () => {
+      expect(region()!.getAttribute('aria-label')).toBe('Açıklama');
+      expect(region()!.textContent).toBe(TEXT);
+      // Focusable: the keyboard scrolls a long one
+      expect(region()!.tabIndex).toBe(0);
+      expect(content().className).toContain('48rem');
+      // The photo leaves room for it
+      expect(page.querySelector('img')!.className).toContain('max-w-[calc(100dvh-14.5rem)]');
+    });
+
+    it('puts one over 200 characters or 3 lines beside the photo, the viewer wider', async () => {
+      const wider = () => (content().className.includes('72rem') ? content() : null);
+      fixture.componentInstance.description.set('a'.repeat(200));
+      await fixture.whenStable();
+      expect(wider()).toBeNull();
+
+      fixture.componentInstance.description.set('a'.repeat(201));
+      await fixture.whenStable();
+      expect(wider()).not.toBeNull();
+      expect(region()!.className).toContain('lg:overflow-y-auto');
+      expect(page.querySelector('img')!.className).toContain('max-w-[calc(100dvh-9rem)]');
+
+      fixture.componentInstance.description.set('1\n2\n3\n4');
+      await fixture.whenStable();
+      expect(wider()).not.toBeNull();
+    });
+
+    it('lets the wheel scroll the text instead of switching the sides', async () => {
+      const event = new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'timeStamp', { value: (time += 1000) });
+      region()!.dispatchEvent(event);
+      await fixture.whenStable();
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(shown()).toBe('Ulusal yüz');
+      // Over the photo it still switches
+      await wheel(100);
+      expect(shown()).toBe('Ortak yüz');
+    });
+  });
+
+  it('has no description region without one', () => {
+    expect(page.querySelector('[role=region]')).toBeNull();
+    expect(content().className).toContain('min(48rem,calc(100dvh-9rem))');
+  });
+
   describe('without a common side photo', () => {
     const national = PHOTOS.filter((p) => p.side === 'National');
     const icon = () => page.querySelector('[role=img]');
@@ -141,6 +200,21 @@ describe('PhotoViewer', () => {
     page.querySelector<HTMLButtonElement>('button[aria-label="Kapat"]')!.click();
     await fixture.whenStable();
 
+    expect(page.querySelector('dialog')).toBeNull();
+  });
+
+  it('closes on a click on the dimmed screen, not on the photo', async () => {
+    const press = async (target: Element) => {
+      target.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      (target as HTMLElement).click();
+      await fixture.whenStable();
+    };
+
+    await press(page.querySelector('img')!);
+    expect(page.querySelector('dialog')).not.toBeNull();
+
+    // The screen around the content: the dialog itself is drawn dimmed (axe sees no ::backdrop)
+    await press(dialog().firstElementChild!);
     expect(page.querySelector('dialog')).toBeNull();
   });
 

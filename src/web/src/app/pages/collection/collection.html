@@ -23,15 +23,9 @@
         <h1 class="text-2xl font-semibold text-shade-900">
           {{ 'coinList.exploreTitle' | transloco }}
         </h1>
-        <p class="mt-1 text-sm text-shade-600">
-          {{ 'coinList.exploreSubtitle' | transloco }}
-          @if (result(); as r) {
-            · {{ 'coinList.recordCount' | plural: r.totalCount }}
-          }
-          @if (hasFilters()) {
-            {{ 'coinList.filtered' | transloco }}
-          }
-        </p>
+        <!-- No count here: the kind buttons carry it as badges, and on phones it took a
+         second line (user choice 2026-10-10) -->
+        <p class="mt-1 text-sm text-shade-600">{{ 'coinList.exploreSubtitle' | transloco }}</p>
       </div>
     } @else {
       <!-- Above the whole header (and the cover beside it): where this collection sits -->
@@ -44,6 +38,7 @@
             @if (collectionCover(); as src) {
               <!-- lazy: a hidden (phone) image is not downloaded, an eager one would be -->
               <img
+                appImageSkeleton
                 [src]="src"
                 alt=""
                 loading="lazy"
@@ -64,8 +59,17 @@
                   @if (header(); as h) {
                     {{ h.name }}
                   } @else {
-                    <!-- Keeps the line height while loading, without an empty heading -->
-                    &nbsp;<span class="sr-only">{{ 'common.loading' | transloco }}</span>
+                    <!-- Keeps the line height while loading, without an empty heading; a
+                     placeholder bar after a moment (user choice 2026-10-10) -->
+                    @if (showHeaderSkeleton()) {
+                      <span
+                        class="skeleton inline-block h-5 w-56 max-w-full rounded-full align-middle"
+                        aria-hidden="true"
+                      ></span>
+                    } @else {
+                      &nbsp;
+                    }
+                    <span class="sr-only">{{ 'common.loading' | transloco }}</span>
                   }
                 </h1>
                 @if (header(); as h) {
@@ -75,10 +79,16 @@
                       [moderationLocked]="!!h.moderationLocked"
                     />
                   }
+                } @else if (showHeaderSkeleton() && mode() === 'owner') {
+                  <span class="skeleton h-6 w-20 shrink-0 rounded-full" aria-hidden="true"></span>
                 }
               </div>
               @if (header()?.description; as description) {
                 <p class="mt-1 max-w-prose text-sm text-shade-600">{{ description }}</p>
+              } @else if (showHeaderSkeleton()) {
+                <div class="mt-1 flex h-5 items-center" aria-hidden="true">
+                  <div class="skeleton h-3 w-64 max-w-full rounded-full"></div>
+                </div>
               }
               @if (result(); as r) {
                 <p class="mt-1 text-sm text-shade-500">
@@ -87,6 +97,10 @@
                     {{ 'coinList.filtered' | transloco }}
                   }
                 </p>
+              } @else if (showSkeleton()) {
+                <div class="mt-1 flex h-5 items-center" aria-hidden="true">
+                  <div class="skeleton h-3 w-20 rounded-full"></div>
+                </div>
               }
             </div>
           </div>
@@ -304,43 +318,104 @@
     <!-- Filters; an empty collection has nothing to search or filter -->
     @if (showFilters()) {
       <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
-        <!-- All / Euro / Other with their counts, only where both kinds are (user choice
-         2026-10-09); on a phone above the search, outside the folded filters -->
-        @if (showKinds()) {
-          <div
-            class="sm:col-span-2 lg:col-span-6"
-            role="group"
-            [attr.aria-label]="'coinList.kinds.label' | transloco"
-          >
+        <!-- All / Euro / Other with their counts where both kinds are, the list's one kind alone
+         (chosen) where only one is (user choices 2026-10-09/10); on a phone above the search,
+         outside the folded filters. From sm up "clear filters" and the sort select sit at the right
+         end of this row, in every view; "clear filters" stays when there is nothing to clear
+         (unavailable), so the card never changes height (user choices 2026-10-10). Where the row
+         is too narrow the pair wraps to a line of its own, on the left (space-between). Phones
+         have "clear filters" at the end of the folded filters, the sort select below. While a
+         list's first kinds load the row keeps its place (a shape after a moment), so a phone's
+         page does not jump -->
+        @let kindsShown = kinds().length > 0 || facetsLoading();
+        <div
+          class="flex-wrap items-center gap-3 sm:col-span-2 sm:flex lg:col-span-6"
+          [class]="kindsShown ? 'flex justify-between' : 'hidden justify-end'"
+        >
+          @if (kinds().length > 0) {
+            @let single = kinds().length === 1;
+            <!-- The choice's background slides from button to button; no hover background on the
+             others, it would hide the slide. Each kind's count is a badge on its bottom right corner,
+             out of the button's width (user choices 2026-10-10): the buttons do not change size as
+             the counts come and go; the top right corner stays for notification badges. The gap
+             between the buttons keeps a badge off the next one; the last one's badge sits on the
+             frame's corner, the chosen background as close to the frame on every side. A single
+             kind is not a button: there is nothing to choose -->
             <div
-              class="inline-flex max-w-full rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
+              class="inline-flex max-w-full gap-1.5 rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm"
+              [appSlidingSelection]="single ? kinds()[0] : (query().kind ?? null)"
+              highlightClass="bg-brand-100"
+              chosen="[data-chosen]"
+              role="group"
+              [attr.aria-label]="'coinList.kinds.label' | transloco"
             >
-              @for (k of kinds; track $index) {
-                @let selected = (query().kind ?? null) === k;
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
-                  [class]="
-                    selected
-                      ? 'bg-brand-100 font-semibold text-brand-800'
-                      : 'font-medium text-shade-600 hover:bg-shade-100 hover:text-shade-800'
-                  "
-                  [attr.aria-pressed]="selected"
-                  (click)="setKind(k)"
-                >
+              @for (k of kinds(); track k) {
+                @let selected = single || (query().kind ?? null) === k;
+                <ng-template #kindContent>
                   {{ (k ? 'coinList.kinds.' + k : 'coinList.kinds.all') | transloco }}
                   @if (kindCount(k); as count) {
                     <span
-                      class="text-xs font-medium"
-                      [class]="selected ? 'text-brand-800' : 'text-shade-500'"
+                      class="absolute -right-2 -bottom-2 z-10 min-w-5 rounded-full px-1.5 text-center text-[11px] leading-[18px] font-semibold ring-2 ring-shade-0 transition-colors"
+                      [class]="
+                        selected ? 'bg-brand-100 text-brand-800' : 'bg-shade-100 text-shade-600'
+                      "
                       >{{ formatCount(count) }}</span
                     >
                   }
-                </button>
+                </ng-template>
+                @if (single) {
+                  <span
+                    class="relative inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-brand-800 sm:px-3.5"
+                    data-chosen
+                  >
+                    <ng-container [ngTemplateOutlet]="kindContent" />
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="relative inline-flex items-center rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-3.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                    [class]="
+                      selected
+                        ? 'font-semibold text-brand-800'
+                        : 'font-medium text-shade-600 hover:text-shade-900'
+                    "
+                    [attr.aria-pressed]="selected"
+                    [attr.data-chosen]="selected ? '' : null"
+                    (click)="setKind(k)"
+                  >
+                    <ng-container [ngTemplateOutlet]="kindContent" />
+                  </button>
+                }
               }
             </div>
+          } @else if (facetsLoading()) {
+            <!-- As high as the buttons' frame -->
+            <div
+              class="h-9.5 w-52 max-w-full rounded-lg"
+              [class.skeleton]="showKindsSkeleton()"
+              aria-hidden="true"
+            ></div>
+          }
+          <div class="hidden max-w-full min-w-0 items-center gap-3 sm:flex">
+            <!-- Tablets: only the icon (a square as high as the sort select), so the row fits from
+             about 700 px; from lg up the text too (user choice 2026-10-10) -->
+            <button
+              type="button"
+              class="btn-secondary shrink-0 gap-2 p-2 whitespace-nowrap lg:px-4 lg:py-1.5"
+              [attr.aria-disabled]="hasFilters() ? null : true"
+              [attr.aria-label]="'coinList.clearFilters' | transloco"
+              [title]="'coinList.clearFilters' | transloco"
+              (click)="clearFilters()"
+            >
+              <ng-container [ngTemplateOutlet]="clearFiltersIcon" />
+              <span class="hidden lg:inline">{{ 'coinList.clearFilters' | transloco }}</span>
+            </button>
+            <ng-container
+              [ngTemplateOutlet]="sortBox"
+              [ngTemplateOutletContext]="{ id: 'sort', short: false }"
+            />
           </div>
-        }
+        </div>
 
         <!-- Explore (collector) and own collections (photos) have one filter more: there the
          search takes one column on large screens, so the row still holds six -->
@@ -394,6 +469,7 @@
               [value]="nominalValue()"
               [label]="'coin.field.denomination' | transloco"
               [allLabel]="'common.all' | transloco"
+              [disabled]="facetsReloading() === 'all'"
               (valueChange)="setNominal($event)"
             />
           </div>
@@ -406,6 +482,7 @@
               [value]="query().countryCode ?? ''"
               [label]="'coin.field.country' | transloco"
               [allLabel]="'common.all' | transloco"
+              [disabled]="facetsReloading() !== 'none'"
               (valueChange)="setFilters({ countryCode: $event })"
             />
           </div>
@@ -431,6 +508,7 @@
             }}</label>
             <app-combobox
               inputId="commemorative"
+              searchable="false"
               [options]="commemorativeOptions()"
               [value]="commemorativeValue()"
               [label]="'coin.field.commemorativeCoin' | transloco"
@@ -444,6 +522,7 @@
               <label for="photo" class="form-label">{{ 'coinList.photoFilter' | transloco }}</label>
               <app-combobox
                 inputId="photo"
+                searchable="false"
                 [options]="photoOptions()"
                 [value]="photoValue()"
                 [label]="'coinList.photoFilter' | transloco"
@@ -453,34 +532,32 @@
             </div>
           }
 
-          @if (hasFilters()) {
-            <button
-              type="button"
-              class="btn-secondary justify-self-start py-1.5 sm:hidden"
-              (click)="clearFilters()"
-            >
-              {{ 'coinList.clearFilters' | transloco }}
-            </button>
-          }
-        </div>
-
-        <!-- In the desktop list the table headers sort, so there this row only holds "clear filters";
-         the grid has no headers and keeps the sort select on every screen size. Phones: the
-         filters toggle and the sort select -->
-        <div
-          class="order-1 flex min-w-0 items-center gap-3 sm:flex-wrap sm:order-0 sm:col-span-2 sm:items-end lg:col-span-6"
-          [class]="hasFilters() || viewMode() === 'grid' ? '' : 'lg:hidden'"
-        >
           <button
             type="button"
-            class="btn-secondary shrink-0 gap-2 py-1.5 sm:hidden"
+            class="btn-secondary justify-self-start gap-2 py-1.5 sm:hidden"
+            [attr.aria-disabled]="hasFilters() ? null : true"
+            (click)="clearFilters()"
+          >
+            <ng-container [ngTemplateOutlet]="clearFiltersIcon" />
+            {{ 'coinList.clearFilters' | transloco }}
+          </button>
+        </div>
+
+        <!-- Phones: the filters toggle and the sort select; from sm up the sort select is in the
+         first row. Both short (user choice 2026-10-10): the toggle is the funnel (and the count of
+         the filters set), the sort box shows the column and the table header's arrow -->
+        <div class="order-1 flex min-w-0 items-center gap-3 sm:hidden">
+          <button
+            type="button"
+            class="btn-secondary relative shrink-0 p-2"
             aria-controls="coin-filters"
             [attr.aria-expanded]="filtersOpen()"
+            [title]="'coinList.filters' | transloco"
             (click)="filtersOpen.set(!filtersOpen())"
           >
             <svg
               viewBox="0 0 24 24"
-              class="size-4"
+              class="size-5"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -490,80 +567,105 @@
             >
               <path d="M3 5h18l-7 8.5V19l-4 2v-7.5z" />
             </svg>
-            {{ 'coinList.filters' | transloco }}
+            <span class="sr-only">{{ 'coinList.filters' | transloco }}</span>
+            <!-- On the corner, so the button keeps its size (the sort box beside it does not move) -->
             @if (foldedFilterCount(); as count) {
-              <span class="rounded-full bg-brand-100 px-1.5 text-xs font-semibold text-brand-900">{{
-                count
-              }}</span>
+              <span
+                class="absolute -top-2 -right-2 min-w-5 rounded-full bg-brand-100 px-1 text-xs leading-5 font-semibold text-brand-900 ring-2 ring-shade-0"
+                >{{ count }}</span
+              >
             }
-            <svg
-              viewBox="0 0 24 24"
-              class="size-4 text-shade-400 transition-transform"
-              [class.rotate-180]="filtersOpen()"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
           </button>
-          @if (hasFilters()) {
-            <button
-              type="button"
-              class="btn-secondary hidden py-1.5 sm:inline-flex"
-              (click)="clearFilters()"
-            >
-              {{ 'coinList.clearFilters' | transloco }}
-            </button>
-          }
-          <!-- Looks like the filters toggle: an icon on the left and no label; with the default order
-           it reads "Sort" (a hidden placeholder option), otherwise the chosen order and "clear sort"
-           joins the list. The frame is on the wrapper, not on the select: Chrome indents the
-           options of the open list by the select's left padding, which would be the icon's room.
-           The select keeps its own background: Chrome paints the open list with it (transparent
-           gives a white list in the dark theme) -->
-          <div
-            class="ml-auto flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm focus-within:border-focus focus-within:ring-2 focus-within:ring-focus/30 sm:flex-none"
-            [class]="viewMode() === 'grid' ? '' : 'lg:hidden'"
+          <ng-container
+            [ngTemplateOutlet]="sortBox"
+            [ngTemplateOutletContext]="{ id: 'sort-phone', short: true }"
+          />
+        </div>
+
+        <!-- "Clear filters": the filters toggle's funnel, cut at the top right for an x -->
+        <ng-template #clearFiltersIcon>
+          <svg
+            viewBox="0 0 24 24"
+            class="size-5 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M11 5H3l7 8.5V19l4 2v-7.5l1.2-1.5" />
+            <path d="m15 4 6 6m0-6-6 6" />
+          </svg>
+        </ng-template>
+
+        <!-- The sort select, in the first row from sm up (as wide as its longest order) and next to
+         the filters toggle on phones: a list-only combobox like the short filters (user choice
+         2026-10-10), the sort icon on its left and no label; with the default order it reads "Sort",
+         otherwise the chosen order, and "clear sort" joins the list. It is in every view: in the
+         desktop list the table headers sort too, both read the order from the URL. Its width comes
+         from the orders and "Sort" only ("clear sort" is never shown in the box), so a choice does
+         not move the row -->
+        <ng-template #sortBox let-id="id" let-short="short">
+          <app-combobox
+            [inputId]="id"
+            searchable="false"
+            fitOptions
+            compact
+            [display]="short ? sortShort : null"
+            [options]="sortOptions()"
+            [fitTo]="sortOrders()"
+            [value]="sortValue()"
+            [label]="'coinList.sort' | transloco"
+            [ariaLabel]="'coinList.sort' | transloco"
+            [placeholder]="'coinList.sort' | transloco"
+            placeholderIsName
+            (valueChange)="setSortOption($event || 'Newest')"
           >
             <svg
+              comboboxIcon
+              #comboboxIcon
               viewBox="0 0 24 24"
-              class="pointer-events-none size-4 shrink-0 text-shade-700"
+              class="size-4"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              aria-hidden="true"
             >
               <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
             </svg>
-            <select
-              id="sort"
-              #sortSelect
-              class="form-input w-full min-w-0 border-0 py-1.5 pl-2 font-medium text-shade-700 shadow-none focus:ring-0 sm:w-auto"
-              [attr.aria-label]="'coinList.sort' | transloco"
-              (change)="setSortOption(sortSelect.value)"
+          </app-combobox>
+        </ng-template>
+
+        <!-- The phone's sort box: the table header's short column name and arrow (the same as
+         th[appSortHeader]'s), the full name for screen readers; the list keeps the full names -->
+        <ng-template #sortShort let-option>
+          @let order = option.value.split(':');
+          <span class="inline-flex items-center gap-1.5" aria-hidden="true">
+            {{ 'coin.column.' + order[0] | transloco }}
+            <span
+              class="inline-flex size-5 items-center justify-center rounded bg-brand-100 text-brand-700"
             >
-              <option value="" disabled hidden [selected]="sortState().sort === 'Newest'">
-                {{ 'coinList.sort' | transloco }}
-              </option>
-              @if (sortState().sort !== 'Newest') {
-                <option value="Newest">{{ 'sort.clear' | transloco }}</option>
-              }
-              @for (c of sortColumns; track c.value) {
-                <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
-                  {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.asc' | transloco }})
-                </option>
-                <option [value]="c.value + ':Desc'" [selected]="sortDirection(c.value) === 'Desc'">
-                  {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.desc' | transloco }})
-                </option>
-              }
-            </select>
-          </div>
-        </div>
+              <svg
+                viewBox="0 0 16 16"
+                class="size-3.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                @if (order[1] === 'Asc') {
+                  <path d="M8 12.5v-9M4.75 6.75 8 3.5l3.25 3.25" />
+                } @else {
+                  <path d="M8 3.5v9M4.75 9.25 8 12.5l3.25-3.25" />
+                }
+              </svg>
+            </span>
+          </span>
+          <span class="sr-only">{{ option.label }}</span>
+        </ng-template>
       </div>
     }
 
@@ -574,40 +676,43 @@
     <!-- Results -->
     @if (loadError(); as key) {
       <div role="alert" class="alert-error">{{ key | transloco }}</div>
-    } @else if (result(); as r) {
-      @if (r.items.length === 0) {
-        <div class="card text-center">
-          @if (hasFilters()) {
-            <p class="text-shade-600">{{ 'coinList.noMatches' | transloco }}</p>
-            <button type="button" class="btn-secondary mt-4" (click)="clearFilters()">
-              {{ 'coinList.clearFilters' | transloco }}
+    } @else if (result()?.items?.length === 0 && !showSkeleton()) {
+      <div class="card text-center">
+        @if (hasFilters()) {
+          <p class="text-shade-600">{{ 'coinList.noMatches' | transloco }}</p>
+          <button type="button" class="btn-secondary mt-4" (click)="clearFilters()">
+            {{ 'coinList.clearFilters' | transloco }}
+          </button>
+        } @else if (mode() === 'owner') {
+          <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
+          @if (coinLimitReached()) {
+            <button
+              type="button"
+              class="btn-unavailable mt-4"
+              aria-disabled="true"
+              [attr.aria-describedby]="limitIds.coins"
+            >
+              {{ 'coinList.addFirstCoin' | transloco }}
             </button>
-          } @else if (mode() === 'owner') {
-            <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
-            @if (coinLimitReached()) {
-              <button
-                type="button"
-                class="btn-unavailable mt-4"
-                aria-disabled="true"
-                [attr.aria-describedby]="limitIds.coins"
-              >
-                {{ 'coinList.addFirstCoin' | transloco }}
-              </button>
-            } @else {
-              <a
-                routerLink="/coins/new"
-                [queryParams]="{ collection: collectionId() }"
-                class="btn-primary mt-4"
-                >{{ 'coinList.addFirstCoin' | transloco }}</a
-              >
-            }
-          } @else if (mode() === 'explore') {
-            <p class="text-shade-600">{{ 'coinList.noPublicCollections' | transloco }}</p>
           } @else {
-            <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
+            <a
+              routerLink="/coins/new"
+              [queryParams]="{ collection: collectionId() }"
+              class="btn-primary mt-4"
+              >{{ 'coinList.addFirstCoin' | transloco }}</a
+            >
           }
-        </div>
-      } @else {
+        } @else if (mode() === 'explore') {
+          <p class="text-shade-600">{{ 'coinList.noPublicCollections' | transloco }}</p>
+        } @else {
+          <p class="text-shade-600">{{ 'coinList.empty' | transloco }}</p>
+        }
+      </div>
+    } @else if (result() || showSkeleton()) {
+      <!-- A load that takes a while shows placeholder shapes in the list's place (user choice
+       2026-10-10); the pages, the view and the table header stay -->
+      @let coins = showSkeleton() ? [] : (result()?.items ?? []);
+      @if (result(); as r) {
         <app-pagination
           [page]="r.page"
           [totalPages]="r.totalPages"
@@ -620,177 +725,219 @@
         >
           <app-view-toggle [value]="viewMode()" (valueChange)="setView($event)" />
         </app-pagination>
+      }
 
-        <div class="transition-opacity" [class.opacity-60]="loading()" [attr.aria-busy]="loading()">
-          @if (viewMode() === 'grid') {
-            <!-- Grid: 2 / 3 / 5 per row. An invisible control covers the whole tile: it opens the
+      <div [attr.aria-busy]="loading()">
+        @if (viewMode() === 'grid') {
+          <!-- Grid: 2 / 3 / 5 per row. An invisible control covers the whole tile: it opens the
              fullscreen viewer, or (owner) the coin form when there is no photo to show. The pencil
              and owner links sit above it (z-10), so all work without nesting interactive elements -->
-            <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              @for (coin of r.items; track coin.id) {
-                <li class="card group relative overflow-hidden p-0 hover:border-brand-300">
-                  <div class="relative aspect-square overflow-hidden bg-shade-100">
-                    @if (previewUrl(coin); as src) {
-                      <img
-                        [src]="src"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
-                      />
-                    } @else if (coin.denomination; as denomination) {
-                      <app-denomination-icon
-                        tile
-                        class="size-full p-[24%]"
-                        [denomination]="denomination"
-                      />
-                    } @else {
-                      <app-other-coin-icon tile class="size-full p-[24%]" [coinId]="coin.id" />
-                    }
-                    @if (coin.isCommemorative) {
-                      <span
-                        class="absolute top-2 left-2 rounded-full bg-info-100/95 px-2 py-0.5 text-xs font-medium text-info-800 shadow-sm"
-                        >{{ 'coin.commemorativeBadge' | transloco }}</span
-                      >
-                    }
-                  </div>
-                  <div class="space-y-1.5 p-3">
-                    <!-- The full title on hover: on the cover button or link above it, which gets the pointer -->
-                    <p class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900">
-                      {{ coin.title }}
-                    </p>
-                    <div class="flex items-center gap-2 text-xs text-shade-600">
-                      <span
-                        class="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-semibold text-brand-900"
-                      >
-                        {{ valueLabel(coin) }}
-                      </span>
-                      <span class="truncate"
-                        >{{ countryName(coin.countryCode) }} · {{ coin.year }}</span
-                      >
+          <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            @if (showSkeleton()) {
+              @for (i of skeletonRows(); track i) {
+                <li class="card overflow-hidden p-0" aria-hidden="true">
+                  <div class="skeleton aspect-square rounded-none"></div>
+                  <div class="space-y-2 p-3">
+                    <div class="flex min-h-10 flex-col gap-2 pt-1">
+                      <div class="skeleton h-3 w-4/5 rounded-full"></div>
+                      <div
+                        class="skeleton h-3 rounded-full"
+                        [class]="skeletonWidths[i % skeletonWidths.length]"
+                      ></div>
                     </div>
-                    @if (coin.ownerUserName) {
-                      <a
-                        [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
-                        class="relative z-10 block truncate text-xs text-shade-500 hover:text-brand-700"
-                        [title]="coin.collectionName"
-                        >&#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}</a
-                      >
+                    <div class="skeleton h-4 w-2/3"></div>
+                    @if (mode() === 'explore') {
+                      <div class="skeleton h-3 w-1/2 rounded-full"></div>
                     }
                   </div>
-
-                  @if (coin.photos.length) {
-                    <button
-                      type="button"
-                      class="absolute inset-0 cursor-zoom-in rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
-                      [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
-                      [title]="coin.title"
-                      (click)="viewerCoin.set(coin)"
-                    ></button>
-                  } @else if (!readOnly()) {
-                    <a
-                      [routerLink]="['/coins', coin.id, 'edit']"
-                      class="absolute inset-0 rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
-                      [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
-                      [title]="coin.title"
-                    ></a>
-                  }
-
-                  @if (!readOnly()) {
-                    <a
-                      [routerLink]="['/coins', coin.id, 'edit']"
-                      class="absolute top-2 right-2 z-10 rounded-full bg-shade-0/90 p-1.5 text-shade-700 shadow-sm transition-opacity hover:bg-shade-0 hover:text-brand-700 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
-                      [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
-                      [title]="'common.edit' | transloco"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        class="size-4"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
-                      </svg>
-                    </a>
-                  }
                 </li>
               }
-            </ul>
-          } @else {
-            <!-- Mobile: stacked list -->
-            <ul class="space-y-3 lg:hidden">
-              @for (coin of r.items; track coin.id) {
-                <!-- Owner: the title link stretches over the whole card (after:inset-0); the thumbnail
-                 button sits above it (z-10), so both work without nesting interactive elements -->
-                <li
-                  class="card relative flex gap-3 p-4"
-                  [class.hover:border-brand-300]="!readOnly()"
-                >
-                  @if (coin.photos.length) {
-                    <button
-                      type="button"
-                      class="relative z-10 self-start rounded-full focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
-                      [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
-                      (click)="viewerCoin.set(coin)"
-                    >
-                      <app-coin-thumb class="size-14" [coin]="coin" [shareToken]="shareToken()" />
-                    </button>
+            }
+            @for (coin of coins; track coin.id) {
+              <li class="card group relative overflow-hidden p-0 hover:border-brand-300">
+                <div class="relative aspect-square overflow-hidden bg-shade-100">
+                  @if (previewUrl(coin); as src) {
+                    <img
+                      appImageSkeleton
+                      [src]="src"
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      class="size-full object-cover duration-300 motion-safe:transition-transform motion-safe:group-hover:scale-[1.03]"
+                    />
+                  } @else if (coin.denomination; as denomination) {
+                    <app-denomination-icon
+                      tile
+                      class="size-full p-[24%]"
+                      [denomination]="denomination"
+                    />
                   } @else {
-                    <app-coin-thumb class="size-14" [coin]="coin" />
+                    <app-other-coin-icon tile class="size-full p-[24%]" [coinId]="coin.id" />
                   }
-                  <div class="min-w-0 flex-1">
+                  @if (coin.isCommemorative) {
+                    <span
+                      class="absolute top-2 left-2 rounded-full bg-info-100/95 px-2 py-0.5 text-xs font-medium text-info-800 shadow-sm"
+                      >{{ 'coin.commemorativeBadge' | transloco }}</span
+                    >
+                  }
+                </div>
+                <div class="space-y-1.5 p-3">
+                  <!-- The full title on hover: on the cover button or link above it, which gets the pointer -->
+                  <p class="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-shade-900">
+                    {{ coin.title }}
+                  </p>
+                  <div class="flex items-center gap-2 text-xs text-shade-600">
+                    <span
+                      class="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-semibold text-brand-900"
+                    >
+                      {{ valueLabel(coin) }}
+                    </span>
+                    <span class="truncate"
+                      >{{ countryName(coin.countryCode) }} · {{ coin.year }}</span
+                    >
+                  </div>
+                  @if (coin.ownerUserName) {
+                    <a
+                      [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                      class="relative z-10 block truncate text-xs text-shade-500 hover:text-brand-700"
+                      [title]="coin.collectionName"
+                      >&#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}</a
+                    >
+                  }
+                </div>
+
+                @if (coin.photos.length) {
+                  <button
+                    type="button"
+                    class="absolute inset-0 cursor-zoom-in rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
+                    [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                    [title]="coin.title"
+                    (click)="viewerCoin.set(coin)"
+                  ></button>
+                } @else if (!readOnly()) {
+                  <a
+                    [routerLink]="['/coins', coin.id, 'edit']"
+                    class="absolute inset-0 rounded-xl focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
+                    [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                    [title]="coin.title"
+                  ></a>
+                }
+
+                @if (!readOnly()) {
+                  <a
+                    [routerLink]="['/coins', coin.id, 'edit']"
+                    class="absolute top-2 right-2 z-10 rounded-full bg-shade-0/90 p-1.5 text-shade-700 shadow-sm transition-opacity hover:bg-shade-0 hover:text-brand-700 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
+                    [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                    [title]="'common.edit' | transloco"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="size-4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+                    </svg>
+                  </a>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <!-- Mobile: stacked list -->
+          <ul class="space-y-3 lg:hidden">
+            @if (showSkeleton()) {
+              @for (i of skeletonRows(); track i) {
+                <li class="card flex gap-3 p-4" aria-hidden="true">
+                  <div class="skeleton size-14 shrink-0 rounded-full"></div>
+                  <div class="min-w-0 flex-1 space-y-2.5 pt-1">
                     <div class="flex items-start justify-between gap-3">
-                      @if (readOnly()) {
-                        <p class="font-medium text-shade-900">{{ coin.title }}</p>
-                      } @else {
-                        <a
-                          [routerLink]="['/coins', coin.id, 'edit']"
-                          class="font-medium text-shade-900 after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-focus"
-                        >
-                          {{ coin.title }}
-                        </a>
-                      }
-                      <span
-                        class="shrink-0 rounded-md bg-brand-100 px-2 py-0.5 text-sm font-semibold text-brand-900"
-                      >
-                        {{ valueLabel(coin) }}
-                      </span>
+                      <div
+                        class="skeleton mt-1 h-3.5 rounded-full"
+                        [class]="skeletonWidths[i % skeletonWidths.length]"
+                      ></div>
+                      <div class="skeleton h-6 w-16 shrink-0"></div>
                     </div>
-                    <p class="mt-1 text-sm text-shade-600">
-                      {{ countryName(coin.countryCode) }} · {{ coin.year
-                      }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
-                    </p>
-                    @if (coin.ownerUserName) {
+                    <div class="skeleton h-3 w-2/5 rounded-full"></div>
+                    @if (mode() === 'explore') {
+                      <div class="skeleton h-3 w-1/2 rounded-full"></div>
+                    }
+                  </div>
+                </li>
+              }
+            }
+            @for (coin of coins; track coin.id) {
+              <!-- Owner: the title link stretches over the whole card (after:inset-0); the thumbnail
+                 button sits above it (z-10), so both work without nesting interactive elements -->
+              <li class="card relative flex gap-3 p-4" [class.hover:border-brand-300]="!readOnly()">
+                @if (coin.photos.length) {
+                  <button
+                    type="button"
+                    class="relative z-10 self-start rounded-full focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                    [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                    (click)="viewerCoin.set(coin)"
+                  >
+                    <app-coin-thumb class="size-14" [coin]="coin" [shareToken]="shareToken()" />
+                  </button>
+                } @else {
+                  <app-coin-thumb class="size-14" [coin]="coin" />
+                }
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-3">
+                    @if (readOnly()) {
+                      <p class="font-medium text-shade-900">{{ coin.title }}</p>
+                    } @else {
                       <a
-                        [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
-                        class="relative z-10 mt-1 block truncate text-xs text-shade-500 hover:text-brand-700"
+                        [routerLink]="['/coins', coin.id, 'edit']"
+                        class="font-medium text-shade-900 after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-focus"
                       >
-                        &#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}
+                        {{ coin.title }}
                       </a>
                     }
-                    <div class="mt-2 flex gap-2 text-xs">
-                      @if (coin.isCommemorative) {
-                        <span class="rounded-full bg-info-100 px-2 py-0.5 text-info-800">{{
-                          'coin.commemorativeBadge' | transloco
-                        }}</span>
-                      }
-                      @if (coin.quantity > 1) {
-                        <span class="rounded-full bg-shade-100 px-2 py-0.5 text-shade-700">{{
-                          'coin.quantityBadge' | plural: coin.quantity
-                        }}</span>
-                      }
-                    </div>
+                    <span
+                      class="shrink-0 rounded-md bg-brand-100 px-2 py-0.5 text-sm font-semibold text-brand-900"
+                    >
+                      {{ valueLabel(coin) }}
+                    </span>
                   </div>
-                </li>
-              }
-            </ul>
+                  <p class="mt-1 text-sm text-shade-600">
+                    {{ countryName(coin.countryCode) }} · {{ coin.year
+                    }}{{ coin.mintMark ? ' · ' + coin.mintMark : '' }}
+                  </p>
+                  @if (coin.description; as description) {
+                    <p class="mt-1 truncate text-sm text-shade-500">{{ description }}</p>
+                  }
+                  @if (coin.ownerUserName) {
+                    <a
+                      [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
+                      class="relative z-10 mt-1 block truncate text-xs text-shade-500 hover:text-brand-700"
+                    >
+                      &#64;{{ coin.ownerUserName }} · {{ coin.collectionName }}
+                    </a>
+                  }
+                  <div class="mt-2 flex gap-2 text-xs">
+                    @if (coin.isCommemorative) {
+                      <span class="rounded-full bg-info-100 px-2 py-0.5 text-info-800">{{
+                        'coin.commemorativeBadge' | transloco
+                      }}</span>
+                    }
+                    @if (coin.quantity > 1) {
+                      <span class="rounded-full bg-shade-100 px-2 py-0.5 text-shade-700">{{
+                        'coin.quantityBadge' | plural: coin.quantity
+                      }}</span>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
 
-            <!-- Desktop: table -->
-            <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
+          <!-- Desktop: table -->
+          <!-- Fixed layout: column widths come from <colgroup>, not from the page content,
              so they stay the same on every page and in every language. The title column takes
              the rest. The last column is "edit" for the owner, the collector in Explore, and
              absent otherwise.
@@ -800,153 +947,198 @@
              year: "Year" + icon; mint mark: "Darphane"; commemorative: "Commem."; collector:
              "@maximilian.schneider" (a long 20-character name; wider ones are cut, the title
              shows them); edit: the 20 px icon. A new language means measuring again. -->
-            <div class="card hidden overflow-x-auto p-0 lg:block">
-              <table class="w-full table-fixed text-left text-sm">
-                <caption class="sr-only">
-                  @if (mode() === 'explore') {
-                    {{ 'coinList.exploreTitle' | transloco }}
-                  } @else {
-                    {{ header()?.name }}
+          <div class="card hidden overflow-x-auto p-0 lg:block">
+            <table class="w-full table-fixed text-left text-sm">
+              <caption class="sr-only">
+                @if (mode() === 'explore') {
+                  {{ 'coinList.exploreTitle' | transloco }}
+                } @else {
+                  {{ header()?.name }}
+                }
+              </caption>
+              <colgroup>
+                <col class="w-16" />
+                <col />
+                <col class="w-[118px]" />
+                <col class="w-[116px]" />
+                <col class="w-[81px]" />
+                <col class="w-[91px]" />
+                <col class="w-[94px]" />
+                @if (mode() === 'owner') {
+                  <col class="w-12" />
+                } @else if (mode() === 'explore') {
+                  <col class="w-[176px]" />
+                }
+              </colgroup>
+              <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
+                <tr>
+                  <th scope="col" class="py-2 pl-4">
+                    <span class="sr-only">{{ 'coin.field.photo' | transloco }}</span>
+                  </th>
+                  @for (c of sortColumns; track c.value) {
+                    <th
+                      appSortHeader
+                      class="px-3 py-2"
+                      [label]="'coin.column.' + c.value | transloco"
+                      [fullLabel]="c.labelKey | transloco"
+                      [direction]="sortDirection(c.value)"
+                      (toggle)="sortBy(c.value)"
+                    ></th>
                   }
-                </caption>
-                <colgroup>
-                  <col class="w-16" />
-                  <col />
-                  <col class="w-[118px]" />
-                  <col class="w-[116px]" />
-                  <col class="w-[81px]" />
-                  <col class="w-[91px]" />
-                  <col class="w-[94px]" />
+                  <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
+                    <span aria-hidden="true">{{ 'coin.column.MintMark' | transloco }}</span>
+                    <span class="sr-only">{{ 'coin.field.mintMark' | transloco }}</span>
+                  </th>
+                  <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
+                    <span aria-hidden="true">{{ 'coin.column.Commemorative' | transloco }}</span>
+                    <span class="sr-only">{{ 'coin.field.commemorative' | transloco }}</span>
+                  </th>
                   @if (mode() === 'owner') {
-                    <col class="w-12" />
+                    <th scope="col" class="px-3 py-2">
+                      <span class="sr-only">{{ 'coin.field.actions' | transloco }}</span>
+                    </th>
                   } @else if (mode() === 'explore') {
-                    <col class="w-[176px]" />
+                    <th scope="col" class="px-3 py-2 font-medium">
+                      {{ 'coin.field.collector' | transloco }}
+                    </th>
                   }
-                </colgroup>
-                <thead class="border-b border-shade-200 bg-shade-50 text-shade-600">
-                  <tr>
-                    <th scope="col" class="py-2 pl-4">
-                      <span class="sr-only">{{ 'coin.field.photo' | transloco }}</span>
-                    </th>
-                    @for (c of sortColumns; track c.value) {
-                      <th
-                        appSortHeader
-                        class="px-3 py-2"
-                        [label]="'coin.column.' + c.value | transloco"
-                        [fullLabel]="c.labelKey | transloco"
-                        [direction]="sortDirection(c.value)"
-                        (toggle)="sortBy(c.value)"
-                      ></th>
-                    }
-                    <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
-                      <span aria-hidden="true">{{ 'coin.column.MintMark' | transloco }}</span>
-                      <span class="sr-only">{{ 'coin.field.mintMark' | transloco }}</span>
-                    </th>
-                    <th scope="col" class="px-3 py-2 font-medium whitespace-nowrap">
-                      <span aria-hidden="true">{{ 'coin.column.Commemorative' | transloco }}</span>
-                      <span class="sr-only">{{ 'coin.field.commemorative' | transloco }}</span>
-                    </th>
-                    @if (mode() === 'owner') {
-                      <th scope="col" class="px-3 py-2">
-                        <span class="sr-only">{{ 'coin.field.actions' | transloco }}</span>
-                      </th>
-                    } @else if (mode() === 'explore') {
-                      <th scope="col" class="px-3 py-2 font-medium">
-                        {{ 'coin.field.collector' | transloco }}
-                      </th>
-                    }
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-shade-100">
-                  @for (coin of r.items; track coin.id) {
-                    <tr class="hover:bg-brand-50/50">
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-shade-100">
+                @if (showSkeleton()) {
+                  @for (i of skeletonRows(); track i) {
+                    <tr aria-hidden="true">
                       <td class="py-2 pl-4">
-                        @if (coin.photos.length) {
-                          <button
-                            type="button"
-                            class="block rounded-full focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
-                            [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
-                            (click)="viewerCoin.set(coin)"
-                          >
-                            <app-coin-thumb
-                              class="size-10"
-                              [coin]="coin"
-                              [shareToken]="shareToken()"
-                            />
-                          </button>
-                        } @else {
-                          <app-coin-thumb class="size-10" [coin]="coin" />
-                        }
+                        <div class="skeleton size-10 rounded-full"></div>
                       </td>
-                      <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
-                        {{ coin.title }}
+                      <td class="px-3 py-3">
+                        <div
+                          class="skeleton h-3.5 rounded-full"
+                          [class]="skeletonWidths[i % skeletonWidths.length]"
+                        ></div>
                       </td>
-                      <td class="truncate px-3 py-3" [title]="valueLabel(coin)">
-                        {{ valueLabel(coin) }}
+                      <td class="px-3 py-3">
+                        <div class="skeleton h-3.5 w-3/4 rounded-full"></div>
                       </td>
-                      <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
-                        {{ countryName(coin.countryCode) }}
+                      <td class="px-3 py-3">
+                        <div class="skeleton h-3.5 w-2/3 rounded-full"></div>
                       </td>
-                      <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
-                      <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">
-                        @if (coin.mintMark) {
-                          {{ coin.mintMark }}
-                        } @else {
-                          <span aria-hidden="true">–</span>
-                          <span class="sr-only">{{ 'common.none' | transloco }}</span>
-                        }
+                      <td class="px-3 py-3">
+                        <div class="skeleton h-3.5 w-1/2 rounded-full"></div>
                       </td>
-                      <td class="truncate px-3 py-3">
-                        @if (coin.isCommemorative) {
-                          {{ 'common.yes' | transloco }}
-                        } @else {
-                          <span aria-hidden="true">–</span>
-                          <span class="sr-only">{{ 'common.none' | transloco }}</span>
-                        }
+                      <td class="px-3 py-3">
+                        <div class="skeleton h-3.5 w-1/3 rounded-full"></div>
+                      </td>
+                      <td class="px-3 py-3">
+                        <div class="skeleton h-3.5 w-1/3 rounded-full"></div>
                       </td>
                       @if (mode() === 'owner') {
-                        <td class="px-3 py-3 text-right">
-                          <a
-                            [routerLink]="['/coins', coin.id, 'edit']"
-                            class="link inline-flex align-middle"
-                            [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
-                            [title]="'common.edit' | transloco"
-                          >
-                            <svg
-                              viewBox="0 0 24 24"
-                              class="size-5"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.8"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              aria-hidden="true"
-                            >
-                              <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
-                            </svg>
-                          </a>
-                        </td>
+                        <td class="px-3 py-3"><div class="skeleton ml-auto size-5"></div></td>
                       } @else if (mode() === 'explore') {
-                        <td
-                          class="truncate px-3 py-3"
-                          [title]="'@' + coin.ownerUserName + ' · ' + coin.collectionName"
-                        >
-                          <a
-                            [routerLink]="['/u', coin.ownerUserName, coin.collectionId]"
-                            class="link"
-                            >&#64;{{ coin.ownerUserName
-                            }}<span class="sr-only"> · {{ coin.collectionName }}</span></a
-                          >
+                        <td class="px-3 py-3">
+                          <div class="skeleton h-3.5 w-3/4 rounded-full"></div>
                         </td>
                       }
                     </tr>
                   }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
+                }
+                @for (coin of coins; track coin.id) {
+                  <tr class="hover:bg-brand-50/50">
+                    <td class="py-2 pl-4">
+                      @if (coin.photos.length) {
+                        <button
+                          type="button"
+                          class="block rounded-full focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+                          [attr.aria-label]="'coin.viewPhotos' | transloco: { title: coin.title }"
+                          (click)="viewerCoin.set(coin)"
+                        >
+                          <app-coin-thumb
+                            class="size-10"
+                            [coin]="coin"
+                            [shareToken]="shareToken()"
+                          />
+                        </button>
+                      } @else {
+                        <app-coin-thumb class="size-10" [coin]="coin" />
+                      }
+                    </td>
+                    <td class="px-3 py-3 font-medium wrap-break-word text-shade-900">
+                      {{ coin.title }}
+                      @if (coin.description; as description) {
+                        <!-- One line (user choice 2026-10-10), the rest in the photo viewer -->
+                        <p
+                          class="mt-0.5 truncate text-sm font-normal text-shade-500"
+                          [title]="description"
+                        >
+                          {{ description }}
+                        </p>
+                      }
+                    </td>
+                    <td class="truncate px-3 py-3" [title]="valueLabel(coin)">
+                      {{ valueLabel(coin) }}
+                    </td>
+                    <td class="truncate px-3 py-3" [title]="countryName(coin.countryCode)">
+                      {{ countryName(coin.countryCode) }}
+                    </td>
+                    <td class="truncate px-3 py-3 tabular-nums">{{ coin.year }}</td>
+                    <td class="truncate px-3 py-3" [title]="coin.mintMark ?? ''">
+                      @if (coin.mintMark) {
+                        {{ coin.mintMark }}
+                      } @else {
+                        <span aria-hidden="true">–</span>
+                        <span class="sr-only">{{ 'common.none' | transloco }}</span>
+                      }
+                    </td>
+                    <td class="truncate px-3 py-3">
+                      @if (coin.isCommemorative) {
+                        {{ 'common.yes' | transloco }}
+                      } @else {
+                        <span aria-hidden="true">–</span>
+                        <span class="sr-only">{{ 'common.none' | transloco }}</span>
+                      }
+                    </td>
+                    @if (mode() === 'owner') {
+                      <td class="px-3 py-3 text-right">
+                        <a
+                          [routerLink]="['/coins', coin.id, 'edit']"
+                          class="link inline-flex align-middle"
+                          [attr.aria-label]="'coin.editNamed' | transloco: { title: coin.title }"
+                          [title]="'common.edit' | transloco"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            class="size-5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 8.5l3 3" />
+                          </svg>
+                        </a>
+                      </td>
+                    } @else if (mode() === 'explore') {
+                      <td
+                        class="truncate px-3 py-3"
+                        [title]="'@' + coin.ownerUserName + ' · ' + coin.collectionName"
+                      >
+                        <a [routerLink]="['/u', coin.ownerUserName, coin.collectionId]" class="link"
+                          >&#64;{{ coin.ownerUserName
+                          }}<span class="sr-only"> · {{ coin.collectionName }}</span></a
+                        >
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
 
+      @if (result(); as r) {
         <app-pagination
           [page]="r.page"
           [totalPages]="r.totalPages"
@@ -959,8 +1151,10 @@
           (pageSizeChange)="setPageSize($event)"
         />
       }
-    } @else if (loading()) {
-      <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+    }
+    @if (loading() && !result() && !loadError()) {
+      <!-- The shapes come after a moment; a screen reader hears this at once -->
+      <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
     }
   }
 
@@ -969,6 +1163,7 @@
       [coinId]="coin.id"
       [photos]="coin.photos"
       [title]="coin.title"
+      [description]="coin.description"
       [kind]="coin.kind"
       [denomination]="coin.denomination"
       [shareToken]="shareToken()"

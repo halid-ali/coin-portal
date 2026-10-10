@@ -1,16 +1,25 @@
 import { CoinFacets, CoinKind, DENOMINATIONS, Denomination } from '../../core/coins/coin.models';
 
-// The kind buttons and the denomination filter of a coin list (user choices 2026-10-09): the
-// buttons only where both kinds are, the denomination filter lists what the chosen kind has.
+// The kind buttons and the denomination filter of a coin list (user choices 2026-10-09/10): All /
+// Euro / Other where both kinds are, only the one kind where one is; the denomination filter lists
+// what the chosen kind has.
 
 /** "Euro" or "Other" from the URL; anything else is every kind. */
 export function toKind(value: string | undefined): CoinKind | undefined {
   return value === 'Euro' || value === 'Other' ? value : undefined;
 }
 
-/** The All / Euro / Other buttons, only for a list with both kinds. */
-export function showKinds(facets: CoinFacets | null): boolean {
-  return !!facets && facets.euroCount > 0 && facets.otherCount > 0;
+/**
+ * The kinds a list offers (null is All): all three where both kinds are, the one kind alone where
+ * only one is, none without the facets (still loading, or failed) or without coins.
+ */
+export function listKinds(facets: CoinFacets | null): readonly (CoinKind | null)[] {
+  if (!facets) {
+    return [];
+  }
+  const euro = facets.euroCount > 0;
+  const other = facets.otherCount > 0;
+  return euro && other ? [null, 'Euro', 'Other'] : euro ? ['Euro'] : other ? ['Other'] : [];
 }
 
 /** A currency in the denomination select, kept apart from the euro denominations. */

@@ -1,5 +1,5 @@
 import { DENOMINATIONS } from '../../core/coins/coin.models';
-import { nominalOptions, nominalSelection, showKinds, toKind } from './coin-filters';
+import { nominalOptions, listKinds, nominalSelection, toKind } from './coin-filters';
 
 const facets = (euroCount: number, otherCount: number, currencies: string[] = []) => ({
   euroCount,
@@ -16,11 +16,12 @@ describe('coin filters', () => {
     expect(toKind(undefined)).toBeUndefined();
   });
 
-  it('shows the kind buttons only where both kinds are', () => {
-    expect(showKinds(null)).toBe(false);
-    expect(showKinds(facets(3, 0))).toBe(false);
-    expect(showKinds(facets(0, 2))).toBe(false);
-    expect(showKinds(facets(3, 2))).toBe(true);
+  it('offers All / Euro / Other where both kinds are, the one kind alone where one is', () => {
+    expect(listKinds(null)).toEqual([]);
+    expect(listKinds(facets(0, 0))).toEqual([]);
+    expect(listKinds(facets(3, 0))).toEqual(['Euro']);
+    expect(listKinds(facets(0, 2))).toEqual(['Other']);
+    expect(listKinds(facets(3, 2))).toEqual([null, 'Euro', 'Other']);
   });
 
   it('tells a currency apart from a denomination in the select', () => {

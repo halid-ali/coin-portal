@@ -5,13 +5,14 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
-import { Coin, CoinSide } from '../../core/coins/coin.models';
+import { COIN_LIMITS, Coin, CoinSide } from '../../core/coins/coin.models';
 import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { ImageChange } from '../../shared/image-change';
 import { CoinForm } from './coin-form';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 @Component({ template: '' })
 class CollectionPage {}
@@ -174,8 +175,10 @@ describe('CoinForm', () => {
     it('offers the eight denominations from the largest and the countries by name', async () => {
       await open('/coins/new?collection=5', undefined, ['DE', 'AT', 'BE']);
 
-      // Lists to type in since 2026-10-09 (were selects with these options and "Seç…" first)
-      expect(listBox('denomination').placeholder).toBe('Seç…');
+      // Lists to type in since 2026-10-09 (were selects with these options and "Seç…" first); the
+      // denomination is a list without typing since 2026-10-10 (a button showing "Seç…")
+      expect(listBox('denomination').tagName).toBe('BUTTON');
+      expect(listBox('denomination').textContent!.trim()).toBe('Seç…');
       expect(await listNames('denomination')).toEqual([
         '2 €',
         '1 €',
@@ -192,10 +195,13 @@ describe('CoinForm', () => {
 
     it('takes the denomination picked from the list', async () => {
       await open('/coins/new?collection=5');
-      await choose('denomination', '50');
+      // Nothing to type: the first letters jump to an option, Enter takes it
+      await listKey('denomination', '5');
+      await listKey('denomination', '0');
+      await listKey('denomination', 'Enter');
 
       expect(form()['form'].controls.denomination.value).toBe('Cent50');
-      expect(control('denomination').value).toBe('50 cent');
+      expect(control('denomination').textContent!.trim()).toBe('50 cent');
     });
 
     it('moves a coin to the collection picked from the list, as its numeric id', async () => {
@@ -233,6 +239,45 @@ describe('CoinForm', () => {
       await setYear(1999);
       expect(page().querySelector('#year-error')).toBeNull();
       expect(page().querySelector('#year-hint')!.textContent).toContain(`1999–${nextYear}`);
+    });
+
+    it('steps the quantity with its − / + buttons, within the limits', async () => {
+      await open('/coins/new?collection=5');
+      const quantity = form()['form'].controls.quantity;
+      const button = (name: string) =>
+        page().querySelector<HTMLButtonElement>(`button[aria-label="${name}"]`)!;
+      const less = () => button('Adedi azalt');
+      const more = () => button('Adedi artır');
+      const type = async (value: string) => {
+        control('quantity').value = value;
+        control('quantity').dispatchEvent(new Event('input'));
+        await harness.fixture.whenStable();
+      };
+      // Out of the Tab order: ↑/↓ in the field do the same
+      expect([less().tabIndex, more().tabIndex]).toEqual([-1, -1]);
+
+      // At 1 nothing less, and the form stays unchanged
+      expect(less().getAttribute('aria-disabled')).toBe('true');
+      less().click();
+      expect(quantity.value).toBe(1);
+      expect(internals().hasUnsavedChanges()).toBe(false);
+
+      more().click();
+      await harness.fixture.whenStable();
+      expect(quantity.value).toBe(2);
+      expect(control('quantity').value).toBe('2');
+      expect(less().getAttribute('aria-disabled')).toBeNull();
+      expect(internals().hasUnsavedChanges()).toBe(true);
+
+      await type(String(COIN_LIMITS.maxQuantity));
+      expect(more().getAttribute('aria-disabled')).toBe('true');
+      more().click();
+      expect(quantity.value).toBe(COIN_LIMITS.maxQuantity);
+
+      // An empty field starts over from 1
+      await type('');
+      more().click();
+      expect(quantity.value).toBe(1);
     });
 
     it('suggests the title of a new coin until the user writes one', async () => {
@@ -300,7 +345,7 @@ describe('CoinForm', () => {
       await open('/coins/1/edit', edited);
 
       expect(form()['form'].controls.denomination.value).toBe('Euro2');
-      expect(control('denomination').value).toBe('2 €');
+      expect(control('denomination').textContent!.trim()).toBe('2 €');
       expect(form()['form'].controls.countryCode.value).toBe('DE');
       expect(control('countryCode').value).toBe('Almanya');
       expect(control('year').value).toBe('2006');
@@ -443,6 +488,34 @@ describe('CoinForm', () => {
 
       expect(form()['form'].controls.countryCode.value).toBe('');
       expect(await countryNames()).toEqual(['Almanya']);
+    });
+
+    it('shows the form as placeholders while an edited coin takes a while', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/coins/1/edit');
+        http.expectOne('/api/countries').flush([{ code: 'DE', name: 'Almanya', euroIssuer: true }]);
+        http.expectOne('/api/collections').flush([vitrin]);
+        vi.advanceTimersByTime(SKELETON_DELAY_MS);
+        await harness.fixture.whenStable();
+
+        expect(page().querySelector('form')).toBeNull();
+        const shapes = page().querySelector('.card[aria-hidden=true]')!;
+        // The labels are known, the fields are shapes
+        expect(shapes.textContent).toContain('Başlık');
+        expect(shapes.querySelectorAll('.skeleton').length).toBeGreaterThan(5);
+        // The coin's collection in the way here, still a placeholder
+        expect(page().querySelectorAll('app-breadcrumbs .skeleton')).toHaveLength(1);
+
+        http.expectOne('/api/coins/1').flush(coin);
+        await harness.fixture.whenStable();
+        expect(page().querySelector('form')).not.toBeNull();
+        // (The photo keeps its own shape until it arrives, which jsdom never does)
+        expect(page().querySelector('.card[aria-hidden=true]')).toBeNull();
+        expect(page().querySelectorAll('app-breadcrumbs .skeleton')).toHaveLength(0);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('loads an edited coin with its value in the language and sends it back', async () => {

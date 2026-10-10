@@ -20,7 +20,8 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await expect(page.getByRole('heading', { name: 'Edit coin' })).toBeVisible();
 
   // The saved values, and the title is no longer suggested
-  await expect(page.getByLabel('Denomination')).toHaveValue('2 €');
+  // A list without typing: the box is a button showing the choice
+  await expect(page.getByRole('combobox', { name: 'Denomination', exact: true })).toHaveText('2 €');
   await expect(page.getByLabel('Country')).toHaveValue('Germany');
   await expect(page.getByLabel('Year')).toHaveValue('2006');
   await expect(page.getByLabel('Title')).toHaveValue('Brandenburger Tor');
@@ -35,7 +36,9 @@ test('a user edits every field of a euro coin and deletes it', async ({ browser 
   await page.getByLabel('Title').fill('Mozart');
   await page.getByLabel('Mint mark').fill('W');
   await page.getByLabel('Commemorative').check();
-  await page.getByLabel('Quantity').fill('2');
+  // The quantity's + button (exact: the − / + buttons are named after the field too)
+  await page.getByRole('button', { name: 'Increase quantity' }).click();
+  await expect(page.getByLabel('Quantity', { exact: true })).toHaveValue('2');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   // Back on the list with the new values

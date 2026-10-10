@@ -31,6 +31,7 @@ public class CoinsController(
     IPhotoStorage photoStorage,
     IImageProcessor imageProcessor,
     PhotoQuota photoQuota,
+    StorageWarnings storageWarnings,
     PublicationGuard publication,
     UnverifiedAccounts unverified,
     IOptions<PhotoOptions> photoOptions,
@@ -246,6 +247,10 @@ public class CoinsController(
             }
             throw;
         }
+        if (photos.Count > 0)
+        {
+            storageWarnings.Enqueue(userId);
+        }
 
         return CreatedAtAction(nameof(Get), new { id = coin.Id }, CoinResponse.From(coin));
     }
@@ -340,6 +345,10 @@ public class CoinsController(
         foreach (var photoId in photoIds)
         {
             await photoStorage.DeleteAsync(coin.OwnerId, photoId);
+        }
+        if (photoIds.Count > 0)
+        {
+            storageWarnings.Enqueue(coin.OwnerId);
         }
 
         return NoContent();

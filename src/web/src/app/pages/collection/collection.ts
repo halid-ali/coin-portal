@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -48,8 +49,10 @@ import { DenominationIcon } from '../../shared/denomination-icon/denomination-ic
 import { OtherCoinIcon } from '../../shared/other-coin-icon/other-coin-icon';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Combobox } from '../../shared/combobox/combobox';
+import { SlidingSelection } from '../../shared/sliding-selection';
 import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 import { scrollToTop } from '../../shared/motion';
+import { delayedLoading } from '../../shared/skeleton';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
 import { PhotoViewer } from '../../shared/photo-viewer/photo-viewer';
@@ -61,13 +64,14 @@ import { CollectionFormDialog } from '../collections/collection-form-dialog';
 import { toInt, toPageSize, toPhotographed } from './collection-url';
 import {
   CURRENCY_OPTION,
+  listKinds,
   nominalOptions,
   nominalSelection,
-  showKinds,
   toKind,
 } from './coin-filters';
 import { cachedIntl } from '../../core/i18n/intl-cache';
 import { CollectionView, ViewToggle } from './view-toggle';
+import { ImageSkeleton } from '../../shared/image-skeleton';
 
 /**
  * Where the coin list comes from (route data "mode"):
@@ -91,6 +95,7 @@ type QueryParamValue = string | number | boolean | null;
 @Component({
   selector: 'app-collection',
   imports: [
+    ImageSkeleton,
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
@@ -107,6 +112,8 @@ type QueryParamValue = string | number | boolean | null;
     CollectionFormDialog,
     CollectionDeleteDialog,
     Combobox,
+    NgTemplateOutlet,
+    SlidingSelection,
   ],
   templateUrl: './collection.html',
 })
@@ -144,6 +151,16 @@ export class Collection {
   protected readonly notFound = signal(false);
   /** Translation key when the collection could not be loaded for another reason than 404. */
   protected readonly headerError = signal<string | null>(null);
+  /** Placeholder shapes for the name, description and count while the header takes a while. */
+  protected readonly showHeaderSkeleton = delayedLoading(
+    computed(
+      () =>
+        this.mode() !== 'explore' &&
+        this.header() === null &&
+        !this.notFound() &&
+        this.headerError() === null,
+    ),
+  );
   protected readonly collectionCover = computed(() => {
     const header = this.header();
     return header ? coverUrl(header, this.shareToken()) : null;
@@ -158,7 +175,7 @@ export class Collection {
       case 'owner':
         return [
           { key: 'nav.collections', link: '/collections', icon: 'collections' },
-          { text: header?.name ?? '' },
+          { text: header?.name ?? '', loading: !header && this.showHeaderSkeleton() },
         ];
       case 'public':
         return header?.ownerUserName
@@ -271,10 +288,22 @@ export class Collection {
   /** The year filter takes every coin's year (other coins are older than the euro). */
   protected readonly minYear = COIN_LIMITS.otherMinYear;
 
-  /** Kinds, currencies and countries of this list (null while loading or when it failed). */
+  /**
+   * Kinds, currencies and countries of this list (null while a list's first ones load or when they
+   * failed). Another kind or collector keeps the old ones until the new ones are there, so the kind
+   * buttons stay; the filters they feed are locked meanwhile (`facetsReloading`).
+   */
   protected readonly facets = signal<CoinFacets | null>(null);
-  protected readonly showKinds = computed(() => showKinds(this.facets()));
-  protected readonly kinds: readonly (CoinKind | null)[] = [null, 'Euro', 'Other'];
+  /**
+   * What the facets being loaded will change: another kind only the countries (the counts and
+   * currencies are the whole list's), another collector all of them.
+   */
+  protected readonly facetsReloading = signal<'none' | 'countries' | 'all'>('none');
+  /** A list's first facets are on the way: the kinds' row keeps its place (a shape after a moment). */
+  protected readonly facetsLoading = signal(false);
+  protected readonly showKindsSkeleton = delayedLoading(this.facetsLoading);
+  /** All / Euro / Other, or the list's one kind alone (shown chosen, nothing to choose). */
+  protected readonly kinds = computed(() => listKinds(this.facets()));
   protected readonly nominal = computed(() =>
     nominalOptions(this.query().kind, this.facets(), this.query().currency),
   );
@@ -350,6 +379,29 @@ export class Collection {
 
   /** Sort from the URL; unknown values fall back to the default order. */
   protected readonly sortState = computed<SortState>(() => parseSort(this.sort(), this.dir()));
+  /** The sort select's orders, values like "Year:Desc"; its width is theirs ("clear sort" comes and goes). */
+  protected readonly sortOrders = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return this.sortColumns.flatMap((c) =>
+      (['Asc', 'Desc'] as const).map((dir) => ({
+        value: `${c.value}:${dir}`,
+        label: `${translate(c.labelKey)} (${translate(`coin.sort.${c.value}.${dir.toLowerCase()}`)})`,
+      })),
+    );
+  });
+  /** The orders, and "clear sort" on top while one is chosen. */
+  protected readonly sortOptions = computed<ComboboxOption[]>(() => {
+    if (this.sortState().sort === 'Newest') {
+      return this.sortOrders();
+    }
+    this.language.current();
+    return [{ value: 'Newest', label: translate('sort.clear') }, ...this.sortOrders()];
+  });
+  /** '' (the "Sort" placeholder) for the default order. */
+  protected readonly sortValue = computed(() => {
+    const { sort, dir } = this.sortState();
+    return sort === 'Newest' ? '' : `${sort}:${dir}`;
+  });
 
   protected readonly query = computed<CoinListQuery & { owner?: string }>(() => {
     const denomination = this.denomination();
@@ -443,6 +495,18 @@ export class Collection {
     return (this.header()?.coinCount ?? 0) > 0;
   });
   protected readonly loading = signal(true);
+  /** Placeholder shapes in the list's place: a load that takes a while. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
+  /**
+   * As many placeholder rows as the list has now, so the page keeps its height; a list's first load
+   * (or one with no coins shown) takes the collection's coins up to a page.
+   */
+  protected readonly skeletonRows = computed(() => {
+    const shown = this.result()?.items.length || Math.min(this.header()?.coinCount ?? 10, 10);
+    return [...Array(Math.min(Math.max(shown, 1), 50)).keys()];
+  });
+  /** Bar widths that vary from row to row, like real titles. */
+  protected readonly skeletonWidths = ['w-3/5', 'w-2/5', 'w-1/2', 'w-1/3', 'w-[55%]'];
   /** Translation key when the coin list could not be loaded. */
   protected readonly loadError = signal<string | null>(null);
   /** Coin whose photos are shown fullscreen. */
@@ -497,6 +561,7 @@ export class Collection {
 
     // Kinds, currencies and countries for the filters: per list and kind (the other filters do
     // not change them)
+    let shownFor: readonly unknown[] | null = null;
     toObservable(
       computed(
         () =>
@@ -507,14 +572,46 @@ export class Collection {
             this.query().owner,
             this.query().kind,
           ] as const,
+        // A new page, sort or other filter is the same key: no new request
+        { equal: (a, b) => a.every((value, i) => value === b[i]) },
       ),
     )
       .pipe(
-        tap(() => this.facets.set(null)),
+        tap((key) => {
+          const [mode, id, token, owner] = key;
+          const sameList =
+            shownFor !== null &&
+            this.facets() !== null &&
+            shownFor[0] === mode &&
+            shownFor[1] === id &&
+            shownFor[2] === token;
+          if (!sameList) {
+            this.facets.set(null);
+          }
+          this.facetsLoading.set(!sameList);
+          this.facetsReloading.set(
+            !sameList ? 'none' : shownFor![3] === owner ? 'countries' : 'all',
+          );
+          shownFor = key;
+        }),
         switchMap(() => this.loadFacets().pipe(catchError(() => of(null)))),
         takeUntilDestroyed(),
       )
-      .subscribe((facets) => this.facets.set(facets));
+      .subscribe((facets) => {
+        this.facets.set(facets);
+        this.facetsLoading.set(false);
+        this.facetsReloading.set('none');
+        // A kind the list does not have (another collector, an old link) would show nothing: the
+        // list's one kind instead, chosen on its own
+        const kinds = this.kinds();
+        const kind = this.query().kind;
+        if (kinds.length === 1 && kind && kind !== kinds[0]) {
+          this.navigate(
+            { kind: null, denomination: null, currency: null, countryCode: null, page: null },
+            true,
+          );
+        }
+      });
 
     // Reload whenever the URL query changes; switchMap cancels outdated requests
     toObservable(this.listQuery)
@@ -648,7 +745,8 @@ export class Collection {
   /** A kind's coins on its button, in the language's number format ("1.240"). */
   protected kindCount(kind: CoinKind | null): number | null {
     const facets = this.facets();
-    if (!facets) {
+    // Another collector's counts are on the way
+    if (!facets || this.facetsReloading() === 'all') {
       return null;
     }
     return kind === 'Euro'
@@ -805,7 +903,7 @@ export class Collection {
     this.applySort(nextSort(this.sortState(), column));
   }
 
-  /** Mobile select; values look like "Year:Desc", "Newest" for the default order. */
+  /** The sort select; values look like "Year:Desc", "Newest" for the default order. */
   protected setSortOption(value: string): void {
     const [sort, dir] = value.split(':');
     this.applySort(parseSort(sort, dir));
@@ -833,6 +931,10 @@ export class Collection {
   }
 
   protected clearFilters(): void {
+    // The button stays (aria-disabled) when there is nothing to clear
+    if (!this.hasFilters()) {
+      return;
+    }
     // Keep the chosen sort order, page size and view
     this.router.navigate([], {
       relativeTo: this.route,

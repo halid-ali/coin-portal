@@ -1,5 +1,9 @@
-import { Component, computed, input, output } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { TranslocoPipe, translate } from '@jsverse/transloco';
+
+import { LanguageService } from '../../core/i18n/language.service';
+import { Combobox } from '../combobox/combobox';
+import { ComboboxOption } from '../combobox/combobox-filter';
 
 let nextId = 0;
 
@@ -13,7 +17,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-pagination',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, Combobox],
   // Custom elements are inline by default; block lets the parent's spacing apply
   host: { class: 'block' },
   template: `
@@ -130,18 +134,17 @@ let nextId = 0;
         <label [for]="selectId" class="font-medium text-shade-700 max-md:sr-only">{{
           'pagination.perPage' | transloco
         }}</label>
-        <select
-          [id]="selectId"
-          #sizeSelect
-          class="form-input w-auto py-1.5"
-          (change)="pageSizeChange.emit(+sizeSelect.value)"
-        >
-          @for (option of options(); track option) {
-            <option [value]="option" [selected]="option === pageSize()">
-              {{ option === 0 ? ('common.all' | transloco) : option }}
-            </option>
-          }
-        </select>
+        <!-- A list-only combobox like the filters (user choice 2026-10-10), as wide as its longest size -->
+        <app-combobox
+          [inputId]="selectId"
+          searchable="false"
+          fitOptions
+          compact
+          [options]="sizeOptions()"
+          [value]="'' + pageSize()"
+          [label]="'pagination.perPage' | transloco"
+          (valueChange)="pageSizeChange.emit(+$event)"
+        />
       </div>
     </div>
   `,
@@ -165,8 +168,19 @@ export class Pagination {
   readonly pageChange = output<number>();
   readonly pageSizeChange = output<number>();
 
+  private readonly language = inject(LanguageService);
+
   // Unique per instance, the component is rendered above and below the list
   protected readonly selectId = `page-size-${++nextId}`;
+
+  /** The page sizes, 0 as "all". */
+  protected readonly sizeOptions = computed<ComboboxOption[]>(() => {
+    this.language.current();
+    return this.options().map((size) => ({
+      value: String(size),
+      label: size === 0 ? translate('common.all') : String(size),
+    }));
+  });
 
   protected readonly bottom = computed(() => this.placement() === 'bottom');
   protected readonly isFirst = computed(() => this.page() <= 1);

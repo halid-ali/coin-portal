@@ -137,7 +137,14 @@ export class TestUser {
    */
   async createOtherCoin(
     collectionId: number,
-    coin: { title: string; faceValue: number; currency: string; countryCode: string; year: number },
+    coin: {
+      title: string;
+      faceValue: number;
+      currency: string;
+      countryCode: string;
+      year: number;
+      description?: string;
+    },
     photos: 'none' | 'front' | 'both' = 'none',
   ): Promise<{ id: number }> {
     const body = { ...coin, kind: 'Other', collectionId };

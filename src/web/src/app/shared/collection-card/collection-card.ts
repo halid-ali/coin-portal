@@ -6,11 +6,12 @@ import { coverUrl } from '../../core/collections/collection.service';
 import { PluralPipe } from '../../core/i18n/plural';
 import { CollectionPlaceholder } from '../collection-placeholder/collection-placeholder';
 import { VisibilityBadge } from '../visibility-badge/visibility-badge';
+import { ImageSkeleton } from '../image-skeleton';
 
 /** Collection card with cover, name, description and coin count (my collections, profiles). */
 @Component({
   selector: 'app-collection-card',
-  imports: [RouterLink, PluralPipe, CollectionPlaceholder, VisibilityBadge],
+  imports: [ImageSkeleton, RouterLink, PluralPipe, CollectionPlaceholder, VisibilityBadge],
   host: { class: 'block h-full' },
   template: `
     <a
@@ -21,6 +22,7 @@ import { VisibilityBadge } from '../visibility-badge/visibility-badge';
       <div class="relative aspect-video overflow-hidden bg-shade-100">
         @if (cover(); as src) {
           <img
+            appImageSkeleton
             [src]="src"
             alt=""
             loading="lazy"

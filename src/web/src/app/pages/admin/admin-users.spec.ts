@@ -10,6 +10,7 @@ import { PagedResponse } from '../../core/coins/coin.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { AdminUsers } from './admin-users';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 const user = (userName: string, changes: Partial<AdminUser> = {}): AdminUser => ({
   id: userName,
@@ -99,6 +100,44 @@ describe('AdminUsers', () => {
     expect(text).toContain('5 MB');
   });
 
+  it('offers the filters and the sort as lists without typing, named in the panel texts', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/admin/users?emailConfirmed=false');
+    const http = TestBed.inject(HttpTestingController);
+    const empty = { items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0 };
+    http.expectOne((r) => r.url === '/api/admin/users').flush(empty);
+    const element = harness.fixture.nativeElement as HTMLElement;
+    const box = (id: string) => element.querySelector<HTMLButtonElement>('#' + id)!;
+    // The box's first line (a fitted box also holds every name, hidden, for its width)
+    const shown = (id: string) => box(id).querySelector('span')!.textContent!.trim();
+
+    // List-only comboboxes since 2026-10-10 (were selects); the names come with the panel's texts
+    await vi.waitFor(async () => {
+      await harness.fixture.whenStable();
+      expect(shown('admin-user-email')).toBe('E-postası doğrulanmamış');
+    });
+    expect(box('admin-user-status').tagName).toBe('BUTTON');
+    expect(shown('admin-user-status')).toBe('Tüm durumlar');
+    expect(shown('admin-user-sort')).toBe('En yeni kayıt');
+
+    box('admin-user-status').click();
+    await harness.fixture.whenStable();
+    const options = [...element.querySelectorAll<HTMLElement>('[role=option]')];
+    expect(options.map((o) => o.textContent!.trim())).toEqual([
+      'Tüm durumlar',
+      'Aktif',
+      'Doğrulanmamış',
+      'Geçici kilitli',
+      'Kilitli',
+    ]);
+    options[4].click();
+    await harness.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/admin/users?emailConfirmed=false&status=Locked');
+    const filtered = http.expectOne((r) => r.url === '/api/admin/users');
+    expect(filtered.request.params.get('status')).toBe('Locked');
+    filtered.flush(empty);
+  });
+
   it('filters by the e-mail address, and deletes the selected users at once', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/admin/users?emailConfirmed=false');
@@ -177,5 +216,30 @@ describe('AdminUsers', () => {
       totalCount: 30,
       totalPages: 2,
     });
+  });
+
+  it('shows placeholder rows on the first load, then the list', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const fixture = TestBed.createComponent(AdminUsers);
+      await fixture.whenStable();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await fixture.whenStable();
+      const element = fixture.nativeElement as HTMLElement;
+
+      // The table (wide screens) and the cards, ten rows each until the list is known
+      expect(element.querySelectorAll('tbody tr[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelectorAll('ul > li[aria-hidden=true]')).toHaveLength(10);
+      expect(element.querySelector('[role=status].sr-only')).not.toBeNull();
+
+      const http = TestBed.inject(HttpTestingController);
+      http
+        .expectOne((r) => r.url === '/api/admin/users')
+        .flush({ items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0 });
+      await fixture.whenStable();
+      expect(element.querySelectorAll('.skeleton')).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

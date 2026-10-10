@@ -15,6 +15,7 @@ import { coverUrl } from '../../core/collections/collection.service';
 import { validatePhotoFile } from '../../core/coins/photo-errors';
 import { ImageChange } from '../../shared/image-change';
 import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialog';
+import { ImageSkeleton } from '../../shared/image-skeleton';
 
 /**
  * Collection cover in the collection form: a 16:9 preview of the pending upload or the uploaded
@@ -23,14 +24,14 @@ import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialo
  */
 @Component({
   selector: 'app-cover-picker',
-  imports: [PhotoCropDialog, TranslocoPipe],
+  imports: [ImageSkeleton, PhotoCropDialog, TranslocoPipe],
   host: { class: 'block' },
   template: `
     <p class="form-label">{{ 'cover.title' | transloco }}</p>
 
     <div class="relative aspect-video overflow-hidden rounded-lg bg-shade-100">
       @if (displayUrl(); as src) {
-        <img [src]="src" alt="" class="size-full object-cover" />
+        <img appImageSkeleton [src]="src" alt="" class="size-full object-cover" />
       } @else {
         <button
           type="button"

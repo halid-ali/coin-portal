@@ -1,9 +1,11 @@
 import {
   Component,
   ElementRef,
+  TemplateRef,
   afterRenderEffect,
   booleanAttribute,
   computed,
+  contentChild,
   inject,
   input,
   model,
@@ -16,7 +18,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { errorMessage } from '../form-errors';
-import { ComboboxMatch, ComboboxOption, filterOptions } from './combobox-filter';
+import { ComboboxMatch, ComboboxOption, filterOptions, fold } from './combobox-filter';
 
 let nextId = 0;
 
@@ -37,42 +39,118 @@ let nextId = 0;
  * `[(value)]`, then `[control]` ties it to a form control's error and hint texts all the same
  * (a value the form converts, e.g. a collection's numeric id) and `disabled` closes it. `allLabel`
  * adds an option with the value '' on top (a filter's "All"); emptying the box picks it.
+ *
+ * `[searchable]="false"`: a short fixed list (user choice 2026-10-10: commemorative, photos, the
+ * Euro denomination, sort, page size) with nothing to type. The box is then a button that opens the
+ * list, like a native select: arrow keys, Home / End, Enter or Space pick, the first letters jump
+ * to an option. `fitOptions` makes it as wide as its longest option (or placeholder), so a choice
+ * does not change its width; `compact` matches the 38 px buttons beside it; an element marked
+ * `comboboxIcon` (with `#comboboxIcon`) sits on its left. Without a <label for>, `ariaLabel` names it.
  */
 @Component({
   selector: 'app-combobox',
   imports: [NgTemplateOutlet, TranslocoPipe],
   host: {
-    class: 'relative block',
+    class: 'relative',
+    // As wide as its content when fitted (in a flex row, a flex item is that already)
+    '[class.block]': '!fitOptions()',
+    '[class.inline-block]': 'fitOptions()',
+    // Faded while disabled, the arrow too (like a disabled button)
+    '[class.opacity-60]': 'isDisabled()',
     '(focusout)': 'onFocusOut($event)',
   },
   template: `
-    <input
-      #box
-      type="text"
-      role="combobox"
-      autocomplete="off"
-      spellcheck="false"
-      aria-autocomplete="list"
-      [id]="inputId()"
-      [attr.aria-expanded]="expanded()"
-      [attr.aria-controls]="expanded() && matchCount() ? listId : null"
-      [attr.aria-activedescendant]="expanded() && activeOption() ? optionId(activeIndex()) : null"
-      [attr.aria-invalid]="invalid() ? 'true' : null"
-      [attr.aria-required]="required() ? 'true' : null"
-      [attr.aria-describedby]="field() ? inputId() + '-error ' + inputId() + '-hint' : null"
-      [attr.placeholder]="placeholder() || null"
-      [attr.maxlength]="maxLength()"
-      [disabled]="isDisabled()"
-      [value]="text()"
-      class="form-input pr-10"
-      [class.ng-invalid]="field()?.invalid"
-      [class.ng-touched]="field()?.touched"
-      (click)="show()"
-      (focus)="onFocus()"
-      (input)="onInput(box.value)"
-      (keydown)="onKey($event)"
-    />
-    @if (!freeText() || options().length) {
+    @if (searchable()) {
+      <input
+        #box
+        type="text"
+        role="combobox"
+        autocomplete="off"
+        spellcheck="false"
+        aria-autocomplete="list"
+        [id]="inputId()"
+        [attr.aria-label]="ariaLabel()"
+        [attr.aria-expanded]="expanded()"
+        [attr.aria-controls]="expanded() && matchCount() ? listId : null"
+        [attr.aria-activedescendant]="expanded() && activeOption() ? optionId(activeIndex()) : null"
+        [attr.aria-invalid]="invalid() ? 'true' : null"
+        [attr.aria-required]="required() ? 'true' : null"
+        [attr.aria-describedby]="field() ? inputId() + '-error ' + inputId() + '-hint' : null"
+        [attr.placeholder]="(listLike() && placeholder()) || null"
+        [attr.maxlength]="maxLength()"
+        [disabled]="isDisabled()"
+        [value]="text()"
+        class="form-input pr-10 disabled:cursor-not-allowed"
+        [class]="{ 'py-1.5': compact(), 'pl-9': !!icon() }"
+        [class.ng-invalid]="field()?.invalid"
+        [class.ng-touched]="field()?.touched"
+        (click)="show()"
+        (focus)="onFocus()"
+        (input)="onInput(box.value)"
+        (keydown)="onKey($event)"
+      />
+    } @else {
+      <!-- The visible name and, when fitted, every option's name (and the placeholder) hidden in the
+       same grid cell: the box is as wide as the longest of them -->
+      <button
+        #box
+        type="button"
+        role="combobox"
+        aria-haspopup="listbox"
+        [id]="inputId()"
+        [attr.aria-label]="ariaLabel()"
+        [attr.aria-expanded]="expanded()"
+        [attr.aria-controls]="expanded() ? listId : null"
+        [attr.aria-activedescendant]="expanded() && activeOption() ? optionId(activeIndex()) : null"
+        [attr.aria-invalid]="invalid() ? 'true' : null"
+        [attr.aria-required]="required() ? 'true' : null"
+        [attr.aria-describedby]="field() ? inputId() + '-error ' + inputId() + '-hint' : null"
+        [disabled]="isDisabled()"
+        class="form-input grid pr-10 text-left disabled:cursor-not-allowed"
+        [class]="{ 'py-1.5': compact(), 'pl-9': !!icon() }"
+        [class.ng-invalid]="field()?.invalid"
+        [class.ng-touched]="field()?.touched"
+        (click)="toggle()"
+        (keydown)="onKey($event)"
+      >
+        <span
+          class="col-start-1 row-start-1 truncate"
+          [class.text-shade-500]="!text() && !placeholderIsName()"
+        >
+          @if (shownOption(); as option) {
+            <ng-container *ngTemplateOutlet="display()!; context: { $implicit: option }" />
+          } @else {
+            {{ text() || placeholder() }}
+          }
+        </span>
+        @if (fitOptions()) {
+          <span
+            class="invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap"
+            aria-hidden="true"
+            >{{ placeholder() }}</span
+          >
+          @for (option of sizerOptions(); track $index) {
+            <span
+              class="invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap"
+              aria-hidden="true"
+            >
+              @if (display(); as shown) {
+                <ng-container *ngTemplateOutlet="shown; context: { $implicit: option }" />
+              } @else {
+                {{ option.label }}
+              }
+            </span>
+          }
+        }
+      </button>
+    }
+    <span
+      class="pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 text-shade-700"
+      aria-hidden="true"
+    >
+      <ng-content select="[comboboxIcon]" />
+    </span>
+    @if (listLike()) {
       <svg
         viewBox="0 0 24 24"
         class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-shade-500 transition-transform"
@@ -195,7 +273,10 @@ export class Combobox implements ControlValueAccessor {
   readonly label = input.required<string>();
   /** An option with the value '' on top, e.g. "All". */
   readonly allLabel = input<string | null>(null);
-  /** Shown in the empty box, e.g. "Choose…". */
+  /**
+   * Shown in the empty box, e.g. "Choose…". A free text box without suggestions is a plain text box
+   * and shows none (like the other typed fields; their examples are in the hint under them).
+   */
   readonly placeholder = input('');
   /** Any text; the options are suggestions. */
   readonly freeText = input(false, { transform: booleanAttribute });
@@ -203,6 +284,32 @@ export class Combobox implements ControlValueAccessor {
   /** Without formControlName: the form control whose error and hint texts it is tied to. */
   readonly control = input<AbstractControl | null>(null);
   readonly disabled = input(false, { transform: booleanAttribute });
+  /** False: nothing to type, the box is a button that opens the list (a short fixed list). */
+  readonly searchable = input(true, { transform: booleanAttribute });
+  /** As wide as the longest option or the placeholder (only without typing). */
+  readonly fitOptions = input(false, { transform: booleanAttribute });
+  /** The options a fitted box makes room for instead of its own (e.g. without one that comes and goes). */
+  readonly fitTo = input<readonly ComboboxOption[] | null>(null);
+  /**
+   * How the box shows the chosen option (only without typing), e.g. shorter than in the list; it
+   * gets the option. The list keeps the names; give the full name to screen readers (sr-only).
+   */
+  readonly display = input<TemplateRef<{ $implicit: ComboboxOption }> | null>(null);
+  /** The 38 px height of the buttons beside it (py-1.5). */
+  readonly compact = input(false, { transform: booleanAttribute });
+  /**
+   * The placeholder is the box's name (no label above it, e.g. "Sort"): shown like a value, not
+   * faded, so the box does not look unavailable (only without typing).
+   */
+  readonly placeholderIsName = input(false, { transform: booleanAttribute });
+  /** The box's name when no <label for> names it. */
+  readonly ariaLabel = input<string | null>(null);
+
+  /** An element marked `comboboxIcon` on the box's left: the text then starts after it. */
+  protected readonly icon = contentChild<ElementRef>('comboboxIcon');
+
+  /** A list to choose from: the arrow and the placeholder; free text only with suggestions. */
+  protected readonly listLike = computed(() => !this.freeText() || this.options().length > 0);
 
   protected readonly listId = `combobox-${++nextId}`;
   protected readonly open = signal(false);
@@ -249,7 +356,18 @@ export class Combobox implements ControlValueAccessor {
     return this.allOptions().find((o) => o.value === this.value())?.label ?? '';
   });
 
-  private readonly box = viewChild.required<ElementRef<HTMLInputElement>>('box');
+  /** The options a fitted box makes room for (beside the placeholder). */
+  protected readonly sizerOptions = computed(() => this.fitTo() ?? this.allOptions());
+  /** The chosen option, when the box shows it through `display`. */
+  protected readonly shownOption = computed(() =>
+    this.display() ? (this.allOptions().find((o) => o.value === this.value()) ?? null) : null,
+  );
+
+  private readonly box =
+    viewChild.required<ElementRef<HTMLInputElement | HTMLButtonElement>>('box');
+  /** First letters typed on a list-only box, cleared after a pause (like a native select). */
+  private typeAhead = '';
+  private typeAheadTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly popup = viewChild<ElementRef<HTMLElement>>('popup');
   /** The open list's width so far (0 while closed). */
   protected readonly listWidth = signal(0);
@@ -307,7 +425,23 @@ export class Combobox implements ControlValueAccessor {
 
   protected onFocus(): void {
     // The whole name selected: typing replaces it
-    this.box().nativeElement.select();
+    this.selectText();
+  }
+
+  private selectText(): void {
+    const box = this.box().nativeElement;
+    if (box instanceof HTMLInputElement) {
+      box.select();
+    }
+  }
+
+  /** The list-only box's click: opens or closes the list. */
+  protected toggle(): void {
+    if (this.open()) {
+      this.close();
+    } else {
+      this.show();
+    }
   }
 
   protected show(): void {
@@ -316,7 +450,7 @@ export class Combobox implements ControlValueAccessor {
     }
     this.typed.set(null);
     this.keyboard.set(false);
-    this.box().nativeElement.select();
+    this.selectText();
     const chosen = this.listed().findIndex((m) => m.option.value === this.value());
     this.activeIndex.set(this.freeText() ? chosen : Math.max(0, chosen));
     this.open.set(true);
@@ -339,6 +473,10 @@ export class Combobox implements ControlValueAccessor {
   }
 
   protected onKey(event: KeyboardEvent): void {
+    if (!this.searchable()) {
+      this.onListKey(event);
+      return;
+    }
     const last = this.matchCount() - 1;
     switch (event.key) {
       case 'ArrowDown':
@@ -368,13 +506,91 @@ export class Combobox implements ControlValueAccessor {
           return; // e.g. a dialog's Escape
         }
         this.close();
-        this.box().nativeElement.select();
+        this.selectText();
         break;
       default:
         return;
     }
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  /** Keys of the list-only box, like a native select (and the ARIA select-only combobox). */
+  private onListKey(event: KeyboardEvent): void {
+    const last = this.matchCount() - 1;
+    const letter = event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+    // Space inside a run of typed letters is part of the name ("2 €")
+    if (letter && (event.key !== ' ' || this.typeAhead)) {
+      this.jumpTo(event.key);
+    } else {
+      switch (event.key) {
+        case 'ArrowDown':
+        case 'ArrowUp':
+          if (!this.open()) {
+            this.show();
+          } else {
+            const down = event.key === 'ArrowDown';
+            this.activeIndex.update((i) =>
+              down ? (i >= last ? 0 : i + 1) : i <= 0 ? last : i - 1,
+            );
+          }
+          this.keyboard.set(true);
+          break;
+        case 'Home':
+        case 'End':
+          if (!this.open()) {
+            return;
+          }
+          this.activeIndex.set(event.key === 'Home' ? 0 : last);
+          this.keyboard.set(true);
+          break;
+        case 'Enter':
+        case ' ': {
+          const active = this.open() ? this.activeOption() : null;
+          if (active) {
+            this.choose(active.option.value);
+          } else {
+            this.show();
+            this.keyboard.set(true);
+          }
+          break;
+        }
+        case 'Escape':
+          if (!this.open()) {
+            return; // e.g. a dialog's Escape
+          }
+          this.close();
+          break;
+        default:
+          return;
+      }
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  /**
+   * The first option whose name starts with the letters typed so far, from the highlighted one on;
+   * the same letter again moves to the next such option. Opens the list on it, without choosing.
+   */
+  private jumpTo(letter: string): void {
+    clearTimeout(this.typeAheadTimer);
+    this.typeAhead += letter;
+    this.typeAheadTimer = setTimeout(() => (this.typeAhead = ''), 500);
+    const typed = fold(this.typeAhead);
+    const repeated = [...typed].every((c) => c === typed[0]);
+    const search = repeated ? typed[0] : typed;
+    this.show();
+    const options = this.listed();
+    const from = this.activeIndex() + (repeated ? 1 : 0);
+    for (let i = 0; i < options.length; i++) {
+      const index = (from + i) % options.length;
+      if (fold(options[index].option.label).startsWith(search)) {
+        this.activeIndex.set(index);
+        this.keyboard.set(true);
+        return;
+      }
+    }
   }
 
   protected choose(value: string): void {
@@ -410,6 +626,8 @@ export class Combobox implements ControlValueAccessor {
     this.open.set(false);
     this.typed.set(null);
     this.listWidth.set(0);
+    // Letters typed for an earlier list do not run on into the next
+    this.typeAhead = '';
   }
 
   writeValue(value: string | null): void {

@@ -14,7 +14,71 @@
       }}</a>
     </div>
   } @else if (loading()) {
-    <p role="status" class="text-center text-shade-500">{{ 'common.loading' | transloco }}</p>
+    <!-- The form's shapes after a moment (user choice 2026-10-10), laid out as for a euro coin
+     (the kind is not known yet); the labels are known -->
+    <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+    @if (showSkeleton()) {
+      <div class="card space-y-5" aria-hidden="true">
+        <div>
+          <p class="form-label">{{ 'coin.field.kind' | transloco }}</p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="skeleton h-10.5 rounded-lg sm:h-22 sm:rounded-xl"></div>
+            <div class="skeleton h-22 rounded-xl max-sm:hidden"></div>
+          </div>
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.collection' | transloco }}</p>
+          <div class="skeleton h-10.5 rounded-lg sm:max-w-sm"></div>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-3">
+          @for (
+            key of ['coin.field.denomination', 'coin.field.country', 'coin.field.year'];
+            track key
+          ) {
+            <div>
+              <p class="form-label">{{ key | transloco }}</p>
+              <div class="skeleton h-10.5 rounded-lg"></div>
+            </div>
+          }
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.title' | transloco }}</p>
+          <div class="skeleton h-10.5 rounded-lg"></div>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-3">
+          @for (key of ['coin.field.mintMarkLong', 'coin.field.quantity']; track key) {
+            <div>
+              <p class="form-label">{{ key | transloco }}</p>
+              <div class="skeleton h-10.5 rounded-lg"></div>
+            </div>
+          }
+          <div class="flex items-center gap-2 sm:mt-6 sm:h-10.5 sm:self-start">
+            <div class="skeleton size-4 rounded"></div>
+            <p class="text-sm font-medium text-shade-700">
+              {{ 'coin.field.commemorativeCoin' | transloco }}
+            </p>
+          </div>
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.description' | transloco }}</p>
+          <div class="skeleton h-28 rounded-lg"></div>
+        </div>
+        <div>
+          <p class="form-label">{{ 'coin.field.photos' | transloco }}</p>
+          <div class="grid grid-cols-2 gap-x-4 sm:gap-x-6">
+            @for (i of [0, 1]; track i) {
+              <div>
+                <div class="mb-2 space-y-2 py-1">
+                  <div class="skeleton h-3.5 w-24 rounded-full"></div>
+                  <div class="skeleton h-3 w-32 max-w-full rounded-full"></div>
+                </div>
+                <div class="skeleton aspect-square rounded-xl"></div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
   } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card space-y-5">
       @if (formErrors().length) {
@@ -41,15 +105,20 @@
       }
 
       <!-- One radio group, two looks (user choice 2026-10-09): side-by-side buttons on a phone,
-       cards with their description from sm up; on a phone the chosen kind's description is below -->
+       cards with their description from sm up; on a phone the chosen kind's description is below.
+       The phone's choice slides like the coin lists' kind buttons (user choice 2026-10-10) -->
       <fieldset>
         <legend class="form-label">{{ 'coin.field.kind' | transloco }}</legend>
         <div
           class="inline-flex rounded-lg border border-shade-300 bg-shade-0 p-0.5 shadow-sm sm:grid sm:w-full sm:grid-cols-2 sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
+          [appSlidingSelection]="kind()"
+          highlightClass="bg-brand-100 sm:hidden"
+          chosen="[data-chosen=true]"
         >
           @for (k of kinds; track k) {
             <label
-              class="flex cursor-pointer items-center rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors has-checked:bg-brand-100 has-checked:font-semibold has-checked:text-brand-800 has-focus-visible:ring-2 has-focus-visible:ring-focus sm:items-start sm:gap-3 sm:rounded-lg sm:border sm:border-shade-200 sm:p-3 sm:font-normal sm:whitespace-normal sm:text-shade-900 sm:hover:bg-shade-50 sm:has-checked:border-brand-400 sm:has-checked:bg-brand-50 sm:has-checked:font-normal sm:has-checked:text-shade-900"
+              [attr.data-chosen]="k === kind()"
+              class="relative flex cursor-pointer items-center rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap text-shade-600 transition-colors has-checked:font-semibold has-checked:text-brand-800 has-focus-visible:ring-2 has-focus-visible:ring-focus sm:items-start sm:gap-3 sm:rounded-lg sm:border sm:border-shade-200 sm:p-3 sm:font-normal sm:whitespace-normal sm:text-shade-900 sm:hover:bg-shade-50 sm:has-checked:border-brand-400 sm:has-checked:bg-brand-50 sm:has-checked:font-normal sm:has-checked:text-shade-900"
             >
               <input
                 type="radio"
@@ -152,6 +221,7 @@
               [formControl]="otherForm.controls.currency"
               [options]="currencyOptions()"
               [label]="'coin.field.currency' | transloco"
+              [placeholder]="'common.typeOrChoose' | transloco"
               [maxLength]="limits.currencyMaxLength"
             />
             @if (errorMessage(otherForm.controls.currency); as msg) {
@@ -207,6 +277,7 @@
             }}</label>
             <app-combobox
               inputId="denomination"
+              searchable="false"
               formControlName="denomination"
               [options]="denominationOptions()"
               [label]="'coin.field.denomination' | transloco"
@@ -297,22 +368,86 @@
 
         <div>
           <label for="quantity" class="form-label">{{ 'coin.field.quantity' | transloco }}</label>
-          <input
-            id="quantity"
-            type="number"
-            inputmode="numeric"
-            formControlName="quantity"
-            appField
-            min="1"
-            [max]="limits.maxQuantity"
-            class="form-input"
-          />
+          <!-- − / + at the ends (user choice 2026-10-10): small numbers, +1 is the usual change, big
+           enough for a finger. Out of the Tab order (↑/↓ in the field do the same) and they leave
+           the focus where it is; unavailable at the limits, not disabled (a disabled button drops
+           the focus it took) -->
+          @let quantity = quantityValue();
+          <div class="relative">
+            <button
+              type="button"
+              tabindex="-1"
+              class="absolute inset-y-px left-px flex w-10 items-center justify-center rounded-l-lg border-r border-shade-200 text-shade-600"
+              [class]="
+                quantity > 1
+                  ? 'hover:bg-shade-100 hover:text-shade-900'
+                  : 'cursor-not-allowed opacity-40'
+              "
+              [attr.aria-disabled]="quantity > 1 ? null : true"
+              [attr.aria-label]="'coinForm.quantityDecrease' | transloco"
+              [title]="'coinForm.quantityDecrease' | transloco"
+              (mousedown)="$event.preventDefault()"
+              (click)="stepQuantity(-1)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="size-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.25"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <input
+              id="quantity"
+              type="number"
+              inputmode="numeric"
+              formControlName="quantity"
+              appField
+              min="1"
+              [max]="limits.maxQuantity"
+              class="form-input px-11 text-center"
+            />
+            <button
+              type="button"
+              tabindex="-1"
+              class="absolute inset-y-px right-px flex w-10 items-center justify-center rounded-r-lg border-l border-shade-200 text-shade-600"
+              [class]="
+                quantity < limits.maxQuantity
+                  ? 'hover:bg-shade-100 hover:text-shade-900'
+                  : 'cursor-not-allowed opacity-40'
+              "
+              [attr.aria-disabled]="quantity < limits.maxQuantity ? null : true"
+              [attr.aria-label]="'coinForm.quantityIncrease' | transloco"
+              [title]="'coinForm.quantityIncrease' | transloco"
+              (mousedown)="$event.preventDefault()"
+              (click)="stepQuantity(1)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="size-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.25"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+            </button>
+          </div>
           @if (errorMessage(form.controls.quantity); as msg) {
             <p id="quantity-error" class="form-error">{{ msg }}</p>
           }
         </div>
 
-        <div class="flex items-center gap-2 sm:pt-7">
+        <!-- Centered on the inputs beside it: below their label (1.25rem line + mb-1) and as tall as
+         them (a 1.5rem line + py-2 + border), not on the row the mint mark's hint makes taller -->
+        <div class="flex items-center gap-2 sm:mt-6 sm:h-10.5 sm:self-start">
           <input
             id="isCommemorative"
             type="checkbox"

@@ -1,10 +1,17 @@
 # CoinVitrine - Proje Durumu ve Kararlar
 
-Son güncelleme: 2026-10-10 (**Manuel test bulguları düzeltildi** (Tamamlananlar 99, `fix/non-euro-coins-findings`
-main'e alındı, push edilmedi): seçim listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa
-boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
-istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
-`v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
+Son güncelleme: 2026-10-10 (**`v1.10.0` hazırlanıyor**, ikinci bulgu turu bitti (Tamamlananlar 100, `fix/world-coins-and-ui-findings`
+main'e alındı): Para birimi alanının yer tutucusu, hatıra parası kutusunun hizası, tür düğmelerinin
+kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
+ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni), filtre kartında "Filtreleri
+temizle" ve "Sırala" ilk satırda, hep yerinde, kısa sabit listeler (Sırala, Sayfa başına, yönetim paneli dahil)
+yazısız seçim kutusu, uygulamada native `<select>` kalmadı, telefonda "Filtrele" ikon ve Sırala "Yıl ↓", tür
+düğmelerinde kayan seçim ve sağ alt köşede sayı rozeti, tek türlü listede tek tür, sayı alanlarında tarayıcı oku yok
+(Adet'te − / +), oksuz gri kaydırma çubukları, fotoğraf alanı çubuğu sabit renklerde ve %75 / %90'da uyarı e-postası,
+coin açıklaması listede ve fotoğraf görüntüleyicide (62 commit). Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
+listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
+istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: `v1.10.0` yayını (push, kurulum,
+Release notları; kullanıcı onayıyla). **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
 parola değiştirme ve önceki giriş, "parolan değişti" e-postası, parola alanlarında göster/gizle ve Caps Lock notu,
 `/.well-known/change-password`. Sıradaki iş kullanıcıyla seçilir. `v1.8.0` (90–92): fotoğraf alanı (kullanıcıya
 kalan alan, admin'e kota ayarı; yol haritası 20) ve görsel düzeltmeler (admin seçim çubuğu, Genel ayarlar kartları,
@@ -22,10 +29,10 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 - Durum (2026-10-10 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
   **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97), Euro dışı
   coin'ler (98) ve manuel test bulgularının düzeltmeleri (99, `fix/non-euro-coins-findings` main'e alındı).
-  **Sıradaki:** kullanıcı 2026-10-10'da "şimdilik başka bulgum yok" dedi ve `v1.10.0` için henüz bir şey
-  yapılmamasını istedi; yeni sohbette önce yeni bulgu var mı sorulur, sonra (kullanıcı onayıyla) push ve `v1.10.0`
-  (minor; `AddOtherCoins` migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy)
-  adımları"). Lokal dev
+  İkinci bulgu turu (`fix/world-coins-and-ui-findings`, Tamamlananlar 100) bitti ve main'e alındı (2026-10-10
+  akşamı; kullanıcının başka bulgusu yok). **Sıradaki:** kullanıcı onayıyla push ve `v1.10.0` (minor;
+  `AddOtherCoins` ve `AddStorageWarningLevel` migration'ları var: kurulumu onaylamadan önce panelden veritabanı
+  yedeği, "Yayın (deploy) adımları"). Lokal dev
   veritabanına migration ve yeni seed uygulandı; `jonas.weber` orada admin kilitli (2026-10-01 denemesi).
   GitHub: https://github.com/halid-ali/coin-portal (public; sadece `main` ve etiketler push edilir, CI her push'ta koşar). Yeni sohbette önce `git status -sb` ile
   lokal `main`'in `origin/main` ile aynı olduğu kontrol edilir. Yollar: API `src/api`, client `src/web`
@@ -1882,6 +1889,103 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
     - Testler: client 448 (+37), e2e 21 (adet aynı; açık listeye axe taraması eklendi), API 481 (değişmedi).
           Prettier, `ng build`, tam e2e koşusu temiz.
 
+100. **İkinci bulgu turu** (`fix/world-coins-and-ui-findings`, 2026-10-10, bitti, main'e alındı; kullanıcıyla tek tek, her biri
+    görüntüyle karar verilip ayrı commit'te; bazıları dünya coin'leri dışından). Kurallar CLAUDE.md'de ("Form
+    erişilebilirliği" yer tutucu, "Yükleme iskeleti").
+    - **Yer tutucu kuralı** (kullanıcı kararı): yazılan alanlarda yok (örnek alttaki ipucunda), boş seçim listesinde
+          "Seç…", serbest metinli öneri listesinde (Para birimi) öneri varken "Yaz ya da seç…"; arama kutularında var.
+    - Hatıra parası kutusu yanındaki alanlarla dikeyde ortalı (satırı ipucu uzatıyordu).
+    - **Tür düğmeleri kaybolmuyor:** filtre özeti (facets) her adres değişikliğinde (sayfa, arama, sıralama) yeniden
+          isteniyor ve siliniyordu (hata); artık sadece liste, koleksiyoncu ya da tür değişince, eskisi tutulur,
+          değişecek filtre kilitlenir (tür → Ülke, koleksiyoncu → Nominal, Ülke ve sayılar). Kilitli seçim kutusu soluk.
+    - **Yükleme iskeleti** (kullanıcı kararları: 300 ms gecikme, site geneli): içerik yerinde yanıp sönen gri şekiller
+          (`.skeleton`, `delayedLoading`); sabit metin yerinde, sadece yüklenen veri şekil. Coin listesi (tablo,
+          ızgara, kartlar; eski soluklaştırma kalktı), sunucudan gelen her fotoğraf (`appImageSkeleton`, gecikmesiz),
+          Koleksiyonlarım, profil, ana sayfa panosu ("Son eklediklerin" coin yoksa kalkar), koleksiyon başlığı (sayfa
+          yolunda ad çubuğu, `Crumb.loading`), coin düzenleme formu, Ayarlar › Hesap, yönetim paneli (Genel bakış,
+          üç liste, kullanıcı detayı, Genel ayarlar: Kaydet değerler gelince).
+    - **Uygulama kabuğu** (`index.html`, logolu açılış ekranının yerine): header gerçeğiyle aynı yerde, sayfa şekilleri
+          400 ms sonra. Girişli mi `localStorage` `coinportal.signedIn` işaretinden (kullanıcı kararı; auth cookie'si
+          HttpOnly; gizlilik politikası 2026-10-10 güncellendi): header'ın girişli / girişsiz hâli, ana sayfada pano ya
+          da tanıtım sayfası, başka her adreste genel şekiller. Yeni bir sayfa genel kabuğu kendiliğinden alır; header
+          ya da ana sayfanın düzeni değişirse kabuk da güncellenir.
+    - **Filtre kartı oynamıyor** (kullanıcı kararları): "Filtreleri temizle" görünüp kaybolup sayfayı kaydırıyordu;
+          artık tür düğmelerinin satırında sağda (tek türlü listede de), temizlenecek bir şey yokken yerinde ve pasif
+          (`aria-disabled`, odak butonda kalır). "Sırala" da her görünümde ve ekran boyunda aynı satırda, en sağda
+          (liste görünümünde sütun başlıklarıyla birlikte; ikisi de URL'den okur). "Sıralamayı kaldır" seçeneği hep
+          listede (varsayılan sırada pasif): select'in genişliği, yani satır, sıralama seçilince değişmez. Dar tablette
+          ikili alt satıra geçer, sola yaslı. Temizle butonunda huni + çarpı ikonu: masaüstünde ikon + metin, tablette
+          (640–1023 px) sadece ikon (kullanıcı kararı); satır yaklaşık 700 px'ten itibaren dört dilde de tek satır
+          (ölçüldü). Telefonda değişmedi (Sırala "Filtrele"nin yanında); temizle butonu
+          panelin sonunda hep var. Alttaki ayrı Sırala satırı geniş ekranda kalktı.
+    - **Yazısız seçim kutusu** (kullanıcı kararı: kısa ve sabit listede yazı gerekmiyor, standart bir görünüm):
+          `Combobox` `searchable="false"` bir düğme olur, liste aynı; tuşlar native select gibi, ilk harfler
+          seçeneğe atlar. Hatıra parası, Fotoğraf filtresi, coin formunun Euro nominali, Sırala (sıralama ikonu,
+          38 px, en uzun sıralama adı kadar geniş, "Sırala" soluk değil) ve Sayfa başına. Sonra (Açık konular 27):
+          yönetim panelinin altı kutusu (Kullanıcılar: durum, e-posta, sıralama; Koleksiyonlar: göster, sıralama;
+          Denetim kaydı: işlem) yazısız, adları panelin geç yüklenen metinlerinden (`translateSignal`); koleksiyon
+          silme penceresinin "taşınacak koleksiyon"u yazılabilir (kullanıcının adları, 50'ye kadar), pencerede
+          Esc önce listeyi kapatır. Uygulamada native `<select>` kalmadı (`select.form-input` stili de kalktı).
+          Sonra (Açık konular 28, kullanıcı kararı: önerilen iki seçeneğin birleşimi): telefonda "Filtrele" sadece
+          huni ikonu (sayı köşede, buton boyu değişmez, Sırala kaymaz), Sırala kutusu tablo başlığının kısa sütun adı
+          ve okuyla ("Yıl ↓"; `Combobox` `display` şablonu, genişliği en uzun kısa ad kadar; liste ve ekran
+          okuyucu tam adla). Tür düğmeleri telefonda biraz daha dar (`px-3`): Bulgarca 360 px'te kartın içine
+          sığıyor (6 px taşıyordu; kullanıcı tür düğmelerinde başka değişiklik düşünüyor).
+    - **Kayan seçim** (kullanıcı kararları): Tümü / Euro / Dünya'nın seçili zemini düğmeden düğmeye kayar (~200 ms,
+          `shared/sliding-selection` yönergesi; ilk gösterimde ve sayılar/dil yüzünden boyut değişince kaymaz,
+          "hareketi azalt"ta hiç kaymaz). Coin formunun telefondaki tür seçimi de (tablet ve masaüstündeki kartlar
+          aynı). Seçili olmayan düğmenin hover zemini kalktı (kaymayı örtüyordu), sadece yazı koyulaşır.
+    - **Tür sayısı rozette** (kullanıcı kararı; köşe rozeti, üst orta, alt çekmece ve düğme içi seçenekleri
+          görsellerle karşılaştırıldı): sayı düğmenin sağ alt köşesinde yuvarlak bir rozet. Düğme grubu yaklaşık 50 px
+          daraldı (640 px'te temizle + Sırala artık alt satıra geçmiyor), sayılar gelip giderken düğmeler artık
+          genişlemiyor. Kontrast her tema renginde, iki temada en az 5,56:1. Sağ üst köşe bildirim rozetlerine ayrıldı.
+    - **Tür alanı her listede** (kullanıcı kararları; çerçeve için sıkı, eşit iç boşluk ve çerçevesiz seçenekleri
+          görsellerle karşılaştırıldı): iki tür varsa Tümü / Euro / Dünya, tek tür varsa sadece o tür, seçili
+          görünümde (düğme değil: seçilecek bir şey yok; ekran okuyucu "Euro 90"). Keşfet başlığının altındaki
+          "· N kayıt (filtrelenmiş)" kalktı (sayı rozetlerde; telefonda ikinci satır açıyordu). Çerçevenin sağındaki
+          fazla boşluk kapandı: rozet payı düğmelerin arasında (`gap-1.5`), son rozet çerçevenin köşesine biner.
+          Adresteki tür listede yoksa (başka koleksiyoncu, eski link) tür ve o türün filtreleri adresten kendiliğinden
+          kalkar (`replaceUrl`). İlk özet gelene kadar satır yerinde kalır (300 ms sonra şekil): telefonda sayfa
+          artık zıplamıyor.
+    - **Sayı alanları** (kullanıcı kararı; ok yok, − / + ve hep görünen ince oklar görsellerle karşılaştırıldı,
+          karışık çözüm seçildi): tarayıcının sadece fare üzerindeyken görünen okları her sayı alanında kalktı (Yıl
+          filtresi, coin formunda Yıl, yönetim ayarları). Adet'te iki uçta − / + düğmeleri (Tab sırasında değil,
+          sınırda sönük, ekran okuyucuda "Adedi azalt / artır"). Seçili bir sayı alanının üzerinde tekerlek artık
+          değeri değiştirmiyor, sayfayı kaydırıyor (Edge'de denendi: önce 2002 → 2001 ve sayfa duruyordu).
+    - **Kaydırma çubukları** (kullanıcı kararı; tarayıcının ince çubuğu, gri hap ve tema renginde hap
+          görsellerle karşılaştırıldı): Windows'un oklu klasik çubuğu yerine her yerde oksuz gri hap, oluk
+          şeffaf, üzerine gelince koyulaşır. Firefox aynı renklerde ince çubuk gösterir; telefonlar kendi çubuğunu.
+    - **Fotoğraf alanı: renkler ve uyarı e-postaları** (kullanıcı kararları; tonlar görsellerle karşılaştırıldı, A
+          canlı seçildi): Ayarlar > Hesap'taki çubuk tema rengi yerine sabit renklerde: %75'e kadar yeşil, %90'a kadar
+          turuncu, sonra kırmızı ("dolmak üzere" notu %90'da, "doldu" %100'de; kırmızı tema renginde %1 dolu çubuk uyarı
+          gibi görünüyordu). Kullanım %75'i ve %90'ı geçince e-posta (dört dil, Ayarlar'a düğme;
+          `Photos/StorageWarnings`): her uyarı bir kez, kullanım %70 / %85'in altına inince yeniden mümkün; sadece
+          doğrulanmış ve kilitsiz hesaplara; yükleme ve silmeden sonra arka planda kontrol, kota değişince ilgili
+          herkese toplu (düşürmek uyarır, artırmak sıfırlar). Migration `AddStorageWarningLevel` (kullanıcıya bir sütun;
+          mevcut hesaplar uyarısız başlar, bir sonraki yükleme ya da silmelerinde kontrol edilir). Gizlilik
+          politikasının e-posta listesine bu uyarılar ve önceden eksik olan silme hatırlatmaları eklendi (dört dil).
+          E-postalar dev API'de iki geçici kullanıcıyla smtp4dev'de görüldü (Türkçe %75, İngilizce %90), kullanıcılar
+          silindi.
+    - **Coin açıklaması görünür** (kullanıcı bulgusu: Keşfet'te görünmüyordu; aslında hiçbir listede ve görüntüleyicide
+          yoktu, sadece düzenleme formunda; kullanıcı kararları, 2000 karakterlik metin tam tarayıcı görünümünde
+          denendi): listede başlığın altında tek satır (B1), tamamı fotoğraf görüntüleyicide (A3: masaüstünde uzun metin
+          fotoğrafın yanında, fotoğrafla aynı yükseklikte ve fotoğraf kutusunun zemininde kayan bir kutuda (çerçeveli
+          ve dolu kutu görsellerle karşılaştırıldı, dolu seçildi), 200 karaktere ve 3 satıra kadar kısa metin fotoğrafın altında (yanda sütun
+          boş kalıyordu; sınır görsellerle seçildi); telefonda hep altında, bütün görüntüleyici kayar). axe görüntüleyiciyi ilk kez taradı ve
+          başlıkta kontrast bulgusu verdi (karartma `::backdrop`'taydı, axe onu görmüyor): karartma artık
+          görüntüleyicinin kendi zemini, görünüm aynı (renk ölçülerek karşılaştırıldı). E2E: Keşfet testi açıklamayı
+          listede ve görüntüleyicide kontrol eder, görüntüleyici taranır. Kullanıcı bulgusu: masaüstünde kare
+          fotoğrafın iki yanında koyu bant vardı (kutu sütunu dolduruyor, yüksekliği ekranla sınırlıydı; eskiden beri):
+          kutu artık kare, görüntüleyici fotoğraf kadar geniş, başlık ve kapatma düğmesi onunla hizalı.
+    - **Açılışta sayfa boyunda siyah daire** (kullanıcı bulgusu, Firefox, `ng serve`): açılış kabuğunun logosu
+          `styles.css` gelmeden çizilince boyutsuz SVG sayfaya yayılıyordu. Logo SVG'si artık kendi boyutunu taşır
+          (32×32); stil dosyası olmadan çizilen sayfada küçük bir logo kalıyor. Yayın derlemesinde kabuğun stilleri
+          sayfaya gömülü, orada görülmemeli (Firefox'ta denenmedi).
+    - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
+          değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
+    - Testler: client 512 (+64), e2e 21, API 501 (+20, fotoğraf alanı uyarıları). Prettier, `ng build`, tam e2e koşusu temiz.
+          Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
+
 ## Yol haritası
 
 2026-09-29'daki proje yönü değerlendirmesinden çıkan sıra. Gerekçeler, elenen seçenekler, tuzaklar ve
@@ -2125,10 +2229,8 @@ kısmen yeniden açılması, 12'nin yeniden yazılması, eksik kontrol listesi m
 
 ## Sıradaki adım
 
-**Sıradaki iş: `v1.10.0`** (yol haritası 18, Tamamlananlar 98–99). Geliştirme ve ilk manuel test turunun
-düzeltmeleri bitti ve `main`'e alındı (2026-10-10, push edilmedi). Kullanıcı 2026-10-10'da başka bulgusu olmadığını
-söyledi ama sürüm için henüz bir şey yapılmamasını istedi: yeni sohbette önce yeni bulgu sorulur; sürüm adımı
-kullanıcı onayıyla (kullanıcı kararı 2026-10-09: manuel testler bitmeden sürüme geçilmez). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
+**Sıradaki iş: `v1.10.0` yayını** (yol haritası 18, Tamamlananlar 98–100). İki bulgu turu da bitti ve `main`'de
+(push edilmedi); yayın kullanıcı onayıyla (CLAUDE.md "Sürüm ve yayın"). Manuel test için önerilen yerler: coin formu (tür seçimi masaüstü/telefon, "0,5",
 para birimi önerileri, tarihî ülkeler, tür değiştirerek düzenleme), ayse'nin "Karışık kutu"su (düğmeler, gruplu
 Nominal), "Dünya paraları" (iki yüz, görüntüleyicide Ön/Arka yüz), "Yeni başladım" (yayın bandı), herkese açık
 koleksiyonda diğer coin'in arka yüzünü silmek (yayından iner sorusu), Keşfet, dört dil ve iki tema. Yayında migration var: kurulumu onaylamadan önce panelden veritabanı yedeği. Parola işleri (sıfırlama, değiştirme, alanlar) `v1.9.0` ile yayında
@@ -2393,6 +2495,9 @@ Kararlar (2026-10-01, kullanıcıyla):
 - **Kayıtta işaretlenmesi zorunlu kutu** (bilgi metni + link yerine; kullanıcı daha resmi olanı seçti).
   2026-10-02'den beri aynı kutu kullanım şartlarını da kabul ettirir (#18, kullanıcı kararı); şartlar
   moderasyonun kurallarını kullanıcıya bildirir.
+- **`localStorage` `coinportal.signedIn`** (2026-10-10, kullanıcı kararı): bu tarayıcıda giriş yapılmış mı (evet /
+  hayır), sadece açılış kabuğunun doğru şekilleri için; çıkışta ve oturum düşünce silinir. Gizlilik metninin
+  tarayıcı deposu cümlesine dört dilde eklendi, `PRIVACY_UPDATED` 2026-10-10.
 - Metinler hukuki danışmanlık değildir; Claude yazdı, kullanıcı yayından önce okuyacak. İletişim formu
   yok (site e-posta göndermiyor); GitHub reposu hata bildirimi için anılır.
 
@@ -2645,6 +2750,10 @@ Amaç: aynı kod lokalde ve hostingde çalışsın, publish fotoğraflara hiç d
     (yanıtı bekleyen kimse yok), ama loglarda sahte hata ve 500 sayısı. Olası çözüm: istek iptal edilmişse
     (`HttpContext.RequestAborted.IsCancellationRequested`) hatayı 499 / Information'a indiren bir ara katman
     ya da exception handler; önce lokalde tekrar üretilip mevcut davranış doğrulanır.
+27. ~~**Kalan native `<select>`'ler**~~ (kapandı 2026-10-10, Tamamlananlar 100): yönetim panelinin filtre ve
+    sıralama kutuları yazısız, koleksiyon silme penceresinin "taşınacak koleksiyon"u yazılabilir `Combobox`.
+28. ~~**Telefonda uzun sıralama adı kesiliyor**~~ (kapandı 2026-10-10, Tamamlananlar 100): "Filtrele" ikon,
+    Sırala kutusu kısa sütun adı + ok.
 
 ## Yayın öncesi yapılacaklar
 

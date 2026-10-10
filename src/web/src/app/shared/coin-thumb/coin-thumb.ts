@@ -4,6 +4,7 @@ import { Coin } from '../../core/coins/coin.models';
 import { photoUrl, primaryPhoto } from '../../core/coins/coin.service';
 import { DenominationIcon } from '../denomination-icon/denomination-icon';
 import { OtherCoinIcon } from '../other-coin-icon/other-coin-icon';
+import { ImageSkeleton } from '../image-skeleton';
 
 /**
  * Round thumbnail of a coin (national side if available), or without photos its stand-in (a euro
@@ -13,7 +14,7 @@ import { OtherCoinIcon } from '../other-coin-icon/other-coin-icon';
  */
 @Component({
   selector: 'app-coin-thumb',
-  imports: [DenominationIcon, OtherCoinIcon],
+  imports: [ImageSkeleton, DenominationIcon, OtherCoinIcon],
   host: {
     class: 'block shrink-0 overflow-hidden rounded-full',
     '[class.bg-shade-100]': 'src()',
@@ -22,7 +23,14 @@ import { OtherCoinIcon } from '../other-coin-icon/other-coin-icon';
   },
   template: `
     @if (src(); as url) {
-      <img [src]="url" alt="" loading="lazy" decoding="async" class="size-full object-cover" />
+      <img
+        appImageSkeleton
+        [src]="url"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        class="size-full object-cover"
+      />
     } @else if (coin().denomination; as denomination) {
       <app-denomination-icon tight class="size-full" [denomination]="denomination" />
     } @else {

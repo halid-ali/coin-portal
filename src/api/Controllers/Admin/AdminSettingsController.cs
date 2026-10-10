@@ -14,7 +14,7 @@ namespace CoinPortal.Api.Controllers.Admin;
 /// audit log with its values before and after.
 /// </summary>
 [Route("api/admin/settings")]
-public class AdminSettingsController(AppDbContext db) : AdminControllerBase
+public class AdminSettingsController(AppDbContext db, StorageWarnings storageWarnings) : AdminControllerBase
 {
     [HttpGet]
     public async Task<AdminSettingsResponse> Get(CancellationToken ct)
@@ -52,13 +52,19 @@ public class AdminSettingsController(AppDbContext db) : AdminControllerBase
             }
             settings.UnverifiedLifetimeDays = request.UnverifiedLifetimeDays;
         }
-        if (settings.UserQuotaMegabytes != request.UserQuotaMegabytes)
+        var quotaChanged = settings.UserQuotaMegabytes != request.UserQuotaMegabytes;
+        if (quotaChanged)
         {
             AuditChange(SiteSettings.UserQuotaMegabytesName, settings.UserQuotaMegabytes, request.UserQuotaMegabytes,
                 request.Note);
             settings.UserQuotaMegabytes = request.UserQuotaMegabytes;
         }
         await db.SaveChangesAsync(ct);
+        // A lower quota can pass users' thresholds, a higher one reset their warnings (user decision 2026-10-10)
+        if (quotaChanged)
+        {
+            storageWarnings.CheckAfterQuotaChange();
+        }
         return ToResponse(settings);
     }
 

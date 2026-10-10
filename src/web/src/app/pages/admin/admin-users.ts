@@ -12,10 +12,16 @@ import {
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, translate } from '@jsverse/transloco';
+import { TranslocoPipe, translate, translateSignal } from '@jsverse/transloco';
 import { catchError, firstValueFrom, of, switchMap, tap } from 'rxjs';
 
-import { AdminSortState, nextAdminSort, parseAdminSort } from '../../core/admin/admin-list';
+import {
+  AdminSortState,
+  namedOptions,
+  nextAdminSort,
+  parseAdminSort,
+  sortOptionValue,
+} from '../../core/admin/admin-list';
 import {
   ADMIN_NOTE_MAX_LENGTH,
   ADMIN_USER_STATUSES,
@@ -28,12 +34,14 @@ import { AdminService } from '../../core/admin/admin.service';
 import { PagedResponse, SortDirection } from '../../core/coins/coin.models';
 import { firstQueryParam } from '../../core/http/query-params';
 import { PluralPipe, plural } from '../../core/i18n/plural';
+import { Combobox } from '../../shared/combobox/combobox';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { Pagination } from '../../shared/pagination/pagination';
 import { SortHeader } from '../../shared/sort-header/sort-header';
 import { AdminListBase } from './admin-list-base';
 import { AdminStatusBadge } from './admin-status-badge';
 import { UnverifiedMark } from './unverified-mark';
+import { delayedLoading } from '../../shared/skeleton';
 
 /** Sortable columns with the direction of their first click (the mobile select uses that one). */
 const SORTS: readonly { value: AdminUserSort; first: SortDirection }[] = [
@@ -60,6 +68,7 @@ const DEFAULT_SORT: AdminSortState<AdminUserSort> = { sort: 'CreatedAt', dir: 'D
     SortHeader,
     AdminStatusBadge,
     UnverifiedMark,
+    Combobox,
   ],
   templateUrl: './admin-users.html',
 })
@@ -74,8 +83,23 @@ export class AdminUsers extends AdminListBase {
   readonly sort = input(undefined, { transform: firstQueryParam });
   readonly dir = input(undefined, { transform: firstQueryParam });
 
-  protected readonly statuses = ADMIN_USER_STATUSES;
-  protected readonly sorts = SORTS;
+  // The filter and sort boxes' choices (list-only comboboxes, user choice 2026-10-10)
+  private readonly statusNames = translateSignal(ADMIN_USER_STATUSES.map((s) => `status.${s}`));
+  private readonly emailNames = translateSignal(['users.emailConfirmed', 'users.emailUnconfirmed']);
+  private readonly sortNames = translateSignal(SORTS.map((s) => `users.sorts.${s.value}`));
+  protected readonly statusOptions = computed(() =>
+    namedOptions(ADMIN_USER_STATUSES, this.statusNames() as string[]),
+  );
+  protected readonly emailOptions = computed(() =>
+    namedOptions(['true', 'false'], this.emailNames() as string[]),
+  );
+  protected readonly sortOptions = computed(() =>
+    namedOptions(
+      SORTS.map((s) => s.value),
+      this.sortNames() as string[],
+    ),
+  );
+  protected readonly sortValue = computed(() => sortOptionValue(this.sortState(), SORTS));
 
   protected readonly statusValue = computed(() =>
     ADMIN_USER_STATUSES.find((s) => s === this.status()),
@@ -105,6 +129,11 @@ export class AdminUsers extends AdminListBase {
   protected readonly result = signal<PagedResponse<AdminUser> | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
+  /** Placeholder rows when a load takes a while: as many as shown now, so the page keeps its height. */
+  protected readonly showSkeleton = delayedLoading(this.loading);
+  protected readonly skeletonRows = computed(() => [
+    ...Array(Math.min(this.result()?.items.length || 10, 50)).keys(),
+  ]);
   /** Bumped after a bulk deletion: the same query again. */
   private readonly reloads = signal(0);
 

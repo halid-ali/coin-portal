@@ -73,7 +73,26 @@ public static class EmailTexts
             CopyLink(language), forgotPasswordLink, t.WasYou, t.Contact);
     }
 
+    /// <summary>
+    /// The photo storage passed 75 % (<paramref name="nearlyFull"/> false) or 90 % of the quota
+    /// (Photos.StorageWarnings): how much is used, and the button to Settings > Account.
+    /// </summary>
+    public static MailContent StorageWarning(string? language, string name, bool nearlyFull, long usedBytes,
+        long quotaBytes, string link)
+    {
+        var v = VerificationTexts(language, name, TimeSpan.Zero);
+        var t = StorageWarningTexts(language, nearlyFull, Megabytes(usedBytes, language),
+            Megabytes(quotaBytes, language));
+        string[] smallPrint = nearlyFull ? [t.WhenFull] : [t.WhenFull, t.NextWarning];
+        return Compose(language, t.Subject, v.Greeting, t.Intro, t.OpenLink, t.ClickButton, t.Button,
+            CopyLink(language), link, smallPrint);
+    }
+
     private static string Date(DateTime utc, string? language) => utc.ToString("d MMMM yyyy", Culture(language));
+
+    /// <summary>"2,4 MB" in the language's number format, like the client's.</summary>
+    private static string Megabytes(long bytes, string? language) =>
+        $"{(bytes / (1024d * 1024)).ToString("0.#", Culture(language))} MB";
 
     private static string Hours(string? language, int hours) => language switch
     {
@@ -258,6 +277,52 @@ public static class EmailTexts
                 "Reset my password",
                 "If you changed it yourself, you do not need to do anything.",
                 $"If something is wrong, write to {contact}."),
+        };
+
+    private sealed record StorageWarningWords(string Subject, string Intro, string OpenLink, string ClickButton,
+        string Button, string WhenFull, string NextWarning);
+
+    // The storage's name matches the client's (settings.account.storage.title)
+    private static StorageWarningWords StorageWarningTexts(string? language, bool nearlyFull, string used,
+        string quota) =>
+        language switch
+        {
+            "tr" => new(nearlyFull ? "CoinVitrine: fotoğraf alanın dolmak üzere" : "CoinVitrine: fotoğraf alanının %75'i doldu",
+                nearlyFull
+                    ? $"Fotoğraf alanının %90'ından fazlasını kullanıyorsun: {used} / {quota}."
+                    : $"Fotoğraf alanının %75'inden fazlasını kullanıyorsun: {used} / {quota}.",
+                "Fotoğraf alanını Ayarlar'da görmek için bu linki aç:",
+                "Ne kadar yer kaldığını Ayarlar'da görebilirsin:",
+                "Fotoğraf alanına bak",
+                "Alan dolunca yer açana kadar yeni fotoğraf yükleyemezsin. Kullanmadığın fotoğrafları ve kapakları silerek yer açabilirsin.",
+                "Alanın %90'ı dolunca bir uyarı daha göndereceğiz."),
+            "de" => new(nearlyFull ? "CoinVitrine: Dein Fotospeicher ist fast voll" : "CoinVitrine: 75 % deines Fotospeichers sind belegt",
+                nearlyFull
+                    ? $"du nutzt mehr als 90 % deines Fotospeichers: {used} von {quota}."
+                    : $"du nutzt mehr als 75 % deines Fotospeichers: {used} von {quota}.",
+                "Um deinen Fotospeicher in den Einstellungen zu sehen, öffne diesen Link:",
+                "Wie viel Platz noch frei ist, siehst du in den Einstellungen:",
+                "Fotospeicher ansehen",
+                "Ist er voll, kannst du erst wieder Fotos hochladen, wenn du Platz schaffst. Lösche dafür Fotos und Titelbilder, die du nicht mehr brauchst.",
+                "Bei 90 % schreiben wir dir noch einmal."),
+            "bg" => new(nearlyFull ? "CoinVitrine: мястото ви за снимки е почти запълнено" : "CoinVitrine: 75% от мястото ви за снимки е използвано",
+                nearlyFull
+                    ? $"Използвате над 90% от мястото си за снимки: {used} от {quota}."
+                    : $"Използвате над 75% от мястото си за снимки: {used} от {quota}.",
+                "За да видите мястото си за снимки в настройките, отворете този линк:",
+                "Колко място остава, можете да видите в настройките:",
+                "Към мястото за снимки",
+                "Когато се запълни, не можете да качвате нови снимки, докато не освободите място. Изтрийте снимки и корици, които не ви трябват.",
+                "Ще ви пишем още веднъж, когато се използват 90%."),
+            _ => new(nearlyFull ? "CoinVitrine: your photo storage is nearly full" : "CoinVitrine: 75% of your photo storage is used",
+                nearlyFull
+                    ? $"You are using more than 90% of your photo storage: {used} of {quota}."
+                    : $"You are using more than 75% of your photo storage: {used} of {quota}.",
+                "To see your photo storage in Settings, open this link:",
+                "You can see how much space is left in Settings:",
+                "View photo storage",
+                "Once it is full, you cannot upload new photos until you free up space. Delete photos and covers you no longer need.",
+                "We will write once more when 90% is used."),
         };
 
     private sealed record DeletionReminderWords(string Subject, string Intro, string OpenLink, string ClickButton,

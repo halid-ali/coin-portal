@@ -26,6 +26,14 @@ import {
 
 const API = '/api/auth';
 
+/**
+ * "Signed in on this browser" (localStorage) for the shell in index.html, which draws the signed-in
+ * or signed-out header and home page before Angular starts: the auth cookie is HttpOnly (user
+ * choice 2026-10-10). Only a hint for those shapes: a session that ended elsewhere keeps it until
+ * this app learns so. Listed in the privacy policy.
+ */
+export const SIGNED_IN_KEY = 'coinportal.signedIn';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -56,12 +64,12 @@ export class AuthService {
   async loadMe(): Promise<UserResponse | null> {
     try {
       const me = await firstValueFrom(this.http.get<UserResponse>(`${API}/me`));
-      this.user.set(me);
+      this.setUser(me);
     } catch (err) {
       if (!(err instanceof HttpErrorResponse && err.status === 401)) {
         console.warn('Could not load current user', err);
       }
-      this.user.set(null);
+      this.setUser(null);
     }
     return this.user();
   }
@@ -87,7 +95,7 @@ export class AuthService {
           ? of(undefined)
           : throwError(() => err),
       ),
-      tap(() => this.user.set(null)),
+      tap(() => this.setUser(null)),
       // The old token was bound to the signed-in user, get an anonymous one
       switchMap(() => this.refreshAntiforgeryTokenQuietly()),
     );
@@ -95,7 +103,7 @@ export class AuthService {
 
   /** Signed out by deleting the account (SettingsService.deleteAccount): like logout, without the request. */
   afterAccountDeleted(): Observable<void> {
-    this.user.set(null);
+    this.setUser(null);
     return this.refreshAntiforgeryTokenQuietly();
   }
 
@@ -162,7 +170,7 @@ export class AuthService {
     if (this.user() === null) {
       return;
     }
-    this.user.set(null);
+    this.setUser(null);
     this.refreshAntiforgeryTokenQuietly().subscribe();
   }
 
@@ -188,9 +196,23 @@ export class AuthService {
     );
   }
 
+  /** Every change of the signed-in user goes here, so the shell's hint follows it. */
+  private setUser(user: UserResponse | null): void {
+    this.user.set(user);
+    try {
+      if (user) {
+        localStorage.setItem(SIGNED_IN_KEY, '1');
+      } else {
+        localStorage.removeItem(SIGNED_IN_KEY);
+      }
+    } catch {
+      // Storage blocked (private mode): the shell shows the signed-out shapes
+    }
+  }
+
   /** The account's saved language, theme and accent win over the ones chosen on this device. */
   private completeSignIn(user: UserResponse): Observable<UserResponse> {
-    this.user.set(user);
+    this.setUser(user);
     if (user.theme) {
       this.theme.use(user.theme);
     }

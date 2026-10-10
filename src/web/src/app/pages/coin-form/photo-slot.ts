@@ -16,6 +16,7 @@ import { photoUrl } from '../../core/coins/coin.service';
 import { validatePhotoFile } from '../../core/coins/photo-errors';
 import { ImageChange } from '../../shared/image-change';
 import { PhotoCropDialog } from '../../shared/photo-crop-dialog/photo-crop-dialog';
+import { ImageSkeleton } from '../../shared/image-skeleton';
 
 let nextId = 0;
 
@@ -25,7 +26,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-photo-slot',
-  imports: [PhotoCropDialog, TranslocoPipe],
+  imports: [ImageSkeleton, PhotoCropDialog, TranslocoPipe],
   // Header, photo and actions are rows of the form's grid (subgrid): the two sides line up even
   // when one hint wraps to more lines than the other
   host: { class: 'row-span-3 grid grid-rows-subgrid' },
@@ -44,10 +45,10 @@ let nextId = 0;
             [attr.aria-label]="'photo.viewLarge' | transloco: { side: label() }"
             (click)="view.emit()"
           >
-            <img [src]="src" [alt]="label()" class="size-full object-cover" />
+            <img appImageSkeleton [src]="src" [alt]="label()" class="size-full object-cover" />
           </button>
         } @else {
-          <img [src]="src" [alt]="label()" class="size-full object-cover" />
+          <img appImageSkeleton [src]="src" [alt]="label()" class="size-full object-cover" />
         }
       } @else {
         <button

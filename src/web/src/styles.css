@@ -95,7 +95,7 @@
   }
 
   /*
-   * Logo (shared/logo and the splash in index.html): a dark coin with a gold euro sign on the light
+   * Logo (shared/logo and the shell in index.html): a dark coin with a gold euro sign on the light
    * theme, a gold coin with a dark sign on the dark one (:root.dark). Not tied to the accent color.
    */
   :root {
@@ -347,15 +347,16 @@
   }
 
   /*
-   * How full a limit is (Settings > Account, photo storage): the accent color, orange when
-   * nearly full (a fixed hue for the meaning, like stat-icon), the danger color when full.
+   * How full a limit is (Settings > Account, photo storage): green, orange as it fills, red when
+   * nearly full or full. Fixed hues for the meaning, like stat-icon, the same in both themes and not
+   * the accent color (user choice 2026-10-10: a red accent looked like a warning at 1 %).
    */
   .usage-bar {
     @apply block h-2.5 overflow-hidden rounded-full bg-shade-200;
   }
 
   .usage-bar-fill {
-    @apply block h-full rounded-full bg-brand-500 motion-safe:transition-[width];
+    @apply block h-full rounded-full bg-green-500 motion-safe:transition-[width];
   }
 
   .usage-bar-fill-warn {
@@ -363,7 +364,7 @@
   }
 
   .usage-bar-fill-full {
-    @apply bg-danger-600;
+    @apply bg-red-500;
   }
 
   /*
@@ -481,14 +482,6 @@
       placeholder:text-shade-500 focus:border-focus focus:ring-2 focus:ring-focus/30 focus:outline-none;
   }
 
-  /* Native select with our own chevron, so the arrow sits inside the right padding */
-  select.form-input {
-    @apply appearance-none bg-no-repeat pr-10;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-position: right 0.75rem center;
-    background-size: 1rem;
-  }
-
   .form-input.ng-invalid.ng-touched {
     @apply border-danger-400 focus:border-danger-500 focus:ring-danger-500/30;
   }
@@ -567,29 +560,36 @@
   }
 
   /* Modal <dialog> opened with showModal(): centered panel over a blurred backdrop */
+  /*
+   * A placeholder shape while content loads (user choice 2026-10-10): a gray bar, circle or box in
+   * the content's place, gently pulsing (still without motion). Shown after SKELETON_DELAY_MS
+   * (shared/skeleton.ts), hidden from screen readers (aria-hidden); the region says it is busy.
+   */
+  .skeleton {
+    @apply rounded-md bg-shade-200 motion-safe:animate-pulse;
+  }
+
   .dialog-panel {
     @apply m-auto w-[calc(100%-2rem)] rounded-xl border border-shade-200 bg-shade-0 p-0 text-shade-900 shadow-xl
       backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm;
   }
 
   /*
-   * In <app-root> until Angular starts and replaces it (index.html): the header's logo. It fades
-   * in late, so a fast start never shows it; a slow one (cold server) does not look broken.
+   * The page in index.html's shell until Angular starts (user choice 2026-10-10): its shapes fade
+   * in late, so a fast start never shows them; the header above them shows at once (the real one
+   * takes its place) and a slow start (cold server, slow connection) does not look broken.
    */
-  .app-splash {
-    @apply flex min-h-dvh flex-col items-center justify-center gap-3 text-lg font-bold text-shade-900;
+  .app-shell-page {
     opacity: 0;
-    animation: splash-in 300ms ease-out 400ms forwards;
+    animation: shell-in 300ms ease-out 400ms forwards;
   }
 
-  .app-splash-logo {
-    @apply size-14;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .app-splash-logo {
-      animation: splash-pulse 1.6s ease-in-out infinite;
-    }
+  /* The shell's variants, chosen by index.html's first script (signed in on this browser, home page) */
+  :root:not([data-shell-signed-in]) .app-shell-in,
+  :root[data-shell-signed-in] .app-shell-out,
+  :root:not([data-shell-home]) .app-shell-home,
+  :root[data-shell-home] .app-shell-generic {
+    display: none !important;
   }
 }
 
@@ -604,6 +604,40 @@
   }
 
   /*
+   * Scrollbars (user choice 2026-10-10): a gray pill without arrows on a clear track, darker under
+   * the pointer; the page, lists, dialogs and the sliding tab rows alike, in the neutral shade so
+   * both themes follow. Chromium and Safari draw it from the ::-webkit-scrollbar parts, which they
+   * ignore on an element with scrollbar-color or scrollbar-width set: those stay for Firefox only
+   * (a thin bar in the same colors). Phones keep their own overlay bars.
+   */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+    background-color: var(--color-shade-300);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-shade-400);
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-shade-300) transparent;
+    }
+  }
+
+  /*
    * Buttons show the hand, like links (user decision 2026-10-07): Tailwind 4 resets them to the
    * arrow, and the site's buttons and button-styled links look alike. Disabled and busy ones keep
    * the not-allowed cursor of the btn-* classes. Options of the language list are clicked too.
@@ -612,6 +646,20 @@
   [role='button']:not([aria-disabled='true']),
   [role='option']:not([aria-disabled='true']) {
     cursor: pointer;
+  }
+
+  /*
+   * Number fields without the browser's up/down arrows (user choice 2026-10-10): they only showed
+   * under the pointer and did not match the site; years and settings are typed, ↑/↓ still step.
+   * The coin form's quantity has its own − / + buttons. The wheel: shared/number-wheel.
+   */
+  input[type='number'] {
+    appearance: textfield;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
   }
 
   /* Every password field has its own show/hide button (shared/password-field): not Edge's too */
@@ -641,16 +689,9 @@
   }
 }
 
-@keyframes splash-in {
+@keyframes shell-in {
   to {
     opacity: 1;
-  }
-}
-
-@keyframes splash-pulse {
-  50% {
-    opacity: 0.7;
-    transform: scale(0.92);
   }
 }
 

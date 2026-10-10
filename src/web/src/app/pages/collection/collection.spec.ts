@@ -10,6 +10,7 @@ import { CollectionReturn } from '../../core/coins/collection-return';
 import { Collection as CoinCollection } from '../../core/collections/collection.models';
 import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 import { Collection } from './collection';
 
 const collection = (coinCount: number, more: Partial<CoinCollection> = {}): CoinCollection => ({
@@ -76,6 +77,7 @@ describe('Collection', () => {
           [
             { path: 'collections/:collectionId', component: Collection, data: { mode: 'owner' } },
             { path: 'u/:userName/:collectionId', component: Collection, data: { mode: 'public' } },
+            { path: 'explore', component: Collection, data: { mode: 'explore' } },
           ],
           withComponentInputBinding(),
         ),
@@ -107,6 +109,15 @@ describe('Collection', () => {
     const names = [...list.querySelectorAll('[role=option]')].map((o) => o.textContent!.trim());
     await filterKey(id, 'Escape');
     return names;
+  }
+  /** Opens a filter's list and clicks an option by its name (also for a list without typing). */
+  async function pickFilter(id: string, name: string): Promise<void> {
+    const list = await openFilter(id);
+    const option = [...list.querySelectorAll<HTMLElement>('[role=option]')].find(
+      (o) => o.textContent!.trim() === name,
+    )!;
+    option.click();
+    await harness.fixture.whenStable();
   }
   /** Types into a filter's box and picks the first match. */
   async function chooseFilter(id: string, typed: string): Promise<void> {
@@ -194,6 +205,26 @@ describe('Collection', () => {
     expect(addCoin.tagName).toBe('BUTTON');
     expect(addCoin.getAttribute('aria-disabled')).toBe('true');
     expect(addCoin.getAttribute('aria-describedby')).toBe('email-limit-coins');
+  });
+
+  it("shows a coin's description in one line under its title, in the table and on the card", async () => {
+    const described = { ...coin, description: 'Babamın hatırası.\nKenarında bir çentik var.' };
+    await open('/collections/5', 1, { ...pageWithCoin(), items: [described] });
+
+    const cell = page().querySelectorAll('table tbody tr td')[1];
+    const line = cell.querySelector('p')!;
+    expect(line.textContent!.trim()).toBe(described.description);
+    expect(line.classList).toContain('truncate');
+    // The whole text on hover; the photo viewer shows it too
+    expect(line.getAttribute('title')).toBe(described.description);
+    const card = page().querySelector('ul li')!;
+    expect(card.textContent).toContain('Babamın hatırası.');
+  });
+
+  it('leaves the line out of a coin without a description', async () => {
+    await open('/collections/5', 1, pageWithCoin());
+
+    expect(page().querySelectorAll('table tbody tr td')[1].querySelector('p')).toBeNull();
   });
 
   it('lists every coin without photos from the banner, whatever the filters', async () => {
@@ -292,7 +323,7 @@ describe('Collection', () => {
     request.flush(emptyPage(1, 0));
     await harness.fixture.whenStable();
     expect(page().querySelector('#photo')).not.toBeNull();
-    expect(filterBox('photo').value).toBe('Fotoğrafı eksik');
+    expect(filterBox('photo').textContent!.trim()).toBe('Fotoğrafı eksik');
     expect(page().textContent).toContain('Filtreleri temizle');
   });
 
@@ -301,8 +332,11 @@ describe('Collection', () => {
 
     expect(await options('commemorative')).toEqual(['Tümü', 'Sadece hatıra', 'Hatıra olmayanlar']);
     expect(await options('photo')).toEqual(['Tümü', 'Fotoğrafı eksik', 'Fotoğrafları tam']);
+    // Short fixed lists: nothing to type (user choice 2026-10-10)
+    expect(filterBox('commemorative').tagName).toBe('BUTTON');
+    expect(filterBox('photo').tagName).toBe('BUTTON');
 
-    await chooseFilter('commemorative', 'olmayan');
+    await pickFilter('commemorative', 'Hatıra olmayanlar');
     expect(url()).toBe('/collections/5?isCommemorative=false');
     expect(latestCoinRequest().request.params.get('isCommemorative')).toBe('false');
   });
@@ -416,13 +450,41 @@ describe('Collection', () => {
       expect(cells[2].textContent!.trim()).toBe('25 kuruş');
     });
 
-    it('leaves the buttons out of a collection with one kind', async () => {
+    it('shows the one kind of a collection alone, chosen and not a button', async () => {
       await open('/collections/5', 1, pageWithCoin(), {}, ['DE']);
       flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
       await harness.fixture.whenStable();
 
-      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).toBeNull();
+      const group = page().querySelector('[role=group][aria-label="Coin türü"]')!;
+      expect(group.textContent!.replace(/\s+/g, ' ').trim()).toBe('Euro 1');
+      expect(group.querySelector('button')).toBeNull();
+      expect(group.querySelector('[data-chosen]')).not.toBeNull();
       expect((await openFilter('denomination')).querySelector('[role=group]')).toBeNull();
+    });
+
+    it("drops a kind the list does not have, the other kind's filters with it", async () => {
+      await open('/collections/5?kind=Other&currency=kuru%C5%9F', 1, pageWithCoin(), {}, ['DE']);
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] }, 'Other');
+      await harness.fixture.whenStable();
+
+      expect(url()).toBe('/collections/5');
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
+      await harness.fixture.whenStable();
+      expect(page().querySelector('[aria-label="Coin türü"] [data-chosen]')!.textContent).toContain(
+        'Euro',
+      );
+    });
+
+    it('keeps the kinds row in place while its first facets load', async () => {
+      await open('/collections/5', 1, pageWithCoin(), {}, ['DE']);
+
+      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).toBeNull();
+      const row = page().querySelector('.card > div')!;
+      expect(row.classList.contains('hidden')).toBe(false);
+
+      flushFacets({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: ['DE'] });
+      await harness.fixture.whenStable();
+      expect(page().querySelector('[role=group][aria-label="Coin türü"]')).not.toBeNull();
     });
 
     it('filters by kind, dropping the filters of the other kind', async () => {
@@ -449,6 +511,41 @@ describe('Collection', () => {
 
       expect(decodeURIComponent(url())).toBe('/collections/5?currency=kuruş');
       expect(latestCoinRequest().request.params.get('currency')).toBe('kuruş');
+    });
+
+    it('keeps the kind buttons while another kind loads, the countries locked until then', async () => {
+      await openMixed();
+      const other = [
+        ...page().querySelectorAll<HTMLButtonElement>('[aria-label="Coin türü"] button'),
+      ][2];
+
+      other.click();
+      await harness.fixture.whenStable();
+
+      // The counts are the whole list's: they stay
+      expect(kindButtons()).toEqual([
+        ['Tümü 3', 'false'],
+        ['Euro 2', 'false'],
+        ['Dünya 1', 'true'],
+      ]);
+      expect(filterBox('country').disabled).toBe(true);
+      // The currencies are the whole list's too
+      expect(filterBox('denomination').disabled).toBe(false);
+
+      flushFacets({ ...mixed, countryCodes: ['TR'] }, 'Other');
+      await harness.fixture.whenStable();
+      expect(filterBox('country').disabled).toBe(false);
+      expect(await options('country')).toEqual(['Tümü', 'Türkiye']);
+    });
+
+    it('asks for the facets again for another kind only, not for another page', async () => {
+      await openMixed();
+
+      await harness.navigateByUrl('/collections/5?page=2&search=tor');
+
+      expect(http.match((r) => r.url === '/api/coins/facets')).toHaveLength(0);
+      expect(kindButtons()).toHaveLength(3);
+      expect(filterBox('country').disabled).toBe(false);
     });
 
     it('asks a public collection for its facets', async () => {
@@ -520,6 +617,96 @@ describe('Collection', () => {
     http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin(25));
   });
 
+  it('keeps "clear filters" in place, unavailable, when there is nothing to clear', async () => {
+    const clearButtons = () =>
+      [...page().querySelectorAll('button')].filter((b) =>
+        b.textContent!.includes('Filtreleri temizle'),
+      );
+
+    await open('/collections/5', 1, pageWithCoin());
+
+    // The row's button (sm and up) and the folded filters' one (phones)
+    expect(clearButtons()).toHaveLength(2);
+    expect(clearButtons().every((b) => b.getAttribute('aria-disabled') === 'true')).toBe(true);
+    clearButtons()[0].click();
+    await harness.fixture.whenStable();
+    expect(url()).toBe('/collections/5');
+    http.expectNone((r) => r.url === '/api/coins');
+
+    await harness.navigateByUrl('/collections/5?year=2002');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(clearButtons()).toHaveLength(2);
+    expect(clearButtons().every((b) => !b.hasAttribute('aria-disabled'))).toBe(true);
+  });
+
+  it('keeps the sort selects and the table headers on the same order', async () => {
+    // The box's first line (a fitted box also holds every name, hidden, for its width). The
+    // phone's box shows the short column name and the header's arrow, the full name for screen
+    // readers (user choice 2026-10-10): 'Yıl / Yıl (yeni → eski)'
+    const line = (id: string) => filterBox(id).querySelector('span')!;
+    const shown = () => {
+      const phone = line('sort-phone');
+      const full = phone.querySelector('.sr-only');
+      const short = phone.querySelector('[aria-hidden=true]')?.textContent!.trim();
+      return [
+        line('sort').textContent!.trim(),
+        full ? short + ' / ' + full.textContent : phone.textContent!.trim(),
+      ];
+    };
+    const phoneArrow = () => line('sort-phone').querySelector('path')!.getAttribute('d');
+    const sortedHeader = () => page().querySelector('th[aria-sort]');
+
+    await open('/collections/5', 1, pageWithCoin());
+    // The first row's (sm and up) and the phones': lists without typing, "Sırala" with the
+    // default order and no "clear sort" in the list then
+    expect(filterBox('sort').tagName).toBe('BUTTON');
+    expect(filterBox('sort').getAttribute('aria-label')).toBe('Sırala');
+    expect(shown()).toEqual(['Sırala', 'Sırala']);
+    expect((await options('sort'))[0]).toBe('Başlık (A → Z)');
+    expect(sortedHeader()).toBeNull();
+
+    // A header sorts: the selects show it, "clear sort" joins the list
+    await harness.navigateByUrl('/collections/5?sort=Year&dir=Desc');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(shown()).toEqual(['Yıl (yeni → eski)', 'Yıl / Yıl (yeni → eski)']);
+    // The header's down arrow
+    expect(phoneArrow()).toBe('M8 3.5v9M4.75 9.25 8 12.5l3.25-3.25');
+    expect(sortedHeader()!.textContent).toContain('Yıl');
+    expect(sortedHeader()!.getAttribute('aria-sort')).toBe('descending');
+    expect((await options('sort'))[0]).toBe('Sıralamayı kaldır');
+
+    // The select sorts: the header shows it
+    await pickFilter('sort', 'Ülke (A → Z)');
+    expect(url()).toBe('/collections/5?sort=Country');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(shown()).toEqual(['Ülke (A → Z)', 'Ülke / Ülke (A → Z)']);
+    expect(phoneArrow()).toBe('M8 12.5v-9M4.75 6.75 8 3.5l3.25 3.25');
+    expect(sortedHeader()!.textContent).toContain('Ülke');
+    expect(sortedHeader()!.getAttribute('aria-sort')).toBe('ascending');
+
+    // "Clear sort" goes back to the default order
+    await pickFilter('sort', 'Sıralamayı kaldır');
+    expect(url()).toBe('/collections/5');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(shown()).toEqual(['Sırala', 'Sırala']);
+  });
+
+  it("shows the phone's filters toggle as the funnel, named and counting the folded filters", async () => {
+    await open('/collections/5?year=2002&isCommemorative=true&search=euro', 1, pageWithCoin());
+    const toggle = page().querySelector<HTMLButtonElement>('button[aria-controls=coin-filters]')!;
+
+    // Named for screen readers and on hover; the search box is not folded, so it is not counted
+    expect(toggle.querySelector('.sr-only')!.textContent).toBe('Filtrele');
+    expect(toggle.title).toBe('Filtrele');
+    // The count on the button's corner (it keeps its size)
+    expect(toggle.querySelector('.absolute')!.textContent!.trim()).toBe('2');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('loads a list sorted by country order once, after the countries', async () => {
     await harness.navigateByUrl('/collections/5?sort=Country');
     http.expectOne('/api/collections/5').flush(collection(3));
@@ -548,6 +735,176 @@ describe('Collection', () => {
     const request = latestCoinRequest();
     expect(request.request.params.get('sort')).toBe('Year');
     expect(request.request.params.has('countryOrder')).toBe(false);
+  });
+
+  it("locks the nominal and country filters while another collector's facets load", async () => {
+    const counts = () =>
+      [...page().querySelectorAll('[aria-label="Coin türü"] button')].map((b) =>
+        b.textContent!.replace(/\s+/g, ' ').trim(),
+      );
+    await harness.navigateByUrl('/explore');
+    http.match('/api/countries').forEach((r) => r.flush([{ code: 'DE' }, { code: 'TR' }]));
+    await harness.fixture.whenStable();
+    http.expectOne('/api/public/collectors').flush([
+      { userName: 'elif.kaya', coinCount: 2 },
+      { userName: 'marco.bianchi', coinCount: 4 },
+    ]);
+    http
+      .expectOne((r) => r.url === '/api/public/coins')
+      .flush({ ...pageWithCoin(), totalCount: 6 });
+    http
+      .expectOne((r) => r.url === '/api/public/coins/facets')
+      .flush({ euroCount: 4, otherCount: 2, currencies: ['kuruş'], countryCodes: ['DE', 'TR'] });
+    await harness.fixture.whenStable();
+    expect(counts()).toEqual(['Tümü 6', 'Euro 4', 'Dünya 2']);
+
+    await chooseFilter('owner', 'elif');
+
+    expect(url()).toBe('/explore?owner=elif.kaya');
+    // The buttons stay; their counts are the next collector's, not known yet
+    expect(counts()).toEqual(['Tümü', 'Euro', 'Dünya']);
+    expect(filterBox('denomination').disabled).toBe(true);
+    expect(filterBox('country').disabled).toBe(true);
+
+    const facets = http.expectOne((r) => r.url === '/api/public/coins/facets');
+    expect(facets.request.params.get('owner')).toBe('elif.kaya');
+    facets.flush({ euroCount: 1, otherCount: 1, currencies: ['kuruş'], countryCodes: ['TR'] });
+    await harness.fixture.whenStable();
+    expect(counts()).toEqual(['Tümü 2', 'Euro 1', 'Dünya 1']);
+    expect(filterBox('denomination').disabled).toBe(false);
+    expect(filterBox('country').disabled).toBe(false);
+  });
+
+  describe('while loading', () => {
+    const titles = () =>
+      [...page().querySelectorAll('table tbody tr')].map((r) =>
+        r.querySelectorAll('td')[1].textContent!.trim(),
+      );
+    const busy = () => page().querySelector('[aria-busy]')!.getAttribute('aria-busy');
+    const pageButtons = () => [...page().querySelectorAll('app-pagination nav button')];
+    const firstOfThree = { ...pageWithCoin(), totalCount: 30, totalPages: 3 };
+    const secondOfThree = {
+      ...firstOfThree,
+      page: 2,
+      items: [{ ...coin, id: 2, title: 'Akropolis' }],
+    };
+
+    it('says the first list is loading, then shows it', async () => {
+      await harness.navigateByUrl('/collections/5');
+      http.match('/api/countries').forEach((r) => r.flush([]));
+      http.expectOne('/api/collections/5').flush(collection(1));
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('[role=status]')!.textContent).toContain('Yükleniyor…');
+
+      latestCoinRequest().flush(pageWithCoin());
+      await harness.fixture.whenStable();
+      expect(page().textContent).not.toContain('Yükleniyor…');
+      expect(titles()).toEqual(['Brandenburger Tor']);
+    });
+
+    it('keeps the list busy and the pages locked until the next page arrives', async () => {
+      await open('/collections/5', 30, firstOfThree);
+      expect(busy()).toBe('false');
+
+      await harness.navigateByUrl('/collections/5?page=2');
+
+      expect(busy()).toBe('true');
+      expect(pageButtons().every((b) => b.getAttribute('aria-disabled') === 'true')).toBe(true);
+      expect(page().textContent).toContain('1 / 3');
+
+      latestCoinRequest().flush(secondOfThree);
+      await harness.fixture.whenStable();
+      expect(busy()).toBe('false');
+      expect(titles()).toEqual(['Akropolis']);
+      expect(page().textContent).toContain('2 / 3');
+      expect(pageButtons().some((b) => b.getAttribute('aria-disabled') === null)).toBe(true);
+    });
+
+    it('shows placeholder rows in place of a list that takes a while', async () => {
+      await open('/collections/5', 30, firstOfThree);
+      // rxjs timers run on setInterval
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/collections/5?page=2');
+        vi.advanceTimersByTime(SKELETON_DELAY_MS - 1);
+        await harness.fixture.whenStable();
+        expect(titles()).toEqual(['Brandenburger Tor']);
+
+        vi.advanceTimersByTime(1);
+        await harness.fixture.whenStable();
+        // As many as the list had: the table row and the phone card, hidden from screen readers
+        const rows = [...page().querySelectorAll('table tbody tr')];
+        expect(rows.map((r) => r.getAttribute('aria-hidden'))).toEqual(['true']);
+        expect(page().querySelectorAll('li[aria-hidden=true]')).toHaveLength(1);
+        expect(page().textContent).not.toContain('Brandenburger Tor');
+        expect(busy()).toBe('true');
+
+        latestCoinRequest().flush(secondOfThree);
+        await harness.fixture.whenStable();
+        expect(titles()).toEqual(['Akropolis']);
+        expect(page().querySelectorAll('[aria-hidden=true] .skeleton')).toHaveLength(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('shows placeholders for the name and its place in the way here while the header loads', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/collections/5');
+        http.match('/api/countries').forEach((r) => r.flush([]));
+        vi.advanceTimersByTime(SKELETON_DELAY_MS);
+        await harness.fixture.whenStable();
+
+        const heading = page().querySelector('h1')!;
+        expect(heading.querySelector('.skeleton')).not.toBeNull();
+        expect(heading.textContent).toContain('Yükleniyor…');
+        expect(page().querySelectorAll('app-breadcrumbs .skeleton')).toHaveLength(1);
+
+        http.expectOne('/api/collections/5').flush(collection(1));
+        latestCoinRequest().flush(pageWithCoin());
+        await harness.fixture.whenStable();
+        expect(heading.textContent!.trim()).toBe('Koleksiyonum');
+        // The kinds' row until its facets are there
+        expect(page().querySelectorAll('.skeleton')).toHaveLength(1);
+        http
+          .expectOne((r) => r.url === '/api/coins/facets')
+          .flush({ euroCount: 1, otherCount: 0, currencies: [], countryCodes: [] });
+        await harness.fixture.whenStable();
+        expect(page().querySelectorAll('.skeleton')).toHaveLength(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('shows placeholder rows for the first list too, up to its coins', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      try {
+        await harness.navigateByUrl('/collections/5');
+        http.match('/api/countries').forEach((r) => r.flush([]));
+        http.expectOne('/api/collections/5').flush(collection(3));
+        vi.advanceTimersByTime(SKELETON_DELAY_MS);
+        await harness.fixture.whenStable();
+
+        expect(page().querySelectorAll('table tbody tr[aria-hidden=true]')).toHaveLength(3);
+        expect(page().querySelector('[role=status]')!.textContent).toContain('Yükleniyor…');
+        latestCoinRequest().flush(pageWithCoin());
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('says when the next list cannot be loaded', async () => {
+      await open('/collections/5', 30, firstOfThree);
+
+      await harness.navigateByUrl('/collections/5?page=2');
+      latestCoinRequest().flush(null, { status: 500, statusText: 'Server Error' });
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('[role=alert]')!.textContent).toContain("Coin'ler yüklenemedi");
+      expect(page().querySelector('table')).toBeNull();
+    });
   });
 
   it('uses the first of repeated query params', async () => {

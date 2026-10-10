@@ -95,12 +95,17 @@ describe('Pagination', () => {
     const sizes: number[] = [];
     fixture.componentInstance.pageSizeChange.subscribe((size) => sizes.push(size));
     await fixture.whenStable();
-    const select = (fixture.nativeElement as HTMLElement).querySelector('select')!;
+    const element = fixture.nativeElement as HTMLElement;
+    // A list without typing (user choice 2026-10-10; was a select); its first line shows the size
+    const box = element.querySelector<HTMLButtonElement>('button[role=combobox]')!;
+    expect(box.querySelector('span')!.textContent!.trim()).toBe('25');
+    box.click();
+    await fixture.whenStable();
+    const options = [...element.querySelectorAll<HTMLElement>('[role=option]')];
 
-    expect([...select.options].map((o) => o.textContent!.trim())).toEqual(['25', '50', 'Tümü']);
-    expect(select.selectedIndex).toBe(0);
-    select.selectedIndex = 2;
-    select.dispatchEvent(new Event('change'));
+    expect(options.map((o) => o.textContent!.trim())).toEqual(['25', '50', 'Tümü']);
+    expect(options[0].getAttribute('aria-selected')).toBe('true');
+    options[2].click();
 
     expect(sizes).toEqual([0]);
   });

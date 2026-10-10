@@ -1,4 +1,11 @@
-import { nextAdminSort, parseAdminPageSize, parseAdminSort, parsePage } from './admin-list';
+import {
+  namedOptions,
+  nextAdminSort,
+  parseAdminPageSize,
+  parseAdminSort,
+  parsePage,
+  sortOptionValue,
+} from './admin-list';
 
 type Column = 'CreatedAt' | 'UserName';
 
@@ -45,5 +52,33 @@ describe('URL paging values', () => {
     expect(parseAdminPageSize('50')).toBe(50);
     expect(parseAdminPageSize('7')).toBe(25);
     expect(parseAdminPageSize(undefined)).toBe(25);
+  });
+});
+
+describe('namedOptions', () => {
+  it('pairs the values with their names, empty until the names load', () => {
+    expect(namedOptions(['Active', 'Locked'], ['Aktif', 'Kilitli'])).toEqual([
+      { value: 'Active', label: 'Aktif' },
+      { value: 'Locked', label: 'Kilitli' },
+    ]);
+    expect(namedOptions(['Active', 'Locked'], [''])).toEqual([
+      { value: 'Active', label: '' },
+      { value: 'Locked', label: '' },
+    ]);
+  });
+});
+
+describe('sortOptionValue', () => {
+  const sorts = [
+    { value: 'CreatedAt' as Column, first: 'Desc' as const },
+    { value: 'UserName' as Column, first: 'Asc' as const },
+  ];
+
+  it('is the column while the list is sorted in its first direction', () => {
+    expect(sortOptionValue({ sort: 'UserName', dir: 'Asc' }, sorts)).toBe('UserName');
+  });
+
+  it('is empty (the box reads "Sort") when a header turned the order around', () => {
+    expect(sortOptionValue({ sort: 'UserName', dir: 'Desc' }, sorts)).toBe('');
   });
 });

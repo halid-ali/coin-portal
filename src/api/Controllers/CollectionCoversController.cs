@@ -27,6 +27,7 @@ public class CollectionCoversController(
     IImageProcessor imageProcessor,
     IPhotoStorage photoStorage,
     PhotoQuota photoQuota,
+    StorageWarnings storageWarnings,
     IOptions<PhotoOptions> photoOptions,
     ILogger<CollectionCoversController> logger) : ControllerBase
 {
@@ -102,6 +103,7 @@ public class CollectionCoversController(
         {
             await photoStorage.DeleteAsync(collection.OwnerId, old);
         }
+        storageWarnings.Enqueue(collection.OwnerId);
 
         return new CollectionCoverImageResponse(collection.Id, coverId);
     }
@@ -125,6 +127,7 @@ public class CollectionCoversController(
             return this.ChangedAtTheSameTime();
         }
         await photoStorage.DeleteAsync(collection.OwnerId, coverId);
+        storageWarnings.Enqueue(collection.OwnerId);
 
         return NoContent();
     }

@@ -115,6 +115,9 @@ namespace CoinPortal.Api.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("StorageWarningLevel")
+                        .HasColumnType("int");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -142,6 +145,8 @@ namespace CoinPortal.Api.Data.Migrations
                             t.HasCheckConstraint("CK_AspNetUsers_PreferredAccent", "[PreferredAccent] BETWEEN 0 AND 6");
 
                             t.HasCheckConstraint("CK_AspNetUsers_PreferredTheme", "[PreferredTheme] IN (0, 1, 2)");
+
+                            t.HasCheckConstraint("CK_AspNetUsers_StorageWarningLevel", "[StorageWarningLevel] BETWEEN 0 AND 2");
                         });
                 });
 

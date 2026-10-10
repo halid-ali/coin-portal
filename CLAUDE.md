@@ -380,6 +380,16 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   (`GET api/settings/storage`); **yaklaşık**:
   kontrolle kayıt arasında kilit yok, aynı anda yapılan yüklemeler kotayı birkaç görsel (her biri en fazla
   ~0,5 MB) aşabilir (bilinçli; kesinlik kilit ister).
+- **Fotoğraf alanı uyarıları** (`Photos/StorageWarnings`, kullanıcı kararları 2026-10-10): kullanım kotanın %75'ini
+  ve %90'ını geçince e-posta (`EmailTexts.StorageWarning`, Ayarlar > Hesap'a düğme). Her uyarı bir kez
+  (`ApplicationUser.StorageWarningLevel`, migration `AddStorageWarningLevel`; sadece e-posta gidince yazılır, giden
+  e-posta hatası bir sonraki kontrolde yeniden dener), ancak kullanım eşiğin 5 puan altına inince (%70 / %85)
+  unutulur. Sadece doğrulanmış ve admin'in kilitlemediği hesaplara. Kontroller arka planda, tek tek: fotoğraf ya da
+  kapak **ekleyen ve silen her uç** `StorageWarnings.Enqueue(sahip)` çağırır (yeni bir görsel ucu da), kota
+  değişince (`AdminSettingsController`) `CheckAfterQuotaChange` ilgili herkese `Email:BulkDelaySeconds` aralıkla
+  bakar (düşürmek uyarır, artırmak sıfırlar). Eşikler Ayarlar'daki çubuğun renkleriyle aynı (client
+  `account-settings.ts` `FILLING` / `NEARLY_FULL`); biri değişirse öbürü de. Testlerde `StorageWarnings.CheckAsync`
+  doğrudan çağrılır (`StorageWarningTests`).
 - **E-posta sadece `IMailSender` arkasında** (`Email/`, MailKit; görsel kütüphanesi kuralının aynısı):
   `Email:Smtp:Host` doluysa `SmtpMailSender`, boşsa `PickupFolderMailSender` (`Email:PickupPath`'e
   `.eml`; e2e, `Email__Smtp__Host` boş verilerek). Lokalde (`appsettings.Development.json`) e-postalar
@@ -572,10 +582,20 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   problem her durumda önce `messageKeys`'te aranır, ör. 403 `moderation_locked`). Yükleme hatalarında
   sadece 404 "bulunamadı" der; diğerleri `httpErrorKey(err)` (ağ, 403, 423, 429, beklenmeyen), signal
   çeviri anahtarını tutar.
+- **Sayı alanları** (`type="number"`; kullanıcı kararları 2026-10-10): tarayıcının yukarı/aşağı okları yok
+  (`styles.css`, bütün sayı alanları; yıllar ve ayarlar yazılır, ↑ / ↓ yine çalışır). Seçili bir sayı alanının
+  üzerinde fare tekerleği değeri değiştirmez, sayfayı kaydırır (`shared/number-wheel`, `App`'te tek dinleyici;
+  Chromium değeri değiştirip sayfayı durduruyordu). Coin formunun Adet'i iki uçta − / + düğmeleriyle: Tab sırasında
+  değil, odağı almaz, sınırda `aria-disabled` (`stepQuantity`). e2e'de `getByLabel('Quantity', { exact: true })`
+  (düğmelerin adı da alanın adını taşır).
 - **Form erişilebilirliği:** her alan `appField` (`shared/field-a11y.ts`; `aria-invalid`, `aria-required`,
   `aria-describedby`), hata metni `id="<alanId>-error"`, ipucu `id="<alanId>-hint"`; formControlName'siz
   alan kontrolü verir (`[appField]="form.controls.x"`). Geçersiz gönderimde ve sunucunun alan hatalarından
-  sonra `injectFocusFirstInvalid()` ile ilk hatalı alana odak. Hata kutuları `role="alert"`, yükleme
+  sonra `injectFocusFirstInvalid()` ile ilk hatalı alana odak.
+  **Yer tutucu (placeholder)** (kullanıcı kararı 2026-10-10): yazılan alanlarda yok, örnek ve aralık alttaki
+  ipucunda (yazınca kaybolmaz, ekran okuyucu `aria-describedby`'dan okur); boş seçim listesinde `common.choose`
+  ("Seç…"), serbest metinli öneri listesinde `common.typeOrChoose` ("Yaz ya da seç…"; önerisi yokken düz metin
+  kutusudur, `Combobox` yer tutucuyu ve oku kendisi gizler); arama kutularında var (`coinList.searchPlaceholder`). Hata kutuları `role="alert"`, yükleme
   metinleri `role="status"`, yeniden yüklenen liste `[attr.aria-busy]`. Sayfa iskeletinde "İçeriğe atla"
   linki; yol değişince (sorgu değil) sayfa başa kayar ve odak `main`'e geçer (`app.ts`).
   **Her parola alanı** `<app-password-field>` içinde (`shared/password-field`; kullanıcı kararı 2026-10-07): göz
@@ -588,17 +608,59 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   firstQueryParam })` (tekrarlanan param dizi gelir), arama kutusu `syncSearchWithUrl`
   (`shared/url-search.ts`; URL'deki değerle karşılaştırır, `maxlength` `SEARCH_MAX_LENGTH`), son
   sayfanın ötesindeki boş sayfa `replaceUrl` ile son sayfaya gider.
+- **Yükleme iskeleti** (kullanıcı kararları 2026-10-10): yüklenen içeriğin yerinde gri şekiller (`.skeleton`:
+  çubuk, daire, kutu; `motion-safe` nabız), **sadece yükleme `SKELETON_DELAY_MS` (300 ms) sürerse**
+  (`delayedLoading(loading)`, `shared/skeleton.ts`): hızlı cevap içeriği şekiller görünmeden değiştirir, o arada
+  eski içerik soluklaşmadan kalır. Şekiller `aria-hidden`, bölge `aria-busy`, ilk yüklemede `sr-only`
+  `role="status"` "Yükleniyor". Satır sayısı ekrandaki kadar (sayfa zıplamaz). Koleksiyon sayfasında tablo
+  başlığı, sayfa düğmeleri ve görünüm seçimi yerinde kalır. Filtre özeti (facets) sadece liste, koleksiyoncu ya da
+  tür değişince istenir; yeniden yüklenirken eskisi tutulur (tür düğmeleri kalır), değişecek filtre kilitlenir
+  (`facetsReloading`: tür → Ülke; koleksiyoncu → Nominal, Ülke ve düğmelerdeki sayılar). Kilitli `Combobox`
+  soluk görünür. Diğer sayfalarda da aynı kural (Koleksiyonlarım, profil, ana sayfa panosu, koleksiyon başlığı, coin
+  düzenleme formu, Ayarlar › Hesap): **sabit metin (başlık, etiket, ikon) yerinde kalır, sadece yüklenen veri şekle
+  döner**; koleksiyon kartının şekli `shared/collection-card/collection-card-skeleton`, sayfa yolunda yüklenen ad
+  `Crumb.loading` (çubuk, link değil: adsız link olmasın). Yönetim panelinde de (Genel bakış, listeler, kullanıcı
+  detayı, Genel ayarlar): listeler coin listesiyle aynı desende (`showSkeleton`, `skeletonRows`, ilk yüklemede tablo
+  başlığı gerçek), kullanıcıya göre değişen rozet ve düğmeler şekil, ayarlarda not ve Kaydet değerler gelene kadar
+  yok. Yeni bir yüklenen bölüm de böyle gelir. **Açılış kabuğu** (`index.html`, Angular başlayana kadar; eski
+  logolu açılış ekranının yerine): header gerçeğiyle aynı düzende (logo ve ad gerçek, menü ve düğmeler şekil) ve
+  hemen görünür, sayfa şekilleri 400 ms sonra belirir (`.app-shell-page`). Auth cookie'si HttpOnly olduğu için
+  girişli mi `localStorage` `coinportal.signedIn` işaretinden okunur (`AuthService.SIGNED_IN_KEY`, kullanıcı
+  her değiştiğinde `setUser` yazar ya da siler; sadece şekil seçimi için bir ipucu, gizlilik politikasında).
+  İlk betik `<html>`'e `data-shell-signed-in` / `data-shell-home` koyar: header'ın girişli ya da girişsiz hâli
+  (`.app-shell-in` / `-out`), ana sayfada tanıtım sayfası ya da pano, başka her adreste genel şekiller
+  (`-home` / `-generic`). Kabuk app.html, header, `HomeWelcome` ve `HomeDashboard`'ın sınıflarıyla yazılı:
+  onların düzeni (menüye yeni öğe dahil) değişince kabuk da değişir. Yeni bir sayfa genel şekilleri kendiliğinden alır.
+  **Sunucudan gelen her fotoğraf** (`<img>`: coin fotoğrafı, kapak) `appImageSkeleton` alır (`shared/image-skeleton.ts`,
+  `[src]`'yi o alır): fotoğraf inene ya da hata verene kadar yerinde şekil, gecikmesiz (beklerken gösterilecek eski
+  bir şey yok); tarayıcıda zaten olan fotoğrafta şekil görünmez. Elemanın kendi köşesi ve zemini şeklinkine baskın.
 - Sıralama sunucuda (`sort` + `dir`, varsayılanlar URL'e yazılmaz). Tablo başlıkları
   `th[appSortHeader]` (`shared/sort-header`) ile sıralanır: artan → azalan → varsayılan (admin
   listelerinde `[clearable]="false"` ile yön çevrilir, her sütun kendi `firstDirection`'ıyla başlar;
-  `core/admin/admin-list.ts`). Mobilde tablo
-  yok, aynı seçenekler "Sırala" select'inde. Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
+  `core/admin/admin-list.ts`). Coin listelerinde aynı seçenekler her görünümde ve ekran boyunda "Sırala"
+  kutusunda da (yazısız combobox, solda sıralama ikonu) (kullanıcı kararı 2026-10-10: standart filtre paneli; mobilde tablo yok): ikisi de sırayı URL'den
+  okur, kendiliğinden eş kalır. Filtre kartının ilk satırında solda tür düğmeleri, sağda "Filtreleri temizle" +
+  "Sırala" (temizle `lg` altında sadece huni + çarpı ikonu, `aria-label` + `title`; böylece ~700 px'ten itibaren
+  tek satır, sığmazsa ikili alt satırda, solda); telefonda (kullanıcı kararı 2026-10-10) "Filtrele" sadece huni
+  ikonu (seçili filtre sayısı köşesinde, buton boyu sabit; adı `sr-only` + `title`), yanında Sırala kutusu
+  tablo başlığının kısa sütun adı ve okuyla ("Yıl ↓", `display` şablonu `sortShort`; liste tam adlarla,
+  ekran okuyucuya tam ad), panelin sonunda temizle.
+  Kart yüksekliği ve satır kullanılırken oynamaz: temizlenecek filtre yokken buton kalır, `aria-disabled`;
+  Sırala en uzun sıralama adı kadar geniş (`fitOptions` + `fitTo`: kutuda hiç görünmeyen
+  "Sıralamayı kaldır" ölçüye girmez, o sadece bir sıralama seçiliyken listede), seçim satırı oynatmaz;
+  varsayılan sırada "Sırala" yazar, soluk değil (`placeholderIsName`).
+  Sıralanabilir sütunlar sadece Başlık, Nominal, Ülke, Yıl
   (`COIN_SORT_COLUMNS`, API `CoinSort`); diğer sütun başlıkları düz. Telefonda filtreler "Filtrele"
   butonunun arkasında katlanır (arama kutusu hariç).
 - Ülke sıralaması dile bağlı: client ülkeleri aktif dildeki ada göre sıralayıp `countryOrder=DE,AD,AT,…`
   olarak gönderir, API bu sıraya göre dizer. Veritabanında çok dilli isim tutulmaz.
 - **Tür düğmeleri ve filtreler** (koleksiyon sayfası ve Keşfet; kullanıcı kararları 2026-10-09; saf mantık
-  `pages/collection/coin-filters.ts`): Tümü / Euro / Dünya düğmeleri sayılı ve sadece listede iki tür de varsa
+  `pages/collection/coin-filters.ts`): Tümü / Euro / Dünya düğmeleri sayılı (sayı düğmenin sağ alt köşesinde
+  yuvarlak bir rozet, düğmenin genişliğine girmez; seçilinin rozeti tema renginde; kullanıcı kararı 2026-10-10)
+  ve sadece listede iki tür de varsa; tek türlü listede sadece o tür, seçili görünümde ve düğme değil (`listKinds`;
+  kullanıcı kararı 2026-10-10; son düğmenin rozeti çerçevenin köşesine biner, rozet payı düğmelerin arasında). Sayı
+  sadece rozetlerde, sayfa başlığında değil (Keşfet). Adresteki tür listede yoksa tür ve o türün filtreleri adresten
+  kalkar (`replaceUrl`). İlk özet gelene kadar satır yerinde kalır (gecikmeli şekil)
   (URL `kind`; tür değişince nominal, para birimi ve ülke filtresi sıfırlanır). Nominal filtresi seçilen türün
   değerlerini sunar: Euro'da 8 değer, Dünya'da para birimleri (`currency:` önekli seçenek), Tümü'nde iki tür
   varsa "Euro coin" / "Dünya coin'i" grupları. Ülke filtresi sadece listede (seçilen türde) olan ülkeler; özet
@@ -620,12 +682,26 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `-required` / `-describedby`; id `inputId`), filtrede `[value]` + `(valueChange)`; formun dönüştürdüğü bir
   değerde (koleksiyonun sayı Id'si) bağlı + `[control]` (hata ve ipucu bağlantısı), `[disabled]` (kilitli
   koleksiyonun coin'i taşınamaz). Seçenek adları dile bağlıysa computed `LanguageService.current()`'ı okur.
-  Sadece liste araç çubuğundaki sıralama ve sayfa başına `<select>` kalır.
+  **Yazısız liste** (`searchable="false"`, kullanıcı kararı 2026-10-10): seçenekleri sabit ve kısa (10 ya da
+  daha az) olan kutuda yazılacak bir şey yok: Hatıra parası, Fotoğraf filtresi, coin formunun Euro nominali,
+  Sırala, Sayfa başına (`shared/pagination`), yönetim panelinin filtre ve sıralama kutuları. Kullanıcı verisinden
+  gelen ya da uzayabilen listeler (Ülke, Koleksiyoncu, Koleksiyon, Para birimi, filtredeki Nominal, silme
+  penceresinin "taşınacak koleksiyon"u) yazılabilir kalır. **Uygulamada native `<select>` yok** (2026-10-10);
+  yeni bir seçim de `Combobox` olur. Kutu bir `<button
+  role="combobox">` (native select gibi: tıklama, Enter / Boşluk / oklar açar, Home / End, Enter / Boşluk seçer,
+  ilk harfler o harfle başlayan seçeneğe atlar, aynı harf sıradakine; liste görünümü aynı). Etiketsiz kutuda
+  `ariaLabel`; `compact` 38 px (yanındaki butonlar); `comboboxIcon` (+ `#comboboxIcon`) soldaki ikon; testte
+  görünen ad kutunun ilk `span`'ı (`fitOptions`'lı kutu bütün adları gizli taşır). `display` (TemplateRef)
+  seçileni kutuda farklı gösterir (genişlik ölçüsü de onunla; tam adı `sr-only` ver). Panelde seçenek adları
+  panelin geç yüklenen metinlerinden: `translateSignal` (kapsam anahtarı, `admin.` öneksiz) + `namedOptions`
+  (`core/admin/admin-list.ts`); sıralama kutusu ters çevrilmiş sırada "Sırala" yazar (`sortOptionValue`).
+  Pencere içinde de çalışır: açık listede Esc listeyi kapatır, pencereyi değil (keydown'ın varsayılanı engellenir).
   `freeText` (coin formunun Para birimi; `<datalist>` yerine, tarayıcının listesi temaya uymuyordu): değer
   yazılan metin, seçenekler öneri; kendiliğinden vurgu yok (Enter formu gönderir, metni değiştirmez), öneri
   okla ya da tıklayarak alınır, eşleşme yoksa liste gizlenir, öneri yoksa ok da yok (düz metin kutusu).
-  e2e'de `support/combobox.ts` `chooseOption`; seçenekleri listbox'la sınırla (sayfadaki `<select>`'lerin
-  `option`'ları da `getByRole('option')`'a uyar).
+  e2e'de `support/combobox.ts` `chooseOption` (yazılan kutuda yazar, yazısızda tıklar; yazısız kutunun değeri
+  `toHaveText` ile, `toHaveValue` değil); seçenekleri listbox'la sınırla (aynı anda açık başka bir listenin ya da
+  dil seçicinin `option`'ları da `getByRole('option')`'a uyar).
 - Tablolarda `table-fixed` + `<colgroup>` genişlikleri: sabit sütunlar `truncate` (tek satır), serbest
   metin sütunu (başlık) kalan alanı doldurur ve satır kaydırabilir. Tablo `lg` ve üstünde, altında kart
   listesi (admin panelinde `xl`: sayfa geniş, solda bölüm menüsü var).
@@ -687,7 +763,20 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `target="_blank"` linki `rel="noopener"` + `sr-only` `common.opensNewTab`. Bilgi sadece `title`'da kalmaz
   (dokunmatikte yok); `title` işaretçiyi alan elemana verilir (ızgaradaki kaplama butonu). Satır başına tekrar
   eden butonun erişilebilir adı satırı içerir (`Gizle: <ad>`). Hareket: geçişler `motion-safe:`, sayfa başına
-  kaydırma `scrollToTop()` (`shared/motion.ts`, `prefers-reduced-motion`'da anında).
+  kaydırma `scrollToTop()` (`shared/motion.ts`, `prefers-reduced-motion`'da anında). **Kayan seçim** (kullanıcı
+  kararları 2026-10-10): tek seçimli düğme grubunun seçili zemini düğmeden düğmeye kayar (`shared/sliding-selection`,
+  `[appSlidingSelection]="değer"` + `highlightClass`, seçili öğe `aria-pressed` ya da `chosen` seçicisi;
+  ~200 ms, ilk gösterimde ve boyut değişiminde kaymaz, hareketi azaltta hiç kaymaz): koleksiyon sayfası ve
+  Keşfet'in tür düğmeleri, coin formunun telefondaki tür seçimi (kartlarda yok). Düğmeler `relative`, seçiliyken
+  kendi zemini yok; seçili olmayanın üzerine gelince zemin değil sadece yazı rengi değişir (zemin kaymayı örtüyordu).
+  **Rozet köşeleri** (kullanıcı kararı 2026-10-10): sağ üst köşe dikkat çeken rozetlerin (seçili filtre sayısı,
+  ileride okunmamış mesaj ve bildirimler: dolgu renkli, belirip kaybolur), sağ alt köşe sakin sayı rozetlerinin
+  (tür düğmelerinin coin sayıları: gri, seçilide tema renginin açık tonu, hep orada).
+- **Kaydırma çubukları** (kullanıcı kararı 2026-10-10): sitenin her yerinde (sayfa, açılır listeler, pencereler)
+  oksuz gri hap, oluk şeffaf, üzerine gelince koyulaşır (`styles.css`, `::-webkit-scrollbar`, `shade-300` /
+  `shade-400`). Chromium bir elemanda `scrollbar-color` ya da `scrollbar-width` görürse `::-webkit-scrollbar`'ı
+  yok sayar: bunlar sadece Firefox için (`@supports not selector(::-webkit-scrollbar)`), bir elemana yazılmaz.
+  Headless tarayıcı çubukları çizmez: görüntüde `ignoreDefaultArgs: ['--hide-scrollbars']`.
 - **Butonlarda el imleci** (kullanıcı kararı 2026-10-07): Tailwind 4 butonları ok imlecine çeker, buton
   görünümlü linkler el gösterir; `styles.css` base katmanındaki kural `button`, `[role=button]` ve
   `[role=option]`'a el imleci verir (devre dışı ve `aria-disabled` olanlar hariç, onlar `btn-*`'in
@@ -697,11 +786,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `btn-secondary-danger` (soran yıkıcı işlem: sil, kaldır, gizle, kilitle), `btn-unavailable` (hesabın henüz
   kullanamadığı buton, iki temada gri; meşgul butonun solukluğundan ayrı), `btn-danger` (kırmızı dolgu, sadece
   onay penceresinin butonu), `btn-icon`, `nav-link`, `link`, `dialog-panel` (modal `<dialog>` paneli + açılış
-  animasyonu), `app-splash` (`index.html`'deki açılış ekranı),
+  animasyonu), `app-shell-page` (`index.html`'deki açılış kabuğunun sayfası, geç belirir),
   `page-container` (header/main/footer sütunu), `stat-icon` + `stat-icon-<renk>` (istatistik ikon
   dairesi: anlamına göre **sabit renk, tema renginden bağımsız**; zemin/ikon/çerçeve tek renkten
   `color-mix` ile, koyu tema ayarı da `styles.css`'te), `usage-bar` + `usage-bar-fill` (`-warn`, `-full`;
-  bir sınırın doluluğu: tema rengi, dolmak üzereyken sabit turuncu, doluyken tehlike rengi). Yeni ortak stil
+  bir sınırın doluluğu: sabit yeşil, dolarken turuncu, dolmak üzereyken ve doluyken kırmızı; tema renginden bağımsız), `skeleton`
+  (yükleme iskeletinin şekli). Yeni ortak stil
   gerekirse buraya eklenir.
 - Onaylar `ConfirmDialogService.confirm({...}): Promise<boolean>` ile (native `<dialog>`);
   `window.confirm` kullanılmaz. Gerekçe/not isteyen onay `confirmWithNote({..., note})`: kırpılmış
@@ -739,7 +829,7 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   Kaydet'te uygulanır (`CoverPicker` + `CollectionFormDialog`). Kırpma penceresi (`PhotoCropDialog`)
   oran, daire/dikdörtgen, açıklama ve minimum genişliği input olarak alır.
 - Logo `shared/logo` (`<app-logo>`, inline SVG: dolu daire + uçları yuvarlak çizgilerle €; header ve
-  footer). Açılış ekranında `index.html`'de aynı çizimin kopyası var; ikisi birlikte değişir. Uygulama
+  footer). Açılış kabuğunda (`index.html`) aynı çizimin kopyası var; ikisi birlikte değişir. Uygulama
   ikonları ve favicon ondan üretilir: `node scripts/make-icons.mjs` (`src/web`, headless Edge; çizim ve
   renkler betikte de yazılı) `public/icons/`, `public/favicon.ico` ve `public/favicon.svg` (tarayıcının
   açık/koyu moduna göre renk değiştirir) yazar; logo değişince betik güncellenip yeniden çalıştırılır.
@@ -768,7 +858,17 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `flag`, `collection-placeholder`): `url(#…)` sayfadaki ilk eşleşen id'yi kullanır.
 - Fotoğraf URL'leri `photoUrl(coinId, photo, size)` ile üretilir; listelerde `CoinThumb`, tam ekran
   `PhotoViewer` (yüz değiştirme: butonlar, ok tuşları döngülü, fare tekerleği döngüsüz ve hamle başına
-  bir adım, `WheelGesture`). Fotoğrafı olmayan coin'in yerine değer ikonu `DenominationIcon`
+  bir adım, `WheelGesture`). **Coin'in açıklaması** (kullanıcı kararları 2026-10-10, en çok 2000 karakter):
+  listede başlığın altında tek satır (`truncate`, tamamı `title`'da; tabloda ve telefon kartında, ızgarada yok),
+  tamamı görüntüleyicide: uzunsa (200 karakterden ya da 3 satırdan fazla, `SHORT_DESCRIPTION_MAX`) `lg` ve üstünde
+  fotoğrafın yanında, fotoğrafla aynı yükseklikte ve onun kutusunun zemininde kayan bir kutuda (görüntüleyici
+  genişler, yüz düğmeleri fotoğrafın altında), kısaysa fotoğrafın altında (fotoğraf 3 satır
+  kadar küçülür, her şey ekrana sığar); `lg` altında hep fotoğrafın altında, bütün görüntüleyici kayar; satır sonları korunur (`textContent` +
+  `whitespace-pre-line`), bölge odaklanabilir (`role="region"`, klavye de kaydırır). Tekerlek metnin ve kayan
+  görüntüleyicinin üstünde kaydırır, fotoğrafın üstünde yüz değiştirir. Görüntüleyicinin karartılmış ekranı
+  `::backdrop` değil `<dialog>`'un kendisi (Bilinen tuzaklar: axe). Fotoğraf kutusu karedir (kenarı sütun genişliği
+  ile ekran yüksekliğinden küçüğü, `photoSize`; geniş ve kısa ekranda iki yanda bant kalıyordu), görüntüleyicinin
+  genişliği ona göre (`contentWidth`): başlık ve kapatma düğmesi fotoğrafla (ve metin kutusuyla) hizalı. Fotoğrafı olmayan coin'in yerine değer ikonu `DenominationIcon`
   (`shared/denomination-icon`; dolu metal: bakır 1–5c, altın 10–50c, iki metalli 1 €/2 €, 20c 7 oyuklu):
   **coin iki temada aynı** (düz palet sınıfları, kullanıcı kararı 2026-10-06), sadece arkasındaki zemin
   temayla değişir (`tile` input'u → `denomination-tile` + `denomination-<metal>`, `styles.css`; çerçeve
@@ -916,6 +1016,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `img.decode()` bekler durur; adresi `fetch` ile kontrol et.
 - Headless Edge testlerinde `DOM.setFileInputFiles` ile verilen dosyalar okunamıyor (NotFoundError).
   Dosyayı sayfada `File` olarak oluşturup `DataTransfer` ile input'a ver.
+- Kaydırma çubuğu şeridini (`scrollbar-gutter: stable`) `innerWidth - documentElement.clientWidth` ile ölçme:
+  Chromium kısa sayfada ayrılan boş şeridi bu farka katmaz, 0 der (2026-10-10'da yanlış bir bulguya yol açtı).
+  Öğelerin gerçek genişliğine ve yerine bak (`body.getBoundingClientRect().width`, logonun `left`'i). Playwright'ın
+  `setContent`'ine verilen doctype'sız deneme sayfası eski uyumluluk modunda (`BackCompat`) açılır ve farklı
+  davranır: deneme sayfasına `<!doctype html>` yaz.
 - Seed komutu `src/api` klasöründen çalıştırılmalı (content root, `DevData/dev-seed.json`).
 - Proje klasörünü yeniden adlandırmak (`git mv`) Windows'ta "Permission denied" verebilir: API ve
   `ng serve`'den başka, çalışma dizini o klasörde olan PowerShell terminalleri ve VS Code'un C# dil
@@ -926,6 +1031,15 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   betiğiyle (`fetch`) ya da `--data-binary @dosya.json` ile yap.
 - `sqlcmd` ile filtreli index'i olan tablolarda (ör. `AspNetUsers`) DELETE/UPDATE için `-I`
   (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
+- Firefox, bir betik sayfa ölçüsünü erken okursa `styles.css` gelmeden çizebilir (konsolda "Layout was forced
+  before the page was fully loaded"; `ng serve`'de görüldü, yayın derlemesinde kabuğun stilleri sayfaya gömülü).
+  Boyutu sadece sınıftan gelen bir SVG o anda sayfa genişliğine yayılır, rengi değişkenden geliyorsa siyah olur:
+  açılış kabuğundaki (`index.html`) SVG'ler `width` / `height` özniteliğini de taşır (2026-10-10, sayfa boyunda
+  siyah logo).
+- **axe `::backdrop`'u görmez:** zemini sadece `backdrop:` ile koyulaşan, kendisi saydam bir `<dialog>`'daki beyaz
+  metni arkadaki açık sayfanın üstünde sayar ve ciddi kontrast bulgusu verir (fotoğraf görüntüleyici, 2026-10-10).
+  Karartma `<dialog>`'un kendi zemini olur (tam ekran, `bg-…/85` + `backdrop-blur`), içerik ortada; görünüm aynı
+  kalır. Arka plan tıklaması o zaman dialog'a ya da içeriği saran çerçeveye gelir.
 - `sticky` bir eleman ebeveyninin dışına çıkamaz: bileşen host'u (`<app-header>`) içerikle aynı
   yükseklikteyse içteki elemana verilen `sticky` işe yaramaz; `sticky` host'a verilir (`host: { class }`).
 - `ng serve`'ün `src/index.html` değişikliklerini almadığı bir kez görüldü (2026-09, eski başlık);

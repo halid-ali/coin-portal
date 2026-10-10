@@ -31,6 +31,16 @@
           document.querySelector('meta[name="theme-color"]').content = '#0f172a';
         }
       } catch (e) {}
+      // The shell below: signed in on this browser (AuthService SIGNED_IN_KEY, a hint: the auth
+      // cookie is HttpOnly) and the home page, whose two versions it draws
+      try {
+        if (localStorage.getItem('coinportal.signedIn') === '1') {
+          document.documentElement.setAttribute('data-shell-signed-in', '');
+        }
+      } catch (e) {}
+      if (location.pathname === '/') {
+        document.documentElement.setAttribute('data-shell-home', '');
+      }
       // Accent color too (AccentService); Amber, the default, has no attribute
       try {
         var accent = localStorage.getItem('coinportal.accent');
@@ -42,21 +52,269 @@
   </head>
   <body>
     <app-root>
-      <!-- Until Angular starts (it replaces this). Styles: .app-splash in styles.css -->
-      <div class="app-splash" role="status">
-        <!-- Same drawing as shared/logo (colors from styles.css) -->
-        <svg class="app-splash-logo" viewBox="2 2 60 60" aria-hidden="true">
-          <circle cx="32" cy="32" r="30" style="fill: var(--logo-coin)" />
-          <path
-            d="M41.83 22.19A13.2 13.2 0 1 0 41.83 41.81M16 27.7H30.5M16 36.3H30.5"
-            fill="none"
-            stroke-width="4.8"
-            stroke-linecap="round"
-            style="stroke: var(--logo-sign)"
-          />
-        </svg>
-        CoinVitrine
-        <span class="sr-only">Loading…</span>
+      <!-- Until Angular starts (it replaces this; user choice 2026-10-10): the header as it will be
+       and the page's shapes. Signed in or not and the home page are known from the first script
+       above (data-shell-* on <html>), so the header's menu and buttons and the home page come in
+       their own version (.app-shell-in / -out, -home / -generic in styles.css); any other page gets
+       shapes that fit any page. Laid out with the classes of app.html, the header, HomeWelcome and
+       HomeDashboard: change it with them. The page's shapes fade in late (.app-shell-page), so a
+       fast start never shows them -->
+      <div class="flex min-h-dvh flex-col bg-shade-50">
+        <header
+          class="border-b border-shade-200/80 bg-shade-0/85 backdrop-blur supports-backdrop-filter:bg-shade-0/70"
+        >
+          <div class="page-container flex h-16 items-center gap-6">
+            <span
+              class="flex shrink-0 items-center gap-2 text-lg font-bold whitespace-nowrap text-shade-900"
+            >
+              <!-- Same drawing as shared/logo (colors from styles.css). Its own size too: a browser
+               may paint the shell before styles.css (Firefox when a script reads the layout
+               early), and an SVG without one fills the page -->
+              <svg class="size-8" width="32" height="32" viewBox="2 2 60 60" aria-hidden="true">
+                <circle cx="32" cy="32" r="30" style="fill: var(--logo-coin)" />
+                <path
+                  d="M41.83 22.19A13.2 13.2 0 1 0 41.83 41.81M16 27.7H30.5M16 36.3H30.5"
+                  fill="none"
+                  stroke-width="4.8"
+                  stroke-linecap="round"
+                  style="stroke: var(--logo-sign)"
+                />
+              </svg>
+              CoinVitrine
+            </span>
+            <!-- The menu: my collections (signed in) and Explore -->
+            <div class="hidden items-center gap-1 sm:flex" aria-hidden="true">
+              <div class="app-shell-in skeleton h-9 w-38 rounded-lg"></div>
+              <div class="skeleton h-9 w-28 rounded-lg"></div>
+            </div>
+            <!-- Phones signed out: language; theme; then sign in and register, or the account;
+             phones: the menu button -->
+            <div class="ml-auto flex items-center gap-2" aria-hidden="true">
+              <div class="app-shell-out skeleton size-9 rounded-lg sm:hidden"></div>
+              <div class="skeleton size-9 rounded-full"></div>
+              <div class="app-shell-out skeleton hidden h-9 w-24 rounded-lg sm:block"></div>
+              <div class="app-shell-out skeleton hidden h-9 w-24 rounded-lg sm:block"></div>
+              <div class="app-shell-in skeleton hidden h-9 w-40 rounded-full sm:block"></div>
+              <div class="skeleton size-9 rounded-lg sm:hidden"></div>
+            </div>
+          </div>
+        </header>
+        <p class="sr-only" role="status">Loading…</p>
+        <div class="app-shell-page page-container flex-1 py-8" aria-hidden="true">
+          <!-- Home, signed out: the welcome page -->
+          <div class="app-shell-home app-shell-out">
+            <div
+              class="grid items-center gap-10 pt-4 pb-6 sm:pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-12"
+            >
+              <div>
+                <div class="skeleton h-3 w-40 rounded-full"></div>
+                <div class="skeleton mt-6 h-10 w-4/5 sm:h-12 rounded-full"></div>
+                <div class="skeleton mt-4 h-10 w-11/12 sm:h-12 rounded-full"></div>
+                <div class="mt-8 space-y-3">
+                  <div class="skeleton h-4 w-[95%] rounded-full"></div>
+                  <div class="skeleton h-4 w-full rounded-full"></div>
+                  <div class="skeleton h-4 w-1/3 rounded-full"></div>
+                </div>
+                <div class="mt-7 flex flex-wrap gap-3">
+                  <div class="skeleton h-12 w-40 rounded-lg"></div>
+                  <div class="skeleton h-12 w-28 rounded-lg"></div>
+                </div>
+                <div class="mt-5 flex flex-wrap gap-5">
+                  <div class="skeleton h-3.5 w-28 rounded-full"></div>
+                  <div class="skeleton h-3.5 w-24 rounded-full"></div>
+                  <div class="skeleton h-3.5 w-28 rounded-full"></div>
+                </div>
+              </div>
+              <div class="relative mx-1 mb-8 h-72 sm:h-80 lg:mb-0 lg:h-90">
+                <div
+                  class="absolute inset-x-0 top-1.5 bottom-4 -rotate-3 rounded-3xl border border-shade-200 bg-shade-0 shadow-xl shadow-shade-900/10 sm:inset-x-6"
+                ></div>
+                <div
+                  class="absolute inset-x-4 top-6 bottom-9 grid -rotate-3 grid-cols-3 gap-2.5 sm:inset-x-12 sm:top-9 sm:bottom-12 sm:gap-3.5"
+                >
+                  <div class="skeleton rounded-2xl"></div>
+                  <div class="skeleton rounded-2xl"></div>
+                  <div class="skeleton rounded-2xl"></div>
+                  <div class="skeleton rounded-2xl"></div>
+                  <div class="skeleton rounded-2xl"></div>
+                  <div class="skeleton rounded-2xl"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
+              <div class="card p-5">
+                <div class="skeleton size-10 rounded-xl"></div>
+                <div class="skeleton mt-5 h-4 w-1/2 rounded-full"></div>
+                <div class="skeleton mt-3 h-3 w-11/12 rounded-full"></div>
+                <div class="skeleton mt-2 h-3 w-3/4 rounded-full"></div>
+              </div>
+              <div class="card p-5">
+                <div class="skeleton size-10 rounded-xl"></div>
+                <div class="skeleton mt-5 h-4 w-1/2 rounded-full"></div>
+                <div class="skeleton mt-3 h-3 w-11/12 rounded-full"></div>
+                <div class="skeleton mt-2 h-3 w-3/4 rounded-full"></div>
+              </div>
+              <div class="card p-5">
+                <div class="skeleton size-10 rounded-xl"></div>
+                <div class="skeleton mt-5 h-4 w-1/2 rounded-full"></div>
+                <div class="skeleton mt-3 h-3 w-11/12 rounded-full"></div>
+                <div class="skeleton mt-2 h-3 w-3/4 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Home, signed in: the dashboard -->
+          <div class="app-shell-home app-shell-in">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div class="skeleton h-8 w-64 max-w-full sm:h-9 rounded-full"></div>
+                <div class="skeleton mt-3 h-4 w-48 rounded-full"></div>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                <div class="skeleton h-10 w-32 flex-auto rounded-lg sm:flex-none"></div>
+                <div class="skeleton h-10 w-36 flex-auto rounded-lg sm:flex-none"></div>
+              </div>
+            </div>
+            <div class="card mt-5 p-5 sm:px-6">
+              <div class="flex items-center gap-2.5">
+                <div class="skeleton size-8 rounded-lg"></div>
+                <div class="skeleton h-4 w-44 rounded-full"></div>
+              </div>
+              <div class="skeleton mt-4 h-10.5 rounded-lg"></div>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+              <div
+                class="card flex flex-col items-start gap-2.5 p-3.5 sm:flex-row sm:items-center sm:gap-3.5 sm:p-4"
+              >
+                <div class="skeleton size-10 shrink-0 rounded-xl sm:size-11"></div>
+                <div class="space-y-2">
+                  <div class="skeleton h-4 w-10 rounded-full"></div>
+                  <div class="skeleton h-3 w-16 rounded-full"></div>
+                </div>
+              </div>
+              <div
+                class="card flex flex-col items-start gap-2.5 p-3.5 sm:flex-row sm:items-center sm:gap-3.5 sm:p-4"
+              >
+                <div class="skeleton size-10 shrink-0 rounded-xl sm:size-11"></div>
+                <div class="space-y-2">
+                  <div class="skeleton h-4 w-10 rounded-full"></div>
+                  <div class="skeleton h-3 w-16 rounded-full"></div>
+                </div>
+              </div>
+              <div
+                class="card flex flex-col items-start gap-2.5 p-3.5 sm:flex-row sm:items-center sm:gap-3.5 sm:p-4"
+              >
+                <div class="skeleton size-10 shrink-0 rounded-xl sm:size-11"></div>
+                <div class="space-y-2">
+                  <div class="skeleton h-4 w-10 rounded-full"></div>
+                  <div class="skeleton h-3 w-16 rounded-full"></div>
+                </div>
+              </div>
+              <div
+                class="card flex flex-col items-start gap-2.5 p-3.5 sm:flex-row sm:items-center sm:gap-3.5 sm:p-4"
+              >
+                <div class="skeleton size-10 shrink-0 rounded-xl sm:size-11"></div>
+                <div class="space-y-2">
+                  <div class="skeleton h-4 w-10 rounded-full"></div>
+                  <div class="skeleton h-3 w-16 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            <div class="skeleton mt-9 h-5 w-40 rounded-full"></div>
+            <div
+              class="-mx-1 mt-3.5 grid auto-cols-[42%] grid-flow-col gap-3 overflow-x-hidden px-1 pb-1 sm:auto-cols-[30%] md:grid-flow-row md:grid-cols-5 md:gap-3.5"
+            >
+              <div class="card overflow-hidden p-0">
+                <div
+                  class="grid aspect-square place-items-center border-b border-shade-200 bg-shade-50"
+                >
+                  <div class="skeleton size-3/4 rounded-full"></div>
+                </div>
+                <div class="space-y-2.5 px-3 py-3">
+                  <div class="skeleton h-3.5 w-4/5 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/2 rounded-full"></div>
+                </div>
+              </div>
+              <div class="card overflow-hidden p-0">
+                <div
+                  class="grid aspect-square place-items-center border-b border-shade-200 bg-shade-50"
+                >
+                  <div class="skeleton size-3/4 rounded-full"></div>
+                </div>
+                <div class="space-y-2.5 px-3 py-3">
+                  <div class="skeleton h-3.5 w-4/5 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/2 rounded-full"></div>
+                </div>
+              </div>
+              <div class="card overflow-hidden p-0">
+                <div
+                  class="grid aspect-square place-items-center border-b border-shade-200 bg-shade-50"
+                >
+                  <div class="skeleton size-3/4 rounded-full"></div>
+                </div>
+                <div class="space-y-2.5 px-3 py-3">
+                  <div class="skeleton h-3.5 w-4/5 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/2 rounded-full"></div>
+                </div>
+              </div>
+              <div class="card overflow-hidden p-0">
+                <div
+                  class="grid aspect-square place-items-center border-b border-shade-200 bg-shade-50"
+                >
+                  <div class="skeleton size-3/4 rounded-full"></div>
+                </div>
+                <div class="space-y-2.5 px-3 py-3">
+                  <div class="skeleton h-3.5 w-4/5 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/2 rounded-full"></div>
+                </div>
+              </div>
+              <div class="card overflow-hidden p-0">
+                <div
+                  class="grid aspect-square place-items-center border-b border-shade-200 bg-shade-50"
+                >
+                  <div class="skeleton size-3/4 rounded-full"></div>
+                </div>
+                <div class="space-y-2.5 px-3 py-3">
+                  <div class="skeleton h-3.5 w-4/5 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/2 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Any other page -->
+          <div class="app-shell-generic">
+            <div class="skeleton h-7 w-64 max-w-[60%] rounded-full"></div>
+            <div class="skeleton mt-3.5 h-3.5 w-96 max-w-[80%] rounded-full"></div>
+            <div class="card mt-7 space-y-3 p-6">
+              <div class="skeleton mb-4 h-4 w-2/5 rounded-full"></div>
+              <div class="skeleton h-3 w-[90%] rounded-full"></div>
+              <div class="skeleton h-3 w-3/4 rounded-full"></div>
+              <div class="skeleton h-3 w-4/5 rounded-full"></div>
+            </div>
+            <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div class="card overflow-hidden p-0">
+                <div class="skeleton aspect-video rounded-none"></div>
+                <div class="space-y-3 p-4">
+                  <div class="skeleton h-3.5 w-1/2 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/3 rounded-full"></div>
+                </div>
+              </div>
+              <div class="card overflow-hidden p-0">
+                <div class="skeleton aspect-video rounded-none"></div>
+                <div class="space-y-3 p-4">
+                  <div class="skeleton h-3.5 w-1/2 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/3 rounded-full"></div>
+                </div>
+              </div>
+              <div class="card overflow-hidden p-0 max-lg:hidden">
+                <div class="skeleton aspect-video rounded-none"></div>
+                <div class="space-y-3 p-4">
+                  <div class="skeleton h-3.5 w-1/2 rounded-full"></div>
+                  <div class="skeleton h-3 w-1/3 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </app-root>
   </body>

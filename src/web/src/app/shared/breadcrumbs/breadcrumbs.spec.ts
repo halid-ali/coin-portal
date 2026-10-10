@@ -62,4 +62,19 @@ describe('Breadcrumbs', () => {
 
     expect(element.querySelector('a')!.getAttribute('href')).toBe('/explore?country=DE&page=2');
   });
+
+  it('shows a placeholder for a name still loading, without a link', async () => {
+    const element = await render([
+      { key: 'nav.collections', link: '/collections', icon: 'collections' },
+      { text: '', link: ['/collections', 5], loading: true },
+      { text: '', loading: true },
+    ]);
+
+    expect([...element.querySelectorAll('a')].map((a) => a.textContent!.trim())).toEqual([
+      'Koleksiyonlarım',
+    ]);
+    const bars = [...element.querySelectorAll('.skeleton')];
+    expect(bars).toHaveLength(2);
+    expect(bars.every((b) => b.closest('[aria-hidden=true]'))).toBe(true);
+  });
 });

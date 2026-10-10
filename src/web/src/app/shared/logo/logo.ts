@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
  * The CoinVitrine logo: a coin with a euro sign drawn in round-capped strokes. Colors come from
  * --logo-coin and --logo-sign (styles.css): a dark coin with a gold sign on the light theme, a gold
  * coin with a dark sign on the dark one. Decorative (the name is next to it); the host sets the
- * size. The splash screen in index.html has a copy of this drawing: change both together.
+ * size. The shell in index.html (until Angular starts) has a copy of this drawing: change both together.
  */
 @Component({
   selector: 'app-logo',

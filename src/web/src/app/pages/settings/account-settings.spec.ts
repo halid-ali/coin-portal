@@ -13,6 +13,7 @@ import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { pressEscape, stubModalDialogs } from '../../shared/testing/dialogs';
 import { Home } from '../home/home';
 import { AccountSettings } from './account-settings';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 @Component({ template: '' })
 class Blank {}
@@ -110,15 +111,33 @@ describe('AccountSettings', () => {
     expect(page().textContent).toContain('255 MB kaldı');
     expect(meter.getAttribute('aria-valuenow')).toBe(String(45 * MB));
     expect(meter.getAttribute('aria-valuetext')).toBe('45 MB / 300 MB kullanıldı');
-    expect(meter.querySelector('.usage-bar-fill')!.classList).not.toContain('usage-bar-fill-warn');
+    expect(fillClasses(meter)).toEqual(['usage-bar-fill']);
     expect(page().textContent).not.toContain('Alanın dolmak üzere');
   });
 
-  it('warns when the storage is nearly full', async () => {
-    await signIn();
-    const meter = await openWithStorage(280 * MB);
+  const fillClasses = (meter: HTMLElement) => [
+    ...meter.querySelector('.usage-bar-fill')!.classList,
+  ];
 
-    expect(meter.querySelector('.usage-bar-fill')!.classList).toContain('usage-bar-fill-warn');
+  it('stays green just below 75 %', async () => {
+    await signIn();
+
+    expect(fillClasses(await openWithStorage(225 * MB - 1))).toEqual(['usage-bar-fill']);
+  });
+
+  it('turns orange from 75 % on, without a note yet', async () => {
+    await signIn();
+    const meter = await openWithStorage(225 * MB);
+
+    expect(fillClasses(meter)).toEqual(['usage-bar-fill', 'usage-bar-fill-warn']);
+    expect(page().textContent).not.toContain('Alanın dolmak üzere');
+  });
+
+  it('turns red and warns from 90 % on', async () => {
+    await signIn();
+    const meter = await openWithStorage(270 * MB);
+
+    expect(fillClasses(meter)).toEqual(['usage-bar-fill', 'usage-bar-fill-full']);
     expect(page().textContent).toContain('Alanın dolmak üzere');
   });
 
@@ -132,6 +151,27 @@ describe('AccountSettings', () => {
     expect(page().textContent).toContain(
       'Alanın doldu: yer açana kadar yeni fotoğraf yükleyemezsin.',
     );
+  });
+
+  it('shows the bar and the numbers as placeholders while the storage takes a while', async () => {
+    await signIn();
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      await harness.navigateByUrl('/settings/account');
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await harness.fixture.whenStable();
+
+      const section = page().querySelector('section[aria-labelledby=storage-title]')!;
+      expect(section.querySelectorAll('[aria-hidden=true] .skeleton')).toHaveLength(3);
+      expect(section.querySelector('[role=status]')!.textContent).toContain('Yükleniyor…');
+
+      http.expectOne('/api/settings/storage').flush({ usedBytes: MB, quotaBytes: 300 * MB });
+      await harness.fixture.whenStable();
+      expect(section.querySelector('.skeleton')).toBeNull();
+      expect(section.querySelector('[role=meter]')).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('says so when the storage cannot be read', async () => {

@@ -27,6 +27,7 @@ public class CollectionsController(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
     IPhotoStorage photoStorage,
+    StorageWarnings storageWarnings,
     PublicationGuard publication,
     UnverifiedAccounts unverified,
     IOptions<UserLimitOptions> limits) : ControllerBase
@@ -281,6 +282,10 @@ public class CollectionsController(
         if (collection.CoverImageId is { } coverId)
         {
             await photoStorage.DeleteAsync(userId, coverId);
+        }
+        if (photoIds.Count > 0 || collection.CoverImageId is not null)
+        {
+            storageWarnings.Enqueue(userId);
         }
 
         return NoContent();

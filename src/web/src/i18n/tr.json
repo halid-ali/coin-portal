@@ -19,6 +19,7 @@
     "remove": "Kaldır",
     "undo": "Geri al",
     "choose": "Seç…",
+    "typeOrChoose": "Yaz ya da seç…",
     "noMatch": "Eşleşen sonuç yok",
     "optional": "İsteğe bağlı.",
     "goToExplore": "Keşfet'e git",
@@ -430,6 +431,8 @@
     "currencyHint": "Örn. kuruş, lira, Mark",
     "countryHintOther": "Bütün ülkeler; Doğu Almanya, Sovyetler Birliği gibi eski ülkeler de.",
     "mintMarkHint": "İsteğe bağlı, örn. A, D, F, G, J",
+    "quantityDecrease": "Adedi azalt",
+    "quantityIncrease": "Adedi artır",
     "photosHint": "İsteğe bağlı. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
     "photosHintOther": "İsteğe bağlı; herkese açık bir koleksiyon için iki yüzün de fotoğrafı gerekir. Değişiklikler Kaydet'e basınca uygulanır; Vazgeç hepsini geri alır.",
     "photosFailed": "Coin kaydedildi, ancak bazı fotoğraflar kaydedilemedi:",
@@ -739,7 +742,7 @@
     },
     "purposes": {
       "title": "Neden işliyoruz (hukuki dayanak)",
-      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır. E-posta adresine sadece hesabınla ilgili e-postalar (doğrulama ve parola yenileme linkleri, parola değişikliği bildirimi) göndeririz; bülten ya da reklam göndermeyiz.",
+      "i1": "Hesabını ve koleksiyonunu sunmak için: hesap ve içerik verileri (GDPR md. 6/1-b, sözleşmenin ifası). Doğum tarihin sadece 18 yaş sınırını kontrol etmek için kullanılır. E-posta adresine sadece hesabınla ilgili e-postalar (doğrulama ve parola yenileme linkleri, parola değişikliği bildirimi, doğrulanmamış hesap silinmeden önce hatırlatmalar, fotoğraf alanın %75'i ve %90'ı dolunca uyarılar) göndeririz; bülten ya da reklam göndermeyiz.",
       "i2": "Siteyi güvende tutmak için: teknik kayıtlar, istek sınırları, hatalı girişlerden sonraki geçici kilit ve kötüye kullanıma karşı moderasyon (GDPR md. 6/1-f, meşru menfaat).",
       "i3": "Siteyi işletmek için toplu sayılar: örneğin son 30 günde siteyi kullanan hesap sayısı. Bu sayılar kişi bazında değerlendirme için kullanılmaz (GDPR md. 6/1-f, meşru menfaat).",
       "i4": "Bize yazdığın e-postaları cevaplamak için: e-posta adresin ve mesajın (GDPR md. 6/1-f, meşru menfaat).",
@@ -755,7 +758,7 @@
       "p1": "Site sadece çalışması için gereken cookie'leri kullanır; bu yüzden onay istemez:",
       "i1": "coinportal.auth girişini tutar. Kayıt olduğunda ve \"Beni hatırla\" seçiliyken 14 gün geçerlidir ve siteyi kullandıkça uzar; \"Beni hatırla\" seçili değilse tarayıcı kapanınca biter. Çıkış yapınca hemen silinir.",
       "i2": "coinportal.af ve XSRF-TOKEN, formların başka sitelerden gönderilmesini önler (güvenlik).",
-      "p2": "Dil, tema ve renk seçimlerin tarayıcının yerel deposunda (localStorage) tutulur. Analitik, reklam ya da izleme cookie'si yoktur; sayfalar başka sitelerden hiçbir şey (yazı tipi, betik) yüklemez."
+      "p2": "Dil, tema ve renk seçimlerin tarayıcının yerel deposunda (localStorage) tutulur. Bu tarayıcıda giriş yapmış olup olmadığın da orada not edilir (sadece evet ya da hayır), site açılırken doğru taslağı gösterebilmek için; çıkış yapınca silinir. Analitik, reklam ya da izleme cookie'si yoktur; sayfalar başka sitelerden hiçbir şey (yazı tipi, betik) yüklemez."
     },
     "hosting": {
       "title": "Barındırma",
