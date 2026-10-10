@@ -756,7 +756,7 @@
       "p1": "The site only uses the cookies it needs to work, so it does not ask for consent:",
       "i1": "coinportal.auth keeps you signed in. After signing up and with \"Remember me\" it lasts 14 days and is extended while you use the site; without \"Remember me\" it ends when you close the browser. Signing out removes it at once.",
       "i2": "coinportal.af and XSRF-TOKEN stop forms from being sent from other sites (security).",
-      "p2": "Your language, theme and color choices are kept in the browser's local storage. There are no analytics, advertising or tracking cookies, and pages load nothing (fonts, scripts) from other sites."
+      "p2": "Your language, theme and color choices are kept in the browser's local storage. Whether you are signed in on this browser is noted there too (only yes or no), so the site can show the right outline while it starts; signing out removes it. There are no analytics, advertising or tracking cookies, and pages load nothing (fonts, scripts) from other sites."
     },
     "hosting": {
       "title": "Hosting",

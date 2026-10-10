@@ -756,7 +756,7 @@
       "p1": "Site sadece çalışması için gereken cookie'leri kullanır; bu yüzden onay istemez:",
       "i1": "coinportal.auth girişini tutar. Kayıt olduğunda ve \"Beni hatırla\" seçiliyken 14 gün geçerlidir ve siteyi kullandıkça uzar; \"Beni hatırla\" seçili değilse tarayıcı kapanınca biter. Çıkış yapınca hemen silinir.",
       "i2": "coinportal.af ve XSRF-TOKEN, formların başka sitelerden gönderilmesini önler (güvenlik).",
-      "p2": "Dil, tema ve renk seçimlerin tarayıcının yerel deposunda (localStorage) tutulur. Analitik, reklam ya da izleme cookie'si yoktur; sayfalar başka sitelerden hiçbir şey (yazı tipi, betik) yüklemez."
+      "p2": "Dil, tema ve renk seçimlerin tarayıcının yerel deposunda (localStorage) tutulur. Bu tarayıcıda giriş yapmış olup olmadığın da orada not edilir (sadece evet ya da hayır), site açılırken doğru taslağı gösterebilmek için; çıkış yapınca silinir. Analitik, reklam ya da izleme cookie'si yoktur; sayfalar başka sitelerden hiçbir şey (yazı tipi, betik) yüklemez."
     },
     "hosting": {
       "title": "Barındırma",

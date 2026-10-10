@@ -756,7 +756,7 @@
       "p1": "Die Website verwendet nur Cookies, die für ihren Betrieb erforderlich sind, und fragt deshalb nicht nach einer Einwilligung:",
       "i1": "coinportal.auth hält dich angemeldet. Nach der Registrierung und mit „Angemeldet bleiben“ gilt es 14 Tage und verlängert sich, solange du die Website nutzt; ohne „Angemeldet bleiben“ endet es, wenn du den Browser schließt. Beim Abmelden wird es sofort gelöscht.",
       "i2": "coinportal.af und XSRF-TOKEN verhindern, dass Formulare von anderen Websites aus abgeschickt werden (Sicherheit).",
-      "p2": "Deine Wahl von Sprache, Farbschema und Akzentfarbe wird im lokalen Speicher des Browsers (localStorage) abgelegt. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies, und die Seiten laden nichts (Schriften, Skripte) von anderen Websites."
+      "p2": "Deine Wahl von Sprache, Farbschema und Akzentfarbe wird im lokalen Speicher des Browsers (localStorage) abgelegt. Dort wird auch vermerkt, ob du in diesem Browser angemeldet bist (nur ja oder nein), damit die Seite beim Start den passenden Umriss zeigen kann; beim Abmelden wird es gelöscht. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies, und die Seiten laden nichts (Schriften, Skripte) von anderen Websites."
     },
     "hosting": {
       "title": "Hosting",
