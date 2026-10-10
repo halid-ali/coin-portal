@@ -1953,6 +1953,9 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           filtresi, coin formunda Yıl, yönetim ayarları). Adet'te iki uçta − / + düğmeleri (Tab sırasında değil,
           sınırda sönük, ekran okuyucuda "Adedi azalt / artır"). Seçili bir sayı alanının üzerinde tekerlek artık
           değeri değiştirmiyor, sayfayı kaydırıyor (Edge'de denendi: önce 2002 → 2001 ve sayfa duruyordu).
+    - **Kaydırma çubukları** (kullanıcı kararı; tarayıcının ince çubuğu, gri hap ve tema renginde hap
+          görsellerle karşılaştırıldı): Windows'un oklu klasik çubuğu yerine her yerde oksuz gri hap, oluk
+          şeffaf, üzerine gelince koyulaşır. Firefox aynı renklerde ince çubuk gösterir; telefonlar kendi çubuğunu.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
     - Testler: client 503 (+55), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.

@@ -762,6 +762,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   **Rozet köşeleri** (kullanıcı kararı 2026-10-10): sağ üst köşe dikkat çeken rozetlerin (seçili filtre sayısı,
   ileride okunmamış mesaj ve bildirimler: dolgu renkli, belirip kaybolur), sağ alt köşe sakin sayı rozetlerinin
   (tür düğmelerinin coin sayıları: gri, seçilide tema renginin açık tonu, hep orada).
+- **Kaydırma çubukları** (kullanıcı kararı 2026-10-10): sitenin her yerinde (sayfa, açılır listeler, pencereler)
+  oksuz gri hap, oluk şeffaf, üzerine gelince koyulaşır (`styles.css`, `::-webkit-scrollbar`, `shade-300` /
+  `shade-400`). Chromium bir elemanda `scrollbar-color` ya da `scrollbar-width` görürse `::-webkit-scrollbar`'ı
+  yok sayar: bunlar sadece Firefox için (`@supports not selector(::-webkit-scrollbar)`), bir elemana yazılmaz.
+  Headless tarayıcı çubukları çizmez: görüntüde `ignoreDefaultArgs: ['--hide-scrollbars']`.
 - **Butonlarda el imleci** (kullanıcı kararı 2026-10-07): Tailwind 4 butonları ok imlecine çeker, buton
   görünümlü linkler el gösterir; `styles.css` base katmanındaki kural `button`, `[role=button]` ve
   `[role=option]`'a el imleci verir (devre dışı ve `aria-disabled` olanlar hariç, onlar `btn-*`'in
