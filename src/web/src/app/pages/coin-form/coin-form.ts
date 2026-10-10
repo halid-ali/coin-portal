@@ -53,6 +53,7 @@ import { DISCARD_CHANGES_STATE, HasUnsavedChanges } from '../../shared/unsaved-c
 import { UNPUBLISH_DECLINED, UnpublishConfirm } from '../../shared/unpublish-confirm';
 import { PhotoSlot } from './photo-slot';
 import { Combobox } from '../../shared/combobox/combobox';
+import { SlidingSelection } from '../../shared/sliding-selection';
 import { ComboboxOption } from '../../shared/combobox/combobox-filter';
 
 /** Create (/coins/new?collection=<id>) and edit (/coins/:id/edit) in one component. */
@@ -67,6 +68,7 @@ import { ComboboxOption } from '../../shared/combobox/combobox-filter';
     PhotoSlot,
     PhotoViewer,
     Combobox,
+    SlidingSelection,
   ],
   templateUrl: './coin-form.html',
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
