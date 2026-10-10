@@ -1931,9 +1931,13 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           ve okuyla ("Yıl ↓"; `Combobox` `display` şablonu, genişliği en uzun kısa ad kadar; liste ve ekran
           okuyucu tam adla). Tür düğmeleri telefonda biraz daha dar (`px-3`): Bulgarca 360 px'te kartın içine
           sığıyor (6 px taşıyordu; kullanıcı tür düğmelerinde başka değişiklik düşünüyor).
+    - **Kayan seçim** (kullanıcı kararları): Tümü / Euro / Dünya'nın seçili zemini düğmeden düğmeye kayar (~200 ms,
+          `shared/sliding-selection` yönergesi; ilk gösterimde ve sayılar/dil yüzünden boyut değişince kaymaz,
+          "hareketi azalt"ta hiç kaymaz). Coin formunun telefondaki tür seçimi de (tablet ve masaüstündeki kartlar
+          aynı). Seçili olmayan düğmenin hover zemini kalktı (kaymayı örtüyordu), sadece yazı koyulaşır.
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
-    - Testler: client 492 (+44), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
+    - Testler: client 496 (+48), e2e 21, API 481 (API'de değişiklik yok). Prettier, `ng build`, tam e2e koşusu temiz.
           Görsel kontroller gerçek uygulamada yavaşlatılmış ağla (Playwright), iki tema ve telefon.
 
 ## Yol haritası

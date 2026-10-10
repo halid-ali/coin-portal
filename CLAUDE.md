@@ -742,7 +742,12 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   `target="_blank"` linki `rel="noopener"` + `sr-only` `common.opensNewTab`. Bilgi sadece `title`'da kalmaz
   (dokunmatikte yok); `title` işaretçiyi alan elemana verilir (ızgaradaki kaplama butonu). Satır başına tekrar
   eden butonun erişilebilir adı satırı içerir (`Gizle: <ad>`). Hareket: geçişler `motion-safe:`, sayfa başına
-  kaydırma `scrollToTop()` (`shared/motion.ts`, `prefers-reduced-motion`'da anında).
+  kaydırma `scrollToTop()` (`shared/motion.ts`, `prefers-reduced-motion`'da anında). **Kayan seçim** (kullanıcı
+  kararları 2026-10-10): tek seçimli düğme grubunun seçili zemini düğmeden düğmeye kayar (`shared/sliding-selection`,
+  `[appSlidingSelection]="değer"` + `highlightClass`, seçili öğe `aria-pressed` ya da `chosen` seçicisi;
+  ~200 ms, ilk gösterimde ve boyut değişiminde kaymaz, hareketi azaltta hiç kaymaz): koleksiyon sayfası ve
+  Keşfet'in tür düğmeleri, coin formunun telefondaki tür seçimi (kartlarda yok). Düğmeler `relative`, seçiliyken
+  kendi zemini yok; seçili olmayanın üzerine gelince zemin değil sadece yazı rengi değişir (zemin kaymayı örtüyordu).
 - **Butonlarda el imleci** (kullanıcı kararı 2026-10-07): Tailwind 4 butonları ok imlecine çeker, buton
   görünümlü linkler el gösterir; `styles.css` base katmanındaki kural `button`, `[role=button]` ve
   `[role=option]`'a el imleci verir (devre dışı ve `aria-disabled` olanlar hariç, onlar `btn-*`'in
