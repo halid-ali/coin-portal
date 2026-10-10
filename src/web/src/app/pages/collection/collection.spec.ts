@@ -580,6 +580,41 @@ describe('Collection', () => {
     expect(clearButtons().every((b) => !b.hasAttribute('aria-disabled'))).toBe(true);
   });
 
+  it('keeps the sort selects and the table headers on the same order', async () => {
+    const selects = () => [
+      ...page().querySelectorAll<HTMLSelectElement>('select[aria-label="Sırala"]'),
+    ];
+    const sortedHeader = () => page().querySelector('th[aria-sort]');
+
+    await open('/collections/5', 1, pageWithCoin());
+    // The first row's (sm and up) and the phones'
+    expect(selects().map((s) => s.id)).toEqual(['sort', 'sort-phone']);
+    // "Clear sort" is always there (the select keeps its width), unavailable with the default order
+    const clearSort = selects()[0].querySelector<HTMLOptionElement>('option[value="Newest"]')!;
+    expect(clearSort.disabled).toBe(true);
+    expect(sortedHeader()).toBeNull();
+
+    // A header sorts: the selects show it
+    await harness.navigateByUrl('/collections/5?sort=Year&dir=Desc');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(selects().map((s) => s.value)).toEqual(['Year:Desc', 'Year:Desc']);
+    expect(sortedHeader()!.textContent).toContain('Yıl');
+    expect(sortedHeader()!.getAttribute('aria-sort')).toBe('descending');
+    expect(clearSort.disabled).toBe(false);
+
+    // The select sorts: the header shows it
+    selects()[0].value = 'Country:Asc';
+    selects()[0].dispatchEvent(new Event('change'));
+    await harness.fixture.whenStable();
+    expect(url()).toBe('/collections/5?sort=Country');
+    http.expectOne((r) => r.url === '/api/coins').flush(pageWithCoin());
+    await harness.fixture.whenStable();
+    expect(selects().map((s) => s.value)).toEqual(['Country:Asc', 'Country:Asc']);
+    expect(sortedHeader()!.textContent).toContain('Ülke');
+    expect(sortedHeader()!.getAttribute('aria-sort')).toBe('ascending');
+  });
+
   it('loads a list sorted by country order once, after the countries', async () => {
     await harness.navigateByUrl('/collections/5?sort=Country');
     http.expectOne('/api/collections/5').flush(collection(3));

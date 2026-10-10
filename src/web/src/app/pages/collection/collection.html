@@ -326,12 +326,14 @@
       <div class="card grid items-end gap-4 p-4 sm:grid-cols-2 lg:grid-cols-6">
         <!-- All / Euro / Other with their counts, only where both kinds are (user choice
          2026-10-09); on a phone above the search, outside the folded filters. From sm up "clear
-         filters" sits at the right end of this row, also without the kind buttons, and stays when
-         there is nothing to clear (unavailable), so the card never changes height (user choice
-         2026-10-10). Phones have it at the end of the folded filters -->
+         filters" and the sort select sit at the right end of this row, also without the kind
+         buttons, in every view; "clear filters" stays when there is nothing to clear
+         (unavailable), so the card never changes height (user choices 2026-10-10). Where the row
+         is too narrow the pair wraps to a line of its own, on the left (space-between). Phones
+         have "clear filters" at the end of the folded filters, the sort select below -->
         <div
           class="flex-wrap items-center gap-3 sm:col-span-2 sm:flex lg:col-span-6"
-          [class]="showKinds() ? 'flex' : 'hidden'"
+          [class]="showKinds() ? 'flex justify-between' : 'hidden justify-end'"
         >
           @if (showKinds()) {
             <div
@@ -364,14 +366,20 @@
               }
             </div>
           }
-          <button
-            type="button"
-            class="btn-secondary ml-auto hidden shrink-0 py-1.5 whitespace-nowrap sm:inline-flex"
-            [attr.aria-disabled]="hasFilters() ? null : true"
-            (click)="clearFilters()"
-          >
-            {{ 'coinList.clearFilters' | transloco }}
-          </button>
+          <div class="hidden max-w-full min-w-0 items-center gap-3 sm:flex">
+            <button
+              type="button"
+              class="btn-secondary shrink-0 py-1.5 whitespace-nowrap"
+              [attr.aria-disabled]="hasFilters() ? null : true"
+              (click)="clearFilters()"
+            >
+              {{ 'coinList.clearFilters' | transloco }}
+            </button>
+            <ng-container
+              [ngTemplateOutlet]="sortBox"
+              [ngTemplateOutletContext]="{ id: 'sort', wrapperClass: '' }"
+            />
+          </div>
         </div>
 
         <!-- Explore (collector) and own collections (photos) have one filter more: there the
@@ -497,16 +505,12 @@
           </button>
         </div>
 
-        <!-- In the desktop list the table headers sort, so there is no row; the grid has no headers
-         and keeps the sort select on every screen size. Phones: the filters toggle and the sort
-         select -->
-        <div
-          class="order-1 flex min-w-0 items-center gap-3 sm:flex-wrap sm:order-0 sm:col-span-2 sm:items-end lg:col-span-6"
-          [class]="viewMode() === 'grid' ? '' : 'lg:hidden'"
-        >
+        <!-- Phones: the filters toggle and the sort select; from sm up the sort select is in the
+         first row -->
+        <div class="order-1 flex min-w-0 items-center gap-3 sm:hidden">
           <button
             type="button"
-            class="btn-secondary shrink-0 gap-2 py-1.5 sm:hidden"
+            class="btn-secondary shrink-0 gap-2 py-1.5"
             aria-controls="coin-filters"
             [attr.aria-expanded]="filtersOpen()"
             (click)="filtersOpen.set(!filtersOpen())"
@@ -542,15 +546,26 @@
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          <!-- Looks like the filters toggle: an icon on the left and no label; with the default order
-           it reads "Sort" (a hidden placeholder option), otherwise the chosen order and "clear sort"
-           joins the list. The frame is on the wrapper, not on the select: Chrome indents the
-           options of the open list by the select's left padding, which would be the icon's room.
-           The select keeps its own background: Chrome paints the open list with it (transparent
-           gives a white list in the dark theme) -->
+          <ng-container
+            [ngTemplateOutlet]="sortBox"
+            [ngTemplateOutletContext]="{ id: 'sort-phone', wrapperClass: 'ml-auto flex-1' }"
+          />
+        </div>
+
+        <!-- The sort select, in the first row from sm up and next to the filters toggle on phones.
+         Looks like the filters toggle: an icon on the left and no label; with the default order
+         it reads "Sort" (a hidden placeholder option), otherwise the chosen order. It is in every
+         view: in the desktop list the table headers sort too, both read the order from the URL.
+         "Clear sort" is always in the list, unavailable with the default order: a select is as
+         wide as its longest option, so the row does not move when an order is chosen. The frame
+         is on the wrapper, not on the select: Chrome indents the options of the open list by the
+         select's left padding, which would be the icon's room. The select keeps its own
+         background: Chrome paints the open list with it (transparent gives a white list in the
+         dark theme) -->
+        <ng-template #sortBox let-id="id" let-wrapperClass="wrapperClass">
           <div
-            class="ml-auto flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm focus-within:border-focus focus-within:ring-2 focus-within:ring-focus/30 sm:flex-none"
-            [class]="viewMode() === 'grid' ? '' : 'lg:hidden'"
+            class="flex min-w-0 max-w-full items-center gap-1 rounded-lg border border-shade-300 bg-shade-0 pl-3 shadow-sm focus-within:border-focus focus-within:ring-2 focus-within:ring-focus/30"
+            [class]="wrapperClass"
           >
             <svg
               viewBox="0 0 24 24"
@@ -565,7 +580,7 @@
               <path d="M7 4v16M3 8l4-4 4 4M17 20V4m-4 12 4 4 4-4" />
             </svg>
             <select
-              id="sort"
+              [id]="id"
               #sortSelect
               class="form-input w-full min-w-0 border-0 py-1.5 pl-2 font-medium text-shade-700 shadow-none focus:ring-0 sm:w-auto"
               [attr.aria-label]="'coinList.sort' | transloco"
@@ -574,9 +589,9 @@
               <option value="" disabled hidden [selected]="sortState().sort === 'Newest'">
                 {{ 'coinList.sort' | transloco }}
               </option>
-              @if (sortState().sort !== 'Newest') {
-                <option value="Newest">{{ 'sort.clear' | transloco }}</option>
-              }
+              <option value="Newest" [disabled]="sortState().sort === 'Newest'">
+                {{ 'sort.clear' | transloco }}
+              </option>
               @for (c of sortColumns; track c.value) {
                 <option [value]="c.value + ':Asc'" [selected]="sortDirection(c.value) === 'Asc'">
                   {{ c.labelKey | transloco }} ({{ 'coin.sort.' + c.value + '.asc' | transloco }})
@@ -587,7 +602,7 @@
               }
             </select>
           </div>
-        </div>
+        </ng-template>
       </div>
     }
 

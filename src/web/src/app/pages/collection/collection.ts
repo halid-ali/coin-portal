@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -110,6 +111,7 @@ type QueryParamValue = string | number | boolean | null;
     CollectionFormDialog,
     CollectionDeleteDialog,
     Combobox,
+    NgTemplateOutlet,
   ],
   templateUrl: './collection.html',
 })
@@ -861,7 +863,7 @@ export class Collection {
     this.applySort(nextSort(this.sortState(), column));
   }
 
-  /** Mobile select; values look like "Year:Desc", "Newest" for the default order. */
+  /** The sort select; values look like "Year:Desc", "Newest" for the default order. */
   protected setSortOption(value: string): void {
     const [sort, dir] = value.split(':');
     this.applySort(parseSort(sort, dir));
