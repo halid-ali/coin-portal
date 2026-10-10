@@ -550,6 +550,64 @@ describe('Collection', () => {
     expect(request.request.params.has('countryOrder')).toBe(false);
   });
 
+  describe('while loading', () => {
+    const titles = () =>
+      [...page().querySelectorAll('table tbody tr')].map((r) =>
+        r.querySelectorAll('td')[1].textContent!.trim(),
+      );
+    const busy = () => page().querySelector('[aria-busy]')!.getAttribute('aria-busy');
+    const pageButtons = () => [...page().querySelectorAll('app-pagination nav button')];
+    const firstOfThree = { ...pageWithCoin(), totalCount: 30, totalPages: 3 };
+    const secondOfThree = {
+      ...firstOfThree,
+      page: 2,
+      items: [{ ...coin, id: 2, title: 'Akropolis' }],
+    };
+
+    it('says the first list is loading, then shows it', async () => {
+      await harness.navigateByUrl('/collections/5');
+      http.match('/api/countries').forEach((r) => r.flush([]));
+      http.expectOne('/api/collections/5').flush(collection(1));
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('[role=status]')!.textContent).toContain('Yükleniyor…');
+
+      latestCoinRequest().flush(pageWithCoin());
+      await harness.fixture.whenStable();
+      expect(page().textContent).not.toContain('Yükleniyor…');
+      expect(titles()).toEqual(['Brandenburger Tor']);
+    });
+
+    it('keeps the list busy and the pages locked until the next page arrives', async () => {
+      await open('/collections/5', 30, firstOfThree);
+      expect(busy()).toBe('false');
+
+      await harness.navigateByUrl('/collections/5?page=2');
+
+      expect(busy()).toBe('true');
+      expect(pageButtons().every((b) => b.getAttribute('aria-disabled') === 'true')).toBe(true);
+      expect(page().textContent).toContain('1 / 3');
+
+      latestCoinRequest().flush(secondOfThree);
+      await harness.fixture.whenStable();
+      expect(busy()).toBe('false');
+      expect(titles()).toEqual(['Akropolis']);
+      expect(page().textContent).toContain('2 / 3');
+      expect(pageButtons().some((b) => b.getAttribute('aria-disabled') === null)).toBe(true);
+    });
+
+    it('says when the next list cannot be loaded', async () => {
+      await open('/collections/5', 30, firstOfThree);
+
+      await harness.navigateByUrl('/collections/5?page=2');
+      latestCoinRequest().flush(null, { status: 500, statusText: 'Server Error' });
+      await harness.fixture.whenStable();
+
+      expect(page().querySelector('[role=alert]')!.textContent).toContain("Coin'ler yüklenemedi");
+      expect(page().querySelector('table')).toBeNull();
+    });
+  });
+
   it('uses the first of repeated query params', async () => {
     await harness.navigateByUrl('/collections/5?search=a&search=b');
     http.match('/api/countries').forEach((r) => r.flush([]));
