@@ -13,6 +13,7 @@ import { provideTestTransloco, useTestLanguage } from '../../core/i18n/testing';
 import { pressEscape, stubModalDialogs } from '../../shared/testing/dialogs';
 import { Home } from '../home/home';
 import { AccountSettings } from './account-settings';
+import { SKELETON_DELAY_MS } from '../../shared/skeleton';
 
 @Component({ template: '' })
 class Blank {}
@@ -132,6 +133,27 @@ describe('AccountSettings', () => {
     expect(page().textContent).toContain(
       'Alanın doldu: yer açana kadar yeni fotoğraf yükleyemezsin.',
     );
+  });
+
+  it('shows the bar and the numbers as placeholders while the storage takes a while', async () => {
+    await signIn();
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      await harness.navigateByUrl('/settings/account');
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      await harness.fixture.whenStable();
+
+      const section = page().querySelector('section[aria-labelledby=storage-title]')!;
+      expect(section.querySelectorAll('[aria-hidden=true] .skeleton')).toHaveLength(3);
+      expect(section.querySelector('[role=status]')!.textContent).toContain('Yükleniyor…');
+
+      http.expectOne('/api/settings/storage').flush({ usedBytes: MB, quotaBytes: 300 * MB });
+      await harness.fixture.whenStable();
+      expect(section.querySelector('.skeleton')).toBeNull();
+      expect(section.querySelector('[role=meter]')).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('says so when the storage cannot be read', async () => {

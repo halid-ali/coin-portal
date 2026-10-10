@@ -600,7 +600,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   başlığı, sayfa düğmeleri ve görünüm seçimi yerinde kalır. Filtre özeti (facets) sadece liste, koleksiyoncu ya da
   tür değişince istenir; yeniden yüklenirken eskisi tutulur (tür düğmeleri kalır), değişecek filtre kilitlenir
   (`facetsReloading`: tür → Ülke; koleksiyoncu → Nominal, Ülke ve düğmelerdeki sayılar). Kilitli `Combobox`
-  soluk görünür. İskelet site geneline yayılıyor (kalan sayfalar PROJECT_STATUS'ta).
+  soluk görünür. Diğer sayfalarda da aynı kural (Koleksiyonlarım, profil, ana sayfa panosu, koleksiyon başlığı, coin
+  düzenleme formu, Ayarlar › Hesap): **sabit metin (başlık, etiket, ikon) yerinde kalır, sadece yüklenen veri şekle
+  döner**; koleksiyon kartının şekli `shared/collection-card/collection-card-skeleton`, sayfa yolunda yüklenen ad
+  `Crumb.loading` (çubuk, link değil: adsız link olmasın). Yeni bir yüklenen bölüm de böyle gelir. Yönetim paneli
+  sıradaki adım (PROJECT_STATUS).
   **Sunucudan gelen her fotoğraf** (`<img>`: coin fotoğrafı, kapak) `appImageSkeleton` alır (`shared/image-skeleton.ts`,
   `[src]`'yi o alır): fotoğraf inene ya da hata verene kadar yerinde şekil, gecikmesiz (beklerken gösterilecek eski
   bir şey yok); tarayıcıda zaten olan fotoğrafta şekil görünmez. Elemanın kendi köşesi ve zemini şeklinkine baskın.

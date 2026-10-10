@@ -12,6 +12,7 @@ import {
   PhotoStorage,
   SettingsService,
 } from '../../core/settings/settings.service';
+import { delayedLoading } from '../../shared/skeleton';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { ExportDownload } from './export-download';
 
@@ -79,9 +80,17 @@ const NEARLY_FULL = 0.9;
         } @else if (storageError(); as key) {
           <p role="alert" class="form-error">{{ key | transloco }}</p>
         } @else {
-          <p role="status" class="mt-4 text-sm text-shade-500">
-            {{ 'common.loading' | transloco }}
-          </p>
+          <!-- The bar and the numbers as shapes after a moment (user choice 2026-10-10) -->
+          <p role="status" class="sr-only">{{ 'common.loading' | transloco }}</p>
+          @if (showSkeleton()) {
+            <div aria-hidden="true">
+              <div class="skeleton mt-4 h-2.5 rounded-full"></div>
+              <div class="mt-2 flex h-5 items-center justify-between gap-4">
+                <div class="skeleton h-3 w-40 rounded-full"></div>
+                <div class="skeleton h-3 w-24 rounded-full"></div>
+              </div>
+            </div>
+          }
         }
       </section>
 
@@ -156,6 +165,9 @@ export class AccountSettings {
   protected readonly storage = signal<PhotoStorage | null>(null);
   /** Translation key when the storage could not be read. */
   protected readonly storageError = signal<string | null>(null);
+  protected readonly showSkeleton = delayedLoading(
+    computed(() => this.storage() === null && this.storageError() === null),
+  );
   /** Used may be above the limit (lowered by an admin): the bar stops at full. */
   protected readonly clampedUsed = computed(() => {
     const s = this.storage();
