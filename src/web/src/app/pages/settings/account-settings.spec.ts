@@ -111,15 +111,33 @@ describe('AccountSettings', () => {
     expect(page().textContent).toContain('255 MB kaldı');
     expect(meter.getAttribute('aria-valuenow')).toBe(String(45 * MB));
     expect(meter.getAttribute('aria-valuetext')).toBe('45 MB / 300 MB kullanıldı');
-    expect(meter.querySelector('.usage-bar-fill')!.classList).not.toContain('usage-bar-fill-warn');
+    expect(fillClasses(meter)).toEqual(['usage-bar-fill']);
     expect(page().textContent).not.toContain('Alanın dolmak üzere');
   });
 
-  it('warns when the storage is nearly full', async () => {
-    await signIn();
-    const meter = await openWithStorage(280 * MB);
+  const fillClasses = (meter: HTMLElement) => [
+    ...meter.querySelector('.usage-bar-fill')!.classList,
+  ];
 
-    expect(meter.querySelector('.usage-bar-fill')!.classList).toContain('usage-bar-fill-warn');
+  it('stays green just below 75 %', async () => {
+    await signIn();
+
+    expect(fillClasses(await openWithStorage(225 * MB - 1))).toEqual(['usage-bar-fill']);
+  });
+
+  it('turns orange from 75 % on, without a note yet', async () => {
+    await signIn();
+    const meter = await openWithStorage(225 * MB);
+
+    expect(fillClasses(meter)).toEqual(['usage-bar-fill', 'usage-bar-fill-warn']);
+    expect(page().textContent).not.toContain('Alanın dolmak üzere');
+  });
+
+  it('turns red and warns from 90 % on', async () => {
+    await signIn();
+    const meter = await openWithStorage(270 * MB);
+
+    expect(fillClasses(meter)).toEqual(['usage-bar-fill', 'usage-bar-fill-full']);
     expect(page().textContent).toContain('Alanın dolmak üzere');
   });
 

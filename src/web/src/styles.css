@@ -347,15 +347,16 @@
   }
 
   /*
-   * How full a limit is (Settings > Account, photo storage): the accent color, orange when
-   * nearly full (a fixed hue for the meaning, like stat-icon), the danger color when full.
+   * How full a limit is (Settings > Account, photo storage): green, orange as it fills, red when
+   * nearly full or full. Fixed hues for the meaning, like stat-icon, the same in both themes and not
+   * the accent color (user choice 2026-10-10: a red accent looked like a warning at 1 %).
    */
   .usage-bar {
     @apply block h-2.5 overflow-hidden rounded-full bg-shade-200;
   }
 
   .usage-bar-fill {
-    @apply block h-full rounded-full bg-brand-500 motion-safe:transition-[width];
+    @apply block h-full rounded-full bg-green-500 motion-safe:transition-[width];
   }
 
   .usage-bar-fill-warn {
@@ -363,7 +364,7 @@
   }
 
   .usage-bar-fill-full {
-    @apply bg-danger-600;
+    @apply bg-red-500;
   }
 
   /*

@@ -16,7 +16,12 @@ import { delayedLoading } from '../../shared/skeleton';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { ExportDownload } from './export-download';
 
-/** From this share of the storage on, the bar turns orange and says so. */
+/**
+ * The bar's colors by how full the storage is (user choice 2026-10-10): green, orange from 75 %, red
+ * from 90 % with the "nearly full" note. The same shares send the warning e-mails (API
+ * Photos/StorageWarnings).
+ */
+const FILLING = 0.75;
 const NEARLY_FULL = 0.9;
 
 /**
@@ -51,8 +56,8 @@ const NEARLY_FULL = 0.9;
           >
             <span
               class="usage-bar-fill"
-              [class.usage-bar-fill-warn]="level() === 'nearlyFull'"
-              [class.usage-bar-fill-full]="level() === 'full'"
+              [class.usage-bar-fill-warn]="level() === 'filling'"
+              [class.usage-bar-fill-full]="level() === 'nearlyFull' || level() === 'full'"
               [style.width.%]="percent()"
             ></span>
           </div>
@@ -183,10 +188,13 @@ export class AccountSettings {
     const s = this.storage();
     return s ? Math.max(0, s.quotaBytes - s.usedBytes) : 0;
   });
-  protected readonly level = computed<'normal' | 'nearlyFull' | 'full'>(() => {
+  protected readonly level = computed<'normal' | 'filling' | 'nearlyFull' | 'full'>(() => {
     const s = this.storage();
-    if (!s || s.usedBytes < s.quotaBytes * NEARLY_FULL) {
+    if (!s || s.usedBytes < s.quotaBytes * FILLING) {
       return 'normal';
+    }
+    if (s.usedBytes < s.quotaBytes * NEARLY_FULL) {
+      return 'filling';
     }
     return s.usedBytes >= s.quotaBytes ? 'full' : 'nearlyFull';
   });
