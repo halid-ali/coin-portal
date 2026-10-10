@@ -5,8 +5,9 @@ Son güncelleme: 2026-10-10 (**İkinci bulgu turu sürüyor** (Tamamlananlar 100
 kaybolması, site geneli **yükleme iskeleti** (listeler, fotoğraflar, bütün sayfalar, yönetim paneli) ve logolu açılış
 ekranının yerine **uygulama kabuğu** (girişli / girişsiz, ana sayfanın kendi düzeni), filtre kartında "Filtreleri
 temizle" ve "Sırala" ilk satırda, hep yerinde, kısa sabit listeler (Sırala, Sayfa başına, yönetim paneli dahil)
-yazısız seçim kutusu, uygulamada native `<select>` kalmadı. Kullanıcının başka bulguları
-var, yeni sohbette aynı branch'te devam edilir. Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
+yazısız seçim kutusu, uygulamada native `<select>` kalmadı, telefonda "Filtrele" ikon ve Sırala "Yıl ↓", tür
+düğmelerinde kayan seçim ve sağ alt köşede sayı rozeti (42 commit). Kullanıcının başka bulguları var, yeni sohbette
+aynı branch'te devam edilir. Öncesi: manuel test bulguları (99, main'de, push edilmedi): seçim
 listeleri yazılabilen kısa liste, "Diğer coin" artık "Dünya coin'i", ana sayfa boşluğu. Öncesi: **Euro dışı coin'ler** (yol haritası 18, Tamamlananlar 98), Euro coin regresyon testleri (96),
 istemcinin kapattığı istek loga hata yazmıyor (97). Sıradaki: kullanıcı başka bulgu bulursa düzeltilir, sonra
 `v1.10.0`. **`v1.9.0` yayında** (Tamamlananlar 93–95): parola sıfırlama, Ayarlar > Güvenlik'te
@@ -27,8 +28,8 @@ kötüye kullanım testleri, CI'da ZAP, elle pentest. `v1.5.1` coin değer ikonl
 - Durum (2026-10-10 sohbetinin sonu): son etiket `v1.9.0`, canlıda `v1.9.0`. Lokal `main`, `origin/main`'in
   **önünde, push edilmedi**: Euro coin regresyon testleri (96), istemcinin kapattığı isteğin logu (97), Euro dışı
   coin'ler (98) ve manuel test bulgularının düzeltmeleri (99, `fix/non-euro-coins-findings` main'e alındı).
-  **Açık branch:** `fix/world-coins-and-ui-findings` (ikinci bulgu turu, Tamamlananlar 100; 20 commit, main'e
-  alınmadı, çalışma ağacı temiz). **Sıradaki:** kullanıcının kalan bulguları bu branch'te, önceki sohbetteki gibi
+  **Açık branch:** `fix/world-coins-and-ui-findings` (ikinci bulgu turu, Tamamlananlar 100; 42 commit, main'e
+  alınmadı, çalışma ağacı temiz; son sohbet 2026-10-10 öğleden sonra bitti, kullanıcının başka bulguları var). **Sıradaki:** kullanıcının kalan bulguları bu branch'te, önceki sohbetteki gibi
   tek tek düzeltilir (bulgu → görüntülü öneri → onay → düzeltme → commit onayı); bulgular bitince bu doküman
   güncellenir ve branch kullanıcı onayıyla main'e alınır. Sonra (kullanıcı onayıyla) push ve `v1.10.0` (minor;
   `AddOtherCoins` migration'ı var: kurulumu onaylamadan önce panelden veritabanı yedeği, "Yayın (deploy)
