@@ -1031,6 +1031,11 @@ Repo kökündeki `.notes/` klasörü sadece lokaldir (`.git/info/exclude`), comm
   betiğiyle (`fetch`) ya da `--data-binary @dosya.json` ile yap.
 - `sqlcmd` ile filtreli index'i olan tablolarda (ör. `AspNetUsers`) DELETE/UPDATE için `-I`
   (QUOTED_IDENTIFIER) gerekir. Konsol Türkçe karakterleri bozuk gösterir, veri doğrudur.
+- Firefox, bir betik sayfa ölçüsünü erken okursa `styles.css` gelmeden çizebilir (konsolda "Layout was forced
+  before the page was fully loaded"; `ng serve`'de görüldü, yayın derlemesinde kabuğun stilleri sayfaya gömülü).
+  Boyutu sadece sınıftan gelen bir SVG o anda sayfa genişliğine yayılır, rengi değişkenden geliyorsa siyah olur:
+  açılış kabuğundaki (`index.html`) SVG'ler `width` / `height` özniteliğini de taşır (2026-10-10, sayfa boyunda
+  siyah logo).
 - **axe `::backdrop`'u görmez:** zemini sadece `backdrop:` ile koyulaşan, kendisi saydam bir `<dialog>`'daki beyaz
   metni arkadaki açık sayfanın üstünde sayar ve ciddi kontrast bulgusu verir (fotoğraf görüntüleyici, 2026-10-10).
   Karartma `<dialog>`'un kendi zemini olur (tam ekran, `bg-…/85` + `backdrop-blur`), içerik ortada; görünüm aynı

@@ -1978,6 +1978,10 @@ Her özellik ya da anlamlı adım sonunda güncellenir.
           listede ve görüntüleyicide kontrol eder, görüntüleyici taranır. Kullanıcı bulgusu: masaüstünde kare
           fotoğrafın iki yanında koyu bant vardı (kutu sütunu dolduruyor, yüksekliği ekranla sınırlıydı; eskiden beri):
           kutu artık kare, görüntüleyici fotoğraf kadar geniş, başlık ve kapatma düğmesi onunla hizalı.
+    - **Açılışta sayfa boyunda siyah daire** (kullanıcı bulgusu, Firefox, `ng serve`): açılış kabuğunun logosu
+          `styles.css` gelmeden çizilince boyutsuz SVG sayfaya yayılıyordu. Logo SVG'si artık kendi boyutunu taşır
+          (32×32); stil dosyası olmadan çizilen sayfada küçük bir logo kalıyor. Yayın derlemesinde kabuğun stilleri
+          sayfaya gömülü, orada görülmemeli (Firefox'ta denenmedi).
     - Regresyon: yükleme davranışı önce testlere sabitlendi (`test(client): pin how the coin list loads`), sonra
           değişmeden geçti. Değişen tek sabit test: gizlilik politikasının tarihi (`legal.spec.ts`, 7 → 10 Ekim).
     - Testler: client 512 (+64), e2e 21, API 501 (+20, fotoğraf alanı uyarıları). Prettier, `ng build`, tam e2e koşusu temiz.
