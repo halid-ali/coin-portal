@@ -22,7 +22,7 @@
     "@jsverse/transloco": "^8.4.0",
     "@tailwindcss/postcss": "^4.3.3",
     "ngx-image-cropper": "^9.1.7",
-    "postcss": "^8.5.28",
+    "postcss": "^8.5.30",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.3.3",
     "tslib": "^2.3.0"
@@ -32,9 +32,9 @@
     "@angular/cli": "^21.2.24",
     "@angular/compiler-cli": "^21.2.25",
     "jsdom": "^28.0.0",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.10",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.12"
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
